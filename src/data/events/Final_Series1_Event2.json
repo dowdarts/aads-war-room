@@ -1,0 +1,1020 @@
+﻿{
+  "metadata": {
+    "series_id": 1,
+    "event_id": 2,
+    "event_name": "Series 1 - Event 2",
+    "event_date": "2025-08-30",
+    "champion": "Gray, Kyle"
+  },
+  "player_event_stats": [
+    {
+      "name": "Holden, Tom",
+      "total_matches": 5,
+      "wins": 3,
+      "losses": 2,
+      "final_event_3da": 75.28,
+      "scores_100plus": 25,
+      "scores_140plus": 13,
+      "scores_180": 2,
+      "co_opportunities": 48,
+      "co_completed": 13,
+      "co_pct": 27.08,
+      "high_finish": 160
+    },
+    {
+      "name": "Cyr, Tyler",
+      "total_matches": 7,
+      "wins": 5,
+      "losses": 2,
+      "final_event_3da": 72.48,
+      "scores_100plus": 46,
+      "scores_140plus": 17,
+      "scores_180": 1,
+      "co_opportunities": 94,
+      "co_completed": 26,
+      "co_pct": 27.66,
+      "high_finish": 124
+    },
+    {
+      "name": "Cormier, Darrell",
+      "total_matches": 6,
+      "wins": 4,
+      "losses": 2,
+      "final_event_3da": 71.97,
+      "scores_100plus": 39,
+      "scores_140plus": 11,
+      "scores_180": 4,
+      "co_opportunities": 66,
+      "co_completed": 20,
+      "co_pct": 30.3,
+      "high_finish": 104
+    },
+    {
+      "name": "Gray, Kyle",
+      "total_matches": 7,
+      "wins": 5,
+      "losses": 2,
+      "final_event_3da": 69.86,
+      "scores_100plus": 43,
+      "scores_140plus": 17,
+      "scores_180": 3,
+      "co_opportunities": 100,
+      "co_completed": 34,
+      "co_pct": 34,
+      "high_finish": 127
+    },
+    {
+      "name": "Pellerin, Fernand",
+      "total_matches": 5,
+      "wins": 2,
+      "losses": 3,
+      "final_event_3da": 68.35,
+      "scores_100plus": 21,
+      "scores_140plus": 5,
+      "scores_180": 2,
+      "co_opportunities": 37,
+      "co_completed": 6,
+      "co_pct": 16.22,
+      "high_finish": 76
+    },
+    {
+      "name": "Stewart, Tyler",
+      "total_matches": 6,
+      "wins": 3,
+      "losses": 3,
+      "final_event_3da": 64.08,
+      "scores_100plus": 23,
+      "scores_140plus": 12,
+      "scores_180": 5,
+      "co_opportunities": 79,
+      "co_completed": 19,
+      "co_pct": 24.05,
+      "high_finish": 146
+    },
+    {
+      "name": "Leblanc, Denis",
+      "total_matches": 5,
+      "wins": 2,
+      "losses": 3,
+      "final_event_3da": 62.21,
+      "scores_100plus": 12,
+      "scores_140plus": 3,
+      "scores_180": 2,
+      "co_opportunities": 32,
+      "co_completed": 6,
+      "co_pct": 18.75,
+      "high_finish": 76
+    },
+    {
+      "name": "Rushton, Steve",
+      "total_matches": 5,
+      "wins": 2,
+      "losses": 3,
+      "final_event_3da": 60.15,
+      "scores_100plus": 19,
+      "scores_140plus": 5,
+      "scores_180": 1,
+      "co_opportunities": 44,
+      "co_completed": 8,
+      "co_pct": 18.18,
+      "high_finish": 92
+    },
+    {
+      "name": "O'Brien, Corey",
+      "total_matches": 4,
+      "wins": 1,
+      "losses": 3,
+      "final_event_3da": 56.6,
+      "scores_100plus": 13,
+      "scores_140plus": 5,
+      "scores_180": 0,
+      "co_opportunities": 37,
+      "co_completed": 10,
+      "co_pct": 27.03,
+      "high_finish": 85
+    },
+    {
+      "name": "Leger, Michel",
+      "total_matches": 4,
+      "wins": 0,
+      "losses": 4,
+      "final_event_3da": 55.46,
+      "scores_100plus": 11,
+      "scores_140plus": 2,
+      "scores_180": 1,
+      "co_opportunities": 37,
+      "co_completed": 4,
+      "co_pct": 10.81,
+      "high_finish": 140
+    }
+  ],
+  "round_robin": {
+    "standings": {
+      "groupA": [
+        {
+          "rank": 1,
+          "name": "Cormier, Darrell",
+          "matches_played": 4,
+          "matches_won": 3,
+          "matches_lost": 1,
+          "legs_won": 11,
+          "legs_lost": 4
+        },
+        {
+          "rank": 2,
+          "name": "Holden, Tom",
+          "matches_played": 4,
+          "matches_won": 3,
+          "matches_lost": 1,
+          "legs_won": 10,
+          "legs_lost": 4
+        },
+        {
+          "rank": 3,
+          "name": "Rushton, Steve",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 7,
+          "legs_lost": 8
+        },
+        {
+          "rank": 4,
+          "name": "Leblanc, Denis",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 6,
+          "legs_lost": 10
+        },
+        {
+          "rank": 5,
+          "name": "Leger, Michel",
+          "matches_played": 4,
+          "matches_won": 0,
+          "matches_lost": 4,
+          "legs_won": 4,
+          "legs_lost": 12
+        }
+      ],
+      "groupB": [
+        {
+          "rank": 1,
+          "name": "Gray, Kyle",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 9,
+          "legs_lost": 6
+        },
+        {
+          "rank": 2,
+          "name": "Cyr, Tyler",
+          "matches_played": 4,
+          "matches_won": 3,
+          "matches_lost": 1,
+          "legs_won": 9,
+          "legs_lost": 6
+        },
+        {
+          "rank": 3,
+          "name": "Stewart, Tyler",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 8,
+          "legs_lost": 8
+        },
+        {
+          "rank": 4,
+          "name": "Pellerin, Fernand",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 7,
+          "legs_lost": 7
+        },
+        {
+          "rank": 5,
+          "name": "O'Brien, Corey",
+          "matches_played": 4,
+          "matches_won": 1,
+          "matches_lost": 3,
+          "legs_won": 4,
+          "legs_lost": 10
+        }
+      ]
+    },
+    "matches": {
+      "groupA": [
+        {
+          "player1": "Cormier, Darrell",
+          "player2": "Holden, Tom",
+          "player1_legs": 3,
+          "player2_legs": 1,
+          "start_time": "08:13",
+          "player1_details": {
+            "three_dart_avg": 72.29,
+            "co_opportunities": 14,
+            "co_completed": 3,
+            "co_pct": 21.43,
+            "scores_100plus": 4,
+            "scores_140plus": 2,
+            "scores_180": 1,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 66.72,
+            "co_opportunities": 9,
+            "co_completed": 1,
+            "co_pct": 11.11,
+            "scores_100plus": 3,
+            "scores_140plus": 3,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Cormier, Darrell",
+          "player2": "Leblanc, Denis",
+          "player1_legs": 2,
+          "player2_legs": 3,
+          "start_time": "08:41",
+          "player1_details": {
+            "three_dart_avg": 71.88,
+            "co_opportunities": 9,
+            "co_completed": 2,
+            "co_pct": 22.22,
+            "scores_100plus": 5,
+            "scores_140plus": 2,
+            "scores_180": 1,
+            "high_finish": 86
+          },
+          "player2_details": {
+            "three_dart_avg": 71.78,
+            "co_opportunities": 8,
+            "co_completed": 3,
+            "co_pct": 37.5,
+            "scores_100plus": 4,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 76
+          }
+        },
+        {
+          "player1": "Cormier, Darrell",
+          "player2": "Leger, Michel",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "09:42",
+          "player1_details": {
+            "three_dart_avg": 63.51,
+            "co_opportunities": 8,
+            "co_completed": 3,
+            "co_pct": 37.5,
+            "scores_100plus": 4,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 56.55,
+            "co_opportunities": 5,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Cormier, Darrell",
+          "player2": "Rushton, Steve",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "11:10",
+          "player1_details": {
+            "three_dart_avg": 73.92,
+            "co_opportunities": 6,
+            "co_completed": 3,
+            "co_pct": 50,
+            "scores_100plus": 3,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 68.42,
+            "co_opportunities": 4,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 3,
+            "scores_140plus": 0,
+            "scores_180": 1,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Holden, Tom",
+          "player2": "Leblanc, Denis",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "09:01",
+          "player1_details": {
+            "three_dart_avg": 104.86,
+            "co_opportunities": 5,
+            "co_completed": 3,
+            "co_pct": 60,
+            "scores_100plus": 5,
+            "scores_140plus": 4,
+            "scores_180": 1,
+            "high_finish": 66
+          },
+          "player2_details": {
+            "three_dart_avg": 73.36,
+            "co_opportunities": 1,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 0,
+            "scores_140plus": 0,
+            "scores_180": 2,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Holden, Tom",
+          "player2": "Leger, Michel",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "10:01",
+          "player1_details": {
+            "three_dart_avg": 64.41,
+            "co_opportunities": 6,
+            "co_completed": 3,
+            "co_pct": 50,
+            "scores_100plus": 1,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 58.77,
+            "co_opportunities": 4,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 1,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Holden, Tom",
+          "player2": "Rushton, Steve",
+          "player1_legs": 3,
+          "player2_legs": 1,
+          "start_time": "09:17",
+          "player1_details": {
+            "three_dart_avg": 69.6,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 30,
+            "scores_100plus": 5,
+            "scores_140plus": 0,
+            "scores_180": 1,
+            "high_finish": 96
+          },
+          "player2_details": {
+            "three_dart_avg": 59.02,
+            "co_opportunities": 5,
+            "co_completed": 1,
+            "co_pct": 20,
+            "scores_100plus": 2,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Leblanc, Denis",
+          "player2": "Leger, Michel",
+          "player1_legs": 3,
+          "player2_legs": 2,
+          "start_time": "10:25",
+          "player1_details": {
+            "three_dart_avg": 55.55,
+            "co_opportunities": 13,
+            "co_completed": 3,
+            "co_pct": 23.08,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 57.21,
+            "co_opportunities": 11,
+            "co_completed": 2,
+            "co_pct": 18.18,
+            "scores_100plus": 2,
+            "scores_140plus": 1,
+            "scores_180": 1,
+            "high_finish": 140
+          }
+        },
+        {
+          "player1": "Leblanc, Denis",
+          "player2": "Rushton, Steve",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "10:54",
+          "player1_details": {
+            "three_dart_avg": 57.5,
+            "co_opportunities": 5,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 1,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 65.35,
+            "co_opportunities": 7,
+            "co_completed": 3,
+            "co_pct": 42.86,
+            "scores_100plus": 4,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 92
+          }
+        },
+        {
+          "player1": "Leger, Michel",
+          "player2": "Rushton, Steve",
+          "player1_legs": 2,
+          "player2_legs": 3,
+          "start_time": "11:51",
+          "player1_details": {
+            "three_dart_avg": 49.31,
+            "co_opportunities": 17,
+            "co_completed": 2,
+            "co_pct": 11.76,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 50.32,
+            "co_opportunities": 20,
+            "co_completed": 3,
+            "co_pct": 15,
+            "scores_100plus": 6,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        }
+      ],
+      "groupB": [
+        {
+          "player1": "O'Brien, Corey",
+          "player2": "Pellerin, Fernand",
+          "player1_legs": 3,
+          "player2_legs": 1,
+          "start_time": "09:38",
+          "player1_details": {
+            "three_dart_avg": 61.8,
+            "co_opportunities": 10,
+            "co_completed": 1,
+            "co_pct": 30,
+            "scores_100plus": 4,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 85
+          },
+          "player2_details": {
+            "three_dart_avg": 59.23,
+            "co_opportunities": 6,
+            "co_completed": 1,
+            "co_pct": 16.67,
+            "scores_100plus": 3,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "O'Brien, Corey",
+          "player2": "Stewart, Tyler",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "11:21",
+          "player1_details": {
+            "three_dart_avg": 48.86,
+            "co_opportunities": 11,
+            "co_completed": 3,
+            "co_pct": 0,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 50.66,
+            "co_opportunities": 14,
+            "co_completed": 3,
+            "co_pct": 21.43,
+            "scores_100plus": 1,
+            "scores_140plus": 0,
+            "scores_180": 1,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "O'Brien, Corey",
+          "player2": "Cyr, Tyler",
+          "player1_legs": 1,
+          "player2_legs": 3,
+          "start_time": "08:37",
+          "player1_details": {
+            "three_dart_avg": 63.2,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 10,
+            "scores_100plus": 4,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 63.35,
+            "co_opportunities": 9,
+            "co_completed": 3,
+            "co_pct": 33.33,
+            "scores_100plus": 5,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 122
+          }
+        },
+        {
+          "player1": "O'Brien, Corey",
+          "player2": "Gray, Kyle",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "08:15",
+          "player1_details": {
+            "three_dart_avg": 52.54,
+            "co_opportunities": 6,
+            "co_completed": 3,
+            "co_pct": 0,
+            "scores_100plus": 1,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 60.93,
+            "co_opportunities": 8,
+            "co_completed": 3,
+            "co_pct": 37.5,
+            "scores_100plus": 2,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 78
+          }
+        },
+        {
+          "player1": "Pellerin, Fernand",
+          "player2": "Stewart, Tyler",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "11:49",
+          "player1_details": {
+            "three_dart_avg": 64.41,
+            "co_opportunities": 13,
+            "co_completed": 0,
+            "co_pct": 23.08,
+            "scores_100plus": 5,
+            "scores_140plus": 1,
+            "scores_180": 1,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 52.58,
+            "co_opportunities": 9,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 2,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Pellerin, Fernand",
+          "player2": "Cyr, Tyler",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "10:20",
+          "player1_details": {
+            "three_dart_avg": 63.32,
+            "co_opportunities": 1,
+            "co_completed": 3,
+            "co_pct": 0,
+            "scores_100plus": 1,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 73.92,
+            "co_opportunities": 7,
+            "co_completed": 3,
+            "co_pct": 42.86,
+            "scores_100plus": 5,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 112
+          }
+        },
+        {
+          "player1": "Pellerin, Fernand",
+          "player2": "Gray, Kyle",
+          "player1_legs": 3,
+          "player2_legs": 1,
+          "start_time": "10:01",
+          "player1_details": {
+            "three_dart_avg": 75.7,
+            "co_opportunities": 9,
+            "co_completed": 1,
+            "co_pct": 33.33,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 1,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 68.26,
+            "co_opportunities": 6,
+            "co_completed": 1,
+            "co_pct": 16.67,
+            "scores_100plus": 4,
+            "scores_140plus": 3,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Stewart, Tyler",
+          "player2": "Cyr, Tyler",
+          "player1_legs": 2,
+          "player2_legs": 3,
+          "start_time": "10:56",
+          "player1_details": {
+            "three_dart_avg": 70.44,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 20,
+            "scores_100plus": 2,
+            "scores_140plus": 4,
+            "scores_180": 1,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 70.22,
+            "co_opportunities": 11,
+            "co_completed": 3,
+            "co_pct": 27.27,
+            "scores_100plus": 4,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 66
+          }
+        },
+        {
+          "player1": "Stewart, Tyler",
+          "player2": "Gray, Kyle",
+          "player1_legs": 3,
+          "player2_legs": 2,
+          "start_time": "09:18",
+          "player1_details": {
+            "three_dart_avg": 71,
+            "co_opportunities": 10,
+            "co_completed": 2,
+            "co_pct": 30,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 1,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 72.58,
+            "co_opportunities": 6,
+            "co_completed": 2,
+            "co_pct": 33.33,
+            "scores_100plus": 3,
+            "scores_140plus": 2,
+            "scores_180": 1,
+            "high_finish": 70
+          }
+        },
+        {
+          "player1": "Cyr, Tyler",
+          "player2": "Gray, Kyle",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "08:59",
+          "player1_details": {
+            "three_dart_avg": 68.7,
+            "co_opportunities": 6,
+            "co_completed": 3,
+            "co_pct": 0,
+            "scores_100plus": 3,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 71.57,
+            "co_opportunities": 8,
+            "co_completed": 3,
+            "co_pct": 37.5,
+            "scores_100plus": 3,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        }
+      ]
+    }
+  },
+  "knockout": {
+    "quarterFinals": [
+      {
+        "match_id": "QF1",
+        "player1": "Cormier, Darrell",
+        "player2": "Pellerin, Fernand",
+        "player1_sets": 3,
+        "player2_sets": 0,
+        "player1_total_legs": 6,
+        "player2_total_legs": 1,
+        "winner": "Cormier, Darrell",
+        "start_time": "00:29",
+        "player1_details": {
+          "three_dart_avg": 81.43,
+          "co_opportunities": 14,
+          "co_completed": 6,
+          "co_pct": 42.86,
+          "scores_100plus": 8,
+          "scores_140plus": 2,
+          "scores_180": 2,
+          "high_finish": 0
+        },
+        "player2_details": {
+          "three_dart_avg": 79.1,
+          "co_opportunities": 8,
+          "co_completed": 1,
+          "co_pct": 12.5,
+          "scores_100plus": 8,
+          "scores_140plus": 3,
+          "scores_180": 0,
+          "high_finish": 76
+        }
+      },
+      {
+        "match_id": "QF3",
+        "player1": "Rushton, Steve",
+        "player2": "Gray, Kyle",
+        "player1_sets": 0,
+        "player2_sets": 3,
+        "player1_total_legs": 1,
+        "player2_total_legs": 6,
+        "winner": "Gray, Kyle",
+        "start_time": "00:23",
+        "player1_details": {
+          "three_dart_avg": 57.66,
+          "co_opportunities": 8,
+          "co_completed": 1,
+          "co_pct": 12.5,
+          "scores_100plus": 4,
+          "scores_140plus": 1,
+          "scores_180": 0,
+          "high_finish": 60
+        },
+        "player2_details": {
+          "three_dart_avg": 69.82,
+          "co_opportunities": 16,
+          "co_completed": 6,
+          "co_pct": 37.5,
+          "scores_100plus": 10,
+          "scores_140plus": 1,
+          "scores_180": 0,
+          "high_finish": 106
+        }
+      },
+      {
+        "match_id": "QF4",
+        "player1": "Leblanc, Denis",
+        "player2": "Cyr, Tyler",
+        "player1_sets": 0,
+        "player2_sets": 3,
+        "player1_total_legs": 0,
+        "player2_total_legs": 6,
+        "winner": "Cyr, Tyler",
+        "start_time": "00:49",
+        "player1_details": {
+          "three_dart_avg": 52.88,
+          "co_opportunities": 5,
+          "co_completed": 0,
+          "co_pct": 0,
+          "scores_100plus": 3,
+          "scores_140plus": 1,
+          "scores_180": 0,
+          "high_finish": 0
+        },
+        "player2_details": {
+          "three_dart_avg": 98.32,
+          "co_opportunities": 12,
+          "co_completed": 6,
+          "co_pct": 50,
+          "scores_100plus": 3,
+          "scores_140plus": 3,
+          "scores_180": 1,
+          "high_finish": 87
+        }
+      },
+      {
+        "match_id": "QF2",
+        "player1": "Holden, Tom",
+        "player2": "Stewart, Tyler",
+        "player1_sets": 1,
+        "player2_sets": 3,
+        "player1_total_legs": 3,
+        "player2_total_legs": 7,
+        "winner": "Stewart, Tyler",
+        "start_time": "13:07",
+        "player1_details": {
+          "three_dart_avg": 70.8,
+          "co_opportunities": 18,
+          "co_completed": 3,
+          "co_pct": 16.67,
+          "scores_100plus": 11,
+          "scores_140plus": 5,
+          "scores_180": 0,
+          "high_finish": 160
+        },
+        "player2_details": {
+          "three_dart_avg": 69.71,
+          "co_opportunities": 17,
+          "co_completed": 7,
+          "co_pct": 41.18,
+          "scores_100plus": 6,
+          "scores_140plus": 6,
+          "scores_180": 1,
+          "high_finish": 146
+        }
+      }
+    ],
+    "semiFinals": [
+      {
+        "match_id": "SF1",
+        "player1": "Cormier, Darrell",
+        "player2": "Gray, Kyle",
+        "player1_sets": 1,
+        "player2_sets": 3,
+        "player1_total_legs": 3,
+        "player2_total_legs": 7,
+        "winner": "Gray, Kyle",
+        "start_time": "13:51",
+        "player1_details": {
+          "three_dart_avg": 68.78,
+          "co_opportunities": 15,
+          "co_completed": 3,
+          "co_pct": 20,
+          "scores_100plus": 15,
+          "scores_140plus": 2,
+          "scores_180": 0,
+          "high_finish": 104
+        },
+        "player2_details": {
+          "three_dart_avg": 75.14,
+          "co_opportunities": 19,
+          "co_completed": 7,
+          "co_pct": 36.84,
+          "scores_100plus": 9,
+          "scores_140plus": 5,
+          "scores_180": 1,
+          "high_finish": 82
+        }
+      },
+      {
+        "match_id": "SF2",
+        "player1": "Stewart, Tyler",
+        "player2": "Cyr, Tyler",
+        "player1_sets": 1,
+        "player2_sets": 3,
+        "player1_total_legs": 4,
+        "player2_total_legs": 7,
+        "winner": "Cyr, Tyler",
+        "start_time": "14:27",
+        "player1_details": {
+          "three_dart_avg": 70.09,
+          "co_opportunities": 19,
+          "co_completed": 4,
+          "co_pct": 21.05,
+          "scores_100plus": 8,
+          "scores_140plus": 2,
+          "scores_180": 1,
+          "high_finish": 89
+        },
+        "player2_details": {
+          "three_dart_avg": 69.13,
+          "co_opportunities": 19,
+          "co_completed": 4,
+          "co_pct": 21.05,
+          "scores_100plus": 9,
+          "scores_140plus": 4,
+          "scores_180": 0,
+          "high_finish": 0
+        }
+      }
+    ],
+    "final": {
+      "match_id": "FINAL",
+      "player1": "Gray, Kyle",
+      "player2": "Cyr, Tyler",
+      "player1_sets": 4,
+      "player2_sets": 0,
+      "player1_total_legs": 12,
+      "player2_total_legs": 4,
+      "winner": "Gray, Kyle",
+      "start_time": "15:13",
+      "player1_details": {
+        "three_dart_avg": 70.75,
+        "co_opportunities": 37,
+        "co_completed": 12,
+        "co_pct": 32.43,
+        "scores_100plus": 12,
+        "scores_140plus": 5,
+        "scores_180": 1,
+        "high_finish": 127
+      },
+      "player2_details": {
+        "three_dart_avg": 63.69,
+        "co_opportunities": 30,
+        "co_completed": 4,
+        "co_pct": 13.33,
+        "scores_100plus": 17,
+        "scores_140plus": 6,
+        "scores_180": 0,
+        "high_finish": 124
+      }
+    },
+    "champion": "Gray, Kyle"
+  }
+}
+

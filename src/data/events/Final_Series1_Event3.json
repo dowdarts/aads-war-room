@@ -1,0 +1,1019 @@
+{
+  "metadata": {
+    "series_id": 1,
+    "event_id": 3,
+    "event_name": "Series 1 - Event 3",
+    "event_date": "2025-10-12",
+    "champion": "Cyr, Tyler"
+  },
+  "player_event_stats": [
+    {
+      "name": "Berry, Drake",
+      "total_matches": 5,
+      "wins": 4,
+      "losses": 1,
+      "final_event_3da": 72.42,
+      "scores_100plus": 35,
+      "scores_140plus": 8,
+      "scores_180": 1,
+      "co_opportunities": 49,
+      "co_completed": 15,
+      "co_pct": 30.61,
+      "high_finish": 63
+    },
+    {
+      "name": "Higgins, Don",
+      "total_matches": 6,
+      "wins": 3,
+      "losses": 3,
+      "final_event_3da": 69.3,
+      "scores_100plus": 39,
+      "scores_140plus": 3,
+      "scores_180": 0,
+      "co_opportunities": 86,
+      "co_completed": 24,
+      "co_pct": 27.91,
+      "high_finish": 96
+    },
+    {
+      "name": "Gray, Kyle",
+      "total_matches": 5,
+      "wins": 2,
+      "losses": 3,
+      "final_event_3da": 68.91,
+      "scores_100plus": 21,
+      "scores_140plus": 6,
+      "scores_180": 1,
+      "co_opportunities": 57,
+      "co_completed": 13,
+      "co_pct": 22.81,
+      "high_finish": 145
+    },
+    {
+      "name": "Chapman, Wayne",
+      "total_matches": 7,
+      "wins": 4,
+      "losses": 3,
+      "final_event_3da": 68.23,
+      "scores_100plus": 64,
+      "scores_140plus": 19,
+      "scores_180": 7,
+      "co_opportunities": 157,
+      "co_completed": 39,
+      "co_pct": 24.84,
+      "high_finish": 140
+    },
+    {
+      "name": "Cyr, Tyler",
+      "total_matches": 7,
+      "wins": 4,
+      "losses": 3,
+      "final_event_3da": 66.63,
+      "scores_100plus": 65,
+      "scores_140plus": 25,
+      "scores_180": 7,
+      "co_opportunities": 142,
+      "co_completed": 39,
+      "co_pct": 27.46,
+      "high_finish": 107
+    },
+    {
+      "name": "Pellerin, Fernand",
+      "total_matches": 5,
+      "wins": 3,
+      "losses": 2,
+      "final_event_3da": 63.69,
+      "scores_100plus": 14,
+      "scores_140plus": 4,
+      "scores_180": 0,
+      "co_opportunities": 45,
+      "co_completed": 7,
+      "co_pct": 15.56,
+      "high_finish": 73
+    },
+    {
+      "name": "Casey, Jon",
+      "total_matches": 5,
+      "wins": 2,
+      "losses": 3,
+      "final_event_3da": 57.95,
+      "scores_100plus": 19,
+      "scores_140plus": 4,
+      "scores_180": 1,
+      "co_opportunities": 49,
+      "co_completed": 11,
+      "co_pct": 22.45,
+      "high_finish": 115
+    },
+    {
+      "name": "Maceachern Mark",
+      "total_matches": 6,
+      "wins": 1,
+      "losses": 5,
+      "final_event_3da": 56.84,
+      "scores_100plus": 32,
+      "scores_140plus": 9,
+      "scores_180": 0,
+      "co_opportunities": 93,
+      "co_completed": 19,
+      "co_pct": 20.43,
+      "high_finish": 125
+    },
+    {
+      "name": "Davis, Zach",
+      "total_matches": 4,
+      "wins": 0,
+      "losses": 4,
+      "final_event_3da": 53.23,
+      "scores_100plus": 9,
+      "scores_140plus": 0,
+      "scores_180": 0,
+      "co_opportunities": 24,
+      "co_completed": 2,
+      "co_pct": 8.33,
+      "high_finish": 91
+    },
+    {
+      "name": "Chaission,Ricky",
+      "total_matches": 4,
+      "wins": 0,
+      "losses": 4,
+      "final_event_3da": 49.68,
+      "scores_100plus": 5,
+      "scores_140plus": 0,
+      "scores_180": 0,
+      "co_opportunities": 11,
+      "co_completed": 1,
+      "co_pct": 9.09,
+      "high_finish": 0
+    }
+  ],
+  "round_robin": {
+    "standings": {
+      "groupA": [
+        {
+          "rank": 1,
+          "name": "Berry, Drake",
+          "matches_played": 4,
+          "matches_won": 4,
+          "matches_lost": 0,
+          "legs_won": 12,
+          "legs_lost": 2
+        },
+        {
+          "rank": 2,
+          "name": "Chapman, Wayne",
+          "matches_played": 4,
+          "matches_won": 3,
+          "matches_lost": 1,
+          "legs_won": 9,
+          "legs_lost": 6
+        },
+        {
+          "rank": 3,
+          "name": "Casey, Jon",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 9,
+          "legs_lost": 7
+        },
+        {
+          "rank": 4,
+          "name": "Maceachern Mark",
+          "matches_played": 4,
+          "matches_won": 1,
+          "matches_lost": 3,
+          "legs_won": 4,
+          "legs_lost": 9
+        },
+        {
+          "rank": 5,
+          "name": "Davis, Zach",
+          "matches_played": 4,
+          "matches_won": 0,
+          "matches_lost": 4,
+          "legs_won": 2,
+          "legs_lost": 12
+        }
+      ],
+      "groupB": [
+        {
+          "rank": 1,
+          "name": "Higgins, Don",
+          "matches_played": 4,
+          "matches_won": 3,
+          "matches_lost": 1,
+          "legs_won": 9,
+          "legs_lost": 5
+        },
+        {
+          "rank": 2,
+          "name": "Gray, Kyle",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 9,
+          "legs_lost": 6
+        },
+        {
+          "rank": 3,
+          "name": "Pellerin, Fernand",
+          "matches_played": 4,
+          "matches_won": 3,
+          "matches_lost": 1,
+          "legs_won": 9,
+          "legs_lost": 3
+        },
+        {
+          "rank": 4,
+          "name": "Cyr, Tyler",
+          "matches_played": 4,
+          "matches_won": 2,
+          "matches_lost": 2,
+          "legs_won": 6,
+          "legs_lost": 8
+        },
+        {
+          "rank": 5,
+          "name": "Chaission,Ricky",
+          "matches_played": 4,
+          "matches_won": 0,
+          "matches_lost": 4,
+          "legs_won": 1,
+          "legs_lost": 12
+        }
+      ]
+    },
+    "matches": {
+      "groupA": [
+        {
+          "player1": "Davis, Zach",
+          "player2": "Maceachern Mark",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "10:11",
+          "player1_details": {
+            "three_dart_avg": 42.73,
+            "co_opportunities": 12,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 3,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 50.1,
+            "co_opportunities": 12,
+            "co_completed": 3,
+            "co_pct": 25,
+            "scores_100plus": 3,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 125
+          }
+        },
+        {
+          "player1": "Davis, Zach",
+          "player2": "Berry, Drake",
+          "player1_legs": 1,
+          "player2_legs": 3,
+          "start_time": "09:08",
+          "player1_details": {
+            "three_dart_avg": 56.29,
+            "co_opportunities": 4,
+            "co_completed": 1,
+            "co_pct": 25,
+            "scores_100plus": 1,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 91
+          },
+          "player2_details": {
+            "three_dart_avg": 74.04,
+            "co_opportunities": 11,
+            "co_completed": 3,
+            "co_pct": 27.27,
+            "scores_100plus": 6,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Davis, Zach",
+          "player2": "Casey, Jon",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "09:50",
+          "player1_details": {
+            "three_dart_avg": 50.169,
+            "co_opportunities": 4,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 2,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 56.36,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 30,
+            "scores_100plus": 2,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 115
+          }
+        },
+        {
+          "player1": "Davis, Zach",
+          "player2": "Chapman, Wayne",
+          "player1_legs": 1,
+          "player2_legs": 3,
+          "start_time": "10:59",
+          "player1_details": {
+            "three_dart_avg": 63.73,
+            "co_opportunities": 4,
+            "co_completed": 1,
+            "co_pct": 25,
+            "scores_100plus": 3,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 79.58,
+            "co_opportunities": 7,
+            "co_completed": 3,
+            "co_pct": 42.86,
+            "scores_100plus": 5,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Maceachern Mark",
+          "player2": "Berry, Drake",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "00:36",
+          "player1_details": {
+            "three_dart_avg": 67,
+            "co_opportunities": 3,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 4,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 75.15,
+            "co_opportunities": 8,
+            "co_completed": 3,
+            "co_pct": 37.5,
+            "scores_100plus": 7,
+            "scores_140plus": 0,
+            "scores_180": 1,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Maceachern Mark",
+          "player2": "Casey, Jon",
+          "player1_legs": 1,
+          "player2_legs": 3,
+          "start_time": "11:56",
+          "player1_details": {
+            "three_dart_avg": 48.56,
+            "co_opportunities": 9,
+            "co_completed": 1,
+            "co_pct": 11.11,
+            "scores_100plus": 1,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 55.91,
+            "co_opportunities": 13,
+            "co_completed": 3,
+            "co_pct": 23.08,
+            "scores_100plus": 5,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 92
+          }
+        },
+        {
+          "player1": "Maceachern Mark",
+          "player2": "Chapman, Wayne",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "00:57",
+          "player1_details": {
+            "three_dart_avg": 55.37,
+            "co_opportunities": 2,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 0,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 71.57,
+            "co_opportunities": 7,
+            "co_completed": 3,
+            "co_pct": 42.86,
+            "scores_100plus": 2,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 92
+          }
+        },
+        {
+          "player1": "Berry, Drake",
+          "player2": "Casey, Jon",
+          "player1_legs": 3,
+          "player2_legs": 1,
+          "start_time": "09:27",
+          "player1_details": {
+            "three_dart_avg": 70.45,
+            "co_opportunities": 9,
+            "co_completed": 3,
+            "co_pct": 33.33,
+            "scores_100plus": 6,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 60
+          },
+          "player2_details": {
+            "three_dart_avg": 55.36,
+            "co_opportunities": 3,
+            "co_completed": 1,
+            "co_pct": 33.33,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Berry, Drake",
+          "player2": "Chapman, Wayne",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "10:34",
+          "player1_details": {
+            "three_dart_avg": 72.73,
+            "co_opportunities": 8,
+            "co_completed": 3,
+            "co_pct": 37.5,
+            "scores_100plus": 1,
+            "scores_140plus": 3,
+            "scores_180": 0,
+            "high_finish": 63
+          },
+          "player2_details": {
+            "three_dart_avg": 61,
+            "co_opportunities": 3,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 1,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Casey, Jon",
+          "player2": "Chapman, Wayne",
+          "player1_legs": 2,
+          "player2_legs": 3,
+          "start_time": "11:26",
+          "player1_details": {
+            "three_dart_avg": 60.24,
+            "co_opportunities": 10,
+            "co_completed": 2,
+            "co_pct": 20,
+            "scores_100plus": 2,
+            "scores_140plus": 1,
+            "scores_180": 1,
+            "high_finish": 112
+          },
+          "player2_details": {
+            "three_dart_avg": 67.05,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 30,
+            "scores_100plus": 5,
+            "scores_140plus": 1,
+            "scores_180": 1,
+            "high_finish": 0
+          }
+        }
+      ],
+      "groupB": [
+        {
+          "player1": "Chaission,Ricky",
+          "player2": "Gray, Kyle",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "10:32",
+          "player1_details": {
+            "three_dart_avg": 48.43,
+            "co_opportunities": 1,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 2,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 69.37,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 30,
+            "scores_100plus": 2,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Chaission,Ricky",
+          "player2": "Higgins, Don",
+          "player1_legs": 1,
+          "player2_legs": 3,
+          "start_time": "00:32",
+          "player1_details": {
+            "three_dart_avg": 51.27,
+            "co_opportunities": 5,
+            "co_completed": 1,
+            "co_pct": 20,
+            "scores_100plus": 1,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 65.54,
+            "co_opportunities": 9,
+            "co_completed": 3,
+            "co_pct": 33.33,
+            "scores_100plus": 2,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 66
+          }
+        },
+        {
+          "player1": "Chaission,Ricky",
+          "player2": "Pellerin, Fernand",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "09:31",
+          "player1_details": {
+            "three_dart_avg": 49.91,
+            "co_opportunities": 2,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 1,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 62.63,
+            "co_opportunities": 9,
+            "co_completed": 3,
+            "co_pct": 33.33,
+            "scores_100plus": 2,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 73
+          }
+        },
+        {
+          "player1": "Chaission,Ricky",
+          "player2": "Cyr, Tyler",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "09:11",
+          "player1_details": {
+            "three_dart_avg": 49.1,
+            "co_opportunities": 3,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 1,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 67.3,
+            "co_opportunities": 7,
+            "co_completed": 3,
+            "co_pct": 42.86,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 101
+          }
+        },
+        {
+          "player1": "Gray, Kyle",
+          "player2": "Higgins, Don",
+          "player1_legs": 1,
+          "player2_legs": 3,
+          "start_time": "00:57",
+          "player1_details": {
+            "three_dart_avg": 63.53,
+            "co_opportunities": 6,
+            "co_completed": 3,
+            "co_pct": 16.67,
+            "scores_100plus": 0,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 68.24,
+            "co_opportunities": 7,
+            "co_completed": 3,
+            "co_pct": 42.86,
+            "scores_100plus": 4,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 96
+          }
+        },
+        {
+          "player1": "Gray, Kyle",
+          "player2": "Pellerin, Fernand",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "11:27",
+          "player1_details": {
+            "three_dart_avg": 81.98,
+            "co_opportunities": 6,
+            "co_completed": 0,
+            "co_pct": 50,
+            "scores_100plus": 3,
+            "scores_140plus": 1,
+            "scores_180": 1,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 63.06,
+            "co_opportunities": 2,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 2,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Gray, Kyle",
+          "player2": "Cyr, Tyler",
+          "player1_legs": 2,
+          "player2_legs": 3,
+          "start_time": "10:55",
+          "player1_details": {
+            "three_dart_avg": 63.84,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 20,
+            "scores_100plus": 7,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 64.95,
+            "co_opportunities": 12,
+            "co_completed": 3,
+            "co_pct": 25,
+            "scores_100plus": 6,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Higgins, Don",
+          "player2": "Pellerin, Fernand",
+          "player1_legs": 0,
+          "player2_legs": 3,
+          "start_time": "11:56",
+          "player1_details": {
+            "three_dart_avg": 69.81,
+            "co_opportunities": 7,
+            "co_completed": 3,
+            "co_pct": 0,
+            "scores_100plus": 2,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 69.37,
+            "co_opportunities": 10,
+            "co_completed": 3,
+            "co_pct": 30,
+            "scores_100plus": 2,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Higgins, Don",
+          "player2": "Cyr, Tyler",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "10:11",
+          "player1_details": {
+            "three_dart_avg": 64.41,
+            "co_opportunities": 7,
+            "co_completed": 0,
+            "co_pct": 42.86,
+            "scores_100plus": 2,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 58.3,
+            "co_opportunities": 6,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 3,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        },
+        {
+          "player1": "Pellerin, Fernand",
+          "player2": "Cyr, Tyler",
+          "player1_legs": 3,
+          "player2_legs": 0,
+          "start_time": "09:48",
+          "player1_details": {
+            "three_dart_avg": 72.73,
+            "co_opportunities": 8,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 4,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "high_finish": 0
+          },
+          "player2_details": {
+            "three_dart_avg": 61.76,
+            "co_opportunities": 4,
+            "co_completed": 0,
+            "co_pct": 0,
+            "scores_100plus": 3,
+            "scores_140plus": 0,
+            "scores_180": 0,
+            "high_finish": 0
+          }
+        }
+      ]
+    }
+  },
+  "knockout": {
+    "quarterFinals": [
+      {
+        "match_id": "QF1",
+        "player1": "Berry, Drake",
+        "player2": "Cyr, Tyler",
+        "player1_sets": 0,
+        "player2_sets": 2,
+        "player1_total_legs": 3,
+        "player2_total_legs": 6,
+        "winner": null,
+        "start_time": "13:29",
+        "player1_details": {
+          "three_dart_avg": 69.73,
+          "co_opportunities": 13,
+          "co_completed": 3,
+          "co_pct": 23.08,
+          "scores_100plus": 15,
+          "scores_140plus": 3,
+          "scores_180": 0,
+          "high_finish": 0
+        },
+        "player2_details": {
+          "three_dart_avg": 71.52,
+          "co_opportunities": 16,
+          "co_completed": 6,
+          "co_pct": 37.5,
+          "scores_100plus": 6,
+          "scores_140plus": 3,
+          "scores_180": 1,
+          "high_finish": 107
+        }
+      },
+      {
+        "match_id": "QF2",
+        "player1": "Higgins, Don",
+        "player2": "Casey, Jon",
+        "player1_sets": 2,
+        "player2_sets": 0,
+        "player1_total_legs": 6,
+        "player2_total_legs": 2,
+        "winner": null,
+        "start_time": "14:16",
+        "player1_details": {
+          "three_dart_avg": 74.72,
+          "co_opportunities": 20,
+          "co_completed": 6,
+          "co_pct": 30,
+          "scores_100plus": 9,
+          "scores_140plus": 0,
+          "scores_180": 0,
+          "high_finish": 80
+        },
+        "player2_details": {
+          "three_dart_avg": 61.87,
+          "co_opportunities": 13,
+          "co_completed": 2,
+          "co_pct": 15.38,
+          "scores_100plus": 6,
+          "scores_140plus": 2,
+          "scores_180": 0,
+          "high_finish": 0
+        }
+      },
+      {
+        "match_id": "QF3",
+        "player1": "Pellerin, Fernand",
+        "player2": "Maceachern Mark",
+        "player1_sets": 0,
+        "player2_sets": 2,
+        "player1_total_legs": 1,
+        "player2_total_legs": 6,
+        "winner": null,
+        "start_time": "13:28",
+        "player1_details": {
+          "three_dart_avg": 50.67,
+          "co_opportunities": 16,
+          "co_completed": 1,
+          "co_pct": 6.25,
+          "scores_100plus": 4,
+          "scores_140plus": 0,
+          "scores_180": 0,
+          "high_finish": 0
+        },
+        "player2_details": {
+          "three_dart_avg": 58.35,
+          "co_opportunities": 23,
+          "co_completed": 6,
+          "co_pct": 26.09,
+          "scores_100plus": 7,
+          "scores_140plus": 3,
+          "scores_180": 0,
+          "high_finish": 60
+        }
+      },
+      {
+        "match_id": "QF4",
+        "player1": "Chapman, Wayne",
+        "player2": "Gray, Kyle",
+        "player1_sets": 2,
+        "player2_sets": 1,
+        "player1_total_legs": 8,
+        "player2_total_legs": 4,
+        "winner": null,
+        "start_time": "14:10",
+        "player1_details": {
+          "three_dart_avg": 65.84,
+          "co_opportunities": 27,
+          "co_completed": 8,
+          "co_pct": 29.63,
+          "scores_100plus": 13,
+          "scores_140plus": 2,
+          "scores_180": 1,
+          "high_finish": 110
+        },
+        "player2_details": {
+          "three_dart_avg": 65.82,
+          "co_opportunities": 25,
+          "co_completed": 4,
+          "co_pct": 16,
+          "scores_100plus": 9,
+          "scores_140plus": 2,
+          "scores_180": 0,
+          "high_finish": 145
+        }
+      }
+    ],
+    "semiFinals": [
+      {
+        "match_id": "SF1",
+        "player1": "Cyr, Tyler",
+        "player2": "Higgins, Don",
+        "player1_sets": 3,
+        "player2_sets": 2,
+        "player1_total_legs": 13,
+        "player2_total_legs": 9,
+        "winner": "Cyr, Tyler",
+        "start_time": "15:26",
+        "player1_details": {
+          "three_dart_avg": 75.18,
+          "co_opportunities": 47,
+          "co_completed": 13,
+          "co_pct": 27.66,
+          "scores_100plus": 17,
+          "scores_140plus": 12,
+          "scores_180": 4,
+          "high_finish": 66
+        },
+        "player2_details": {
+          "three_dart_avg": 73.08,
+          "co_opportunities": 36,
+          "co_completed": 9,
+          "co_pct": 25,
+          "scores_100plus": 20,
+          "scores_140plus": 2,
+          "scores_180": 0,
+          "high_finish": 80
+        }
+      },
+      {
+        "match_id": "SF2",
+        "player1": "Maceachern Mark",
+        "player2": "Chapman, Wayne",
+        "player1_sets": 2,
+        "player2_sets": 3,
+        "player1_total_legs": 9,
+        "player2_total_legs": 11,
+        "winner": "Chapman, Wayne",
+        "start_time": "16:13",
+        "player1_details": {
+          "three_dart_avg": 61.69,
+          "co_opportunities": 44,
+          "co_completed": 9,
+          "co_pct": 20.45,
+          "scores_100plus": 17,
+          "scores_140plus": 5,
+          "scores_180": 0,
+          "high_finish": 92
+        },
+        "player2_details": {
+          "three_dart_avg": 63.35,
+          "co_opportunities": 50,
+          "co_completed": 11,
+          "co_pct": 22,
+          "scores_100plus": 15,
+          "scores_140plus": 5,
+          "scores_180": 0,
+          "high_finish": 108
+        }
+      }
+    ],
+    "final": {
+      "match_id": "FINAL",
+      "player1": "Cyr, Tyler",
+      "player2": "Chapman, Wayne",
+      "player1_sets": 4,
+      "player2_sets": 2,
+      "player1_total_legs": 14,
+      "player2_total_legs": 11,
+      "winner": "Cyr, Tyler",
+      "start_time": "17:46",
+      "player1_details": {
+        "three_dart_avg": 67.37,
+        "co_opportunities": 50,
+        "co_completed": 14,
+        "co_pct": 28,
+        "scores_100plus": 26,
+        "scores_140plus": 10,
+        "scores_180": 2,
+        "high_finish": 79
+      },
+      "player2_details": {
+        "three_dart_avg": 69.24,
+        "co_opportunities": 53,
+        "co_completed": 11,
+        "co_pct": 20.75,
+        "scores_100plus": 23,
+        "scores_140plus": 9,
+        "scores_180": 5,
+        "high_finish": 140
+      }
+    },
+    "champion": "Cyr, Tyler"
+  }
+}
