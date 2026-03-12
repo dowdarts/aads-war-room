@@ -61,6 +61,14 @@ const OFFICIAL_POLICIES = POLICY_CATEGORIES.flatMap(cat =>
   cat.docs.map(doc => ({ ...doc, type: 'pdf' }))
 )
 
+// Prepend Vite base path for official PDFs (/policies/...) so they work
+// on GitHub Pages where the app is served from a sub-path.
+const BASE = import.meta.env.BASE_URL  // '/aads-war-room/' in prod, '/' in dev
+function resolveSrc(src) {
+  if (!src || !src.startsWith('/')) return src  // blob: URLs pass through
+  return BASE.slice(0, -1) + src
+}
+
 export default function PolicyDocs({ uploadedPolicies, onUpload }) {
   const [selected, setSelected] = useState(OFFICIAL_POLICIES[0])
   const uploadedDocs = (uploadedPolicies || [])
@@ -181,7 +189,7 @@ export default function PolicyDocs({ uploadedPolicies, onUpload }) {
                 </div>
                 {selected.type === 'pdf' && !selected.blobUrl && (
                   <a
-                    href={selected.src}
+                    href={resolveSrc(selected.src)}
                     download
                     className="text-xs text-orange hover:underline shrink-0 ml-4"
                   >
@@ -194,7 +202,7 @@ export default function PolicyDocs({ uploadedPolicies, onUpload }) {
                 {selected.type === 'pdf' ? (
                   <embed
                     key={selected.id}
-                    src={selected.src}
+                    src={resolveSrc(selected.src)}
                     type="application/pdf"
                     className="w-full h-full"
                   />

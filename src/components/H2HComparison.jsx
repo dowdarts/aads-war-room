@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useStats } from '../context/StatsContext.jsx'
 import { getH2H } from '../utils/eventAggregator.js'
+import { nameKey } from '../utils/nameNormalizer.js'
 
 function MatchRecord({ match, playerA, playerB }) {
   const isA1 = match.player1.toLowerCase() === playerA.toLowerCase()
@@ -81,6 +82,36 @@ export default function H2HComparison() {
     [csvNames]
   )
 
+  // For each player, build a set of opponents they have H2H matches against
+  const opponentsOf = useMemo(() => {
+    const map = new Map() // nameKey(player) → Set of display names
+    for (const key of h2hIndex.keys()) {
+      const [kA, kB] = key.split('|')
+      const nameA = sortedNames.find(n => nameKey(n) === kA)
+      const nameB = sortedNames.find(n => nameKey(n) === kB)
+      if (!nameA || !nameB) continue
+      if (!map.has(kA)) map.set(kA, new Set())
+      if (!map.has(kB)) map.set(kB, new Set())
+      map.get(kA).add(nameB)
+      map.get(kB).add(nameA)
+    }
+    return map
+  }, [h2hIndex, sortedNames])
+
+  // Player A dropdown: if B is selected, only show players who have faced B
+  const playerAOptions = useMemo(() => {
+    if (!playerB) return sortedNames
+    const opponents = opponentsOf.get(nameKey(playerB))
+    return opponents ? sortedNames.filter(n => opponents.has(n)) : sortedNames
+  }, [playerB, sortedNames, opponentsOf])
+
+  // Player B dropdown: if A is selected, only show players who have faced A
+  const playerBOptions = useMemo(() => {
+    if (!playerA) return sortedNames
+    const opponents = opponentsOf.get(nameKey(playerA))
+    return opponents ? sortedNames.filter(n => opponents.has(n)) : sortedNames
+  }, [playerA, sortedNames, opponentsOf])
+
   const matches = useMemo(() => {
     if (!playerA || !playerB || playerA === playerB) return []
     return getH2H(h2hIndex, playerA, playerB)
@@ -122,7 +153,7 @@ export default function H2HComparison() {
                        text-white text-sm focus:outline-none focus:border-orange"
           >
             <option value="">Select player…</option>
-            {sortedNames.filter(n => n !== playerB).map(n => (
+            {playerAOptions.filter(n => n !== playerB).map(n => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
@@ -137,7 +168,7 @@ export default function H2HComparison() {
                        text-white text-sm focus:outline-none focus:border-orange"
           >
             <option value="">Select player…</option>
-            {sortedNames.filter(n => n !== playerA).map(n => (
+            {playerBOptions.filter(n => n !== playerA).map(n => (
               <option key={n} value={n}>{n}</option>
             ))}
           </select>
