@@ -53,6 +53,16 @@ export function nameKey(name) {
 }
 
 /**
+ * Explicit first-name aliases: maps the JSON first name (lowercase) to the CSV first name.
+ * Add entries here whenever a player uses a different name in the event JSON vs their CSV profile.
+ */
+const FIRST_NAME_ALIASES = {
+  'michel': 'mike',
+  'michal': 'mike',
+  'michael': 'mike',
+}
+
+/**
  * Resolve a JSON event name to the closest CSV player profile name.
  * Returns the CSV displayName if found, otherwise returns the converted display form.
  *
@@ -67,8 +77,14 @@ export function resolveEventName(jsonName, csvNames) {
   const exact = csvNames.find(n => nameKey(n) === displayKey)
   if (exact) return exact
 
-  // 2. Surname only match (covers "Michel" vs "Mike" first-name discrepancy)
+  // 2. Alias match — swap known first-name variants before searching
   const displayParts = displayKey.split(' ')
+  const aliasedFirst = FIRST_NAME_ALIASES[displayParts[0]] ?? displayParts[0]
+  const aliasedKey = [aliasedFirst, ...displayParts.slice(1)].join(' ')
+  const aliasMatch = csvNames.find(n => nameKey(n) === aliasedKey)
+  if (aliasMatch) return aliasMatch
+
+  // 3. Surname only match (fallback for other first-name discrepancies)
   const displayLast = displayParts[displayParts.length - 1]
   const surnameMatch = csvNames.find(n => {
     const parts = nameKey(n).split(' ')
@@ -76,7 +92,7 @@ export function resolveEventName(jsonName, csvNames) {
   })
   if (surnameMatch) return surnameMatch
 
-  // 3. Levenshtein fuzzy match (≤ 3 edits covers common misspellings)
+  // 4. Levenshtein fuzzy match (≤ 3 edits covers common misspellings)
   let best = display
   let bestDist = Infinity
   for (const n of csvNames) {

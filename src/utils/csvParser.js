@@ -58,8 +58,14 @@ function detectProvince(hometown) {
 
 // Override provinces for players whose hometown text is ambiguous
 const PLAYER_PROVINCE_OVERRIDES = {
-  'dana moss': 'NB',
-  'colby burke': 'NL',
+  'dana moss':         'NB',
+  'colby burke':       'NL',
+  'tom holden':        'NS',
+  'thomas holden':     'NS',
+  'jon casey':         'NS',
+  'jonathan casey':    'NS',
+  'mark maceachern':   'PE',
+  'cory lefort':       'PE',
 }
 
 /**
@@ -94,11 +100,23 @@ export function parsePlayerCSV(raw) {
 
   const g = (row, i) => (row[i] || '').trim()
 
+  // Strip parenthetical suffixes: "Michel Leger (Mike)" → "Michel Leger"
+  const cleanName = (name) => name.replace(/\s*\([^)]*\)\s*/g, '').trim()
+
+  // Map alternate full names (lowercase) to a single canonical display name.
+  // Ensures duplicate form submissions under different name spellings become one player.
+  const CANONICAL_NAMES = {
+    'michel leger': 'Mike Leger',
+    'michal leger': 'Mike Leger',
+  }
+
   // Map every data row; later rows for the same player overwrite earlier ones
   const byName = new Map()
   for (const row of rows.slice(1)) {
-    const fullName = g(row, 1)
-    if (!fullName) continue
+    const rawName = g(row, 1)
+    if (!rawName) continue
+    const cleaned = cleanName(rawName)
+    const fullName = CANONICAL_NAMES[cleaned.toLowerCase()] ?? cleaned
     byName.set(fullName.toLowerCase(), {
       fullName,
       nickname: g(row, 2),

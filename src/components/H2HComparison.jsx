@@ -46,8 +46,11 @@ function MatchRecord({ match, playerA, playerB }) {
         <div className="border-t border-[#1a1a1a]">
           {[
             ['3-Dart Avg', p1det?.three_dart_avg?.toFixed(1), p2det?.three_dart_avg?.toFixed(1)],
-            ['Checkout %', p1det?.co_pct ? `${p1det.co_pct}%` : null, p2det?.co_pct ? `${p2det.co_pct}%` : null],
             ['180s', p1det?.scores_180, p2det?.scores_180],
+            ['140+', p1det?.scores_140plus, p2det?.scores_140plus],
+            ['100+', p1det?.scores_100plus, p2det?.scores_100plus],
+            ['Checkout %', p1det?.co_pct ? `${p1det.co_pct}%` : null, p2det?.co_pct ? `${p2det.co_pct}%` : null],
+            ['CO Opp / Hit', p1det?.co_opportunities != null ? `${p1det.co_completed}/${p1det.co_opportunities}` : null, p2det?.co_opportunities != null ? `${p2det.co_completed}/${p2det.co_opportunities}` : null],
             ['High Finish', p1det?.high_finish || '—', p2det?.high_finish || '—'],
           ].map(([label, v1, v2]) => (
             <div key={label} className="flex items-center px-4 py-1.5 border-b border-[#111] last:border-0">

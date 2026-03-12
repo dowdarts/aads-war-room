@@ -1,42 +1,35 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useStats } from '../context/StatsContext.jsx'
 
-const PROVINCE_LABELS = { NB: 'New Brunswick', NS: 'Nova Scotia', PE: 'Prince Edward Island', ON: 'Ontario', NL: 'Newfoundland & Labrador' }
-
-function Section({ title, children }) {
-  return (
-    <div className="mb-4">
-      <div className="text-[10px] text-orange uppercase tracking-widest font-semibold mb-1.5 border-b border-[#1a1a1a] pb-1">
-        {title}
-      </div>
-      <div className="text-gray-300 text-sm leading-relaxed">{children}</div>
-    </div>
-  )
+const PROVINCE_LABELS = {
+  NB: 'New Brunswick', NS: 'Nova Scotia', PE: 'Prince Edward Island',
+  ON: 'Ontario', NL: 'Newfoundland & Labrador',
 }
 
-function StatGrid({ stats }) {
-  if (!stats) return <p className="text-gray-600 text-sm">No event data recorded yet.</p>
-  const t = stats.totals
-  const cells = [
-    ['Avg 3-Dart Avg', t.avg3da.toFixed(2)],
-    ['Best Event 3DA', t.best3da.toFixed(2)],
-    ['Win Rate', `${t.winRate}%`],
-    ['Wins / Losses', `${t.wins} / ${t.losses}`],
-    ['Events Played', t.eventsPlayed],
-    ['180s', t.scores180],
-    ['140+', t.scores140plus],
-    ['100+', t.scores100plus],
-    ['Checkout %', `${t.coPct}%`],
-    ['High Finish', t.highFinish],
-  ]
+// Commentary form Q&A mapping: [fieldKey, question label]
+const COMMENTARY_FIELDS = [
+  ['achievements',        'Career Achievements'],
+  ['strengths',           'Strengths as a Player'],
+  ['improvements',        'Areas for Improvement'],
+  ['checkouts',           'Favourite Checkout Routes'],
+  ['currentForm',         'Current Form'],
+  ['recentResults',       'Recent Results'],
+  ['mentalApproach',      'Mental Approach to the Game'],
+  ['pressureManagement',  'How Do You Handle Pressure?'],
+  ['stagePresence',       'Stage Presence'],
+  ['preMatchRituals',     'Pre-Match Rituals'],
+  ['dartSetup',           'Dart Setup'],
+  ['practiceRoutine',     'Practice Routine'],
+  ['hobbies',             'Life Outside Darts'],
+  ['aadsMeaning',         'What Does AADS Mean to You?'],
+]
+
+function StatBadge({ label, value, accent }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-      {cells.map(([label, value]) => (
-        <div key={label} className="bg-[#0a0a0a] border border-[#1a1a1a] rounded px-3 py-2">
-          <div className="text-orange font-bold text-sm">{value}</div>
-          <div className="text-gray-500 text-[10px] uppercase tracking-wider">{label}</div>
-        </div>
-      ))}
+    <div className={`bg-[#0a0a0a] border rounded-lg px-3 py-2.5 text-center
+      ${accent ? 'border-orange/40' : 'border-[#1a1a1a]'}`}>
+      <div className={`font-bold text-base ${accent ? 'text-orange' : 'text-white'}`}>{value}</div>
+      <div className="text-gray-500 text-[9px] uppercase tracking-wider mt-0.5">{label}</div>
     </div>
   )
 }
@@ -44,22 +37,26 @@ function StatGrid({ stats }) {
 function EventBreakdown({ stats }) {
   if (!stats) return null
   return (
-    <div className="space-y-2 mt-2">
+    <div className="space-y-2">
       {Object.entries(stats.events).map(([eventId, ev]) => (
-        <div key={eventId} className="bg-[#0a0a0a] border border-[#1a1a1a] rounded px-3 py-2">
-          <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">
-            Event {eventId} — {ev.total_matches} matches
+        <div key={eventId} className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg px-4 py-3">
+          <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-2 font-semibold">
+            Event {eventId} · {ev.total_matches} matches
           </div>
           <div className="grid grid-cols-4 gap-2 text-center">
             {[
               ['3DA', ev.final_event_3da?.toFixed(1)],
               ['W/L', `${ev.wins}/${ev.losses}`],
               ['180s', ev.scores_180],
-              ['HF', ev.high_finish],
+              ['140+', ev.scores_140plus],
+              ['100+', ev.scores_100plus],
+              ['CO%', ev.co_pct != null ? `${ev.co_pct}%` : '—'],
+              ['CO Hit', ev.co_completed != null ? `${ev.co_completed}/${ev.co_opportunities}` : '—'],
+              ['High Fin', ev.high_finish],
             ].map(([l, v]) => (
               <div key={l}>
                 <div className="text-white text-sm font-semibold">{v ?? '—'}</div>
-                <div className="text-gray-600 text-[10px] uppercase">{l}</div>
+                <div className="text-gray-600 text-[9px] uppercase">{l}</div>
               </div>
             ))}
           </div>
@@ -69,66 +66,146 @@ function EventBreakdown({ stats }) {
   )
 }
 
-function PlayerDetail({ player, onClose }) {
+function PlayerCard({ player, onBack }) {
+  const t = player.stats?.totals
+  const hasStats = !!t
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 flex items-start justify-end p-4 overflow-y-auto">
-      <div className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-xl w-full max-w-2xl">
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-[#1a1a1a]">
-          <div className="flex-1">
-            <div className="text-white text-xl font-bold">{player.displayName}</div>
+    <div className="max-w-4xl mx-auto">
+      {/* Back button */}
+      <button
+        onClick={onBack}
+        className="flex items-center gap-1.5 text-gray-500 hover:text-orange text-xs
+                   uppercase tracking-widest font-semibold mb-5 transition-colors"
+      >
+        ← Back to Players
+      </button>
+
+      {/* Card header */}
+      <div className="bg-[#0f0f0f] border border-[#1f1f1f] rounded-2xl overflow-hidden mb-4">
+        <div className="border-l-4 border-orange px-6 py-5 flex items-start justify-between gap-4">
+          <div>
+            <div className="text-white text-3xl font-black tracking-tight leading-tight">
+              {player.displayName}
+            </div>
             {player.nickname && (
-              <div className="text-orange text-sm">"{player.nickname}"</div>
+              <div className="text-orange text-base font-semibold mt-0.5">
+                "{player.nickname}"
+              </div>
             )}
-            <div className="text-gray-500 text-xs mt-0.5">
-              {player.hometown} · {PROVINCE_LABELS[player.province] || player.province}
+            <div className="flex items-center gap-3 mt-2">
+              <span className="inline-block bg-orange/10 border border-orange/30 text-orange
+                               text-xs font-bold px-2.5 py-0.5 rounded-full tracking-wider">
+                {player.province}
+              </span>
+              {player.hometown && (
+                <span className="text-gray-500 text-sm">{player.hometown}</span>
+              )}
+              {player.age && (
+                <span className="text-gray-600 text-sm">Age {player.age}</span>
+              )}
+              {player.yearsPlaying && (
+                <span className="text-gray-600 text-sm">{player.yearsPlaying} yrs playing</span>
+              )}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-white text-2xl leading-none px-2"
-          >
-            ×
-          </button>
-        </div>
 
-        <div className="px-5 py-4 space-y-4 overflow-y-auto max-h-[80vh]">
-          {/* Quick stats */}
-          <div>
-            <div className="text-[10px] text-orange uppercase tracking-widest font-semibold mb-2 border-b border-[#1a1a1a] pb-1">
+          {/* Province full name */}
+          <div className="text-right shrink-0">
+            <div className="text-gray-600 text-xs uppercase tracking-widest">Representing</div>
+            <div className="text-gray-400 text-sm font-semibold mt-0.5">
+              {PROVINCE_LABELS[player.province] || player.province}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+        {/* Left col — stats */}
+        <div className="lg:col-span-1 space-y-4">
+
+          {/* Career stats */}
+          <div className="bg-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-4">
+            <div className="text-[10px] text-orange uppercase tracking-widest font-bold mb-3 pb-2 border-b border-[#1a1a1a]">
               Career Stats
             </div>
-            <StatGrid stats={player.stats} />
-            <EventBreakdown stats={player.stats} />
+            {hasStats ? (
+              <div className="grid grid-cols-2 gap-2">
+                <StatBadge label="Avg 3DA" value={t.avg3da.toFixed(2)} accent />
+                <StatBadge label="Best 3DA" value={t.best3da.toFixed(2)} />
+                <StatBadge label="Win Rate" value={`${t.winRate}%`} accent />
+                <StatBadge label="W / L" value={`${t.wins} / ${t.losses}`} />
+                <StatBadge label="Events" value={t.eventsPlayed} />
+                <StatBadge label="Checkout %" value={`${t.coPct}%`} />
+                <StatBadge label="High Finish" value={t.highFinish} accent />
+                <StatBadge label="180s" value={t.scores180} />
+                <StatBadge label="140+" value={t.scores140plus} />
+                <StatBadge label="100+" value={t.scores100plus} />
+              </div>
+            ) : (
+              <p className="text-gray-600 text-sm">No event data recorded yet.</p>
+            )}
           </div>
 
-          {/* Bio sections */}
-          {player.age && <Section title="Profile">Age: {player.age} · Playing for: {player.yearsPlaying}</Section>}
-          {player.achievements && <Section title="Achievements">{player.achievements}</Section>}
-          {player.strengths && <Section title="Strengths">{player.strengths}</Section>}
-          {player.checkouts && <Section title="Checkout Routes">{player.checkouts}</Section>}
-          {player.currentForm && <Section title="Current Form">{player.currentForm}</Section>}
-          {player.recentResults && <Section title="Recent Results">{player.recentResults}</Section>}
-          {player.mentalApproach && <Section title="Mental Approach">{player.mentalApproach}</Section>}
-          {player.pressureManagement && <Section title="Under Pressure">{player.pressureManagement}</Section>}
-          {player.stagePresence && <Section title="Stage Presence">{player.stagePresence}</Section>}
-          {player.preMatchRituals && <Section title="Pre-Match Rituals">{player.preMatchRituals}</Section>}
-          {player.dartSetup && <Section title="Dart Setup">{player.dartSetup}</Section>}
-          {player.practiceRoutine && <Section title="Practice Routine">{player.practiceRoutine}</Section>}
-          {player.hobbies && <Section title="Outside Darts">{player.hobbies}</Section>}
-          {player.aadsMeaning && <Section title="AADS Means...">{player.aadsMeaning}</Section>}
+          {/* Per-event breakdown */}
+          {hasStats && (
+            <div className="bg-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-4">
+              <div className="text-[10px] text-orange uppercase tracking-widest font-bold mb-3 pb-2 border-b border-[#1a1a1a]">
+                Event Breakdown
+              </div>
+              <EventBreakdown stats={player.stats} />
+            </div>
+          )}
         </div>
+
+        {/* Right col — commentary Q&A */}
+        <div className="lg:col-span-2">
+          <div className="bg-[#0f0f0f] border border-[#1f1f1f] rounded-2xl p-4">
+            <div className="text-[10px] text-orange uppercase tracking-widest font-bold mb-4 pb-2 border-b border-[#1a1a1a]">
+              Player Profile · Commentary Form
+            </div>
+            <div className="space-y-4">
+              {COMMENTARY_FIELDS.map(([field, label]) => {
+                const val = player[field]
+                if (!val) return null
+                return (
+                  <div key={field} className="border-b border-[#141414] pb-4 last:border-0 last:pb-0">
+                    <div className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mb-1">
+                      {label}
+                    </div>
+                    <div className="text-gray-200 text-sm leading-relaxed">{val}</div>
+                  </div>
+                )
+              })}
+              {COMMENTARY_FIELDS.every(([f]) => !player[f]) && (
+                <p className="text-gray-600 text-sm">No commentary form responses recorded for this player.</p>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )
 }
 
-export default function PlayerWiki() {
+export default function PlayerWiki({ selectedPlayerName, onClearSelectedPlayer }) {
   const { players } = useStats()
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
   const [sortBy, setSortBy] = useState('avg3da')
   const [filterProvince, setFilterProvince] = useState('ALL')
+
+  // When a player name is pushed in from another tab, open their card immediately
+  useEffect(() => {
+    if (!selectedPlayerName || !players.length) return
+    const match = players.find(
+      p => p.displayName.toLowerCase() === selectedPlayerName.toLowerCase()
+    )
+    if (match) setSelected(match)
+    onClearSelectedPlayer?.()
+  }, [selectedPlayerName, players])
 
   const filtered = useMemo(() => {
     let list = players
@@ -149,6 +226,15 @@ export default function PlayerWiki() {
       return 0
     })
   }, [players, search, sortBy, filterProvince])
+
+  // Full-page player card view
+  if (selected) {
+    return (
+      <div className="p-4 max-w-5xl mx-auto">
+        <PlayerCard player={selected} onBack={() => setSelected(null)} />
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 max-w-5xl mx-auto">
@@ -192,53 +278,58 @@ export default function PlayerWiki() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {filtered.map(player => {
           const t = player.stats?.totals
+          const hasForm = COMMENTARY_FIELDS.some(([f]) => !!player[f])
           return (
             <button
               key={player.displayName}
               onClick={() => setSelected(player)}
-              className="text-left bg-[#0f0f0f] border border-[#1a1a1a] rounded-lg p-3
-                         hover:border-orange/50 hover:bg-[#141414] transition-all"
+              className="text-left bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4
+                         hover:border-orange/50 hover:bg-[#141414] transition-all group"
             >
-              <div className="flex items-start gap-2 mb-2">
-                <div
-                  className="w-8 h-8 rounded text-[10px] font-black flex items-center
-                             justify-center shrink-0 bg-[#1a1a1a] text-orange"
-                >
+              {/* Name row */}
+              <div className="flex items-start gap-3 mb-3">
+                <div className="w-10 h-10 rounded-lg bg-[#1a1a1a] border border-[#252525]
+                                text-orange font-black text-sm flex items-center justify-center shrink-0
+                                group-hover:bg-orange/10 transition-colors">
                   {player.displayName.charAt(0)}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-white text-sm font-semibold truncate">
-                    {player.displayName}
-                  </div>
-                  <div className="text-gray-500 text-xs">
+                  <div className="text-white text-sm font-bold truncate">{player.displayName}</div>
+                  {player.nickname && (
+                    <div className="text-orange text-xs truncate">"{player.nickname}"</div>
+                  )}
+                  <div className="text-gray-600 text-[10px] mt-0.5">
                     {player.province} · {player.hometown || '—'}
                   </div>
                 </div>
               </div>
+
+              {/* Stats mini-grid */}
               {t ? (
-                <div className="grid grid-cols-3 gap-1 text-center">
+                <div className="grid grid-cols-3 gap-1.5 text-center mb-2">
                   {[
                     ['3DA', t.avg3da.toFixed(1)],
                     ['W/L', `${t.wins}/${t.losses}`],
                     ['HF', t.highFinish],
                   ].map(([l, v]) => (
-                    <div key={l} className="bg-[#0a0a0a] rounded py-1">
+                    <div key={l} className="bg-[#0a0a0a] rounded-lg py-1.5">
                       <div className="text-orange text-xs font-bold">{v}</div>
                       <div className="text-gray-600 text-[9px] uppercase">{l}</div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-gray-700 text-xs">No stats yet — click for bio</div>
+                <div className="text-gray-700 text-xs mb-2">No stats yet</div>
               )}
+
+              {/* Form indicator */}
+              <div className="text-[10px] text-gray-600 group-hover:text-gray-500 transition-colors">
+                {hasForm ? '📋 Commentary form on file · View card →' : 'View card →'}
+              </div>
             </button>
           )
         })}
       </div>
-
-      {selected && (
-        <PlayerDetail player={selected} onClose={() => setSelected(null)} />
-      )}
     </div>
   )
 }

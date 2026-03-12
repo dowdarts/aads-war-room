@@ -18,7 +18,7 @@ function StatPill({ label, value }) {
   )
 }
 
-function ProvinceCard({ province, players }) {
+function ProvinceCard({ province, players, onSelectPlayer }) {
   const [expanded, setExpanded] = useState(false)
 
   const sorted = useMemo(
@@ -85,14 +85,18 @@ function ProvinceCard({ province, players }) {
                   {i + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <div className="text-white text-sm font-medium truncate">
+                  <button
+                    onClick={() => onSelectPlayer?.(player.displayName)}
+                    className="text-white text-sm font-medium truncate hover:text-orange
+                               transition-colors text-left w-full"
+                  >
                     {player.displayName}
                     {player.nickname && (
                       <span className="text-gray-500 text-xs ml-1.5">
                         "{player.nickname}"
                       </span>
                     )}
-                  </div>
+                  </button>
                   <div className="text-gray-500 text-xs truncate">{player.hometown}</div>
                 </div>
                 {t ? (
@@ -115,7 +119,7 @@ function ProvinceCard({ province, players }) {
   )
 }
 
-export default function ProvinceLeaderboards() {
+export default function ProvinceLeaderboards({ onSelectPlayer }) {
   const { players, events } = useStats()
 
   const byProvince = useMemo(() => {
@@ -169,6 +173,7 @@ export default function ProvinceLeaderboards() {
             key={province.id}
             province={province}
             players={byProvince[province.id] || []}
+            onSelectPlayer={onSelectPlayer}
           />
         ))}
       </div>

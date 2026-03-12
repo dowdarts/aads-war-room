@@ -1,8 +1,10 @@
 const TABS = [
   { id: 'provinces', label: 'Province Standings' },
+  { id: 'prov-weighted', label: 'Province Score' },
   { id: 'players', label: 'Player Wiki' },
+  { id: 'standings', label: 'Player Standings' },
   { id: 'h2h', label: 'H2H Match-Up' },
-  { id: 'ai', label: 'AI Analyst' },
+  { id: 'links', label: '🔗 Quick Links' },
   { id: 'policy', label: 'Policy Docs' },
   { id: 'data', label: 'Data Manager' },
 ]
