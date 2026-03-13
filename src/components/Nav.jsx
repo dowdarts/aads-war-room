@@ -18,7 +18,7 @@ export default function Nav({ active, onSelect }) {
         <img
           src="/aads-war-room/logo-wiki.png"
           alt="AADS Wiki"
-          className="h-12 w-auto object-contain"
+          className="h-20 w-auto object-contain"
         />
       </div>
 
