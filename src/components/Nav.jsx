@@ -6,6 +6,7 @@ const TABS = [
   { id: 'h2h', label: 'H2H Match-Up' },
   { id: 'links', label: '🔗 Quick Links' },
   { id: 'policy', label: 'Policy Docs' },
+  { id: 'ack', label: '📋 Acknowledgements' },
   { id: 'data', label: 'Data Manager' },
 ]
 

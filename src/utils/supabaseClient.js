@@ -137,3 +137,28 @@ export async function fetchCueStatus() {
     return null
   }
 }
+
+/**
+ * Insert a signed acknowledgement record
+ * @param {string} name - Signer's full name
+ * @param {string} role - 'player' | 'volunteer' | 'spectator'
+ */
+export async function insertAcknowledgement(name, role) {
+  if (!client) return { error: 'Supabase not initialized' }
+  const { error } = await client
+    .from('acknowledgements')
+    .insert({ name, role })
+  return { error }
+}
+
+/**
+ * Fetch all acknowledgement submissions (staff view)
+ */
+export async function fetchAcknowledgements() {
+  if (!client) return { data: [], error: 'Supabase not initialized' }
+  const { data, error } = await client
+    .from('acknowledgements')
+    .select('id, name, role, submitted_at')
+    .order('submitted_at', { ascending: false })
+  return { data: data || [], error }
+}

@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react'
+import { getSupabaseClient } from '../utils/supabaseClient.js'
+
+const STAFF_PIN = '40783'
 
 const POLICY_CATEGORIES = [
   {
@@ -83,6 +86,100 @@ function resolveSrc(src) {
   return BASE.slice(0, -1) + src
 }
 
+function SignedSubmissions() {
+  const [pin, setPin] = useState('')
+  const [unlocked, setUnlocked] = useState(false)
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [pinError, setPinError] = useState(false)
+
+  async function loadRows() {
+    setLoading(true)
+    setError(null)
+    const client = getSupabaseClient()
+    if (!client) { setError('Supabase not connected'); setLoading(false); return }
+    const { data, error: err } = await client
+      .from('acknowledgements')
+      .select('id, name, role, submitted_at')
+      .order('submitted_at', { ascending: false })
+    setLoading(false)
+    if (err) { setError(err.message); return }
+    setRows(data || [])
+  }
+
+  function tryUnlock() {
+    if (pin === STAFF_PIN) { setUnlocked(true); setPinError(false); loadRows() }
+    else { setPinError(true); setPin('') }
+  }
+
+  const ROLE_COLORS = { player: '#FF6600', volunteer: '#22c55e', spectator: '#3b82f6' }
+
+  return (
+    <div className="border border-[#1a1a1a] rounded-xl overflow-hidden mb-4">
+      <button
+        className="w-full px-4 py-3 flex items-center gap-2 bg-[#0d0d0d] hover:bg-[#111] transition-colors text-left"
+        onClick={() => !unlocked && setPin('')}
+      >
+        <span className="text-xs font-black uppercase tracking-widest text-orange">🔒 Signed Submissions</span>
+        {unlocked && <span className="ml-auto text-[10px] text-gray-600">{rows.length} record{rows.length !== 1 ? 's' : ''}</span>}
+      </button>
+
+      {!unlocked ? (
+        <div className="px-4 py-4 bg-[#080808] flex flex-col gap-3">
+          <p className="text-xs text-gray-500">Staff PIN required to view signed acknowledgements</p>
+          <div className="flex gap-2">
+            <input
+              type="password"
+              inputMode="numeric"
+              maxLength={6}
+              value={pin}
+              onChange={e => { setPin(e.target.value); setPinError(false) }}
+              onKeyDown={e => e.key === 'Enter' && tryUnlock()}
+              placeholder="Enter PIN"
+              className={`flex-1 bg-[#0d0d0d] border rounded px-3 py-2 text-sm text-white outline-none transition-colors
+                ${pinError ? 'border-red-500' : 'border-[#2a2a2a] focus:border-orange'}`}
+            />
+            <button
+              onClick={tryUnlock}
+              className="px-4 py-2 bg-orange text-black text-xs font-black rounded hover:opacity-90 transition-opacity"
+            >Unlock</button>
+          </div>
+          {pinError && <p className="text-xs text-red-500">Incorrect PIN</p>}
+        </div>
+      ) : (
+        <div className="bg-[#080808] px-4 py-3">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-[10px] text-gray-600">{rows.length} submission{rows.length !== 1 ? 's' : ''}</span>
+            <button onClick={loadRows} className="text-[10px] text-orange hover:underline">↺ Refresh</button>
+          </div>
+          {loading && <p className="text-xs text-gray-500 py-2">Loading…</p>}
+          {error && <p className="text-xs text-red-500 py-2">{error}</p>}
+          {!loading && !error && rows.length === 0 && (
+            <p className="text-xs text-gray-600 py-2">No submissions yet</p>
+          )}
+          {!loading && rows.length > 0 && (
+            <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
+              {rows.map(r => (
+                <div key={r.id} className="flex items-center gap-2 px-2 py-1.5 rounded bg-[#0d0d0d] border border-[#141414]">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-white truncate">{r.name}</div>
+                    <div className="text-[10px] text-gray-600">{new Date(r.submitted_at).toLocaleString()}</div>
+                  </div>
+                  <span
+                    className="text-[9px] font-black uppercase px-2 py-0.5 rounded"
+                    style={{ background: (ROLE_COLORS[r.role] || '#666') + '22', color: ROLE_COLORS[r.role] || '#666' }}
+                  >{r.role}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function PolicyDocs({ uploadedPolicies, onUpload }) {
   const [selected, setSelected] = useState(OFFICIAL_POLICIES[0])
   const uploadedDocs = (uploadedPolicies || [])
@@ -132,6 +229,7 @@ export default function PolicyDocs({ uploadedPolicies, onUpload }) {
 
         {/* Categorized document list */}
         <div className="w-64 shrink-0 overflow-y-auto space-y-4 pr-1">
+          <SignedSubmissions />
           {POLICY_CATEGORIES.map(cat => (
             <div key={cat.label}>
               <div className="text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1.5 px-1">

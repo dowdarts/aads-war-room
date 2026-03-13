@@ -9,6 +9,7 @@ import H2HComparison from './components/H2HComparison.jsx'
 import PolicyDocs from './components/PolicyDocs.jsx'
 import DataManager from './components/DataManager.jsx'
 import QuickLinks from './components/QuickLinks.jsx'
+import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
 import LocalChat from './components/LocalChat.jsx'
 
 function AppShell() {
@@ -40,6 +41,7 @@ function AppShell() {
         {tab === 'links' && <QuickLinks />}
         {tab === 'policy' && <PolicyDocs uploadedPolicies={uploadedPolicies} onUpload={addPolicy} />}
         {tab === 'data' && <DataManager />}
+        {tab === 'ack' && <AcknowledgementLauncher />}
       </main>
       <LocalChat />
     </div>
