@@ -33,6 +33,7 @@
       -webkit-tap-highlight-color: transparent;
     }
     .role-btn:active { transform: scale(0.97); }
+    .logo-kiosk { width: 200px; height: auto; object-fit: contain; margin-bottom: 20px; }
     .role-btn[data-role="player"]    { --acc: var(--orange); }
     .role-btn[data-role="volunteer"] { --acc: var(--green); }
     .role-btn[data-role="spectator"] { --acc: var(--blue); }
@@ -137,8 +138,7 @@
 
 <!-- SCREEN 1: Landing / Role Selection -->
 <div class="screen active" id="screen-landing">
-  <div class="logo">A</div>
-  <div class="league">AADS</div>
+  <img src="logo-kiosk.png" alt="AADS Signature Forms" class="logo-kiosk" />
   <h1 class="title">Acknowledgement &amp;<br>Agreement Terms</h1>
   <p class="sub">Please select your role to begin</p>
   <p class="prompt">I Am A&hellip;</p>
