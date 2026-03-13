@@ -24,9 +24,9 @@ function findFuzzyPlayer(text, players) {
     const words = q.split(' ')
     const pWords = dn.split(' ')
     for (const pw of pWords) {
-      if (pw.length < 4) continue
+      if (pw.length < 5) continue
       for (const w of words) {
-        if (w.length < 3) continue
+        if (w.length < 5) continue
         const d = getLevenshteinDistance(w, pw)
         if (d < minDistance) { minDistance = d; bestMatch = p.displayName }
       }
@@ -292,6 +292,24 @@ export function answerQuery(rawText, { aggregatedStats, players, events, h2hInde
       return `• **${pr}** — ${count} players | Top: **${best?.displayName ?? '—'}** (${best?.totals.avg3da?.toFixed(2) ?? '—'})`
     }).filter(Boolean)
     return { text: `**Province Breakdown:**\n${lines.join('\n')}` }
+  }
+
+  // ── "most X" / "who has most X" — must run BEFORE named player lookup ────
+  if (/\bmost\b|who.*(?:has|have|leads|hit)/i.test(ql)) {
+    const mStatKey = detectStat(ql)
+    if (mStatKey) {
+      const count = extractN(ql) || 5
+      const sorted = [...aggregatedStats]
+        .filter(s => (s.totals[mStatKey] ?? 0) > 0)
+        .sort((a, b) => (b.totals[mStatKey] ?? 0) - (a.totals[mStatKey] ?? 0))
+        .slice(0, count)
+      if (sorted.length) {
+        const lines = sorted.map((s, i) =>
+          `${i + 1}. **${s.displayName}** — ${statLabel(mStatKey)}: **${fv(mStatKey, s.totals[mStatKey])}**`
+        )
+        return { text: `**Top ${count} by ${statLabel(mStatKey)}:**\n${lines.join('\n')}` }
+      }
+    }
   }
 
   // ── Named player profile ──────────────────────────────────────────────────
