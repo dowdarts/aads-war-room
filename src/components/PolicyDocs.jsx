@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getSupabaseClient } from '../utils/supabaseClient.js'
+import { getSupabaseClient, initSupabaseClient } from '../utils/supabaseClient.js'
 
 const STAFF_PIN = '40783'
 
@@ -97,7 +97,8 @@ function SignedSubmissions() {
   async function loadRows() {
     setLoading(true)
     setError(null)
-    const client = getSupabaseClient()
+    let client = getSupabaseClient()
+    if (!client) client = await initSupabaseClient()
     if (!client) { setError('Supabase not connected'); setLoading(false); return }
     const { data, error: err } = await client
       .from('acknowledgements')
@@ -128,23 +129,22 @@ function SignedSubmissions() {
       {!unlocked ? (
         <div className="px-4 py-4 bg-[#080808] flex flex-col gap-3">
           <p className="text-xs text-gray-500">Staff PIN required to view signed acknowledgements</p>
-          <div className="flex gap-2">
+          <form className="flex gap-2" onSubmit={e => { e.preventDefault(); tryUnlock() }}>
             <input
               type="password"
               inputMode="numeric"
               maxLength={6}
               value={pin}
               onChange={e => { setPin(e.target.value); setPinError(false) }}
-              onKeyDown={e => e.key === 'Enter' && tryUnlock()}
               placeholder="Enter PIN"
               className={`flex-1 bg-[#0d0d0d] border rounded px-3 py-2 text-sm text-white outline-none transition-colors
                 ${pinError ? 'border-red-500' : 'border-[#2a2a2a] focus:border-orange'}`}
             />
             <button
-              onClick={tryUnlock}
+              type="submit"
               className="px-4 py-2 bg-orange text-black text-xs font-black rounded hover:opacity-90 transition-opacity"
             >Unlock</button>
-          </div>
+          </form>
           {pinError && <p className="text-xs text-red-500">Incorrect PIN</p>}
         </div>
       ) : (
