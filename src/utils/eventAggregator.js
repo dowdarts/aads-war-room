@@ -47,9 +47,14 @@ export function aggregatePlayerStats(events, csvNames) {
       t.weighted3daSum += (stat.final_event_3da || 0) * (stat.total_matches || 1)
       t.matchesForAvg += stat.total_matches || 1
       t.best3da = Math.max(t.best3da, stat.final_event_3da || 0)
-      t.scores180 += stat.scores_180 || 0
-      t.scores140plus += stat.scores_140plus || 0
-      t.scores100plus += stat.scores_100plus || 0
+      // JSON stores exclusive ranges: scores_100plus=100-139 only, scores_140plus=140-179 only, scores_180=180 only
+      // Display should be cumulative: 100+ means ≥100, 140+ means ≥140
+      const s180    = stat.scores_180     || 0
+      const s140raw = stat.scores_140plus || 0
+      const s100raw = stat.scores_100plus || 0
+      t.scores180     += s180
+      t.scores140plus += s140raw + s180
+      t.scores100plus += s100raw + s140raw + s180
       t.coOpportunities += stat.co_opportunities || 0
       t.coCompleted += stat.co_completed || 0
       t.highFinish = Math.max(t.highFinish, stat.high_finish || 0)
