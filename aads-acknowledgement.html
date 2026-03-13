@@ -548,8 +548,8 @@
 
     // Reference footer at very bottom of page
     lastPage.drawText(
-      'Electronically signed via AADS Digital Acknowledgement System  \u2502  Ref: ' +
-        lastSubmission.ref + '  \u2502  ' + new Date(lastSubmission.timestamp).toLocaleString(),
+      'Electronically signed via AADS Digital Acknowledgement System  |  Ref: ' +
+        lastSubmission.ref + '  |  ' + new Date(lastSubmission.timestamp).toLocaleString(),
       { x: MARGIN, y: 18, font: fontRegular, size: 6.5, color: rgb(0, 0, 0) }
     )
 
