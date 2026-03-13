@@ -9,6 +9,12 @@ const LINK_GROUPS = [
         url: 'https://dowdarts.github.io/darts-interview-assistant/',
         icon: '🎙️',
       },
+      {
+        label: 'Cue Light Controller',
+        description: 'Control the stage cue light for live stream',
+        url: 'https://dowdarts.github.io/darts-interview-assistant/cue-light-controller.html',
+        icon: '🚦',
+      },
     ],
   },
   {
