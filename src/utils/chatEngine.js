@@ -23,25 +23,18 @@ function getLevenshteinDistance(a, b) {
 
 function findFuzzyPlayer(text, players) {
   const q = nk(text)
-  let bestMatch = null
-  let minDistance = 4
+  const words = q.split(' ').filter(w => w.length >= 6 && !STOP_WORDS.has(w))
+  if (!words.length) return null
   for (const p of players) {
-    const dn = nk(p.displayName)
-    // Also check word-by-word: match first or last name with fuzzy
-    const words = q.split(' ')
-    const pWords = dn.split(' ')
+    const pWords = nk(p.displayName).split(' ').filter(pw => pw.length >= 6)
     for (const pw of pWords) {
-      if (pw.length < 3) continue
       for (const w of words) {
-        if (w.length < 3 || STOP_WORDS.has(w)) continue
-        const d = getLevenshteinDistance(w, pw)
-        if (d < minDistance) { minDistance = d; bestMatch = p.displayName }
+        // Only accept distance-1 typos on long words (6+ chars)
+        if (getLevenshteinDistance(w, pw) === 1) return p.displayName
       }
     }
-    const d = getLevenshteinDistance(q, dn)
-    if (d < minDistance) { minDistance = d; bestMatch = p.displayName }
   }
-  return bestMatch
+  return null
 }
 
 function findPlayer(text, players) {
