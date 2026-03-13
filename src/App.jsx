@@ -12,20 +12,25 @@ import QuickLinks from './components/QuickLinks.jsx'
 import LocalChat from './components/LocalChat.jsx'
 
 function AppShell() {
-  const [tab, setTab] = useState('provinces')
+  const [tab, setTab] = useState(() => sessionStorage.getItem('activeTab') || 'provinces')
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
 
   const addPolicy = (doc) => setUploadedPolicies(p => [...p, doc])
 
+  function handleTabSelect(id) {
+    sessionStorage.setItem('activeTab', id)
+    setTab(id)
+  }
+
   function openPlayerCard(displayName) {
     setSelectedPlayerName(displayName)
-    setTab('players')
+    handleTabSelect('players')
   }
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
-      <Nav active={tab} onSelect={setTab} />
+      <Nav active={tab} onSelect={handleTabSelect} />
       <main>
         {tab === 'provinces' && <ProvinceLeaderboards onSelectPlayer={openPlayerCard} />}
         {tab === 'prov-weighted' && <ProvinceWeightedStandings />}

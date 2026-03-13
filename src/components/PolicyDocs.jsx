@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react'
 
 const POLICY_CATEGORIES = [
   {
+    label: '2027 Expansion',
+    docs: [
+      { id: '2027-handbook', title: 'Atlantic Circuit Master Operations Handbook 2027', src: '/policies/AADS_Atlantic_Circuit_Master_Operations_Handbook_2027.pdf' },
+    ],
+  },
+  {
     label: 'Core Rules & Policies',
     docs: [
       { id: 'aads-rules',            title: 'AADS Rules',                              src: '/policies/Revised-version-of-AADS-RULES.pdf' },
