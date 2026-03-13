@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { StatsProvider } from './context/StatsContext.jsx'
+import PinGate from './components/PinGate.jsx'
 import Nav from './components/Nav.jsx'
 import ProvinceLeaderboards from './components/ProvinceLeaderboards.jsx'
 import ProvinceWeightedStandings from './components/ProvinceWeightedStandings.jsx'
@@ -17,6 +18,9 @@ function AppShell() {
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
   const wakeLockRef = useRef(null)
+  const LOCKED_TABS = ['links', 'data']
+  const [unlockedTabs, setUnlockedTabs] = useState(new Set())
+  const [pendingTab, setPendingTab] = useState(null)
 
   useEffect(() => {
     if (!('wakeLock' in navigator)) return
@@ -35,8 +39,21 @@ function AppShell() {
   const addPolicy = (doc) => setUploadedPolicies(p => [...p, doc])
 
   function handleTabSelect(id) {
+    if (LOCKED_TABS.includes(id) && !unlockedTabs.has(id)) {
+      setPendingTab(id)
+      return
+    }
     sessionStorage.setItem('activeTab', id)
     setTab(id)
+  }
+
+  function handleUnlock() {
+    const next = new Set(unlockedTabs)
+    next.add(pendingTab)
+    setUnlockedTabs(next)
+    sessionStorage.setItem('activeTab', pendingTab)
+    setTab(pendingTab)
+    setPendingTab(null)
   }
 
   function openPlayerCard(displayName) {
@@ -46,6 +63,12 @@ function AppShell() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
+      {pendingTab && (
+        <PinGate
+          onUnlock={handleUnlock}
+          onCancel={() => setPendingTab(null)}
+        />
+      )}
       <Nav active={tab} onSelect={handleTabSelect} />
       <main>
         {tab === 'provinces' && <ProvinceLeaderboards onSelectPlayer={openPlayerCard} />}
