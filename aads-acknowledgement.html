@@ -435,20 +435,12 @@
   }
 
   /* ── PDF generation ── */
-  // Loads the real policy PDF for the signer's role and overlays their
-  // signature, printed name, date and a reference footer onto the last page.
-  // Coordinate constants (SIG_TOP_Y etc.) are measured in PDF points from
-  // the bottom-left origin — adjust them if your form's signature line sits
-  // at a different position on the page.
+  // Loads the real policy PDF and fills the signature page fields in-place.
   async function buildPDF() {
     if (!lastSubmission) return null
-    if (typeof PDFLib === 'undefined') {
-      console.error('pdf-lib not loaded')
-      return null
-    }
+    if (typeof PDFLib === 'undefined') { console.error('pdf-lib not loaded'); return null }
     const { PDFDocument, rgb, StandardFonts } = PDFLib
 
-    // Fetch the actual policy booklet for this role
     const pdfUrl = PDFS[lastSubmission.role] || PDFS['player']
     let existingBytes
     try {
@@ -468,83 +460,47 @@
       return null
     }
 
-    const pages   = pdfDoc.getPages()
+    const pages    = pdfDoc.getPages()
     const lastPage = pages[pages.length - 1]
     const { width, height } = lastPage.getSize()
 
-    // Standard PDF fonts — no extra network requests needed
-    const fontBold    = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
     const fontItalic  = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
 
-    // ── Layout constants (adjust to match form) ──────────────────────────
-    // PDF origin = bottom-left.  All Y values are points from the bottom.
-    const MARGIN     = 55
-    const FORM_W     = width - MARGIN * 2
-    const SIG_TOP_Y  = height * 0.30   // top of signature image box
-    const SIG_H      = 48
-    const SIG_W      = FORM_W * 0.60
-    const DATE_X     = MARGIN + SIG_W + 12
+    // ── Field positions as proportions of page size ───────────────────────
+    // Y values are from the BOTTOM of the page (PDF origin = bottom-left).
+    // Measured from the "Policy Acknowledgement & Signature" form layout.
+    // Tweak these proportions if the text drifts off the field lines.
+    const FIELD_X  = width  * 0.260  // X start for values (right of longest label)
+    const NAME_Y   = height * 0.633  // "Full Name:" field line
+    const DATE_Y   = height * 0.484  // "Date:" field line
+    const SIG_Y    = height * 0.408  // "Digital Signature:" field line (bottom of image)
+    const SIG_H    = height * 0.040  // height of signature image
+    const SIG_W    = width  * 0.370  // width of signature image
     // ─────────────────────────────────────────────────────────────────────
 
-    // Signature image — recoloured to black before embedding
+    // Full Name — italic text on the Full Name field line
+    lastPage.drawText(lastSubmission.name, {
+      x: FIELD_X, y: NAME_Y + 3,
+      font: fontItalic, size: 11, color: rgb(0, 0, 0)
+    })
+
+    // Date — on the Date field line
+    lastPage.drawText(lastSubmission.date || '', {
+      x: FIELD_X, y: DATE_Y + 3,
+      font: fontRegular, size: 9, color: rgb(0, 0, 0)
+    })
+
+    // Signature image — drawn above the Digital Signature field line
     if (lastSubmission.signatureImg) {
       try {
         const blackSig = await toBlackSignature(lastSubmission.signatureImg)
         const b64   = blackSig.split(',')[1]
         const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
         const img   = await pdfDoc.embedPng(bytes)
-        lastPage.drawImage(img, {
-          x: MARGIN, y: SIG_TOP_Y - SIG_H,
-          width: SIG_W, height: SIG_H
-        })
+        lastPage.drawImage(img, { x: FIELD_X, y: SIG_Y, width: SIG_W, height: SIG_H })
       } catch(e) { console.error('Signature embed failed:', e) }
     }
-
-    // Signature underline
-    lastPage.drawLine({
-      start: { x: MARGIN,          y: SIG_TOP_Y - SIG_H - 2 },
-      end:   { x: MARGIN + SIG_W,  y: SIG_TOP_Y - SIG_H - 2 },
-      thickness: 0.5, color: rgb(0, 0, 0)
-    })
-
-    // "Signature" label above the line
-    lastPage.drawText('Signature', {
-      x: MARGIN, y: SIG_TOP_Y + 3,
-      font: fontBold, size: 7, color: rgb(0, 0, 0)
-    })
-
-    // Printed name (italic, below signature box)
-    const NAME_Y = SIG_TOP_Y - SIG_H - 16
-    lastPage.drawText(lastSubmission.name, {
-      x: MARGIN, y: NAME_Y,
-      font: fontItalic, size: 12, color: rgb(0, 0, 0)
-    })
-    lastPage.drawText('Printed Name', {
-      x: MARGIN, y: NAME_Y - 10,
-      font: fontBold, size: 6.5, color: rgb(0, 0, 0)
-    })
-    // Name underline
-    lastPage.drawLine({
-      start: { x: MARGIN,          y: NAME_Y - 2 },
-      end:   { x: MARGIN + SIG_W,  y: NAME_Y - 2 },
-      thickness: 0.4, color: rgb(0.7, 0.7, 0.7)
-    })
-
-    // Date (to the right of signature box)
-    lastPage.drawText('Date', {
-      x: DATE_X, y: SIG_TOP_Y + 3,
-      font: fontBold, size: 7, color: rgb(0, 0, 0)
-    })
-    lastPage.drawText(lastSubmission.date || '', {
-      x: DATE_X, y: SIG_TOP_Y - SIG_H - 16,
-      font: fontRegular, size: 9, color: rgb(0, 0, 0)
-    })
-    lastPage.drawLine({
-      start: { x: DATE_X,          y: SIG_TOP_Y - SIG_H - 2 },
-      end:   { x: width - MARGIN,  y: SIG_TOP_Y - SIG_H - 2 },
-      thickness: 0.5, color: rgb(0, 0, 0)
-    })
 
     // Reference footer at very bottom of page
     const ts = new Date(lastSubmission.timestamp)
@@ -559,7 +515,7 @@
     lastPage.drawText(
       'Electronically signed via AADS Digital Acknowledgement System  |  Ref: ' +
         lastSubmission.ref + '  |  ' + safeDate,
-      { x: MARGIN, y: 18, font: fontRegular, size: 6.5, color: rgb(0, 0, 0) }
+      { x: 55, y: 18, font: fontRegular, size: 6.5, color: rgb(0, 0, 0) }
     )
 
     return pdfDoc
@@ -569,7 +525,7 @@
     const pdfDoc = await buildPDF()
     if (!pdfDoc) return null
     const pdfBytes = await pdfDoc.save()
-    // Convert Uint8Array → base64 in chunks to avoid call-stack limits
+    // Convert Uint8Array to base64 in chunks to avoid call-stack limits
     const chunk = 0x8000
     let binary = ''
     for (let i = 0; i < pdfBytes.length; i += chunk) {
