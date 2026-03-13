@@ -130,7 +130,40 @@ function extractN(q) {
   return m ? parseInt(m[1] ?? m[2] ?? m[3] ?? m[4] ?? m[5]) : null
 }
 
+function getFollowUps(ql, namedPlayer) {
+  if (/leaderboard|standings|ranking/i.test(ql))
+    return ['Top 5 by 3DA', 'Top 5 by win rate', 'Most 180s', 'Who is in form?']
+  if (/\bform\b|trending|\bhot\b/i.test(ql))
+    return ['Series standings', 'Most 180s', 'Highest high finish', 'Top 5 by 3DA']
+  if (/champion|who won|winner/i.test(ql))
+    return ['List all events', 'Series standings', 'Who is in form?']
+  if (/\bvs\.?\b|versus|\bh2h\b/i.test(ql))
+    return ['Series standings', 'Top 5 by win rate', 'Compare players']
+  if (/\bcompare\b|stats vs/i.test(ql))
+    return ['Series standings', 'Top 5 by 3DA', 'Most 180s']
+  if (/\b180\b/i.test(ql))
+    return ['Most 140+', 'Highest high finish', 'Best checkout %', 'Top 5 by 3DA']
+  if (/checkout|co.?pct/i.test(ql))
+    return ['Highest high finish', 'Most 180s', 'Top 5 by win rate']
+  if (/high.?finish/i.test(ql))
+    return ['Best checkout %', 'Most 180s', 'Series standings']
+  if (/province|from|\bns\b|\bnb\b|\bpei?\b|\bnl\b/i.test(ql))
+    return ['NB leaderboard', 'NS players', 'Series standings', 'Province breakdown']
+  if (/3.?da|average|avg/i.test(ql))
+    return ['Top 5 by win rate', 'Most 180s', 'Best checkout %', 'Series standings']
+  if (namedPlayer)
+    return [`${namedPlayer} vs ...`, `Compare ${namedPlayer}`, 'Series standings', 'Top 5 by 3DA']
+  return ['Series standings', 'Top 5 by 3DA', 'Most 180s', 'Who is in form?']
+}
+
 export function answerQuery(rawText, { aggregatedStats, players, events, h2hIndex }) {
+  const result = _answerQuery(rawText, { aggregatedStats, players, events, h2hIndex })
+  const namedPlayer = findPlayer(rawText, players)
+  result.suggestions = getFollowUps(rawText.toLowerCase(), namedPlayer)
+  return result
+}
+
+function _answerQuery(rawText, { aggregatedStats, players, events, h2hIndex }) {
   const q = rawText.trim()
   const ql = q.toLowerCase()
 

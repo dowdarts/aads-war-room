@@ -56,7 +56,7 @@ export default function LocalChat() {
     setInput('')
     const userMsg = { role: 'user', text: trimmed }
     const result = answerQuery(trimmed, { aggregatedStats, players, events, h2hIndex })
-    setMessages(prev => [...prev, userMsg, { role: 'bot', text: result.text }])
+    setMessages(prev => [...prev, userMsg, { role: 'bot', text: result.text, suggestions: result.suggestions }])
   }
 
   const typingSuggestions = getSuggestions(input, players)
@@ -112,7 +112,7 @@ export default function LocalChat() {
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3 min-h-0">
             {messages.map((m, i) => (
-              <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={i} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
                 <div
                   className={`max-w-[88%] px-3 py-2 rounded-xl
                     ${m.role === 'user'
@@ -122,6 +122,21 @@ export default function LocalChat() {
                 >
                   {m.role === 'bot' ? <BotText text={m.text} /> : m.text}
                 </div>
+                {/* Follow-up chips — only on last bot message */}
+                {m.role === 'bot' && m.suggestions?.length > 0 && i === messages.length - 1 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2 max-w-[88%]">
+                    {m.suggestions.map(s => (
+                      <button
+                        key={s}
+                        onClick={() => send(s)}
+                        className="text-[10px] px-2.5 py-1 rounded-full border border-[#2a2a2a]
+                                   text-gray-400 hover:border-orange hover:text-orange transition-colors bg-[#111]"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
 
