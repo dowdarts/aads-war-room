@@ -2,6 +2,13 @@ import { nameKey } from './nameNormalizer.js'
 
 function nk(s) { return s.toLowerCase().replace(/\s+/g, ' ').trim() }
 
+const STOP_WORDS = new Set([
+  'does','have','what','who','from','with','that','this','most','best','top',
+  'wins','loss','the','and','for','how','when','they','high','show','give',
+  'list','tell','find','hits','hit','about','which','player','players',
+  'highest','lowest','most','least','more','less','many','much'
+])
+
 function getLevenshteinDistance(a, b) {
   const matrix = Array.from({ length: a.length + 1 }, (_, i) => [i])
   for (let j = 1; j <= b.length; j++) matrix[0][j] = j
@@ -24,9 +31,9 @@ function findFuzzyPlayer(text, players) {
     const words = q.split(' ')
     const pWords = dn.split(' ')
     for (const pw of pWords) {
-      if (pw.length < 5) continue
+      if (pw.length < 3) continue
       for (const w of words) {
-        if (w.length < 5) continue
+        if (w.length < 3 || STOP_WORDS.has(w)) continue
         const d = getLevenshteinDistance(w, pw)
         if (d < minDistance) { minDistance = d; bestMatch = p.displayName }
       }
@@ -48,7 +55,7 @@ function findPlayer(text, players) {
   }
   for (const p of players) {
     const first = p.displayName.toLowerCase().split(' ')[0]
-    if (first.length >= 5 && new RegExp(`\\b${first}\\b`, 'i').test(q)) return p.displayName
+    if (first.length >= 3 && !STOP_WORDS.has(first) && new RegExp(`\\b${first}\\b`, 'i').test(q)) return p.displayName
   }
   // Fuzzy fallback
   return findFuzzyPlayer(text, players)
@@ -98,7 +105,7 @@ function fv(key, val) {
 function detectStat(q) {
   if (/3.?da|3.dart|three.?dart|\baverage\b|\bavg\b/i.test(q)) return 'avg3da'
   if (/\b180\b/i.test(q)) return 'scores180'
-  if (/checkout|co.?pct|double.out/i.test(q)) return 'coPct'
+  if (/checkout|co.?pct|double.out|check[\s-]?out/i.test(q)) return 'coPct'
   if (/high.?finish|best.?finish/i.test(q)) return 'highFinish'
   if (/win.rate|win.?%/i.test(q)) return 'winRate'
   if (/most.wins|total.wins|\bwins\b/i.test(q)) return 'wins'
@@ -295,7 +302,7 @@ export function answerQuery(rawText, { aggregatedStats, players, events, h2hInde
   }
 
   // ── "most X" / "who has most X" — must run BEFORE named player lookup ────
-  if (/\bmost\b|who.*(?:has|have|leads|hit)/i.test(ql)) {
+  if (/\bmost\b|\bhighest\b|who.*(?:has|have|leads|hit)/i.test(ql)) {
     const mStatKey = detectStat(ql)
     if (mStatKey) {
       const count = extractN(ql) || 5
@@ -320,6 +327,20 @@ export function answerQuery(rawText, { aggregatedStats, players, events, h2hInde
     if (!stat) return { text: `**${namedPlayer}** is in the roster but has no stat data recorded.` }
     const t = stat.totals
     const specificStat = detectStat(ql)
+
+    // ── "does X have a 160 checkout / 170 finish" ─────────────────────────
+    const finishNumMatch = ql.match(/\b(1[0-9]{2}|[6-9][0-9])\b/)
+    const isFinishQuery = /check[\s-]?out|finish|hit|land|get/i.test(ql) && finishNumMatch
+    if (isFinishQuery) {
+      const asked = parseInt(finishNumMatch[1])
+      const best = t.highFinish ?? 0
+      if (best >= asked) {
+        return { text: `✅ **${namedPlayer}** has recorded a **${best}** high finish — yes, they have hit a **${asked}+** checkout.` }
+      } else {
+        return { text: `❌ **${namedPlayer}**'s best recorded finish is **${best || '—'}**. No **${asked}** checkout on record.` }
+      }
+    }
+
     if (specificStat) {
       return { text: `**${namedPlayer}** — ${statLabel(specificStat)}: **${fv(specificStat, t[specificStat])}**` }
     }
