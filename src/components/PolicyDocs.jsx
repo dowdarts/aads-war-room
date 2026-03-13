@@ -102,7 +102,7 @@ function SignedSubmissions() {
     if (!client) { setError('Supabase not connected'); setLoading(false); return }
     const { data, error: err } = await client
       .from('acknowledgements')
-      .select('id, name, role, submitted_at')
+      .select('id, name, submitted_at')
       .order('submitted_at', { ascending: false })
     setLoading(false)
     if (err) { setError(err.message); return }
@@ -166,10 +166,12 @@ function SignedSubmissions() {
                     <div className="text-xs font-semibold text-white truncate">{r.name}</div>
                     <div className="text-[10px] text-gray-600">{new Date(r.submitted_at).toLocaleString()}</div>
                   </div>
-                  <span
-                    className="text-[9px] font-black uppercase px-2 py-0.5 rounded"
-                    style={{ background: (ROLE_COLORS[r.role] || '#666') + '22', color: ROLE_COLORS[r.role] || '#666' }}
-                  >{r.role}</span>
+                  {r.role && (
+                    <span
+                      className="text-[9px] font-black uppercase px-2 py-0.5 rounded"
+                      style={{ background: (ROLE_COLORS[r.role] || '#666') + '22', color: ROLE_COLORS[r.role] || '#666' }}
+                    >{r.role}</span>
+                  )}
                 </div>
               ))}
             </div>
