@@ -397,7 +397,7 @@
           'Authorization': 'Bearer ' + SUPABASE_ANON,
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ name: name, role: currentRole })
+        body: JSON.stringify({ name: name })
       })
       if (!res.ok) throw new Error('HTTP ' + res.status)
       document.getElementById('success-msg').textContent =
