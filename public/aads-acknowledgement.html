@@ -65,28 +65,44 @@
     #screen-sign { justify-content: flex-start; padding-top: 0; width: 100%; max-width: 100%; }
     .sign-header {
       width: 100%; padding: 14px 16px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a;
-      display: flex; align-items: center; gap: 10px;
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
     }
-    .sign-body { width: 100%; max-width: 480px; padding: 28px 20px; display: flex; flex-direction: column; gap: 18px; align-self: center; }
+    .sign-body { width: 100%; max-width: 520px; padding: 24px 20px 40px; display: flex; flex-direction: column; gap: 20px; align-self: center; overflow-y: auto; }
     .sign-title { font-size: 20px; font-weight: 900; color: #fff; text-align: center; }
-    .sign-sub { font-size: 13px; color: #555; text-align: center; margin-top: -10px; }
+    .sign-sub { font-size: 13px; color: #555; text-align: center; margin-top: -12px; }
+    .section-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #444; margin-bottom: 8px; }
     label.field-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; display: block; margin-bottom: 6px; }
     input[type="text"] {
       width: 100%; padding: 14px 16px; background: #0d0d0d; border: 1.5px solid #1e1e1e;
-      border-radius: 10px; color: #fff; font-size: 16px; outline: none;
-      transition: border-color 0.15s;
+      border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: border-color 0.15s;
     }
     input[type="text"]:focus { border-color: var(--orange); }
     .date-display {
       width: 100%; padding: 14px 16px; background: #080808; border: 1px solid #1a1a1a;
       border-radius: 10px; color: #555; font-size: 14px;
     }
-    .agree-row {
-      display: flex; gap: 12px; align-items: flex-start; padding: 16px;
-      background: #0d0d0d; border: 1.5px solid #1e1e1e; border-radius: 10px; cursor: pointer;
+    /* Policy checkboxes */
+    .policy-checks { display: flex; flex-direction: column; gap: 10px; }
+    .check-row {
+      display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px;
+      background: #0a0a0a; border: 1.5px solid #1e1e1e; border-radius: 10px; cursor: pointer;
+      transition: border-color 0.15s;
     }
-    .agree-row input { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--orange); cursor: pointer; flex-shrink: 0; }
-    .agree-text { font-size: 13px; color: #aaa; line-height: 1.5; }
+    .check-row:has(input:checked) { border-color: #2a2a2a; background: #0d0d0d; }
+    .check-row input[type="checkbox"] { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--orange); cursor: pointer; flex-shrink: 0; }
+    .check-text { font-size: 13px; color: #999; line-height: 1.5; }
+    .check-text strong { color: #ccc; font-weight: 700; }
+    /* Signature pad */
+    .sig-wrap { position: relative; border: 1.5px solid #1e1e1e; border-radius: 12px; overflow: hidden; background: #0d0d0d; touch-action: none; }
+    .sig-wrap.has-sig { border-color: #2a2a2a; }
+    #sig-canvas { display: block; width: 100%; height: 160px; cursor: crosshair; touch-action: none; }
+    .sig-clear {
+      position: absolute; top: 8px; right: 10px; background: #1a1a1a; border: 1px solid #2a2a2a;
+      color: #666; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .sig-hint { font-size: 11px; color: #2a2a2a; text-align: center; margin-top: 6px; }
+    /* Submit */
     .submit-btn {
       width: 100%; padding: 18px; background: var(--orange); border: none; border-radius: 12px;
       color: #000; font-size: 17px; font-weight: 900; cursor: pointer; opacity: 0.4;
@@ -150,23 +166,34 @@
 <div class="screen" id="screen-sign">
   <div class="sign-header">
     <button class="back-btn" onclick="goTo('policy')">&#8592; Back</button>
-    <span class="policy-title">Sign Your Acknowledgement</span>
+    <span class="policy-title" id="sign-header-title">Sign Your Acknowledgement</span>
   </div>
   <div class="sign-body">
-    <div class="sign-title">Almost Done</div>
-    <p class="sign-sub">Please enter your full name to sign</p>
+    <div class="sign-title" id="sign-role-title">Acknowledgement</div>
+    <p class="sign-sub" id="sign-date"></p>
+
+    <!-- Role-specific policy checkboxes rendered by JS -->
     <div>
-      <label class="field-label" for="signer-name">Full Name</label>
+      <div class="section-label">Policies &amp; Agreements</div>
+      <div class="policy-checks" id="policy-checks"></div>
+    </div>
+
+    <!-- Typed full name -->
+    <div>
+      <label class="field-label" for="signer-name">Full Name (typed signature)</label>
       <input type="text" id="signer-name" placeholder="e.g. John Smith" oninput="checkReady()" autocomplete="name" />
     </div>
+
+    <!-- Canvas signature pad -->
     <div>
-      <label class="field-label">Date</label>
-      <div class="date-display" id="sign-date"></div>
+      <label class="field-label">Hand Signature (sign with stylus or finger)</label>
+      <div class="sig-wrap" id="sig-wrap">
+        <canvas id="sig-canvas"></canvas>
+        <button class="sig-clear" onclick="clearCanvas()" type="button">Clear</button>
+      </div>
+      <p class="sig-hint">Use your finger, stylus, or mouse to sign above</p>
     </div>
-    <label class="agree-row" for="agree-check">
-      <input type="checkbox" id="agree-check" onchange="checkReady()" />
-      <span class="agree-text">I confirm I have read and understood the policy document, and I agree to its terms and conditions as a condition of participating in this AADS event.</span>
-    </label>
+
     <p class="error-msg" id="error-msg">Something went wrong. Please try again.</p>
     <button class="submit-btn" id="submit-btn" onclick="submitAck()">
       <span class="btn-text">I Agree &amp; Submit</span>
@@ -194,9 +221,29 @@
     spectator: BASE + 'policies/AADS_Spectator_Policy_Booklet.pdf',
   }
   const LABELS = { player: 'Player Policy', volunteer: 'Volunteer Policy', spectator: 'Spectator & Visitor Policy' }
+  const ROLE_TITLES = { player: 'Player Acknowledgement', volunteer: 'Volunteer Acknowledgement', spectator: 'Spectator & Visitor Acknowledgement' }
+
+  const POLICY_ITEMS = {
+    player: [
+      { bold: 'AADS Player Code of Conduct', text: 'I have read and agree to comply with the AADS Player Code of Conduct for this event.' },
+      { bold: 'Match Rules & Regulations', text: 'I have read and agree to the AADS Match Rules and Regulations governing competitive play.' },
+      { bold: 'Liability Waiver', text: 'I acknowledge and accept the liability waiver terms as a competing player in this AADS event.' }
+    ],
+    volunteer: [
+      { bold: 'AADS Volunteer Code of Conduct', text: 'I have read and agree to the AADS Volunteer Code of Conduct.' },
+      { bold: 'Volunteer Responsibilities', text: 'I acknowledge my responsibilities and duties as an official AADS volunteer or event helper.' },
+      { bold: 'Volunteer Liability Terms', text: 'I acknowledge and accept the liability terms applicable to volunteers at this event.' }
+    ],
+    spectator: [
+      { bold: 'AADS Spectator Code of Conduct', text: 'I have read and agree to the AADS Spectator and Visitor Code of Conduct.' },
+      { bold: 'Venue Rules & Liability', text: 'I acknowledge the venue rules and accept the liability terms as a visitor/spectator at this event.' }
+    ]
+  }
 
   let currentRole = null
+  let canvasHasStrokes = false
 
+  /* ── Navigation ── */
   function goTo(screen) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
     document.getElementById('screen-' + screen).classList.add('active')
@@ -210,26 +257,135 @@
     goTo('policy')
   }
 
-  function checkReady() {
-    const name = document.getElementById('signer-name').value.trim()
-    const agreed = document.getElementById('agree-check').checked
-    const btn = document.getElementById('submit-btn')
-    if (name.length >= 2 && agreed) { btn.classList.add('ready') }
-    else { btn.classList.remove('ready') }
-  }
-
+  /* ── Sign screen setup ── */
   function goToSign() {
     const now = new Date()
-    document.getElementById('sign-date').textContent = now.toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    document.getElementById('sign-date').textContent =
+      now.toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    document.getElementById('sign-role-title').textContent = ROLE_TITLES[currentRole] || 'Acknowledgement'
+    renderCheckboxes(currentRole)
+    document.getElementById('signer-name').value = ''
     goTo('sign')
+    // Delay so the canvas has rendered dimensions
+    setTimeout(initCanvas, 80)
   }
 
-  // Override the continue button to set date
+  // Override the policy screen continue button
   document.querySelector('.continue-btn').onclick = goToSign
 
+  /* ── Role-specific checkboxes ── */
+  function renderCheckboxes(role) {
+    const container = document.getElementById('policy-checks')
+    container.innerHTML = ''
+    ;(POLICY_ITEMS[role] || []).forEach(function(item, i) {
+      const id = 'chk-' + i
+      const lbl = document.createElement('label')
+      lbl.className = 'check-row'
+      lbl.htmlFor = id
+      lbl.innerHTML =
+        '<input type="checkbox" id="' + id + '" onchange="checkReady()" />' +
+        '<span class="check-text"><strong>' + item.bold + '</strong> — ' + item.text + '</span>'
+      container.appendChild(lbl)
+    })
+  }
+
+  /* ── Canvas signature pad ── */
+  let _canvasListenersAttached = false
+
+  function initCanvas() {
+    const canvas = document.getElementById('sig-canvas')
+    const wrap = document.getElementById('sig-wrap')
+    const dpr = window.devicePixelRatio || 1
+    const w = wrap.getBoundingClientRect().width || wrap.offsetWidth || 300
+    canvas.width  = Math.round(w * dpr)
+    canvas.height = Math.round(160 * dpr)
+    canvas.style.height = '160px'
+    const ctx = canvas.getContext('2d')
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.scale(dpr, dpr)
+    ctx.clearRect(0, 0, w, 160)
+    ctx.strokeStyle = '#FF6600'
+    ctx.lineWidth = 2.2
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    canvasHasStrokes = false
+    wrap.classList.remove('has-sig')
+
+    if (_canvasListenersAttached) return
+    _canvasListenersAttached = true
+
+    let drawing = false, lx = 0, ly = 0
+
+    function getPos(e) {
+      const r = canvas.getBoundingClientRect()
+      const src = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e)
+      return { x: src.clientX - r.left, y: src.clientY - r.top }
+    }
+    function getCtx() {
+      const c = document.getElementById('sig-canvas')
+      const cx = c.getContext('2d')
+      cx.strokeStyle = '#FF6600'; cx.lineWidth = 2.2; cx.lineCap = 'round'; cx.lineJoin = 'round'
+      return cx
+    }
+    function onStart(e) {
+      e.preventDefault(); drawing = true
+      const p = getPos(e); lx = p.x; ly = p.y
+    }
+    function onMove(e) {
+      e.preventDefault(); if (!drawing) return
+      const p = getPos(e)
+      const cx = getCtx()
+      cx.beginPath(); cx.moveTo(lx, ly); cx.lineTo(p.x, p.y); cx.stroke()
+      lx = p.x; ly = p.y
+      if (!canvasHasStrokes) {
+        canvasHasStrokes = true
+        document.getElementById('sig-wrap').classList.add('has-sig')
+        checkReady()
+      }
+    }
+    function onEnd() { drawing = false }
+
+    canvas.addEventListener('pointerdown',  onStart)
+    canvas.addEventListener('pointermove',  onMove)
+    canvas.addEventListener('pointerup',    onEnd)
+    canvas.addEventListener('pointerleave', onEnd)
+    canvas.addEventListener('touchstart',   onStart, { passive: false })
+    canvas.addEventListener('touchmove',    onMove,  { passive: false })
+    canvas.addEventListener('touchend',     onEnd)
+    canvas.addEventListener('mousedown',    onStart)
+    canvas.addEventListener('mousemove',    onMove)
+    canvas.addEventListener('mouseup',      onEnd)
+    canvas.addEventListener('mouseleave',   onEnd)
+  }
+
+  function clearCanvas() {
+    const canvas = document.getElementById('sig-canvas')
+    const dpr = window.devicePixelRatio || 1
+    canvas.getContext('2d').clearRect(0, 0, canvas.width / dpr, 160)
+    canvasHasStrokes = false
+    document.getElementById('sig-wrap').classList.remove('has-sig')
+    checkReady()
+  }
+
+  /* ── Readiness check ── */
+  function checkReady() {
+    const name = document.getElementById('signer-name').value.trim()
+    const checks = Array.from(document.querySelectorAll('#policy-checks input[type="checkbox"]'))
+    const allChecked = checks.length > 0 && checks.every(function(c) { return c.checked })
+    const btn = document.getElementById('submit-btn')
+    if (name.length >= 2 && allChecked && canvasHasStrokes) {
+      btn.classList.add('ready')
+    } else {
+      btn.classList.remove('ready')
+    }
+  }
+
+  /* ── Submit ── */
   async function submitAck() {
     const name = document.getElementById('signer-name').value.trim()
     if (!name) return
+    const canvas = document.getElementById('sig-canvas')
+    const signature_data = canvas.toDataURL('image/png')
     const btn = document.getElementById('submit-btn')
     const errEl = document.getElementById('error-msg')
     btn.classList.add('loading')
@@ -243,10 +399,11 @@
           'Authorization': 'Bearer ' + SUPABASE_ANON,
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ name, role: currentRole })
+        body: JSON.stringify({ name: name, role: currentRole, signature_data: signature_data })
       })
       if (!res.ok) throw new Error('HTTP ' + res.status)
-      document.getElementById('success-msg').textContent = 'Thank you, ' + name + '! Your acknowledgement has been recorded.'
+      document.getElementById('success-msg').textContent =
+        'Thank you, ' + name + '! Your acknowledgement has been recorded.'
       goTo('success')
     } catch (e) {
       errEl.style.display = 'block'
@@ -254,13 +411,15 @@
     }
   }
 
+  /* ── Reset for next person ── */
   function reset() {
     currentRole = null
     document.getElementById('signer-name').value = ''
-    document.getElementById('agree-check').checked = false
     document.getElementById('submit-btn').classList.remove('ready','loading')
     document.getElementById('error-msg').style.display = 'none'
     document.getElementById('pdf-frame').src = ''
+    document.getElementById('sig-wrap').classList.remove('has-sig')
+    canvasHasStrokes = false
     goTo('landing')
   }
 </script>
