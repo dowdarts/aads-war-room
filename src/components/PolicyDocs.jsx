@@ -8,6 +8,14 @@ const POLICY_CATEGORIES = [
     ],
   },
   {
+    label: 'Policy Booklets',
+    docs: [
+      { id: 'player-booklet',    title: 'Player Policy Booklet',    src: '/policies/AADS_Player_Policy_Booklet.pdf' },
+      { id: 'volunteer-booklet', title: 'Volunteer Policy Booklet', src: '/policies/AADS_Volunteer_Policy_Booklet.pdf' },
+      { id: 'spectator-booklet', title: 'Spectator Policy Booklet', src: '/policies/AADS_Spectator_Policy_Booklet.pdf' },
+    ],
+  },
+  {
     label: 'Core Rules & Policies',
     docs: [
       { id: 'aads-rules',            title: 'AADS Rules',                              src: '/policies/Revised-version-of-AADS-RULES.pdf' },
