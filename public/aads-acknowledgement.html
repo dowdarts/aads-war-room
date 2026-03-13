@@ -120,6 +120,12 @@
       padding: 16px 40px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px;
       color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent;
     }
+    .download-btn {
+      padding: 14px 32px; background: #0a0a0a; border: 1.5px solid var(--orange); border-radius: 12px;
+      color: var(--orange); font-size: 14px; font-weight: 800; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; margin-bottom: 14px; width: 100%; max-width: 280px;
+    }
+    .download-btn:active { opacity: 0.7; }
     .spinner { display: none; width: 20px; height: 20px; border: 2px solid #0004; border-top-color: #000;
       border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto; }
     .submit-btn.loading .btn-text { display: none; }
@@ -208,9 +214,11 @@
   <div class="success-icon">&#10003;</div>
   <div class="success-title">Acknowledged!</div>
   <p class="success-sub" id="success-msg">Your acknowledgement has been recorded. Thank you.</p>
+  <button class="download-btn" onclick="downloadSignedPDF()">&#8595;&nbsp; Download Signed Copy</button>
   <button class="reset-btn" onclick="reset()">Done &mdash; Next Person</button>
 </div>
 
+<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
   const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
@@ -243,6 +251,7 @@
 
   let currentRole = null
   let canvasHasStrokes = false
+  let lastSubmission = null
 
   /* ── Navigation ── */
   function goTo(screen) {
@@ -401,6 +410,16 @@
         body: JSON.stringify({ name: name })
       })
       if (!res.ok) throw new Error('HTTP ' + res.status)
+      const canvas = document.getElementById('sig-canvas')
+      lastSubmission = {
+        name: name,
+        role: currentRole,
+        date: document.getElementById('sign-date').textContent,
+        checks: (POLICY_ITEMS[currentRole] || []).map(function(item) { return item.bold + ' \u2014 ' + item.text }),
+        signatureImg: canvasHasStrokes ? canvas.toDataURL('image/png') : null,
+        timestamp: new Date().toISOString(),
+        ref: 'AADS-' + Date.now().toString(36).toUpperCase()
+      }
       document.getElementById('success-msg').textContent =
         'Thank you, ' + name + '! Your acknowledgement has been recorded.'
       goTo('success')
@@ -410,8 +429,135 @@
     }
   }
 
+  /* ── Generate signed PDF certificate ── */
+  function downloadSignedPDF() {
+    if (!lastSubmission) return
+    if (typeof jspdf === 'undefined') {
+      alert('PDF library not loaded. Check your internet connection and try again.')
+      return
+    }
+    const { jsPDF } = jspdf
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    const W = 210, ML = 18, CW = 174
+    const orange = [255, 102, 0], white = [255, 255, 255]
+    const dark = [20, 20, 20], gray = [130, 130, 130], lightgray = [210, 210, 210]
+
+    // ── Header bar ──
+    doc.setFillColor(255, 102, 0)
+    doc.rect(0, 0, W, 30, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(22)
+    doc.text('AADS', ML, 13)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.text('Atlantic Darts Sports Association', ML, 20)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(9)
+    doc.text('SIGNED ACKNOWLEDGEMENT CERTIFICATE', ML, 27)
+    doc.setFontSize(9)
+    doc.text((lastSubmission.role || '').toUpperCase(), W - ML, 13, { align: 'right' })
+
+    let y = 40
+
+    // ── Date ──
+    doc.setTextColor(130, 130, 130)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(7)
+    doc.text('DATE SIGNED', ML, y)
+    y += 5
+    doc.setTextColor(20, 20, 20)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.text(lastSubmission.date || '', ML, y)
+    y += 10
+
+    // ── Typed name ──
+    doc.setTextColor(130, 130, 130)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(7)
+    doc.text('FULL NAME  \u2014  TYPED SIGNATURE', ML, y)
+    y += 5
+    doc.setTextColor(255, 102, 0)
+    doc.setFont('helvetica', 'bolditalic')
+    doc.setFontSize(22)
+    doc.text(lastSubmission.name, ML, y)
+    y += 6
+    doc.setDrawColor(255, 102, 0)
+    doc.setLineWidth(0.4)
+    doc.line(ML, y, ML + CW, y)
+    y += 9
+
+    // ── Policies ──
+    doc.setTextColor(130, 130, 130)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(7)
+    doc.text('POLICIES & AGREEMENTS ACKNOWLEDGED', ML, y)
+    y += 6
+    ;(lastSubmission.checks || []).forEach(function(checkText) {
+      // Draw filled orange checkbox
+      doc.setFillColor(255, 102, 0)
+      doc.rect(ML, y - 3.2, 3.5, 3.5, 'F')
+      // White checkmark lines
+      doc.setDrawColor(255, 255, 255)
+      doc.setLineWidth(0.55)
+      doc.line(ML + 0.6, y - 1.4, ML + 1.5, y - 0.4)
+      doc.line(ML + 1.5, y - 0.4, ML + 3.0, y - 2.7)
+      // Policy text
+      doc.setTextColor(20, 20, 20)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8.5)
+      const lines = doc.splitTextToSize(checkText, CW - 8)
+      doc.text(lines, ML + 7, y)
+      y += (lines.length * 4.5) + 4
+    })
+    y += 3
+
+    // ── Divider ──
+    doc.setDrawColor(210, 210, 210)
+    doc.setLineWidth(0.3)
+    doc.line(ML, y, ML + CW, y)
+    y += 6
+
+    // ── Signature image ──
+    doc.setTextColor(130, 130, 130)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(7)
+    doc.text('HAND SIGNATURE', ML, y)
+    y += 4
+    const sigH = 32
+    doc.setFillColor(13, 13, 13)
+    doc.setDrawColor(40, 40, 40)
+    doc.setLineWidth(0.3)
+    doc.roundedRect(ML, y, CW, sigH, 2, 2, 'FD')
+    if (lastSubmission.signatureImg) {
+      try { doc.addImage(lastSubmission.signatureImg, 'PNG', ML + 2, y + 2, CW - 4, sigH - 4) } catch(e) {}
+    }
+    y += sigH + 8
+
+    // ── Footer ──
+    doc.setDrawColor(210, 210, 210)
+    doc.line(ML, y, ML + CW, y)
+    y += 6
+    doc.setTextColor(130, 130, 130)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.text('Electronically signed: ' + new Date(lastSubmission.timestamp).toLocaleString(), ML, y)
+    y += 4.5
+    doc.text('Generated by AADS Digital Acknowledgement System  |  Ref: ' + lastSubmission.ref, ML, y)
+
+    // ── Page border ──
+    doc.setDrawColor(255, 102, 0)
+    doc.setLineWidth(0.7)
+    doc.rect(7, 7, W - 14, 283, 'S')
+
+    const safeName = (lastSubmission.name || 'Acknowledgement').replace(/[^a-zA-Z0-9]/g, '_')
+    doc.save('AADS_Signed_' + safeName + '.pdf')
+  }
+
   /* ── Reset for next person ── */
   function reset() {
+    lastSubmission = null
     currentRole = null
     document.getElementById('signer-name').value = ''
     document.getElementById('submit-btn').classList.remove('ready','loading')
