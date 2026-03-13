@@ -14,18 +14,12 @@ export default function Nav({ active, onSelect }) {
   return (
     <nav className="sticky top-0 z-50 bg-[#0a0a0a] border-b border-[#1a1a1a]">
       {/* Header bar */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-[#1a1a1a]">
-        <div className="w-8 h-8 rounded bg-orange flex items-center justify-center font-black text-black text-sm">
-          A
-        </div>
-        <div>
-          <div className="text-orange font-bold text-sm tracking-widest uppercase">
-            AADS
-          </div>
-          <div className="text-[10px] text-gray-500 leading-none tracking-wider uppercase">
-            AADSDartsIntel
-          </div>
-        </div>
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-[#1a1a1a]">
+        <img
+          src="/aads-war-room/logo-wiki.png"
+          alt="AADS Wiki"
+          className="h-12 w-auto object-contain"
+        />
       </div>
 
       {/* Tab row */}
