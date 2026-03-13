@@ -390,17 +390,28 @@
     const errEl = document.getElementById('error-msg')
     btn.classList.add('loading')
     errEl.style.display = 'none'
+
+    const HEADERS = {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_ANON,
+      'Authorization': 'Bearer ' + SUPABASE_ANON,
+      'Prefer': 'return=minimal'
+    }
+    const ENDPOINT = SUPABASE_URL + '/rest/v1/acknowledgements'
+
     try {
-      const res = await fetch(SUPABASE_URL + '/rest/v1/acknowledgements', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON,
-          'Authorization': 'Bearer ' + SUPABASE_ANON,
-          'Prefer': 'return=minimal'
-        },
+      // Try with signature first
+      let res = await fetch(ENDPOINT, {
+        method: 'POST', headers: HEADERS,
         body: JSON.stringify({ name: name, role: currentRole, signature_data: signature_data })
       })
+      // If 400 (column likely missing), fall back to name + role only
+      if (res.status === 400) {
+        res = await fetch(ENDPOINT, {
+          method: 'POST', headers: HEADERS,
+          body: JSON.stringify({ name: name, role: currentRole })
+        })
+      }
       if (!res.ok) throw new Error('HTTP ' + res.status)
       document.getElementById('success-msg').textContent =
         'Thank you, ' + name + '! Your acknowledgement has been recorded.'
