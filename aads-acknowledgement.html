@@ -467,38 +467,44 @@
     const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
     const fontItalic  = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
 
-    // ── Field positions as proportions of page size ───────────────────────
-    // Y values are from the BOTTOM of the page (PDF origin = bottom-left).
-    // Measured from the "Policy Acknowledgement & Signature" form layout.
-    // Tweak these proportions if the text drifts off the field lines.
-    const FIELD_X  = width  * 0.260  // X start for values (right of longest label)
-    const NAME_Y   = height * 0.633  // "Full Name:" field line
-    const DATE_Y   = height * 0.484  // "Date:" field line
-    const SIG_Y    = height * 0.408  // "Digital Signature:" field line (bottom of image)
-    const SIG_H    = height * 0.040  // height of signature image
-    const SIG_W    = width  * 0.370  // width of signature image
+    // ── Field line boundaries (proportions of page size) ─────────────────
+    // PDF origin = bottom-left. Y values measured from bottom.
+    // Line START/END define the underline span on the form.
+    const LINE_X1   = width  * 0.215  // left edge of field lines
+    const LINE_X2   = width  * 0.685  // right edge of field lines
+    const LINE_MID  = (LINE_X1 + LINE_X2) / 2
+
+    // Y = vertical position of each field line (text sits just above it)
+    const NAME_Y    = height * 0.725  // Full Name field
+    const DATE_Y    = height * 0.578  // Date field
+    const SIG_Y     = height * 0.492  // Digital Signature field (bottom of image)
+    const SIG_H     = height * 0.052  // height of signature image
+    const SIG_W     = LINE_X2 - LINE_X1
     // ─────────────────────────────────────────────────────────────────────
 
-    // Full Name — italic text on the Full Name field line
+    // Full Name — italic, centered on the Full Name field line
+    const nameW = fontItalic.widthOfTextAtSize(lastSubmission.name, 11)
     lastPage.drawText(lastSubmission.name, {
-      x: FIELD_X, y: NAME_Y + 3,
+      x: LINE_MID - nameW / 2, y: NAME_Y + 3,
       font: fontItalic, size: 11, color: rgb(0, 0, 0)
     })
 
-    // Date — on the Date field line
-    lastPage.drawText(lastSubmission.date || '', {
-      x: FIELD_X, y: DATE_Y + 3,
+    // Date — centered on the Date field line
+    const dateStr = lastSubmission.date || ''
+    const dateW = fontRegular.widthOfTextAtSize(dateStr, 9)
+    lastPage.drawText(dateStr, {
+      x: LINE_MID - dateW / 2, y: DATE_Y + 3,
       font: fontRegular, size: 9, color: rgb(0, 0, 0)
     })
 
-    // Signature image — drawn above the Digital Signature field line
+    // Signature image — centered on the Digital Signature field line
     if (lastSubmission.signatureImg) {
       try {
         const blackSig = await toBlackSignature(lastSubmission.signatureImg)
         const b64   = blackSig.split(',')[1]
         const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
         const img   = await pdfDoc.embedPng(bytes)
-        lastPage.drawImage(img, { x: FIELD_X, y: SIG_Y, width: SIG_W, height: SIG_H })
+        lastPage.drawImage(img, { x: LINE_X1, y: SIG_Y, width: SIG_W, height: SIG_H })
       } catch(e) { console.error('Signature embed failed:', e) }
     }
 
