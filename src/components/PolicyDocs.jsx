@@ -145,6 +145,7 @@ function SignedSubmissions() {
               type="password"
               inputMode="numeric"
               maxLength={6}
+              autoComplete="new-password"
               value={pin}
               onChange={e => { setPin(e.target.value); setPinError(false) }}
               placeholder="Enter PIN"

@@ -10,16 +10,14 @@
 let client = null
 let channel = null
 
+const FALLBACK_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+
 export function initSupabaseClient() {
   // Dynamic import to allow optional Supabase usage
   return import('@supabase/supabase-js').then(({ createClient }) => {
-    const url = import.meta.env.VITE_SUPABASE_URL
-    const key = import.meta.env.VITE_SUPABASE_ANON_KEY
-
-    if (!url || !key) {
-      console.warn('⚠️ Supabase credentials not configured. Cue lights will use local state only.')
-      return null
-    }
+    const url = import.meta.env.VITE_SUPABASE_URL || FALLBACK_URL
+    const key = import.meta.env.VITE_SUPABASE_ANON_KEY || FALLBACK_KEY
 
     client = createClient(url, key)
     return client
