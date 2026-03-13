@@ -547,9 +547,18 @@
     })
 
     // Reference footer at very bottom of page
+    const ts = new Date(lastSubmission.timestamp)
+    const safeDate = [
+      ts.getFullYear(),
+      String(ts.getMonth() + 1).padStart(2, '0'),
+      String(ts.getDate()).padStart(2, '0')
+    ].join('-') + ' ' + [
+      String(ts.getHours()).padStart(2, '0'),
+      String(ts.getMinutes()).padStart(2, '0')
+    ].join(':')
     lastPage.drawText(
       'Electronically signed via AADS Digital Acknowledgement System  |  Ref: ' +
-        lastSubmission.ref + '  |  ' + new Date(lastSubmission.timestamp).toLocaleString(),
+        lastSubmission.ref + '  |  ' + safeDate,
       { x: MARGIN, y: 18, font: fontRegular, size: 6.5, color: rgb(0, 0, 0) }
     )
 
