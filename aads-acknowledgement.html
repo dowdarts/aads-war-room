@@ -214,11 +214,11 @@
   <div class="success-icon">&#10003;</div>
   <div class="success-title">Acknowledged!</div>
   <p class="success-sub" id="success-msg">Your acknowledgement has been recorded. Thank you.</p>
-  <button class="download-btn" onclick="downloadSignedPDF()">&#8595;&nbsp; Download Signed Copy</button>
+  <button class="download-btn" id="download-btn" onclick="downloadSignedPDF()">&#8595;&nbsp; Download Signed Copy</button>
   <button class="reset-btn" onclick="reset()">Done &mdash; Next Person</button>
 </div>
 
-<script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script>
   const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
@@ -410,7 +410,7 @@
       timestamp: new Date().toISOString(),
       ref: 'AADS-' + Date.now().toString(36).toUpperCase()
     }
-    const pdfDataUri = generatePDFDataUri()
+    const pdfDataUri = await generatePDFDataUri()
 
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/acknowledgements', {
@@ -435,138 +435,154 @@
   }
 
   /* ── PDF generation ── */
-  function buildPDF() {
+  // Loads the real policy PDF for the signer's role and overlays their
+  // signature, printed name, date and a reference footer onto the last page.
+  // Coordinate constants (SIG_TOP_Y etc.) are measured in PDF points from
+  // the bottom-left origin — adjust them if your form's signature line sits
+  // at a different position on the page.
+  async function buildPDF() {
     if (!lastSubmission) return null
-    if (typeof jspdf === 'undefined') {
-      alert('PDF library not loaded. Check your internet connection and try again.')
+    if (typeof PDFLib === 'undefined') {
+      console.error('pdf-lib not loaded')
       return null
     }
-    const { jsPDF } = jspdf
-    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-    const W = 210, ML = 18, CW = 174
+    const { PDFDocument, rgb, StandardFonts } = PDFLib
 
-    // ── Header bar ──
-    doc.setFillColor(255, 102, 0)
-    doc.rect(0, 0, W, 30, 'F')
-    doc.setTextColor(255, 255, 255)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(22)
-    doc.text('AADS', ML, 13)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.text('Atlantic Darts Sports Association', ML, 20)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(9)
-    doc.text('SIGNED ACKNOWLEDGEMENT CERTIFICATE', ML, 27)
-    doc.setFontSize(9)
-    doc.text((lastSubmission.role || '').toUpperCase(), W - ML, 13, { align: 'right' })
-
-    let y = 40
-
-    // ── Date ──
-    doc.setTextColor(130, 130, 130)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(7)
-    doc.text('DATE SIGNED', ML, y)
-    y += 5
-    doc.setTextColor(20, 20, 20)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(10)
-    doc.text(lastSubmission.date || '', ML, y)
-    y += 10
-
-    // ── Typed name ──
-    doc.setTextColor(130, 130, 130)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(7)
-    doc.text('FULL NAME  \u2014  TYPED SIGNATURE', ML, y)
-    y += 5
-    doc.setTextColor(255, 102, 0)
-    doc.setFont('helvetica', 'bolditalic')
-    doc.setFontSize(22)
-    doc.text(lastSubmission.name, ML, y)
-    y += 6
-    doc.setDrawColor(255, 102, 0)
-    doc.setLineWidth(0.4)
-    doc.line(ML, y, ML + CW, y)
-    y += 9
-
-    // ── Policies ──
-    doc.setTextColor(130, 130, 130)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(7)
-    doc.text('POLICIES & AGREEMENTS ACKNOWLEDGED', ML, y)
-    y += 6
-    ;(lastSubmission.checks || []).forEach(function(checkText) {
-      // Draw filled orange checkbox
-      doc.setFillColor(255, 102, 0)
-      doc.rect(ML, y - 3.2, 3.5, 3.5, 'F')
-      // White checkmark lines
-      doc.setDrawColor(255, 255, 255)
-      doc.setLineWidth(0.55)
-      doc.line(ML + 0.6, y - 1.4, ML + 1.5, y - 0.4)
-      doc.line(ML + 1.5, y - 0.4, ML + 3.0, y - 2.7)
-      // Policy text
-      doc.setTextColor(20, 20, 20)
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8.5)
-      const lines = doc.splitTextToSize(checkText, CW - 8)
-      doc.text(lines, ML + 7, y)
-      y += (lines.length * 4.5) + 4
-    })
-    y += 3
-
-    // ── Divider ──
-    doc.setDrawColor(210, 210, 210)
-    doc.setLineWidth(0.3)
-    doc.line(ML, y, ML + CW, y)
-    y += 6
-
-    // ── Signature image ──
-    doc.setTextColor(130, 130, 130)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(7)
-    doc.text('HAND SIGNATURE', ML, y)
-    y += 4
-    const sigH = 32
-    doc.setFillColor(13, 13, 13)
-    doc.setDrawColor(40, 40, 40)
-    doc.setLineWidth(0.3)
-    doc.roundedRect(ML, y, CW, sigH, 2, 2, 'FD')
-    if (lastSubmission.signatureImg) {
-      try { doc.addImage(lastSubmission.signatureImg, 'PNG', ML + 2, y + 2, CW - 4, sigH - 4) } catch(e) {}
+    // Fetch the actual policy booklet for this role
+    const pdfUrl = PDFS[lastSubmission.role] || PDFS['player']
+    let existingBytes
+    try {
+      const res = await fetch(pdfUrl)
+      if (!res.ok) throw new Error('HTTP ' + res.status)
+      existingBytes = await res.arrayBuffer()
+    } catch(e) {
+      console.error('Could not fetch policy PDF:', e)
+      return null
     }
-    y += sigH + 8
 
-    // ── Footer ──
-    doc.setDrawColor(210, 210, 210)
-    doc.line(ML, y, ML + CW, y)
-    y += 6
-    doc.setTextColor(130, 130, 130)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    doc.text('Electronically signed: ' + new Date(lastSubmission.timestamp).toLocaleString(), ML, y)
-    y += 4.5
-    doc.text('Generated by AADS Digital Acknowledgement System  |  Ref: ' + lastSubmission.ref, ML, y)
+    let pdfDoc
+    try {
+      pdfDoc = await PDFDocument.load(existingBytes, { ignoreEncryption: true })
+    } catch(e) {
+      console.error('Could not load policy PDF:', e)
+      return null
+    }
 
-    // ── Page border ──
-    doc.setDrawColor(255, 102, 0)
-    doc.setLineWidth(0.7)
-    doc.rect(7, 7, W - 14, 283, 'S')
+    const pages   = pdfDoc.getPages()
+    const lastPage = pages[pages.length - 1]
+    const { width, height } = lastPage.getSize()
 
-    return doc
+    // Standard PDF fonts — no extra network requests needed
+    const fontBold    = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const fontItalic  = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+
+    // ── Layout constants (adjust to match form) ──────────────────────────
+    // PDF origin = bottom-left.  All Y values are points from the bottom.
+    const MARGIN     = 55
+    const FORM_W     = width - MARGIN * 2
+    const SIG_TOP_Y  = height * 0.30   // top of signature image box
+    const SIG_H      = 48
+    const SIG_W      = FORM_W * 0.60
+    const DATE_X     = MARGIN + SIG_W + 12
+    // ─────────────────────────────────────────────────────────────────────
+
+    // Signature image (transparent PNG — orange strokes show on white page)
+    if (lastSubmission.signatureImg) {
+      try {
+        const b64   = lastSubmission.signatureImg.split(',')[1]
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
+        const img   = await pdfDoc.embedPng(bytes)
+        lastPage.drawImage(img, {
+          x: MARGIN, y: SIG_TOP_Y - SIG_H,
+          width: SIG_W, height: SIG_H
+        })
+      } catch(e) { console.error('Signature embed failed:', e) }
+    }
+
+    // Signature underline
+    lastPage.drawLine({
+      start: { x: MARGIN,          y: SIG_TOP_Y - SIG_H - 2 },
+      end:   { x: MARGIN + SIG_W,  y: SIG_TOP_Y - SIG_H - 2 },
+      thickness: 0.5, color: rgb(0, 0, 0)
+    })
+
+    // "Signature" label above the line
+    lastPage.drawText('Signature', {
+      x: MARGIN, y: SIG_TOP_Y + 3,
+      font: fontBold, size: 7, color: rgb(0.45, 0.45, 0.45)
+    })
+
+    // Printed name (italic, below signature box)
+    const NAME_Y = SIG_TOP_Y - SIG_H - 16
+    lastPage.drawText(lastSubmission.name, {
+      x: MARGIN, y: NAME_Y,
+      font: fontItalic, size: 12, color: rgb(0, 0, 0)
+    })
+    lastPage.drawText('Printed Name', {
+      x: MARGIN, y: NAME_Y - 10,
+      font: fontBold, size: 6.5, color: rgb(0.45, 0.45, 0.45)
+    })
+    // Name underline
+    lastPage.drawLine({
+      start: { x: MARGIN,          y: NAME_Y - 2 },
+      end:   { x: MARGIN + SIG_W,  y: NAME_Y - 2 },
+      thickness: 0.4, color: rgb(0.7, 0.7, 0.7)
+    })
+
+    // Date (to the right of signature box)
+    lastPage.drawText('Date', {
+      x: DATE_X, y: SIG_TOP_Y + 3,
+      font: fontBold, size: 7, color: rgb(0.45, 0.45, 0.45)
+    })
+    lastPage.drawText(lastSubmission.date || '', {
+      x: DATE_X, y: SIG_TOP_Y - SIG_H - 16,
+      font: fontRegular, size: 9, color: rgb(0, 0, 0)
+    })
+    lastPage.drawLine({
+      start: { x: DATE_X,          y: SIG_TOP_Y - SIG_H - 2 },
+      end:   { x: width - MARGIN,  y: SIG_TOP_Y - SIG_H - 2 },
+      thickness: 0.5, color: rgb(0, 0, 0)
+    })
+
+    // Reference footer at very bottom of page
+    lastPage.drawText(
+      'Electronically signed via AADS Digital Acknowledgement System  \u2502  Ref: ' +
+        lastSubmission.ref + '  \u2502  ' + new Date(lastSubmission.timestamp).toLocaleString(),
+      { x: MARGIN, y: 18, font: fontRegular, size: 6.5, color: rgb(0.6, 0.6, 0.6) }
+    )
+
+    return pdfDoc
   }
 
-  function generatePDFDataUri() {
-    const doc = buildPDF()
-    return doc ? doc.output('datauristring') : null
+  async function generatePDFDataUri() {
+    const pdfDoc = await buildPDF()
+    if (!pdfDoc) return null
+    const pdfBytes = await pdfDoc.save()
+    // Convert Uint8Array → base64 in chunks to avoid call-stack limits
+    const chunk = 0x8000
+    let binary = ''
+    for (let i = 0; i < pdfBytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, pdfBytes.subarray(i, i + chunk))
+    }
+    return 'data:application/pdf;base64,' + btoa(binary)
   }
 
-  function downloadSignedPDF() {
-    const doc = buildPDF()
-    if (!doc) return
+  async function downloadSignedPDF() {
+    const btn = document.getElementById('download-btn')
+    if (btn) { btn.textContent = '\u23f3 Generating\u2026'; btn.disabled = true }
+    const pdfDoc = await buildPDF()
+    if (btn) { btn.textContent = '\u2193\u00a0Download Signed Copy'; btn.disabled = false }
+    if (!pdfDoc) return
+    const pdfBytes = await pdfDoc.save()
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url
     const safeName = (lastSubmission.name || 'Acknowledgement').replace(/[^a-zA-Z0-9]/g, '_')
-    doc.save('AADS_Signed_' + safeName + '.pdf')
+    a.download = 'AADS_Signed_' + safeName + '.pdf'
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   /* ── Reset for next person ── */
