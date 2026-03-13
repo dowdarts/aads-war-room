@@ -13,9 +13,9 @@ const POLICY_CATEGORIES = [
   {
     label: 'Policy Booklets',
     docs: [
-      { id: 'player-booklet',    title: 'Player Policy Booklet',    src: '/policies/AADS_Player_Policy_Booklet.pdf' },
-      { id: 'volunteer-booklet', title: 'Volunteer Policy Booklet', src: '/policies/AADS_Volunteer_Policy_Booklet.pdf' },
-      { id: 'spectator-booklet', title: 'Spectator Policy Booklet', src: '/policies/AADS_Spectator_Policy_Booklet.pdf' },
+      { id: 'player-booklet',    title: 'Player Policy Booklet',    src: '/policies/AADS_Player_Booklet_INTERACTIVE.pdf' },
+      { id: 'volunteer-booklet', title: 'Volunteer Policy Booklet', src: '/policies/AADS_Volunteer_Booklet_INTERACTIVE.pdf' },
+      { id: 'spectator-booklet', title: 'Spectator Policy Booklet', src: '/policies/AADS_Spectator_Booklet_INTERACTIVE.pdf' },
     ],
   },
   {
