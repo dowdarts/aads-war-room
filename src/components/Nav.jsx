@@ -29,21 +29,25 @@ export default function Nav({ active, onSelect }) {
       </div>
 
       {/* Tab row */}
-      <div className="flex overflow-x-auto scrollbar-hide">
+      <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-800 bg-black/90 backdrop-blur-md">
         {TABS.map(tab => (
           <button
             key={tab.id}
             onClick={() => onSelect(tab.id)}
             className={`
-              shrink-0 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider
-              border-b-2 transition-colors whitespace-nowrap
+              group relative shrink-0 px-5 py-3 text-xs font-bold uppercase tracking-wider
+              min-w-25 h-10.5 flex items-center justify-center whitespace-nowrap
+              transition-all duration-200
               ${active === tab.id
-                ? 'border-orange text-orange'
-                : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
+                ? 'text-orange border-b-[3px] border-orange shadow-[0_3px_12px_rgba(255,102,0,0.25)] bg-linear-to-b from-black/60 to-black/90'
+                : 'text-gray-400 border-b-2 border-transparent hover:text-gray-200 hover:border-orange/20 transition-colors duration-150'
               }
             `}
           >
-            {tab.label}
+            <span className="relative z-10">{tab.label}</span>
+            {active === tab.id && (
+              <span className="absolute inset-0 opacity-0 group-hover:opacity-30 bg-linear-to-r from-transparent via-orange/20 to-transparent pointer-events-none transition-opacity duration-300" />
+            )}
           </button>
         ))}
       </div>
