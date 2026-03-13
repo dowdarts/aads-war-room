@@ -135,6 +135,8 @@ function getFollowUps(ql, namedPlayer) {
     return ['Top 5 by 3DA', 'Top 5 by win rate', 'Most 180s', 'Who is in form?']
   if (/\bform\b|trending|\bhot\b/i.test(ql))
     return ['Series standings', 'Most 180s', 'Highest high finish', 'Top 5 by 3DA']
+  if (/predict|forecast|\bchances\b|favou?rite/i.test(ql))
+    return ['Who will win the next event?', 'Who is in form?', 'Series standings', 'Top 5 by 3DA']
   if (/champion|who won|winner/i.test(ql))
     return ['List all events', 'Series standings', 'Who is in form?']
   if (/\bvs\.?\b|versus|\bh2h\b/i.test(ql))
@@ -169,7 +171,7 @@ function _answerQuery(rawText, { aggregatedStats, players, events, h2hIndex }) {
 
   // ── Help ──────────────────────────────────────────────────────────────────
   if (/\bhelp\b|what can you|commands|topics/i.test(ql)) {
-    return { text: `Here's what I can answer:\n\n**Player Stats**\n• "Who has the highest 3-dart average?"\n• "Top 5 by win rate"\n• "What's Tom Holden's 180s?"\n\n**Comparison**\n• "Compare Tom and Ricky"\n• "Tom stats vs Ricky"\n\n**Filtered Rankings**\n• "Best 3DA with at least 10 matches"\n• "Top 5 win rate minimum 5 matches"\n\n**Current Form**\n• "Who is in form?"\n• "Hot player / trending"\n\n**Head to Head**\n• "Tom vs Ricky"\n\n**Provinces**\n• "Who are the players from NS?"\n• "NB leaderboard"\n\n**Events**\n• "Who won Event 1?"\n• "Show all champions"\n\n**Format & Rules**\n• "What's the entry fee?"\n• "How does the format work?"\n\n**Series Info**\n• "How many players?"\n• "List all events"` }
+    return { text: `Here's what I can answer:\n\n**Player Stats**\n• "Who has the highest 3-dart average?"\n• "Top 5 by win rate"\n• "What's Tom Holden's 180s?"\n\n**Comparison**\n• "Compare Tom and Ricky"\n• "Tom stats vs Ricky"\n\n**Filtered Rankings**\n• "Best 3DA with at least 10 matches"\n• "Top 5 win rate minimum 5 matches"\n\n**Current Form**\n• "Who is in form?"\n• "Hot player / trending"\n\n**Predictions**\n• "Who will win the next event?"\n• "Predict Tom vs Ricky"\n• "What are Wayne's chances?"\n\n**Head to Head**\n• "Tom vs Ricky"\n\n**Provinces**\n• "Who are the players from NS?"\n• "NB leaderboard"\n\n**Events**\n• "Who won Event 1?"\n• "Show all champions"\n\n**Format & Rules**\n• "What's the entry fee?"\n• "How does the format work?"\n\n**Series Info**\n• "How many players?"\n• "List all events"` }
   }
 
   // ── Rules / Format / Fees ───────────────────────────────────────────────────
@@ -261,6 +263,64 @@ function _answerQuery(rawText, { aggregatedStats, players, events, h2hIndex }) {
       `${i + 1}. **${s.displayName}** — ${statLabel(statKey)}: **${fv(statKey, s.totals[statKey])}** (${s.totals.matches} matches)`
     )
     return { text: `**${label} by ${statLabel(statKey)}** (min. ${minCount} matches):\n${lines.join('\n')}` }
+  }
+
+  // ── Predictions ───────────────────────────────────────────────────────────
+  if (/predict|forecast|who.*will.*win|favou?rite|favou?red|\bchances\b|likely.*win|next.*event.*winner/i.test(ql)) {
+    const lastEvent = events[events.length - 1]
+    const lastEventId = lastEvent?.metadata?.event_id
+
+    const recentForm = (name) => {
+      const s = aggregatedStats.find(x => x.displayName === name)
+      return (lastEventId && s?.events?.[lastEventId]?.final_event_3da) || s?.totals?.avg3da || 0
+    }
+    const composite = (s) =>
+      (s.totals.avg3da * 0.4) + (recentForm(s.displayName) * 0.3) + (s.totals.winRate * 0.3)
+
+    // Head-to-head prediction: "predict Tom vs Ricky"
+    const predTwo = findTwoPlayers(rawText, players)
+    if (predTwo.length === 2) {
+      const [n1, n2] = predTwo
+      const s1 = aggregatedStats.find(s => s.displayName === n1)?.totals
+      const s2 = aggregatedStats.find(s => s.displayName === n2)?.totals
+      if (!s1 || !s2) return { text: `I don't have enough stat data to predict that matchup yet.` }
+      const sc1 = (s1.avg3da * 0.4) + (recentForm(n1) * 0.3) + (s1.winRate * 0.3)
+      const sc2 = (s2.avg3da * 0.4) + (recentForm(n2) * 0.3) + (s2.winRate * 0.3)
+      const [fav, und, favT, undT] = sc1 >= sc2 ? [n1, n2, s1, s2] : [n2, n1, s2, s1]
+      const gap = Math.abs(sc1 - sc2)
+      const confidence = gap < 2 ? 'Tight — could go either way' : gap < 6 ? 'Slight edge' : 'Clear advantage'
+      return {
+        text: `**🎯 Matchup Prediction: ${n1} vs ${n2}**\n\n${confidence} → **${fav}**\n\n**${fav}** — 3DA: **${favT.avg3da?.toFixed(2)}** | WR: **${favT.winRate}%** | Recent: **${recentForm(fav).toFixed(2)}**\n**${und}** — 3DA: **${undT.avg3da?.toFixed(2)}** | WR: **${undT.winRate}%** | Recent: **${recentForm(und).toFixed(2)}**\n\n_Modelled on series average (40%), recent form (30%), win rate (30%). Darts can always surprise!_`
+      }
+    }
+
+    // Single player chances: "predict Wayne's chances"
+    const predPlayer = findPlayer(rawText, players)
+    if (predPlayer) {
+      const entry = aggregatedStats.find(s => s.displayName === predPlayer)
+      if (!entry) return { text: `No stats found for **${predPlayer}** yet.` }
+      const t = entry.totals
+      const rank = [...aggregatedStats].sort((a, b) => composite(b) - composite(a)).findIndex(s => s.displayName === predPlayer) + 1
+      const verdict = rank <= 3 ? '🔥 Top contender' : rank <= 8 ? '💪 Solid threat' : '🎯 Dark horse'
+      const flavour = rank <= 3 ? 'A serious title threat in any event.' : rank <= 8 ? 'Capable of a deep run on a good night.' : 'Never count them out — darts can surprise!'
+      return {
+        text: `**${verdict}: ${predPlayer}**\n\nComposite rank: **#${rank}** of ${aggregatedStats.length}\n3DA: **${t.avg3da?.toFixed(2)}** | Win Rate: **${t.winRate}%** | Checkout %: **${t.coPct}%**\nRecent Form: **${recentForm(predPlayer).toFixed(2)}** | 180s: **${t.scores180}** | High Finish: **${t.highFinish}**\n\n_${flavour}_`
+      }
+    }
+
+    // General: "who will win the next event?"
+    const ranked = [...aggregatedStats]
+      .filter(s => s.totals.matches > 0)
+      .sort((a, b) => composite(b) - composite(a))
+      .slice(0, 5)
+    const predLines = ranked.map((s, i) => {
+      const r = recentForm(s.displayName)
+      const hasPriorEvent = lastEventId && s.events?.[lastEventId]
+      return `${i + 1}. **${s.displayName}** — 3DA: **${s.totals.avg3da?.toFixed(2)}** | WR: **${s.totals.winRate}%**${hasPriorEvent ? ` | Last Event: **${r.toFixed(2)}**` : ''}`
+    })
+    return {
+      text: `**🎯 Next Event Predictions**\n\nTop 5 contenders based on series average, recent form & win rate:\n\n${predLines.join('\n')}\n\n_Stats-based model only — form on the night is everything in darts!_`
+    }
   }
 
   // ── H2H ───────────────────────────────────────────────────────────────────
@@ -420,6 +480,7 @@ const INTENT_TEMPLATES = [
   { pattern: /\bnb\b|\bns\b|\bpei?\b|\bnl\b|province/i, suggestions: ['NB leaderboard', 'Who is the top player in NS?', 'Province breakdown'] },
   { pattern: /stat|avg|180|checkout|3da/i,              suggestions: ['Who has the most 180s?', 'Highest High Finish', 'Best 3DA in the series'] },
   { pattern: /form|hot|trending/i,                      suggestions: ['Who is in form?', 'Hottest player', 'Best last event'] },
+  { pattern: /predict|forecast|chances|favourite/i,     suggestions: ['Who will win the next event?', 'Predict Tom vs Ricky', "What are Wayne's chances?"] },
   { pattern: /rule|fee|format|payout/i,                 suggestions: ['Entry fee?', 'How does the format work?', 'What is the payout?'] },
 ]
 
