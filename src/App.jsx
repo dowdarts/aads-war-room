@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { StatsProvider } from './context/StatsContext.jsx'
 import Nav from './components/Nav.jsx'
 import ProvinceLeaderboards from './components/ProvinceLeaderboards.jsx'
@@ -16,6 +16,21 @@ function AppShell() {
   const [tab, setTab] = useState(() => sessionStorage.getItem('activeTab') || 'provinces')
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
+  const wakeLockRef = useRef(null)
+
+  useEffect(() => {
+    if (!('wakeLock' in navigator)) return
+    const acquire = async () => {
+      try { wakeLockRef.current = await navigator.wakeLock.request('screen') } catch (_) {}
+    }
+    acquire()
+    const onVisibility = () => { if (document.visibilityState === 'visible') acquire() }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      wakeLockRef.current?.release()
+    }
+  }, [])
 
   const addPolicy = (doc) => setUploadedPolicies(p => [...p, doc])
 
