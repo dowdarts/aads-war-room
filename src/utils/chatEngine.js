@@ -6,7 +6,7 @@ const STOP_WORDS = new Set([
   'does','have','what','who','from','with','that','this','most','best','top',
   'wins','loss','the','and','for','how','when','they','high','show','give',
   'list','tell','find','hits','hit','about','which','player','players',
-  'highest','lowest','most','least','more','less','many','much'
+  'highest','lowest','most','least','more','less','many','much','series'
 ])
 
 function getLevenshteinDistance(a, b) {
@@ -301,6 +301,14 @@ export function answerQuery(rawText, { aggregatedStats, players, events, h2hInde
     return { text: `**Province Breakdown:**\n${lines.join('\n')}` }
   }
 
+  // ── General leaderboard — must run BEFORE named player lookup ─────────────
+  if (/leaderboard|standings|ranking|top player|best player/i.test(ql)) {
+    const lines = [...aggregatedStats].slice(0, 10).map((s, i) =>
+      `${i + 1}. **${s.displayName}** — 3DA: ${s.totals.avg3da?.toFixed(2)} | Wins: ${s.totals.wins}`
+    )
+    return { text: `**Series Standings (by 3DA):**\n${lines.join('\n')}` }
+  }
+
   // ── "most X" / "who has most X" — must run BEFORE named player lookup ────
   if (/\bmost\b|\bhighest\b|who.*(?:has|have|leads|hit)/i.test(ql)) {
     const mStatKey = detectStat(ql)
@@ -372,14 +380,6 @@ export function answerQuery(rawText, { aggregatedStats, players, events, h2hInde
       `${i + 1}. **${s.displayName}** — ${statLabel(sortKey)}: **${fv(sortKey, s.totals[sortKey])}**`
     )
     return { text: `**${label} by ${statLabel(sortKey)}:**\n${lines.join('\n')}` }
-  }
-
-  // ── General leaderboard ───────────────────────────────────────────────────
-  if (/leaderboard|standings|ranking|top player|best player/i.test(ql)) {
-    const lines = [...aggregatedStats].slice(0, 10).map((s, i) =>
-      `${i + 1}. **${s.displayName}** — 3DA: ${s.totals.avg3da?.toFixed(2)} | Wins: ${s.totals.wins}`
-    )
-    return { text: `**Series Standings (by 3DA):**\n${lines.join('\n')}` }
   }
 
   // ── Fallback ──────────────────────────────────────────────────────────────
