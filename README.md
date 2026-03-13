@@ -1,4 +1,4 @@
-# AADS Sports Intelligence & Commentary War Room
+# AADSDartsIntel
 
 A dark-themed (orange/black) React + Vite dashboard for live darts commentary.
 

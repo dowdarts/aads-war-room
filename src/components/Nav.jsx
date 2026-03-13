@@ -22,7 +22,7 @@ export default function Nav({ active, onSelect }) {
             AADS
           </div>
           <div className="text-[10px] text-gray-500 leading-none tracking-wider uppercase">
-            Sports Intelligence &amp; Commentary War Room
+            AADSDartsIntel
           </div>
         </div>
       </div>
