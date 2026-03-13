@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useStats } from '../context/StatsContext.jsx'
 
 /**
@@ -12,6 +13,32 @@ import { useStats } from '../context/StatsContext.jsx'
  */
 export default function CueDisplay() {
   const { cueStatus } = useStats()
+  const wakeLockRef = useRef(null)
+
+  useEffect(() => {
+    if (!('wakeLock' in navigator)) return
+
+    const acquire = async () => {
+      try {
+        wakeLockRef.current = await navigator.wakeLock.request('screen')
+      } catch (_) {
+        // Silently ignore — device may not support it or page isn't visible
+      }
+    }
+
+    acquire()
+
+    // Re-acquire after tab becomes visible again (wake lock is released on hide)
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') acquire()
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility)
+      wakeLockRef.current?.release()
+    }
+  }, [])
 
   const getStatusConfig = () => {
     switch (cueStatus) {
