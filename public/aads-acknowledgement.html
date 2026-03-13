@@ -487,10 +487,11 @@
     const DATE_X     = MARGIN + SIG_W + 12
     // ─────────────────────────────────────────────────────────────────────
 
-    // Signature image (transparent PNG — orange strokes show on white page)
+    // Signature image — recoloured to black before embedding
     if (lastSubmission.signatureImg) {
       try {
-        const b64   = lastSubmission.signatureImg.split(',')[1]
+        const blackSig = await toBlackSignature(lastSubmission.signatureImg)
+        const b64   = blackSig.split(',')[1]
         const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
         const img   = await pdfDoc.embedPng(bytes)
         lastPage.drawImage(img, {
@@ -510,7 +511,7 @@
     // "Signature" label above the line
     lastPage.drawText('Signature', {
       x: MARGIN, y: SIG_TOP_Y + 3,
-      font: fontBold, size: 7, color: rgb(0.45, 0.45, 0.45)
+      font: fontBold, size: 7, color: rgb(0, 0, 0)
     })
 
     // Printed name (italic, below signature box)
@@ -521,7 +522,7 @@
     })
     lastPage.drawText('Printed Name', {
       x: MARGIN, y: NAME_Y - 10,
-      font: fontBold, size: 6.5, color: rgb(0.45, 0.45, 0.45)
+      font: fontBold, size: 6.5, color: rgb(0, 0, 0)
     })
     // Name underline
     lastPage.drawLine({
@@ -533,7 +534,7 @@
     // Date (to the right of signature box)
     lastPage.drawText('Date', {
       x: DATE_X, y: SIG_TOP_Y + 3,
-      font: fontBold, size: 7, color: rgb(0.45, 0.45, 0.45)
+      font: fontBold, size: 7, color: rgb(0, 0, 0)
     })
     lastPage.drawText(lastSubmission.date || '', {
       x: DATE_X, y: SIG_TOP_Y - SIG_H - 16,
@@ -549,7 +550,7 @@
     lastPage.drawText(
       'Electronically signed via AADS Digital Acknowledgement System  \u2502  Ref: ' +
         lastSubmission.ref + '  \u2502  ' + new Date(lastSubmission.timestamp).toLocaleString(),
-      { x: MARGIN, y: 18, font: fontRegular, size: 6.5, color: rgb(0.6, 0.6, 0.6) }
+      { x: MARGIN, y: 18, font: fontRegular, size: 6.5, color: rgb(0, 0, 0) }
     )
 
     return pdfDoc
@@ -583,6 +584,28 @@
     a.download = 'AADS_Signed_' + safeName + '.pdf'
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  // Redraws the signature canvas image with all visible strokes turned pure black
+  function toBlackSignature(dataUrl) {
+    return new Promise(function(resolve) {
+      const img = new Image()
+      img.onload = function() {
+        const c = document.createElement('canvas')
+        c.width = img.width; c.height = img.height
+        const ctx = c.getContext('2d')
+        ctx.drawImage(img, 0, 0)
+        const d = ctx.getImageData(0, 0, c.width, c.height)
+        for (let i = 0; i < d.data.length; i += 4) {
+          if (d.data[i + 3] > 10) {          // any visible pixel → black
+            d.data[i] = 0; d.data[i+1] = 0; d.data[i+2] = 0
+          }
+        }
+        ctx.putImageData(d, 0, 0)
+        resolve(c.toDataURL('image/png'))
+      }
+      img.src = dataUrl
+    })
   }
 
   /* ── Reset for next person ── */
