@@ -102,7 +102,7 @@ function SignedSubmissions() {
     if (!client) { setError('Supabase not connected'); setLoading(false); return }
     const { data, error: err } = await client
       .from('acknowledgements')
-      .select('id, name, submitted_at')
+      .select('*')
       .order('submitted_at', { ascending: false })
     setLoading(false)
     if (err) { setError(err.message); return }
@@ -115,6 +115,17 @@ function SignedSubmissions() {
   }
 
   const ROLE_COLORS = { player: '#FF6600', volunteer: '#22c55e', spectator: '#3b82f6' }
+
+  function openPDF(dataUri) {
+    const parts = dataUri.split(',')
+    if (parts.length < 2) return
+    const bytes = atob(parts[1])
+    const ab = new ArrayBuffer(bytes.length)
+    const ia = new Uint8Array(ab)
+    for (let i = 0; i < bytes.length; i++) ia[i] = bytes.charCodeAt(i)
+    const blob = new Blob([ab], { type: 'application/pdf' })
+    window.open(URL.createObjectURL(blob), '_blank')
+  }
 
   return (
     <div className="border border-[#1a1a1a] rounded-xl overflow-hidden mb-4">
@@ -166,12 +177,20 @@ function SignedSubmissions() {
                     <div className="text-xs font-semibold text-white truncate">{r.name}</div>
                     <div className="text-[10px] text-gray-600">{new Date(r.submitted_at).toLocaleString()}</div>
                   </div>
-                  {r.role && (
-                    <span
-                      className="text-[9px] font-black uppercase px-2 py-0.5 rounded"
-                      style={{ background: (ROLE_COLORS[r.role] || '#666') + '22', color: ROLE_COLORS[r.role] || '#666' }}
-                    >{r.role}</span>
-                  )}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {r.role && (
+                      <span
+                        className="text-[9px] font-black uppercase px-2 py-0.5 rounded"
+                        style={{ background: (ROLE_COLORS[r.role] || '#666') + '22', color: ROLE_COLORS[r.role] || '#666' }}
+                      >{r.role}</span>
+                    )}
+                    {r.pdf_data && (
+                      <button
+                        onClick={() => openPDF(r.pdf_data)}
+                        className="text-[9px] font-black text-orange border border-orange/30 px-2 py-0.5 rounded hover:bg-orange/10 transition-colors"
+                      >PDF</button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

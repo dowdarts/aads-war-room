@@ -398,6 +398,20 @@
     const errEl = document.getElementById('error-msg')
     btn.classList.add('loading')
     errEl.style.display = 'none'
+
+    // Capture all submission data first so PDF can be generated
+    const canvas = document.getElementById('sig-canvas')
+    lastSubmission = {
+      name: name,
+      role: currentRole,
+      date: document.getElementById('sign-date').textContent,
+      checks: (POLICY_ITEMS[currentRole] || []).map(function(item) { return item.bold + ' \u2014 ' + item.text }),
+      signatureImg: canvasHasStrokes ? canvas.toDataURL('image/png') : null,
+      timestamp: new Date().toISOString(),
+      ref: 'AADS-' + Date.now().toString(36).toUpperCase()
+    }
+    const pdfDataUri = generatePDFDataUri()
+
     try {
       const res = await fetch(SUPABASE_URL + '/rest/v1/acknowledgements', {
         method: 'POST',
@@ -407,40 +421,29 @@
           'Authorization': 'Bearer ' + SUPABASE_ANON,
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ name: name })
+        body: JSON.stringify({ name: name, role: currentRole, pdf_data: pdfDataUri })
       })
       if (!res.ok) throw new Error('HTTP ' + res.status)
-      const canvas = document.getElementById('sig-canvas')
-      lastSubmission = {
-        name: name,
-        role: currentRole,
-        date: document.getElementById('sign-date').textContent,
-        checks: (POLICY_ITEMS[currentRole] || []).map(function(item) { return item.bold + ' \u2014 ' + item.text }),
-        signatureImg: canvasHasStrokes ? canvas.toDataURL('image/png') : null,
-        timestamp: new Date().toISOString(),
-        ref: 'AADS-' + Date.now().toString(36).toUpperCase()
-      }
       document.getElementById('success-msg').textContent =
-        'Thank you, ' + name + '! Your acknowledgement has been recorded.'
+        'Thank you, ' + name + '! Your signed acknowledgement has been saved.'
       goTo('success')
     } catch (e) {
       errEl.style.display = 'block'
       btn.classList.remove('loading')
+      lastSubmission = null
     }
   }
 
-  /* ── Generate signed PDF certificate ── */
-  function downloadSignedPDF() {
-    if (!lastSubmission) return
+  /* ── PDF generation ── */
+  function buildPDF() {
+    if (!lastSubmission) return null
     if (typeof jspdf === 'undefined') {
       alert('PDF library not loaded. Check your internet connection and try again.')
-      return
+      return null
     }
     const { jsPDF } = jspdf
     const doc = new jsPDF({ unit: 'mm', format: 'a4' })
     const W = 210, ML = 18, CW = 174
-    const orange = [255, 102, 0], white = [255, 255, 255]
-    const dark = [20, 20, 20], gray = [130, 130, 130], lightgray = [210, 210, 210]
 
     // ── Header bar ──
     doc.setFillColor(255, 102, 0)
@@ -551,6 +554,17 @@
     doc.setLineWidth(0.7)
     doc.rect(7, 7, W - 14, 283, 'S')
 
+    return doc
+  }
+
+  function generatePDFDataUri() {
+    const doc = buildPDF()
+    return doc ? doc.output('datauristring') : null
+  }
+
+  function downloadSignedPDF() {
+    const doc = buildPDF()
+    if (!doc) return
     const safeName = (lastSubmission.name || 'Acknowledgement').replace(/[^a-zA-Z0-9]/g, '_')
     doc.save('AADS_Signed_' + safeName + '.pdf')
   }
