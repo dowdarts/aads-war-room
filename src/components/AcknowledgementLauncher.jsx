@@ -9,9 +9,9 @@
 
       {/* Launch card */}
       <div className="rounded-2xl border border-[#1a1a1a] bg-[#0d0d0d] p-8 flex flex-col items-center gap-5 text-center mb-6">
-        <div className="w-16 h-16 rounded-2xl bg-orange flex items-center justify-center text-3xl font-black text-black">A</div>
+        <img src="/aads-war-room/logo-kiosk.png" alt="AADS Signature Forms App" className="w-48 h-auto object-contain" />
         <div>
-          <h2 className="text-xl font-black text-white">AADS Acknowledgement &amp; Agreement Terms</h2>
+          <h2 className="text-xl font-black text-white">AADS Signature Forms App</h2>
           <p className="text-gray-500 text-sm mt-2 max-w-sm mx-auto">
             Open on a tablet or phone. Each attendee selects their role, reads their policy document, enters their name and submits. Their signature is saved automatically.
           </p>
