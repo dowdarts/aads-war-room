@@ -1,5 +1,5 @@
 ﻿export default function AcknowledgementLauncher() {
-  const url = 'https://dowdarts.github.io/aads-war-room/aads-acknowledgement.html'
+  const url = 'https://wiki.aadsdarts.com/aads-acknowledgement.html'
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
       <div className="mb-6">

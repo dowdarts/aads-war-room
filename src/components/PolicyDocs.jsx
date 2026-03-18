@@ -79,7 +79,7 @@ const OFFICIAL_POLICIES = POLICY_CATEGORIES.flatMap(cat =>
 
 // Prepend Vite base path for official PDFs (/policies/...) so they work
 // on GitHub Pages where the app is served from a sub-path.
-const BASE = import.meta.env.BASE_URL  // '/aads-war-room/' in prod, '/' in dev
+const BASE = import.meta.env.BASE_URL  // '/' in prod (wiki.aadsdarts.com)
 function resolveSrc(src) {
   if (!src || !src.startsWith('/')) return src  // blob: URLs pass through
   return BASE.slice(0, -1) + src
