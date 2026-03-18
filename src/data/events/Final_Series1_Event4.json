@@ -983,7 +983,7 @@
                                                                 }
                                         }
                                     ],
-                     "final":  {
+                     "final":  [{
                                    "match_id":  "FINAL",
                                    "player1":  "Cormier, Dee",
                                    "player2":  "Chapman, Wayne",
@@ -1013,7 +1013,7 @@
                                                            "scores_180":  0,
                                                            "high_finish":  144
                                                        }
-                               },
+                               }],
                      "champion":  "Cormier, Dee"
                  }
 }

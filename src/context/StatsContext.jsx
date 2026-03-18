@@ -2,12 +2,16 @@ import { createContext, useContext, useReducer, useMemo, useEffect } from 'react
 import { parsePlayerCSV } from '../utils/csvParser.js'
 import { aggregatePlayerStats, buildH2HIndex } from '../utils/eventAggregator.js'
 import playersCSVRaw from '../data/players.csv?raw'
+import event4Data from '../data/events/Final_Series1_Event4.json'
 
 // ─── Static data loaded at build-time ──────────────────────────────────────
 const EVENT_MODULES = import.meta.glob('../data/events/*.json', { eager: true })
-const staticEvents = Object.values(EVENT_MODULES)
-  .map(m => m.default)
-  .sort((a, b) => a.metadata.event_id - b.metadata.event_id)
+const staticEvents = [
+  ...Object.values(EVENT_MODULES)
+    .map(m => m.default)
+    .filter(e => e.metadata.event_id !== 4),
+  event4Data
+].sort((a, b) => a.metadata.event_id - b.metadata.event_id)
 
 const staticPlayers = parsePlayerCSV(playersCSVRaw)
 
@@ -63,8 +67,23 @@ const StatsContext = createContext(null)
 export function StatsProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState, init)
 
-  // Merged data: runtime overrides static when present
-  const players = state.runtimePlayers ?? state.staticPlayers
+  // Merged data: runtime players override matching static players by name,
+  // but static players always fill in any that are missing from the runtime list.
+  const players = useMemo(() => {
+    if (!state.runtimePlayers) return state.staticPlayers
+    const runtimeByName = new Map(state.runtimePlayers.map(p => [p.displayName.toLowerCase(), p]))
+    // Start with static list; swap in runtime version where available
+    const merged = state.staticPlayers.map(p =>
+      runtimeByName.get(p.displayName.toLowerCase()) ?? p
+    )
+    // Add any runtime players not already in static list
+    for (const rp of state.runtimePlayers) {
+      if (!state.staticPlayers.some(sp => sp.displayName.toLowerCase() === rp.displayName.toLowerCase())) {
+        merged.push(rp)
+      }
+    }
+    return merged
+  }, [state.runtimePlayers, state.staticPlayers])
   const events = [...state.staticEvents, ...state.runtimeEvents].sort(
     (a, b) => a.metadata.event_id - b.metadata.event_id
   )
