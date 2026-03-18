@@ -81,9 +81,25 @@ export default function H2HComparison() {
     [csvNames]
   )
 
-  // Always show all players in both dropdowns — no filtering by prior encounters
   const playerAOptions = sortedNames
-  const playerBOptions = sortedNames
+
+  // When playerA is selected, only show opponents that have match records vs playerA
+  const playerBOptions = useMemo(() => {
+    if (!playerA) return sortedNames
+    return sortedNames.filter(name => {
+      if (name === playerA) return false
+      return getH2H(h2hIndex, playerA, name).length > 0
+    })
+  }, [playerA, sortedNames, h2hIndex])
+
+  // If current playerB is no longer in the filtered list, clear it
+  const handlePlayerAChange = (name) => {
+    setPlayerA(name)
+    if (playerB && name) {
+      const stillValid = getH2H(h2hIndex, name, playerB).length > 0
+      if (!stillValid) setPlayerB('')
+    }
+  }
 
   const matches = useMemo(() => {
     if (!playerA || !playerB || playerA === playerB) return []
@@ -121,7 +137,7 @@ export default function H2HComparison() {
           <label className="text-[10px] text-gray-500 uppercase tracking-wider block mb-1">Player A</label>
           <select
             value={playerA}
-            onChange={e => setPlayerA(e.target.value)}
+            onChange={e => handlePlayerAChange(e.target.value)}
             className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded px-3 py-2
                        text-white text-sm focus:outline-none focus:border-orange"
           >
