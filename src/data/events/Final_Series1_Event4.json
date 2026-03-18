@@ -1,153 +1,1019 @@
-{
-  "metadata": {
-    "series_id": 1,
-    "event_id": 4,
-    "event_name": "Series 1 - Event 4",
-    "event_date": "2026-03-14",
-    "champion": "Dee Cormier"
-  },
-  "player_event_stats": [
-    {
-      "name": "Berry, Drake",
-      "total_matches": 6,
-      "wins": 3,
-      "losses": 3,
-      "final_event_3da": 69.67,
-      "scores_100plus": 36,
-      "scores_140plus": 16,
-      "scores_180": 0,
-      "co_opportunities": 68,
-      "co_completed": 17,
-      "co_pct": 25,
-      "high_finish": 70
-    },
-    {
-      "name": "Cormier, Dee",
-      "total_matches": 6,
-      "wins": 5,
-      "losses": 2,
-      "final_event_3da": 69.05,
-      "scores_100plus": 56,
-      "scores_140plus": 14,
-      "scores_180": 2,
-      "co_opportunities": 126,
-      "co_completed": 36,
-      "co_pct": 28.57,
-      "high_finish": 160
-    },
-    {
-      "name": "Chapman, Wayne",
-      "total_matches": 7,
-      "wins": 4,
-      "losses": 3,
-      "final_event_3da": 68.72,
-      "scores_100plus": 56,
-      "scores_140plus": 21,
-      "scores_180": 3,
-      "co_opportunities": 123,
-      "co_completed": 35,
-      "co_pct": 28.46,
-      "high_finish": 144
-    },
-    {
-      "name": "Burke, Colby",
-      "total_matches": 4,
-      "wins": 1,
-      "losses": 3,
-      "final_event_3da": 63.99,
-      "scores_100plus": 20,
-      "scores_140plus": 1,
-      "scores_180": 0,
-      "co_opportunities": 23,
-      "co_completed": 4,
-      "co_pct": 17.39,
-      "high_finish": 120
-    },
-    {
-      "name": "Wallace, Cory",
-      "total_matches": 6,
-      "wins": 2,
-      "losses": 4,
-      "final_event_3da": 62.08,
-      "scores_100plus": 38,
-      "scores_140plus": 10,
-      "scores_180": 3,
-      "co_opportunities": 100,
-      "co_completed": 18,
-      "co_pct": 18,
-      "high_finish": 96
-    },
-    {
-      "name": "Higgins, Don",
-      "total_matches": 5,
-      "wins": 3,
-      "losses": 2,
-      "final_event_3da": 61.82,
-      "scores_100plus": 21,
-      "scores_140plus": 2,
-      "scores_180": 0,
-      "co_opportunities": 78,
-      "co_completed": 15,
-      "co_pct": 19.23,
-      "high_finish": 90
-    },
-    {
-      "name": "MacEachern, Mark",
-      "total_matches": 5,
-      "wins": 2,
-      "losses": 3,
-      "final_event_3da": 61.37,
-      "scores_100plus": 17,
-      "scores_140plus": 7,
-      "scores_180": 1,
-      "co_opportunities": 54,
-      "co_completed": 9,
-      "co_pct": 16.67,
-      "high_finish": 80
-    },
-    {
-      "name": "Boyd, Jordan",
-      "total_matches": 4,
-      "wins": 1,
-      "losses": 3,
-      "final_event_3da": 61.34,
-      "scores_100plus": 16,
-      "scores_140plus": 2,
-      "scores_180": 3,
-      "co_opportunities": 28,
-      "co_completed": 12,
-      "co_pct": 42.86,
-      "high_finish": 99
-    },
-    {
-      "name": "Moss, Dana",
-      "total_matches": 4,
-      "wins": 1,
-      "losses": 4,
-      "final_event_3da": 60.74,
-      "scores_100plus": 14,
-      "scores_140plus": 2,
-      "scores_180": 0,
-      "co_opportunities": 20,
-      "co_completed": 5,
-      "co_pct": 25,
-      "high_finish": 81
-    },
-    {
-      "name": "Blanchard, Kevin",
-      "total_matches": 5,
-      "wins": 1,
-      "losses": 4,
-      "final_event_3da": 60.48,
-      "scores_100plus": 23,
-      "scores_140plus": 2,
-      "scores_180": 1,
-      "co_opportunities": 60,
-      "co_completed": 11,
-      "co_pct": 18.33,
-      "high_finish": 102
-    }
-  ],
-  "round_robin": {"standings": {"groupA": [{"rank": 1, "name": "Dee Cormier", "matches_played": 4, "matches_won": 3, "matches_lost": 1, "legs_won": 11, "legs_lost": 4}, {"rank": 2, "name": "Drake Berry", "matches_played": 4, "matches_won": 3, "matches_lost": 1, "legs_won": 9, "legs_lost": 4}, {"rank": 3, "name": "Cory Wallace", "matches_played": 4, "matches_won": 2, "matches_lost": 2, "legs_won": 8, "legs_lost": 10}, {"rank": 4, "name": "Dana Moss", "matches_played": 4, "matches_won": 1, "matches_lost": 3, "legs_won": 6, "legs_lost": 9}, {"rank": 5, "name": "Colby Burke", "matches_played": 4, "matches_won": 1, "matches_lost": 3, "legs_won": 4, "legs_lost": 11}], "groupB": [{"rank": 1, "name": "Don Higgins", "matches_played": 4, "matches_won": 3, "matches_lost": 1, "legs_won": 11, "legs_lost": 7}, {"rank": 2, "name": "Wayne Chapman", "matches_played": 4, "matches_won": 3, "matches_lost": 1, "legs_won": 11, "legs_lost": 3}, {"rank": 3, "name": "Kevin Blanchard", "matches_played": 4, "matches_won": 1, "matches_lost": 3, "legs_won": 7, "legs_lost": 10}, {"rank": 4, "name": "Mark MacEachern", "matches_played": 4, "matches_won": 2, "matches_lost": 2, "legs_won": 6, "legs_lost": 10}, {"rank": 5, "name": "Jordan Boyd", "matches_played": 4, "matches_won": 1, "matches_lost": 3, "legs_won": 6, "legs_lost": 11}]}, "matches": {"groupA": [], "groupB": []}},
-  "knockout": {"quarterFinals": [], "semiFinals": [], "final": {}, "champion": "Dee Cormier"}
+﻿{
+    "metadata":  {
+                     "series_id":  1,
+                     "event_id":  4,
+                     "event_name":  "Series 1 - Event 4",
+                     "event_date":  "2026-03-14",
+                     "champion":  "Dee Cormier"
+                 },
+    "player_event_stats":  [
+                               {
+                                   "name":  "Berry, Drake",
+                                   "total_matches":  6,
+                                   "wins":  3,
+                                   "losses":  3,
+                                   "final_event_3da":  69.67,
+                                   "scores_100plus":  36,
+                                   "scores_140plus":  16,
+                                   "scores_180":  0,
+                                   "co_opportunities":  68,
+                                   "co_completed":  17,
+                                   "co_pct":  25,
+                                   "high_finish":  70
+                               },
+                               {
+                                   "name":  "Cormier, Dee",
+                                   "total_matches":  6,
+                                   "wins":  5,
+                                   "losses":  2,
+                                   "final_event_3da":  69.05,
+                                   "scores_100plus":  56,
+                                   "scores_140plus":  14,
+                                   "scores_180":  2,
+                                   "co_opportunities":  126,
+                                   "co_completed":  36,
+                                   "co_pct":  28.57,
+                                   "high_finish":  160
+                               },
+                               {
+                                   "name":  "Chapman, Wayne",
+                                   "total_matches":  7,
+                                   "wins":  4,
+                                   "losses":  3,
+                                   "final_event_3da":  68.72,
+                                   "scores_100plus":  56,
+                                   "scores_140plus":  21,
+                                   "scores_180":  3,
+                                   "co_opportunities":  123,
+                                   "co_completed":  35,
+                                   "co_pct":  28.46,
+                                   "high_finish":  144
+                               },
+                               {
+                                   "name":  "Burke, Colby",
+                                   "total_matches":  4,
+                                   "wins":  1,
+                                   "losses":  3,
+                                   "final_event_3da":  63.99,
+                                   "scores_100plus":  20,
+                                   "scores_140plus":  1,
+                                   "scores_180":  0,
+                                   "co_opportunities":  23,
+                                   "co_completed":  4,
+                                   "co_pct":  17.39,
+                                   "high_finish":  120
+                               },
+                               {
+                                   "name":  "Wallace, Cory",
+                                   "total_matches":  6,
+                                   "wins":  2,
+                                   "losses":  4,
+                                   "final_event_3da":  62.08,
+                                   "scores_100plus":  38,
+                                   "scores_140plus":  10,
+                                   "scores_180":  3,
+                                   "co_opportunities":  100,
+                                   "co_completed":  18,
+                                   "co_pct":  18,
+                                   "high_finish":  96
+                               },
+                               {
+                                   "name":  "Higgins, Don",
+                                   "total_matches":  5,
+                                   "wins":  3,
+                                   "losses":  2,
+                                   "final_event_3da":  61.82,
+                                   "scores_100plus":  21,
+                                   "scores_140plus":  2,
+                                   "scores_180":  0,
+                                   "co_opportunities":  78,
+                                   "co_completed":  15,
+                                   "co_pct":  19.23,
+                                   "high_finish":  90
+                               },
+                               {
+                                   "name":  "MacEachern, Mark",
+                                   "total_matches":  5,
+                                   "wins":  2,
+                                   "losses":  3,
+                                   "final_event_3da":  61.37,
+                                   "scores_100plus":  17,
+                                   "scores_140plus":  7,
+                                   "scores_180":  1,
+                                   "co_opportunities":  54,
+                                   "co_completed":  9,
+                                   "co_pct":  16.67,
+                                   "high_finish":  80
+                               },
+                               {
+                                   "name":  "Boyd, Jordan",
+                                   "total_matches":  4,
+                                   "wins":  1,
+                                   "losses":  3,
+                                   "final_event_3da":  61.34,
+                                   "scores_100plus":  16,
+                                   "scores_140plus":  2,
+                                   "scores_180":  3,
+                                   "co_opportunities":  28,
+                                   "co_completed":  12,
+                                   "co_pct":  42.86,
+                                   "high_finish":  99
+                               },
+                               {
+                                   "name":  "Moss, Dana",
+                                   "total_matches":  4,
+                                   "wins":  1,
+                                   "losses":  4,
+                                   "final_event_3da":  60.74,
+                                   "scores_100plus":  14,
+                                   "scores_140plus":  2,
+                                   "scores_180":  0,
+                                   "co_opportunities":  20,
+                                   "co_completed":  5,
+                                   "co_pct":  25,
+                                   "high_finish":  81
+                               },
+                               {
+                                   "name":  "Blanchard, Kevin",
+                                   "total_matches":  5,
+                                   "wins":  1,
+                                   "losses":  4,
+                                   "final_event_3da":  60.48,
+                                   "scores_100plus":  23,
+                                   "scores_140plus":  2,
+                                   "scores_180":  1,
+                                   "co_opportunities":  60,
+                                   "co_completed":  11,
+                                   "co_pct":  18.33,
+                                   "high_finish":  102
+                               }
+                           ],
+    "round_robin":  {
+                        "standings":  {
+                                          "groupA":  [
+                                                         {
+                                                             "rank":  1,
+                                                             "name":  "Cormier, Dee",
+                                                             "matches_played":  4,
+                                                             "matches_won":  3,
+                                                             "matches_lost":  1,
+                                                             "legs_won":  11,
+                                                             "legs_lost":  4
+                                                         },
+                                                         {
+                                                             "rank":  2,
+                                                             "name":  "Berry, Drake",
+                                                             "matches_played":  4,
+                                                             "matches_won":  3,
+                                                             "matches_lost":  1,
+                                                             "legs_won":  9,
+                                                             "legs_lost":  4
+                                                         },
+                                                         {
+                                                             "rank":  3,
+                                                             "name":  "Wallace, Cory",
+                                                             "matches_played":  4,
+                                                             "matches_won":  2,
+                                                             "matches_lost":  2,
+                                                             "legs_won":  8,
+                                                             "legs_lost":  10
+                                                         },
+                                                         {
+                                                             "rank":  4,
+                                                             "name":  "Moss, Dana",
+                                                             "matches_played":  4,
+                                                             "matches_won":  1,
+                                                             "matches_lost":  3,
+                                                             "legs_won":  6,
+                                                             "legs_lost":  9
+                                                         },
+                                                         {
+                                                             "rank":  5,
+                                                             "name":  "Burke, Colby",
+                                                             "matches_played":  4,
+                                                             "matches_won":  1,
+                                                             "matches_lost":  3,
+                                                             "legs_won":  4,
+                                                             "legs_lost":  11
+                                                         }
+                                                     ],
+                                          "groupB":  [
+                                                         {
+                                                             "rank":  1,
+                                                             "name":  "Higgins, Don",
+                                                             "matches_played":  4,
+                                                             "matches_won":  3,
+                                                             "matches_lost":  1,
+                                                             "legs_won":  11,
+                                                             "legs_lost":  7
+                                                         },
+                                                         {
+                                                             "rank":  2,
+                                                             "name":  "Chapman, Wayne",
+                                                             "matches_played":  4,
+                                                             "matches_won":  3,
+                                                             "matches_lost":  1,
+                                                             "legs_won":  11,
+                                                             "legs_lost":  3
+                                                         },
+                                                         {
+                                                             "rank":  3,
+                                                             "name":  "Blanchard, Kevin",
+                                                             "matches_played":  4,
+                                                             "matches_won":  1,
+                                                             "matches_lost":  3,
+                                                             "legs_won":  7,
+                                                             "legs_lost":  10
+                                                         },
+                                                         {
+                                                             "rank":  4,
+                                                             "name":  "MacEachern, Mark",
+                                                             "matches_played":  4,
+                                                             "matches_won":  2,
+                                                             "matches_lost":  2,
+                                                             "legs_won":  6,
+                                                             "legs_lost":  10
+                                                         },
+                                                         {
+                                                             "rank":  5,
+                                                             "name":  "Boyd, Jordan",
+                                                             "matches_played":  4,
+                                                             "matches_won":  1,
+                                                             "matches_lost":  3,
+                                                             "legs_won":  6,
+                                                             "legs_lost":  11
+                                                         }
+                                                     ]
+                                      },
+                        "matches":  {
+                                        "groupA":  [
+                                                       {
+                                                           "player1":  "Berry, Drake",
+                                                           "player2":  "Burke, Colby",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  1,
+                                                           "start_time":  "10:42",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  66.49,
+                                                                                   "co_opportunities":  9,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  33.33,
+                                                                                   "scores_100plus":  3,
+                                                                                   "scores_140plus":  3,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  61.86,
+                                                                                   "co_opportunities":  7,
+                                                                                   "co_completed":  1,
+                                                                                   "co_pct":  14.29,
+                                                                                   "scores_100plus":  4,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  120
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Berry, Drake",
+                                                           "player2":  "Cormier, Dee",
+                                                           "player1_legs":  0,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "00:00",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  61.2,
+                                                                                   "co_opportunities":  3,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  3,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  71.57,
+                                                                                   "co_opportunities":  8,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  37.5,
+                                                                                   "scores_100plus":  1,
+                                                                                   "scores_140plus":  2,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  60
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Berry, Drake",
+                                                           "player2":  "Moss, Dana",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  0,
+                                                           "start_time":  "09:26",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  93.94,
+                                                                                   "co_opportunities":  6,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  50,
+                                                                                   "scores_100plus":  5,
+                                                                                   "scores_140plus":  3,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  70
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  64.24,
+                                                                                   "co_opportunities":  1,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  2,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Berry, Drake",
+                                                           "player2":  "Wallace, Cory",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  0,
+                                                           "start_time":  "09:08",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  68.32,
+                                                                                   "co_opportunities":  9,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  33.33,
+                                                                                   "scores_100plus":  4,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  61.55,
+                                                                                   "co_opportunities":  4,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  3,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  1,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Burke, Colby",
+                                                           "player2":  "Cormier, Dee",
+                                                           "player1_legs":  0,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "12:51",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  64.63,
+                                                                                   "co_opportunities":  4,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  5,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  73.92,
+                                                                                   "co_opportunities":  6,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  50,
+                                                                                   "scores_100plus":  2,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  160
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Burke, Colby",
+                                                           "player2":  "Moss, Dana",
+                                                           "player1_legs":  0,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "11:27",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  59.29,
+                                                                                   "co_opportunities":  3,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  3,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  67.3,
+                                                                                   "co_opportunities":  5,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  60,
+                                                                                   "scores_100plus":  6,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  66
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Burke, Colby",
+                                                           "player2":  "Wallace, Cory",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  2,
+                                                           "start_time":  "11:03",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  70.19,
+                                                                                   "co_opportunities":  9,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  33.33,
+                                                                                   "scores_100plus":  8,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  67.96,
+                                                                                   "co_opportunities":  7,
+                                                                                   "co_completed":  2,
+                                                                                   "co_pct":  28.57,
+                                                                                   "scores_100plus":  5,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  62
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Cormier, Dee",
+                                                           "player2":  "Moss, Dana",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  1,
+                                                           "start_time":  "00:00",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  0,
+                                                                                   "co_opportunities":  0,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  0,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  0,
+                                                                                   "co_opportunities":  0,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  0,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Cormier, Dee",
+                                                           "player2":  "Wallace, Cory",
+                                                           "player1_legs":  2,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "10:16",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  58.7,
+                                                                                   "co_opportunities":  14,
+                                                                                   "co_completed":  2,
+                                                                                   "co_pct":  14.29,
+                                                                                   "scores_100plus":  2,
+                                                                                   "scores_140plus":  2,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  96
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  60.32,
+                                                                                   "co_opportunities":  18,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  16.67,
+                                                                                   "scores_100plus":  2,
+                                                                                   "scores_140plus":  3,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Moss, Dana",
+                                                           "player2":  "Wallace, Cory",
+                                                           "player1_legs":  2,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "09:48",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  55.67,
+                                                                                   "co_opportunities":  9,
+                                                                                   "co_completed":  2,
+                                                                                   "co_pct":  22.22,
+                                                                                   "scores_100plus":  5,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  81
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  60.37,
+                                                                                   "co_opportunities":  15,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  20,
+                                                                                   "scores_100plus":  6,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  1,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       }
+                                                   ],
+                                        "groupB":  [
+                                                       {
+                                                           "player1":  "Blanchard, Kevin",
+                                                           "player2":  "Boyd, Jordan",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  1,
+                                                           "start_time":  "09:53",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  65.54,
+                                                                                   "co_opportunities":  9,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  33.33,
+                                                                                   "scores_100plus":  4,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  60
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  57.98,
+                                                                                   "co_opportunities":  6,
+                                                                                   "co_completed":  1,
+                                                                                   "co_pct":  16.67,
+                                                                                   "scores_100plus":  3,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Blanchard, Kevin",
+                                                           "player2":  "Chapman, Wayne",
+                                                           "player1_legs":  0,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "09:30",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  62.38,
+                                                                                   "co_opportunities":  3,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  2,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  68.32,
+                                                                                   "co_opportunities":  7,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  42.86,
+                                                                                   "scores_100plus":  5,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  100
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Blanchard, Kevin",
+                                                           "player2":  "Higgins, Don",
+                                                           "player1_legs":  2,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "11:53",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  56.56,
+                                                                                   "co_opportunities":  15,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  20,
+                                                                                   "scores_100plus":  6,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  102
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  63.85,
+                                                                                   "co_opportunities":  9,
+                                                                                   "co_completed":  2,
+                                                                                   "co_pct":  22.22,
+                                                                                   "scores_100plus":  3,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Blanchard, Kevin",
+                                                           "player2":  "MacEachern, Mark",
+                                                           "player1_legs":  2,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "11:30",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  57.76,
+                                                                                   "co_opportunities":  12,
+                                                                                   "co_completed":  2,
+                                                                                   "co_pct":  16.67,
+                                                                                   "scores_100plus":  6,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  63.46,
+                                                                                   "co_opportunities":  13,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  23.08,
+                                                                                   "scores_100plus":  6,
+                                                                                   "scores_140plus":  2,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  76
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Boyd, Jordan",
+                                                           "player2":  "Chapman, Wayne",
+                                                           "player1_legs":  0,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "09:09",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  54.38,
+                                                                                   "co_opportunities":  6,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  0,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  1,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  62.63,
+                                                                                   "co_opportunities":  7,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  42.86,
+                                                                                   "scores_100plus":  0,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  1,
+                                                                                   "high_finish":  72
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Boyd, Jordan",
+                                                           "player2":  "Higgins, Don",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  2,
+                                                           "start_time":  "10:11",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  67.31,
+                                                                                   "co_opportunities":  9,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  33.33,
+                                                                                   "scores_100plus":  6,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  2,
+                                                                                   "high_finish":  99
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  64.31,
+                                                                                   "co_opportunities":  11,
+                                                                                   "co_completed":  2,
+                                                                                   "co_pct":  18.18,
+                                                                                   "scores_100plus":  5,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  90
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Boyd, Jordan",
+                                                           "player2":  "MacEachern, Mark",
+                                                           "player1_legs":  2,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "11:01",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  65.68,
+                                                                                   "co_opportunities":  7,
+                                                                                   "co_completed":  8,
+                                                                                   "co_pct":  114.29,
+                                                                                   "scores_100plus":  7,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  69.65,
+                                                                                   "co_opportunities":  11,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  27.27,
+                                                                                   "scores_100plus":  2,
+                                                                                   "scores_140plus":  3,
+                                                                                   "scores_180":  1,
+                                                                                   "high_finish":  80
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Chapman, Wayne",
+                                                           "player2":  "Higgins, Don",
+                                                           "player1_legs":  2,
+                                                           "player2_legs":  3,
+                                                           "start_time":  "12:24",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  60.75,
+                                                                                   "co_opportunities":  19,
+                                                                                   "co_completed":  2,
+                                                                                   "co_pct":  10.53,
+                                                                                   "scores_100plus":  5,
+                                                                                   "scores_140plus":  2,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  61.07,
+                                                                                   "co_opportunities":  15,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  20,
+                                                                                   "scores_100plus":  4,
+                                                                                   "scores_140plus":  1,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  72
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Chapman, Wayne",
+                                                           "player2":  "MacEachern, Mark",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  0,
+                                                           "start_time":  "10:41",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  73.92,
+                                                                                   "co_opportunities":  7,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  42.86,
+                                                                                   "scores_100plus":  1,
+                                                                                   "scores_140plus":  3,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  126
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  59.3,
+                                                                                   "co_opportunities":  3,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  2,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       },
+                                                       {
+                                                           "player1":  "Higgins, Don",
+                                                           "player2":  "MacEachern, Mark",
+                                                           "player1_legs":  3,
+                                                           "player2_legs":  0,
+                                                           "start_time":  "12:55",
+                                                           "player1_details":  {
+                                                                                   "three_dart_avg":  60.93,
+                                                                                   "co_opportunities":  10,
+                                                                                   "co_completed":  3,
+                                                                                   "co_pct":  30,
+                                                                                   "scores_100plus":  3,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               },
+                                                           "player2_details":  {
+                                                                                   "three_dart_avg":  55.24,
+                                                                                   "co_opportunities":  5,
+                                                                                   "co_completed":  0,
+                                                                                   "co_pct":  0,
+                                                                                   "scores_100plus":  1,
+                                                                                   "scores_140plus":  0,
+                                                                                   "scores_180":  0,
+                                                                                   "high_finish":  0
+                                                                               }
+                                                       }
+                                                   ]
+                                    }
+                    },
+    "knockout":  {
+                     "quarterFinals":  [
+                                           {
+                                               "match_id":  "QF1",
+                                               "player1":  "MacEachern, Mark",
+                                               "player2":  "Berry, Drake",
+                                               "player1_sets":  0,
+                                               "player2_sets":  2,
+                                               "player1_total_legs":  3,
+                                               "player2_total_legs":  6,
+                                               "winner":  null,
+                                               "start_time":  "13:48",
+                                               "player1_details":  {
+                                                                       "three_dart_avg":  59.2,
+                                                                       "co_opportunities":  22,
+                                                                       "co_completed":  3,
+                                                                       "co_pct":  13.64,
+                                                                       "scores_100plus":  6,
+                                                                       "scores_140plus":  2,
+                                                                       "scores_180":  0,
+                                                                       "high_finish":  60
+                                                                   },
+                                               "player2_details":  {
+                                                                       "three_dart_avg":  63.06,
+                                                                       "co_opportunities":  24,
+                                                                       "co_completed":  6,
+                                                                       "co_pct":  25,
+                                                                       "scores_100plus":  4,
+                                                                       "scores_140plus":  6,
+                                                                       "scores_180":  0,
+                                                                       "high_finish":  0
+                                                                   }
+                                           },
+                                           {
+                                               "match_id":  "QF2",
+                                               "player1":  "Higgins, Don",
+                                               "player2":  "Wallace, Cory",
+                                               "player1_sets":  1,
+                                               "player2_sets":  2,
+                                               "player1_total_legs":  5,
+                                               "player2_total_legs":  8,
+                                               "winner":  null,
+                                               "start_time":  "14:30",
+                                               "player1_details":  {
+                                                                       "three_dart_avg":  58.94,
+                                                                       "co_opportunities":  33,
+                                                                       "co_completed":  5,
+                                                                       "co_pct":  15.15,
+                                                                       "scores_100plus":  6,
+                                                                       "scores_140plus":  0,
+                                                                       "scores_180":  0,
+                                                                       "high_finish":  90
+                                                                   },
+                                               "player2_details":  {
+                                                                       "three_dart_avg":  57.07,
+                                                                       "co_opportunities":  31,
+                                                                       "co_completed":  8,
+                                                                       "co_pct":  25.81,
+                                                                       "scores_100plus":  10,
+                                                                       "scores_140plus":  1,
+                                                                       "scores_180":  1,
+                                                                       "high_finish":  96
+                                                                   }
+                                           },
+                                           {
+                                               "match_id":  "QF3",
+                                               "player1":  "Moss, Dana",
+                                               "player2":  "Chapman, Wayne",
+                                               "player1_sets":  0,
+                                               "player2_sets":  2,
+                                               "player1_total_legs":  0,
+                                               "player2_total_legs":  6,
+                                               "winner":  null,
+                                               "start_time":  "14:00",
+                                               "player1_details":  {
+                                                                       "three_dart_avg":  55.77,
+                                                                       "co_opportunities":  5,
+                                                                       "co_completed":  0,
+                                                                       "co_pct":  0,
+                                                                       "scores_100plus":  1,
+                                                                       "scores_140plus":  1,
+                                                                       "scores_180":  0,
+                                                                       "high_finish":  0
+                                                                   },
+                                               "player2_details":  {
+                                                                       "three_dart_avg":  75.15,
+                                                                       "co_opportunities":  15,
+                                                                       "co_completed":  6,
+                                                                       "co_pct":  40,
+                                                                       "scores_100plus":  5,
+                                                                       "scores_140plus":  1,
+                                                                       "scores_180":  2,
+                                                                       "high_finish":  0
+                                                                   }
+                                           },
+                                           {
+                                               "match_id":  "QF4",
+                                               "player1":  "Blanchard, Kevin",
+                                               "player2":  "Cormier, Dee",
+                                               "player1_sets":  0,
+                                               "player2_sets":  2,
+                                               "player1_total_legs":  3,
+                                               "player2_total_legs":  6,
+                                               "winner":  null,
+                                               "start_time":  "13:40",
+                                               "player1_details":  {
+                                                                       "three_dart_avg":  60.14,
+                                                                       "co_opportunities":  21,
+                                                                       "co_completed":  3,
+                                                                       "co_pct":  14.29,
+                                                                       "scores_100plus":  5,
+                                                                       "scores_140plus":  1,
+                                                                       "scores_180":  1,
+                                                                       "high_finish":  68
+                                                                   },
+                                               "player2_details":  {
+                                                                       "three_dart_avg":  68.12,
+                                                                       "co_opportunities":  25,
+                                                                       "co_completed":  6,
+                                                                       "co_pct":  24,
+                                                                       "scores_100plus":  13,
+                                                                       "scores_140plus":  2,
+                                                                       "scores_180":  1,
+                                                                       "high_finish":  154
+                                                                   }
+                                           }
+                                       ],
+                     "semiFinals":  [
+                                        {
+                                            "match_id":  "SF1",
+                                            "player1":  "Berry, Drake",
+                                            "player2":  "Cormier, Dee",
+                                            "player1_sets":  0,
+                                            "player2_sets":  3,
+                                            "player1_total_legs":  2,
+                                            "player2_total_legs":  9,
+                                            "winner":  "Cormier, Dee",
+                                            "start_time":  "15:44",
+                                            "player1_details":  {
+                                                                    "three_dart_avg":  64.98,
+                                                                    "co_opportunities":  17,
+                                                                    "co_completed":  2,
+                                                                    "co_pct":  11.76,
+                                                                    "scores_100plus":  17,
+                                                                    "scores_140plus":  2,
+                                                                    "scores_180":  0,
+                                                                    "high_finish":  0
+                                                                },
+                                            "player2_details":  {
+                                                                    "three_dart_avg":  67.95,
+                                                                    "co_opportunities":  26,
+                                                                    "co_completed":  9,
+                                                                    "co_pct":  34.62,
+                                                                    "scores_100plus":  12,
+                                                                    "scores_140plus":  1,
+                                                                    "scores_180":  0,
+                                                                    "high_finish":  85
+                                                                }
+                                        },
+                                        {
+                                            "match_id":  "SF2",
+                                            "player1":  "Chapman, Wayne",
+                                            "player2":  "Wallace, Cory",
+                                            "player1_sets":  3,
+                                            "player2_sets":  0,
+                                            "player1_total_legs":  9,
+                                            "player2_total_legs":  3,
+                                            "winner":  "Chapman, Wayne",
+                                            "start_time":  "00:00",
+                                            "player1_details":  {
+                                                                    "three_dart_avg":  68.39,
+                                                                    "co_opportunities":  31,
+                                                                    "co_completed":  9,
+                                                                    "co_pct":  29.03,
+                                                                    "scores_100plus":  19,
+                                                                    "scores_140plus":  3,
+                                                                    "scores_180":  0,
+                                                                    "high_finish":  66
+                                                                },
+                                            "player2_details":  {
+                                                                    "three_dart_avg":  65.19,
+                                                                    "co_opportunities":  25,
+                                                                    "co_completed":  2,
+                                                                    "co_pct":  8,
+                                                                    "scores_100plus":  12,
+                                                                    "scores_140plus":  5,
+                                                                    "scores_180":  0,
+                                                                    "high_finish":  85
+                                                                }
+                                        }
+                                    ],
+                     "final":  {
+                                   "match_id":  "FINAL",
+                                   "player1":  "Cormier, Dee",
+                                   "player2":  "Chapman, Wayne",
+                                   "player1_sets":  3,
+                                   "player2_sets":  1,
+                                   "player1_total_legs":  0,
+                                   "player2_total_legs":  0,
+                                   "winner":  "Cormier, Dee",
+                                   "start_time":  "17:26",
+                                   "player1_details":  {
+                                                           "three_dart_avg":  74.04,
+                                                           "co_opportunities":  47,
+                                                           "co_completed":  13,
+                                                           "co_pct":  27.66,
+                                                           "scores_100plus":  26,
+                                                           "scores_140plus":  6,
+                                                           "scores_180":  1,
+                                                           "high_finish":  119
+                                                       },
+                                   "player2_details":  {
+                                                           "three_dart_avg":  71.86,
+                                                           "co_opportunities":  37,
+                                                           "co_completed":  9,
+                                                           "co_pct":  24.32,
+                                                           "scores_100plus":  21,
+                                                           "scores_140plus":  10,
+                                                           "scores_180":  0,
+                                                           "high_finish":  144
+                                                       }
+                               },
+                     "champion":  "Cormier, Dee"
+                 }
 }
