@@ -1,4 +1,6 @@
-﻿export default function AcknowledgementLauncher() {
+﻿import { getBaseUrl } from '../utils/baseUrl.js'
+
+export default function AcknowledgementLauncher() {
   const url = 'https://wiki.aadsdarts.com/aads-acknowledgement.html'
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
@@ -9,7 +11,7 @@
 
       {/* Launch card */}
       <div className="rounded-2xl border border-[#1a1a1a] bg-[#0d0d0d] p-8 flex flex-col items-center gap-5 text-center mb-6">
-        <img src="/logo-kiosk.png" alt="AADS Signature Forms App" className="w-72 h-auto object-contain" />
+        <img src={getBaseUrl() + 'logo-kiosk.png'} alt="AADS Signature Forms App" className="w-72 h-auto object-contain" />
         <div>
           <h2 className="text-xl font-black text-white">AADS Signature Forms App</h2>
           <p className="text-gray-500 text-sm mt-2 max-w-sm mx-auto">

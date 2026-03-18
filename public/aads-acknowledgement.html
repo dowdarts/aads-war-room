@@ -223,7 +223,9 @@
   const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
 
-  const BASE = '/'
+  const BASE = window.location.hostname === 'dowdarts.github.io'
+    ? (window.location.pathname.match(/^(\/[^\/]+\/)/)?.[1] ?? '/')
+    : '/'
   const PDFS = {
     player:    BASE + 'policies/AADS_Player_Booklet_INTERACTIVE.pdf',
     volunteer: BASE + 'policies/AADS_Volunteer_Booklet_INTERACTIVE.pdf',
