@@ -39,6 +39,10 @@ function AppShell() {
   const addPolicy = (doc) => setUploadedPolicies(p => [...p, doc])
 
   function handleTabSelect(id) {
+    if (id === 'form') {
+      window.open('https://forms.gle/G56Q2KErTJ6QGKT96', '_blank', 'noopener,noreferrer')
+      return
+    }
     if (LOCKED_TABS.includes(id) && !unlockedTabs.has(id)) {
       setPendingTab(id)
       return
