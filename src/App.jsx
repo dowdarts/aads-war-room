@@ -11,6 +11,7 @@ import PolicyDocs from './components/PolicyDocs.jsx'
 import DataManager from './components/DataManager.jsx'
 import QuickLinks from './components/QuickLinks.jsx'
 import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
+import CompetitionForm from './components/CompetitionForm.jsx'
 import LocalChat from './components/LocalChat.jsx'
 
 function AppShell() {
@@ -39,10 +40,6 @@ function AppShell() {
   const addPolicy = (doc) => setUploadedPolicies(p => [...p, doc])
 
   function handleTabSelect(id) {
-    if (id === 'form') {
-      window.open('https://forms.gle/G56Q2KErTJ6QGKT96', '_blank', 'noopener,noreferrer')
-      return
-    }
     if (LOCKED_TABS.includes(id) && !unlockedTabs.has(id)) {
       setPendingTab(id)
       return
@@ -84,6 +81,7 @@ function AppShell() {
         {tab === 'policy' && <PolicyDocs uploadedPolicies={uploadedPolicies} onUpload={addPolicy} />}
         {tab === 'data' && <DataManager />}
         {tab === 'ack' && <AcknowledgementLauncher />}
+        {tab === 'form' && <CompetitionForm />}
       </main>
       <LocalChat />
     </div>
