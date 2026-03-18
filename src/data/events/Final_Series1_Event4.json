@@ -8,7 +8,7 @@
   },
   "player_event_stats": [
     {
-      "name": "Drake Berry",
+      "name": "Berry, Drake",
       "total_matches": 6,
       "wins": 3,
       "losses": 3,
@@ -22,7 +22,7 @@
       "high_finish": 70
     },
     {
-      "name": "Dee Cormier",
+      "name": "Cormier, Dee",
       "total_matches": 6,
       "wins": 5,
       "losses": 2,
@@ -36,7 +36,7 @@
       "high_finish": 160
     },
     {
-      "name": "Wayne Chapman",
+      "name": "Chapman, Wayne",
       "total_matches": 7,
       "wins": 4,
       "losses": 3,
@@ -50,7 +50,7 @@
       "high_finish": 144
     },
     {
-      "name": "Colby Burke",
+      "name": "Burke, Colby",
       "total_matches": 4,
       "wins": 1,
       "losses": 3,
@@ -64,7 +64,7 @@
       "high_finish": 120
     },
     {
-      "name": "Cory Wallace",
+      "name": "Wallace, Cory",
       "total_matches": 6,
       "wins": 2,
       "losses": 4,
@@ -78,7 +78,7 @@
       "high_finish": 96
     },
     {
-      "name": "Don Higgins",
+      "name": "Higgins, Don",
       "total_matches": 5,
       "wins": 3,
       "losses": 2,
@@ -92,7 +92,7 @@
       "high_finish": 90
     },
     {
-      "name": "Mark MacEachern",
+      "name": "MacEachern, Mark",
       "total_matches": 5,
       "wins": 2,
       "losses": 3,
@@ -106,7 +106,7 @@
       "high_finish": 80
     },
     {
-      "name": "Jordan Boyd",
+      "name": "Boyd, Jordan",
       "total_matches": 4,
       "wins": 1,
       "losses": 3,
@@ -120,7 +120,7 @@
       "high_finish": 99
     },
     {
-      "name": "Dana Moss",
+      "name": "Moss, Dana",
       "total_matches": 4,
       "wins": 1,
       "losses": 4,
@@ -134,7 +134,7 @@
       "high_finish": 81
     },
     {
-      "name": "Kevin Blanchard",
+      "name": "Blanchard, Kevin",
       "total_matches": 5,
       "wins": 1,
       "losses": 4,
