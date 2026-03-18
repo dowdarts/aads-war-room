@@ -65,6 +65,7 @@ const PLAYER_PROVINCE_OVERRIDES = {
   'jon casey':         'NS',
   'jonathan casey':    'NS',
   'mark maceachern':   'PE',
+  'corey lefort':      'PE',
   'cory lefort':       'PE',
   'don higgins':       'NB',
   'cory wallace':      'NB',
