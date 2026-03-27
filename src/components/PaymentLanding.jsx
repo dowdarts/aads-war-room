@@ -21,7 +21,7 @@ const MAJOR_BANKS = [
 const ETRANSFER_INFO = {
   recipient: 'Matthew Dow',
   email: 'dow1800@gmail.com',
-  message: 'AADS Fundraiser Donation'
+  message: 'AADS Player Travel Support'
 }
 
 export default function PaymentLanding() {
@@ -49,11 +49,11 @@ export default function PaymentLanding() {
         {/* Header Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold bg-linear-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent mb-4">
-            Support AADS League
+            Support AADS Player Travel
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Help us grow the Alberta Amateur Dart Series! Your donations support tournament prizes, 
-            venue costs, equipment, and league development.
+            Help support players competing through the Atlantic Amateur Darts Series. Donations go toward
+            travel, accommodations, entry fees, and the costs of getting players to events.
           </p>
         </div>
 
@@ -64,13 +64,13 @@ export default function PaymentLanding() {
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div className="bg-[#111111] rounded-lg p-6 border border-[#333333]">
-              <h3 className="text-lg font-semibold text-orange-400 mb-3">Tournament Prizes</h3>
-              <p className="text-gray-300 mb-4">Enhanced prize pools for upcoming tournaments and championship events.</p>
+              <h3 className="text-lg font-semibold text-orange-400 mb-3">Travel Costs</h3>
+              <p className="text-gray-300 mb-4">Flights, fuel, and ground transportation for players travelling to compete.</p>
               <div className="text-sm text-gray-400">Target: $2,500</div>
             </div>
             <div className="bg-[#111111] rounded-lg p-6 border border-[#333333]">
-              <h3 className="text-lg font-semibold text-orange-400 mb-3">Equipment & Venues</h3>
-              <p className="text-gray-300 mb-4">Professional dartboards, lighting, and venue rental costs for tournaments.</p>
+              <h3 className="text-lg font-semibold text-orange-400 mb-3">Hotels & Entry Fees</h3>
+              <p className="text-gray-300 mb-4">Accommodations and event registration costs that help players reach the oche.</p>
               <div className="text-sm text-gray-400">Target: $1,800</div>
             </div>
           </div>
@@ -192,7 +192,7 @@ export default function PaymentLanding() {
         {/* Contact Info */}
         <div className="mt-8 text-center">
           <p className="text-gray-400">
-            Questions about donations? Contact us at{' '}
+            Questions about supporting a player? Contact us at{' '}
             <button
               onClick={() => copyToClipboard(ETRANSFER_INFO.email, 'contact')}
               className="text-orange-400 hover:text-orange-300 underline transition-colors"
