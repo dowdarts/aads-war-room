@@ -163,9 +163,15 @@
       letter-spacing: 0.18em;
       text-transform: uppercase;
     }
-    .bank-grid {
+    .bank-grid-logo {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .bank-grid-text {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
       margin-top: 18px;
     }
@@ -182,6 +188,33 @@
       font-weight: 900;
       text-align: center;
       transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .bank-btn--logo {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 12px;
+    }
+    .bank-logo {
+      width: 96px;
+      height: 32px;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+    .bank-name {
+      color: #202020;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .bank-subtitle {
+      margin: 22px 0 0;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
     }
     .bank-btn:hover {
       transform: translateY(-2px);
@@ -216,17 +249,18 @@
       font-weight: 800;
     }
     @media (max-width: 960px) {
-      .hero-body, .goals, .bank-grid { grid-template-columns: 1fr 1fr; }
+      .hero-body, .goals, .bank-grid-logo, .bank-grid-text { grid-template-columns: 1fr 1fr; }
       .hero-body { grid-template-columns: 1fr; }
     }
     @media (max-width: 640px) {
       .shell { width: min(100% - 20px, 1120px); margin: 12px auto 28px; }
       .hero-band { padding: 14px 18px; letter-spacing: 0.22em; }
       .hero-body { padding: 20px; gap: 20px; }
-      .goals, .bank-grid { grid-template-columns: 1fr 1fr; }
+      .goals, .bank-grid-logo, .bank-grid-text { grid-template-columns: 1fr 1fr; }
       .info-card { align-items: flex-start; flex-direction: column; }
       .copy-btn { width: 100%; }
       .bank-btn { min-height: 74px; font-size: 15px; }
+      .bank-logo { width: 88px; height: 28px; }
     }
   </style>
 </head>
@@ -295,23 +329,56 @@
       <section class="panel">
         <p class="eyebrow">Choose Your Bank</p>
         <p class="bank-copy">Tap your bank to open its online banking page in a new tab.</p>
-        <div class="bank-grid">
+        <div class="bank-grid-logo">
+          <a class="bank-btn bank-btn--logo" href="https://www.bmo.com/main/personal/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/bmo.svg" alt="BMO logo" />
+            <span class="bank-name">BMO</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.cibc.com/en/personal-banking.html" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/cibc.svg" alt="CIBC logo" />
+            <span class="bank-name">CIBC</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.desjardins.com/ca/index.jsp" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/desjardins.svg" alt="Desjardins logo" />
+            <span class="bank-name">Desjardins</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.laurentianbank.ca/en/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/laurentian.svg" alt="Laurentian Bank logo" />
+            <span class="bank-name">Laurentian Bank</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.nbc.ca/personal.html" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/national-bank.svg" alt="National Bank logo" />
+            <span class="bank-name">National Bank</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.pcfinancial.ca/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/pc-financial.svg" alt="PC Financial logo" />
+            <span class="bank-name">PC Financial</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.rbcroyalbank.com/personal/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/rbc.svg" alt="RBC logo" />
+            <span class="bank-name">RBC</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.scotiabank.com/ca/en/personal.html" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/scotiabank.svg" alt="Scotiabank logo" />
+            <span class="bank-name">Scotiabank</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.td.com/ca/en/personal-banking/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/td.svg" alt="TD logo" />
+            <span class="bank-name">TD</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.uni.ca/en/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/uni.svg" alt="UNI logo" />
+            <span class="bank-name">UNI</span>
+          </a>
+        </div>
+        <p class="bank-subtitle">More Banks</p>
+        <div class="bank-grid-text">
           <a class="bank-btn bank-atb" href="https://www.atb.com/personal/" target="_blank" rel="noopener noreferrer">ATB Financial</a>
-          <a class="bank-btn bank-bmo" href="https://www.bmo.com/main/personal/" target="_blank" rel="noopener noreferrer">BMO</a>
-          <a class="bank-btn bank-cibc" href="https://www.cibc.com/en/personal-banking.html" target="_blank" rel="noopener noreferrer">CIBC</a>
           <a class="bank-btn bank-coast" href="https://www.coastcapitalsavings.com/" target="_blank" rel="noopener noreferrer">Coast Capital</a>
-          <a class="bank-btn bank-desjardins" href="https://www.desjardins.com/ca/index.jsp" target="_blank" rel="noopener noreferrer">Desjardins</a>
-          <a class="bank-btn bank-laurentian" href="https://www.laurentianbank.ca/en/" target="_blank" rel="noopener noreferrer">Laurentian Bank</a>
           <a class="bank-btn bank-meridian" href="https://www.meridiancu.ca/" target="_blank" rel="noopener noreferrer">Meridian</a>
-          <a class="bank-btn bank-national" href="https://www.nbc.ca/personal.html" target="_blank" rel="noopener noreferrer">National Bank</a>
-          <a class="bank-btn bank-pc" href="https://www.pcfinancial.ca/" target="_blank" rel="noopener noreferrer">PC Financial</a>
           <a class="bank-btn bank-peoples" href="https://www.peoplestrust.com/" target="_blank" rel="noopener noreferrer">Peoples Trust</a>
-          <a class="bank-btn bank-rbc" href="https://www.rbcroyalbank.com/personal/" target="_blank" rel="noopener noreferrer">RBC</a>
-          <a class="bank-btn bank-scotia" href="https://www.scotiabank.com/ca/en/personal.html" target="_blank" rel="noopener noreferrer">Scotiabank</a>
           <a class="bank-btn bank-simplii" href="https://www.simplii.com/en/home.html" target="_blank" rel="noopener noreferrer">Simplii Financial</a>
           <a class="bank-btn bank-tangerine" href="https://www.tangerine.ca/en" target="_blank" rel="noopener noreferrer">Tangerine</a>
-          <a class="bank-btn bank-td" href="https://www.td.com/ca/en/personal-banking/" target="_blank" rel="noopener noreferrer">TD</a>
-          <a class="bank-btn bank-uni" href="https://www.uni.ca/en/" target="_blank" rel="noopener noreferrer">UNI</a>
         </div>
       </section>
     </div>
