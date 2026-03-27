@@ -12,6 +12,7 @@ import DataManager from './components/DataManager.jsx'
 import QuickLinks from './components/QuickLinks.jsx'
 import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
 import LocalChat from './components/LocalChat.jsx'
+import PaymentLanding from './components/PaymentLanding.jsx'
 
 function AppShell() {
   const [tab, setTab] = useState(() => sessionStorage.getItem('activeTab') || 'provinces')
@@ -80,6 +81,7 @@ function AppShell() {
         {tab === 'players' && <PlayerWiki selectedPlayerName={selectedPlayerName} onClearSelectedPlayer={() => setSelectedPlayerName(null)} />}
         {tab === 'standings' && <PlayerStandings />}
         {tab === 'h2h' && <H2HComparison />}
+        {tab === 'payment' && <PaymentLanding />}
         {tab === 'links' && <QuickLinks />}
         {tab === 'policy' && <PolicyDocs uploadedPolicies={uploadedPolicies} onUpload={addPolicy} />}
         {tab === 'data' && <DataManager />}

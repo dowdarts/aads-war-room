@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useStats } from '../context/StatsContext.jsx'
+import PlayerForm from './PlayerForm.jsx'
 
 const PROVINCE_LABELS = {
   NB: 'New Brunswick', NS: 'Nova Scotia', PE: 'Prince Edward Island',
@@ -83,8 +84,21 @@ function PlayerCard({ player, onBack }) {
 
       {/* Card header */}
       <div className="bg-[#0f0f0f] border border-[#1f1f1f] rounded-2xl overflow-hidden mb-4">
-        <div className="border-l-4 border-orange px-6 py-5 flex items-start justify-between gap-4">
-          <div>
+        <div className="border-l-4 border-orange px-6 py-5 flex items-start justify-between gap-6">
+          {/* Profile image */}
+          <div className="shrink-0">
+            <img 
+              src={player.profileImage} 
+              alt={`${player.displayName} profile`}
+              className="w-24 h-24 rounded-full object-cover border-2 border-[#2a2a2a]"
+              onError={(e) => {
+                e.target.src = '/images/players/placeholder.svg'
+              }}
+            />
+          </div>
+
+          {/* Player info */}
+          <div className="flex-1 min-w-0">
             <div className="text-white text-3xl font-black tracking-tight leading-tight">
               {player.displayName}
             </div>
@@ -93,7 +107,7 @@ function PlayerCard({ player, onBack }) {
                 "{player.nickname}"
               </div>
             )}
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="inline-block bg-orange/10 border border-orange/30 text-orange
                                text-xs font-bold px-2.5 py-0.5 rounded-full tracking-wider">
                 {player.province}
@@ -196,6 +210,7 @@ export default function PlayerWiki({ selectedPlayerName, onClearSelectedPlayer }
   const [selected, setSelected] = useState(null)
   const [sortBy, setSortBy] = useState('avg3da')
   const [filterProvince, setFilterProvince] = useState('ALL')
+  const [showPlayerForm, setShowPlayerForm] = useState(false)
 
   // When a player name is pushed in from another tab, open their card immediately
   useEffect(() => {
@@ -270,6 +285,12 @@ export default function PlayerWiki({ selectedPlayerName, onClearSelectedPlayer }
           <option value="name">Sort: Name</option>
           <option value="province">Sort: Province</option>
         </select>
+        <button
+          onClick={() => setShowPlayerForm(true)}
+          className="bg-orange hover:bg-orange/80 text-black px-4 py-2 rounded text-sm font-semibold transition-colors"
+        >
+          + Add Player
+        </button>
       </div>
 
       <div className="text-gray-600 text-xs mb-3">{filtered.length} player{filtered.length !== 1 ? 's' : ''}</div>
@@ -286,12 +307,17 @@ export default function PlayerWiki({ selectedPlayerName, onClearSelectedPlayer }
               className="text-left bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4
                          hover:border-orange/50 hover:bg-[#141414] transition-all group"
             >
-              {/* Name row */}
+              {/* Profile image */}
               <div className="flex items-start gap-3 mb-3">
-                <div className="w-10 h-10 rounded-lg bg-[#1a1a1a] border border-[#252525]
-                                text-orange font-black text-sm flex items-center justify-center shrink-0
-                                group-hover:bg-orange/10 transition-colors">
-                  {player.displayName.charAt(0)}
+                <div className="w-12 h-12 rounded-lg shrink-0 overflow-hidden border border-[#252525]">
+                  <img 
+                    src={player.profileImage} 
+                    alt={`${player.displayName} profile`}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.src = '/images/players/placeholder.svg'
+                    }}
+                  />
                 </div>
                 <div className="min-w-0">
                   <div className="text-white text-sm font-bold truncate">{player.displayName}</div>
@@ -330,6 +356,11 @@ export default function PlayerWiki({ selectedPlayerName, onClearSelectedPlayer }
           )
         })}
       </div>
+
+      {/* Player Form Modal */}
+      {showPlayerForm && (
+        <PlayerForm onClose={() => setShowPlayerForm(false)} />
+      )}
     </div>
   )
 }

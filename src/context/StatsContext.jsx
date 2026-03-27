@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useMemo, useEffect } from 'react'
 import { parsePlayerCSV } from '../utils/csvParser.js'
 import { aggregatePlayerStats, buildH2HIndex } from '../utils/eventAggregator.js'
-import playersCSVRaw from '../data/players.csv?raw'
+import playersCSVRaw from '../data/players-with-images.csv?raw'
 import event4Data from '../data/events/Final_Series1_Event4.json'
 
 // ─── Static data loaded at build-time ──────────────────────────────────────
@@ -51,6 +51,12 @@ function reducer(state, action) {
     case 'SET_RUNTIME_PLAYERS': {
       localStorage.setItem('aads_runtime_players', JSON.stringify(action.payload))
       return { ...state, runtimePlayers: action.payload }
+    }
+    case 'ADD_NEW_PLAYER': {
+      const currentPlayers = state.runtimePlayers || state.staticPlayers
+      const newPlayers = [...currentPlayers, action.payload]
+      localStorage.setItem('aads_runtime_players', JSON.stringify(newPlayers))
+      return { ...state, runtimePlayers: newPlayers }
     }
     case 'CLEAR_RUNTIME_PLAYERS': {
       localStorage.removeItem('aads_runtime_players')

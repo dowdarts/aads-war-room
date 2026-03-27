@@ -47,6 +47,39 @@ export default function DataManager() {
     e.target.value = ''
   }
 
+  function handleExportPlayersCSV() {
+    const headers = [
+      'fullName', 'nickname', 'hometown', 'age', 'yearsPlaying', 'province', 'profileImage',
+      'hobbies', 'dartSetup', 'practiceRoutine', 'strengths', 'improvements', 'checkouts',
+      'currentForm', 'recentResults', 'achievements', 'pressureManagement', 'mentalApproach',
+      'stagePresence', 'preMatchRituals', 'aadsMeaning', 'dartConnectEmail'
+    ]
+    
+    const rows = [headers]
+    players.forEach(player => {
+      const row = headers.map(header => {
+        let value = player[header] || ''
+        // Escape quotes and wrap in quotes if value contains comma, quote, or newline
+        if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+          value = '"' + value.replace(/"/g, '""') + '"'
+        }
+        return value
+      })
+      rows.push(row)
+    })
+    
+    const csvContent = rows.map(row => row.join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `aads-players-${new Date().toISOString().split('T')[0]}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   const staticEventCount = events.filter(e => !e._runtime).length
   // Note: runtime events don't carry a _runtime flag; we track via dispatch
 
@@ -101,6 +134,22 @@ export default function DataManager() {
         onClear={hasRuntimePlayers ? () => dispatch({ type: 'CLEAR_RUNTIME_PLAYERS' }) : null}
         clearLabel="Restore bundled CSV"
       />
+
+      {/* Player CSV export */}
+      <div className="bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4">
+        <div className="text-[10px] text-orange uppercase tracking-widest mb-2">Export Player Data</div>
+        <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+          Export current player data (including any new players added) as a CSV file with profile images.
+          This file can be imported back to preserve your player database.
+        </p>
+        <button
+          onClick={handleExportPlayersCSV}
+          className="bg-green-600 hover:bg-green-500 text-white font-bold text-sm px-4 py-2 rounded-lg
+                     transition-colors"
+        >
+          📥 Export Players CSV
+        </button>
+      </div>
 
       {/* Info box */}
       <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-4 text-xs text-gray-500 space-y-1">
