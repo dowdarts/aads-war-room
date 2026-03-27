@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Player Travel Support</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #2a2a2a;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --success-bg: rgba(44, 122, 66, 0.18);
+      --success-line: rgba(84, 190, 113, 0.4);
+      --success-text: #b4f0c2;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255, 122, 0, 0.16), transparent 34%),
+        linear-gradient(180deg, #080808 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 32px auto;
+    }
+    .hero {
+      overflow: hidden;
+      border: 1px solid #262626;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)), var(--panel);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+    }
+    .hero-band {
+      padding: 16px 24px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #090909;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+    .hero-body {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 32px;
+      padding: 32px;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+    .lead {
+      margin: 0;
+      max-width: 700px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.75;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(0,0,0,0.26);
+      padding: 24px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+    .grid {
+      display: grid;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .goals {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .goal-card, .info-card, .bank-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel-2);
+      padding: 20px;
+    }
+    .goal-card h3, .info-label, .section-title {
+      margin: 0 0 10px;
+    }
+    .goal-card h3 {
+      color: var(--accent);
+      font-size: 20px;
+    }
+    .goal-card p, .meta, .note, .bank-copy, .contact {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .meta {
+      margin-top: 14px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .success {
+      border: 1px solid var(--success-line);
+      border-radius: 18px;
+      background: var(--success-bg);
+      color: var(--success-text);
+      padding: 16px 18px;
+      line-height: 1.7;
+    }
+    .info-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .info-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .info-label {
+      color: #8d8d8d;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .info-value {
+      font-size: 18px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+    .copy-btn, .bank-btn, .back-link {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .copy-btn {
+      flex-shrink: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #111;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .bank-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 84px;
+      border-radius: 18px;
+      border: 1px solid #d7d7d7;
+      background: #fff;
+      padding: 14px;
+      font-size: 17px;
+      font-weight: 900;
+      text-align: center;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .bank-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    }
+    .bank-atb { color: #0f72bc; }
+    .bank-bmo { color: #1477bd; }
+    .bank-cibc { color: #bb133e; }
+    .bank-coast { color: #2263d4; }
+    .bank-desjardins { color: #0f8a52; }
+    .bank-laurentian { color: #083e78; }
+    .bank-meridian { color: #1d5d93; }
+    .bank-national { color: #e22726; }
+    .bank-pc { color: #db2d2d; }
+    .bank-peoples { color: #7a8faf; }
+    .bank-rbc { color: #0f4fa8; }
+    .bank-scotia { color: #e51920; }
+    .bank-simplii { color: #ee1998; }
+    .bank-tangerine { color: #f28c1b; }
+    .bank-td { color: #27a842; }
+    .footer {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .back-link {
+      color: var(--accent);
+      font-weight: 800;
+    }
+    @media (max-width: 960px) {
+      .hero-body, .goals, .bank-grid { grid-template-columns: 1fr 1fr; }
+      .hero-body { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 20px, 1120px); margin: 12px auto 28px; }
+      .hero-band { padding: 14px 18px; letter-spacing: 0.22em; }
+      .hero-body { padding: 20px; gap: 20px; }
+      .goals, .bank-grid { grid-template-columns: 1fr 1fr; }
+      .info-card { align-items: flex-start; flex-direction: column; }
+      .copy-btn { width: 100%; }
+      .bank-btn { min-height: 74px; font-size: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-band">Atlantic Amateur Darts Series</div>
+      <div class="hero-body">
+        <div>
+          <p class="eyebrow">Player Travel Support</p>
+          <h1>Support a player getting to the next event.</h1>
+          <p class="lead">This page is built for direct sharing. Donors can copy the e-transfer details, choose their bank, sign in, and send support toward player travel, accommodations, and event costs.</p>
+        </div>
+        <div class="panel">
+          <p class="eyebrow">Direct Donation</p>
+          <p class="note">Scan a QR code, land here, copy the details, then tap your own bank below.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <p class="eyebrow">Current Fundraising Goals</p>
+        <div class="goals">
+          <article class="goal-card">
+            <h3>Travel Costs</h3>
+            <p>Flights, fuel, ferry costs, and ground transportation for players travelling to compete.</p>
+            <p class="meta">Target: $2,500</p>
+          </article>
+          <article class="goal-card">
+            <h3>Hotels & Entry Fees</h3>
+            <p>Accommodations and event registration costs that help players reach the oche.</p>
+            <p class="meta">Target: $1,800</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">E-Transfer Information</p>
+        <div class="success">Auto-deposit is enabled. No security question or answer is required.</div>
+        <div class="info-grid">
+          <div class="info-card">
+            <div>
+              <p class="info-label">Recipient Name</p>
+              <div class="info-value" id="recipientText">Matthew Dow</div>
+            </div>
+            <button class="copy-btn" data-copy="recipientText">Copy</button>
+          </div>
+          <div class="info-card">
+            <div>
+              <p class="info-label">Email Address</p>
+              <div class="info-value" id="emailText">dow1800@gmail.com</div>
+            </div>
+            <button class="copy-btn" data-copy="emailText">Copy</button>
+          </div>
+          <div class="info-card">
+            <div>
+              <p class="info-label">Message</p>
+              <div class="info-value" id="messageText">AADS Player Travel Support</div>
+            </div>
+            <button class="copy-btn" data-copy="messageText">Copy</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Choose Your Bank</p>
+        <p class="bank-copy">Tap your bank to open its online banking page in a new tab.</p>
+        <div class="bank-grid">
+          <a class="bank-btn bank-atb" href="https://www.atb.com/personal/" target="_blank" rel="noopener noreferrer">ATB Financial</a>
+          <a class="bank-btn bank-bmo" href="https://www.bmo.com/main/personal/" target="_blank" rel="noopener noreferrer">BMO</a>
+          <a class="bank-btn bank-cibc" href="https://www.cibc.com/en/personal-banking.html" target="_blank" rel="noopener noreferrer">CIBC</a>
+          <a class="bank-btn bank-coast" href="https://www.coastcapitalsavings.com/" target="_blank" rel="noopener noreferrer">Coast Capital</a>
+          <a class="bank-btn bank-desjardins" href="https://www.desjardins.com/ca/index.jsp" target="_blank" rel="noopener noreferrer">Desjardins</a>
+          <a class="bank-btn bank-laurentian" href="https://www.laurentianbank.ca/en/" target="_blank" rel="noopener noreferrer">Laurentian Bank</a>
+          <a class="bank-btn bank-meridian" href="https://www.meridiancu.ca/" target="_blank" rel="noopener noreferrer">Meridian</a>
+          <a class="bank-btn bank-national" href="https://www.nbc.ca/personal.html" target="_blank" rel="noopener noreferrer">National Bank</a>
+          <a class="bank-btn bank-pc" href="https://www.pcfinancial.ca/" target="_blank" rel="noopener noreferrer">PC Financial</a>
+          <a class="bank-btn bank-peoples" href="https://www.peoplestrust.com/" target="_blank" rel="noopener noreferrer">Peoples Trust</a>
+          <a class="bank-btn bank-rbc" href="https://www.rbcroyalbank.com/personal/" target="_blank" rel="noopener noreferrer">RBC</a>
+          <a class="bank-btn bank-scotia" href="https://www.scotiabank.com/ca/en/personal.html" target="_blank" rel="noopener noreferrer">Scotiabank</a>
+          <a class="bank-btn bank-simplii" href="https://www.simplii.com/en/home.html" target="_blank" rel="noopener noreferrer">Simplii Financial</a>
+          <a class="bank-btn bank-tangerine" href="https://www.tangerine.ca/en" target="_blank" rel="noopener noreferrer">Tangerine</a>
+          <a class="bank-btn bank-td" href="https://www.td.com/ca/en/personal-banking/" target="_blank" rel="noopener noreferrer">TD</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <p class="contact">Questions about supporting a player? Contact dow1800@gmail.com</p>
+      <a class="back-link" href="./">Back to wiki</a>
+    </div>
+  </div>
+
+  <script>
+    for (const button of document.querySelectorAll('[data-copy]')) {
+      button.addEventListener('click', async () => {
+        const target = document.getElementById(button.dataset.copy)
+        if (!target) return
+        try {
+          await navigator.clipboard.writeText(target.textContent.trim())
+          const original = button.textContent
+          button.textContent = 'Copied'
+          setTimeout(() => { button.textContent = original }, 1800)
+        } catch (_) {
+          button.textContent = 'Copy failed'
+          setTimeout(() => { button.textContent = 'Copy' }, 1800)
+        }
+      })
+    }
+  </script>
+</body>
+</html>
