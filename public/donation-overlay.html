@@ -133,7 +133,7 @@
     .lb-meta { font-size: 9px; color: rgba(255,255,255,0.28); white-space:nowrap; margin-right:6px; }
     .lb-total { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-    /* Recent tips rows */
+    /* Recent donations rows */
     .recent-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
     .recent-item {
       display: flex; align-items: center; justify-content: space-between;
@@ -188,7 +188,7 @@
         <div id="spotMeta"  class="spotlight-meta">&nbsp;</div>
       </div>
 
-      <!-- RIGHT: Toggle between leaderboard and recent tips -->
+      <!-- RIGHT: Toggle between leaderboard and recent donations -->
       <div class="right-col">
 
         <!-- Panel A: Leaderboard #2-#5 -->
@@ -205,10 +205,10 @@
           </ul>
         </div>
 
-        <!-- Panel B: Recent Tips -->
+        <!-- Panel B: Recent donations -->
         <div id="panelRecent" class="panel hidden">
           <div class="panel-label">
-            <span>Recent Tips</span>
+            <span>Recent donations</span>
             <div class="panel-tab-dots">
               <div class="tab-dot"></div>
               <div class="tab-dot active"></div>
@@ -305,7 +305,7 @@
           spotTotalEl.textContent = '$0.00'
           spotMetaEl.textContent  = ''
           lbListEl.innerHTML      = '<li class="empty-msg">&mdash;</li>'
-          recentListEl.innerHTML  = '<li class="empty-msg">No tips yet</li>'
+          recentListEl.innerHTML  = '<li class="empty-msg">No donations yet</li>'
           return
         }
 
@@ -331,14 +331,14 @@
         const top = board[0]
         spotNameEl.textContent  = top.display
         spotTotalEl.textContent = fmt(top.total)
-        spotMetaEl.textContent  = (top.count === 1 ? '1 tip' : `${top.count} tips`) + ' \u00b7 combined total'
+        spotMetaEl.textContent  = (top.count === 1 ? '1 donation' : `${top.count} donations`) + ' \u00b7 combined total'
 
         // Render leaderboard #2-#5
         const rest = board.slice(1, 5)
         lbListEl.innerHTML = rest.length
           ? rest.map((e, i) => {
               const rank = i + 2
-              const cl   = e.count === 1 ? '1 tip' : `${e.count} tips`
+              const cl   = e.count === 1 ? '1 donation' : `${e.count} donations`
               return `<li class="lb-item">
                 <span class="lb-rank">#${rank}</span>
                 <span class="lb-name">${esc(e.display)}</span>
@@ -348,7 +348,7 @@
             }).join('')
           : '<li class="empty-msg">No other donors yet</li>'
 
-        // Render last 3 recent tips with current rank
+        // Render last 3 recent donations with current rank
         const recent = rows.slice(0, 3)
         recentListEl.innerHTML = recent.map(r => {
           const name  = (r.donor_name || 'Anonymous').trim()
