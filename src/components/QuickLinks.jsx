@@ -33,6 +33,18 @@ const LINK_GROUPS = [
         url: 'https://dowdarts.github.io/darts-interview-assistant/tv-display.html',
         icon: '🎯',
       },
+      {
+        label: 'Donation Overlay (OBS)',
+        description: 'Transparent live donation tracker — add as Browser Source in OBS',
+        url: 'https://wiki.aadsdarts.com/donation-overlay.html',
+        icon: '💸',
+      },
+      {
+        label: 'QR Donation Stats',
+        description: 'Full donation & QR scan stats dashboard',
+        url: 'https://wiki.aadsdarts.com/QR_Donation_stats.html',
+        icon: '📈',
+      },
     ],
   },
   {
