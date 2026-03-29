@@ -133,6 +133,107 @@
       padding: 6px 0;
       text-align: center;
     }
+
+    /* ── Top Donor Spotlight ── */
+    .spotlight {
+      margin: 0 0 10px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,122,0,0.10));
+      border: 1px solid rgba(255,215,0,0.35);
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .spotlight-crown {
+      font-size: 22px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .spotlight-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .spotlight-badge {
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #ffd700;
+      margin-bottom: 2px;
+    }
+
+    .spotlight-name {
+      font-size: 14px;
+      font-weight: 900;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .spotlight-meta {
+      font-size: 9px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 1px;
+    }
+
+    .spotlight-amount {
+      font-size: 20px;
+      font-weight: 900;
+      color: #ffd700;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+      text-shadow: 0 0 12px rgba(255,215,0,0.5);
+    }
+
+    .spotlight-empty {
+      font-size: 11px;
+      color: rgba(255,255,255,0.2);
+      text-align: center;
+      padding: 6px 0;
+    }
+
+    /* ── Recent list ── */
+    .donor-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .donor-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 5px 10px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .donor-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f0f0f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+    }
+
+    .donor-amount {
+      font-size: 13px;
+      font-weight: 900;
+      color: #5ed38a;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -142,7 +243,14 @@
       <span id="headerTotal" class="header-total">$0.00</span>
     </div>
     <div class="body">
-      <div class="row-label">Recent Donors</div>
+      <!-- Top donor spotlight -->
+      <div class="row-label">Top Donor</div>
+      <div id="spotlight" class="spotlight">
+        <div class="spotlight-empty">Loading...</div>
+      </div>
+
+      <!-- Last 3 recent donations -->
+      <div class="row-label" style="margin-top:8px;">Recent Donations</div>
       <ul id="donorList" class="donor-list">
         <li class="empty">Loading...</li>
       </ul>
@@ -157,15 +265,19 @@
     const SUPABASE_URL      = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
     const REFRESH_MS        = 30000
-    const MAX_DONORS        = 5
 
     const headerTotalEl = document.getElementById('headerTotal')
+    const spotlightEl   = document.getElementById('spotlight')
     const donorListEl   = document.getElementById('donorList')
 
     function fmt(value) {
       return new Intl.NumberFormat('en-CA', {
         style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
       }).format(value)
+    }
+
+    function esc(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     }
 
     async function get(path) {
@@ -187,33 +299,69 @@
         } catch (_) {}
 
         const filter = eventStart
-          ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=200&received_at=gte.${encodeURIComponent(eventStart)}`
-          : `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=200`
+          ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
+          : `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500`
 
         const rows = await get(filter)
 
-        const total = rows
+        // ── Grand total ──
+        const grandTotal = rows
           .map(r => Number(r.amount))
           .filter(v => Number.isFinite(v))
           .reduce((a, b) => a + b, 0)
+        headerTotalEl.textContent = fmt(grandTotal)
 
-        headerTotalEl.textContent = fmt(total)
-
-        const recent = rows.slice(0, MAX_DONORS)
-
-        if (!recent.length) {
+        if (!rows.length) {
+          spotlightEl.innerHTML = '<div class="spotlight-empty">No donations yet</div>'
           donorListEl.innerHTML = '<li class="empty">No donations yet</li>'
           return
         }
 
+        // ── Aggregate totals & counts by normalised name ──
+        const totalsMap = new Map()   // key: normalised name → { display, total, count }
+        for (const r of rows) {
+          const display = (r.donor_name || 'Anonymous').trim()
+          const key     = display.toUpperCase()
+          const amt     = Number.isFinite(Number(r.amount)) ? Number(r.amount) : 0
+          if (totalsMap.has(key)) {
+            const e = totalsMap.get(key)
+            e.total += amt
+            e.count += 1
+          } else {
+            totalsMap.set(key, { display, total: amt, count: 1 })
+          }
+        }
+
+        // ── Top donor (highest aggregate total) ──
+        let topDonor = null
+        for (const entry of totalsMap.values()) {
+          if (!topDonor || entry.total > topDonor.total) topDonor = entry
+        }
+
+        if (topDonor) {
+          const countLabel = topDonor.count === 1 ? '1 donation' : `${topDonor.count} donations`
+          spotlightEl.innerHTML = `
+            <div class="spotlight-crown">👑</div>
+            <div class="spotlight-info">
+              <div class="spotlight-badge">Top Donor</div>
+              <div class="spotlight-name">${esc(topDonor.display)}</div>
+              <div class="spotlight-meta">${countLabel} — combined total</div>
+            </div>
+            <div class="spotlight-amount">${fmt(topDonor.total)}</div>
+          `
+        }
+
+        // ── Last 3 individual donations ──
+        const recent = rows.slice(0, 3)
         donorListEl.innerHTML = recent.map(r => {
-          const name   = (r.donor_name || 'Anonymous').replace(/</g, '&lt;')
+          const name   = esc(r.donor_name || 'Anonymous')
           const amount = Number.isFinite(Number(r.amount)) ? fmt(Number(r.amount)) : '-'
           return `<li class="donor-item">
             <span class="donor-name">${name}</span>
             <span class="donor-amount">${amount}</span>
           </li>`
         }).join('')
+
       } catch (_) {
         // Silently keep last render on error
       }
