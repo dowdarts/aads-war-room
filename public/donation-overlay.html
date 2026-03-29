@@ -10,140 +10,219 @@
     body {
       background: transparent;
       font-family: "Segoe UI", system-ui, sans-serif;
-      padding: 14px;
-      width: 440px;
+      padding: 12px;
+      width: 780px;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeIn  { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes panelIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes panelOut{ from { opacity:1; } to { opacity:0; } }
 
+    /* ── Outer card ── */
     .card {
-      background: rgba(10, 10, 10, 0.90);
-      border: 1px solid rgba(255, 122, 0, 0.45);
+      background: rgba(10,10,10,0.91);
+      border: 1px solid rgba(255,122,0,0.45);
       border-radius: 16px;
       overflow: hidden;
-      -webkit-backdrop-filter: blur(6px);
-      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
     }
 
+    /* ── Header bar ── */
     .header {
       background: linear-gradient(90deg, #ff7a00, #ffb347);
-      padding: 8px 14px;
+      padding: 7px 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
+    .header-left { display: flex; align-items: center; gap: 10px; }
     .header-title {
-      font-size: 10px;
-      font-weight: 900;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: #111;
+      font-size: 11px; font-weight: 900; letter-spacing: 0.28em;
+      text-transform: uppercase; color: #111;
     }
     .header-total {
-      font-size: 17px;
-      font-weight: 900;
-      color: #111;
+      font-size: 18px; font-weight: 900; color: #111;
       font-variant-numeric: tabular-nums;
     }
-
-    .section-label {
-      font-size: 8px;
-      font-weight: 900;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: rgba(255,179,71,0.65);
-      padding: 10px 14px 5px;
+    .header-label {
+      font-size: 9px; font-weight: 700; color: rgba(0,0,0,0.5);
+      text-transform: uppercase; letter-spacing: 0.15em;
     }
 
-    .spotlight {
-      margin: 0 10px 2px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(255,215,0,0.14), rgba(255,140,0,0.10));
-      border: 1px solid rgba(255,215,0,0.40);
-      padding: 9px 12px;
+    /* ── Two-column body ── */
+    .body {
       display: flex;
-      align-items: center;
-      gap: 10px;
-      animation: fadeIn 0.5s ease;
-    }
-    .spotlight-icon { font-size: 24px; line-height: 1; flex-shrink: 0; }
-    .spotlight-info { flex: 1; min-width: 0; }
-    .spotlight-rank {
-      font-size: 8px; font-weight: 900; letter-spacing: 0.2em;
-      color: #ffd700; text-transform: uppercase; margin-bottom: 1px;
-    }
-    .spotlight-name {
-      font-size: 14px; font-weight: 900; color: #fff;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .spotlight-meta { font-size: 9px; color: rgba(255,255,255,0.38); margin-top: 2px; }
-    .spotlight-total {
-      font-size: 21px; font-weight: 900; color: #ffd700;
-      font-variant-numeric: tabular-nums; white-space: nowrap;
-      text-shadow: 0 0 14px rgba(255,215,0,0.55);
+      align-items: stretch;
+      min-height: 130px;
     }
 
-    .lb-list { list-style: none; display: flex; flex-direction: column; gap: 3px; padding: 0 10px; }
+    /* ── LEFT: Spotlight ── */
+    .left-col {
+      width: 260px;
+      flex-shrink: 0;
+      border-right: 1px solid rgba(255,215,0,0.18);
+      background: linear-gradient(160deg, rgba(255,215,0,0.09), rgba(255,122,0,0.06));
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+    }
+    .spotlight-badge {
+      font-size: 8px; font-weight: 900; letter-spacing: 0.25em;
+      text-transform: uppercase; color: #ffd700;
+    }
+    .spotlight-crown { font-size: 11px; }
+    .spotlight-name {
+      font-size: 17px; font-weight: 900; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      line-height: 1.2;
+    }
+    .spotlight-total {
+      font-size: 26px; font-weight: 900; color: #ffd700;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 16px rgba(255,215,0,0.5);
+      line-height: 1;
+    }
+    .spotlight-meta { font-size: 9px; color: rgba(255,255,255,0.37); margin-top: 2px; }
+
+    /* ── RIGHT: Toggle panel ── */
+    .right-col {
+      flex: 1;
+      min-width: 0;
+      position: relative;
+      padding: 10px 14px;
+    }
+
+    .panel {
+      position: absolute;
+      inset: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      transition: none;
+    }
+    .panel.hidden { opacity: 0; pointer-events: none; }
+    .panel.visible { opacity: 1; animation: panelIn 0.45s ease; }
+    .panel.leaving  { opacity: 0; animation: panelOut 0.35s ease forwards; }
+
+    .panel-label {
+      font-size: 8px; font-weight: 900; letter-spacing: 0.22em;
+      text-transform: uppercase; color: rgba(255,179,71,0.6);
+      margin-bottom: 6px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-tab-dots { display: flex; gap: 4px; }
+    .tab-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,179,71,0.25);
+      transition: background 0.3s;
+    }
+    .tab-dot.active { background: rgba(255,179,71,0.75); }
+
+    /* Leaderboard rows */
+    .lb-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
     .lb-item {
       display: flex; align-items: center; gap: 8px;
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 8px; padding: 5px 10px; animation: fadeIn 0.4s ease;
+      border-radius: 7px; padding: 5px 10px; animation: fadeIn 0.3s ease;
     }
-    .lb-rank { font-size: 10px; font-weight: 900; color: rgba(255,179,71,0.7); width: 18px; flex-shrink: 0; text-align: center; }
-    .lb-name { flex: 1; font-size: 12px; font-weight: 700; color: #e8e8e8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .lb-meta { font-size: 9px; color: rgba(255,255,255,0.3); white-space: nowrap; margin-right: 8px; }
-    .lb-total { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .lb-rank { font-size: 10px; font-weight: 900; color: rgba(255,179,71,0.7); width: 20px; flex-shrink:0; text-align:center; }
+    .lb-name { flex:1; font-size: 12px; font-weight: 700; color: #e8e8e8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lb-meta { font-size: 9px; color: rgba(255,255,255,0.28); white-space:nowrap; margin-right:6px; }
+    .lb-total { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-    .recent-list { list-style: none; display: flex; flex-direction: column; gap: 3px; padding: 0 10px 2px; }
+    /* Recent tips rows */
+    .recent-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
     .recent-item {
       display: flex; align-items: center; justify-content: space-between;
       background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.045);
-      border-radius: 7px; padding: 4px 10px; animation: fadeIn 0.4s ease;
+      border-radius: 7px; padding: 5px 10px; animation: fadeIn 0.3s ease;
     }
-    .recent-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
-    .recent-dot { width: 5px; height: 5px; border-radius: 50%; background: #5ed38a; flex-shrink: 0; }
-    .recent-name { font-size: 11px; font-weight: 600; color: #d0d0d0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 210px; }
-    .recent-rank-badge { font-size: 9px; font-weight: 800; color: rgba(255,179,71,0.75); white-space: nowrap; flex-shrink: 0; margin-left: 4px; }
-    .recent-amount { font-size: 12px; font-weight: 900; color: #5ed38a; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .recent-left { display: flex; align-items: center; gap: 6px; min-width:0; }
+    .recent-dot { width:5px; height:5px; border-radius:50%; background:#5ed38a; flex-shrink:0; }
+    .recent-name { font-size: 12px; font-weight: 600; color: #d0d0d0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px; }
+    .recent-rank-badge { font-size: 9px; font-weight: 800; color: rgba(255,179,71,0.75); white-space:nowrap; flex-shrink:0; margin-left:5px; }
+    .recent-amount { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-    .footer { padding: 6px 14px 9px; display: flex; align-items: center; gap: 6px; }
+    /* ── Footer ── */
+    .footer {
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 5px 16px;
+      display: flex; align-items: center; gap: 7px;
+    }
     .pulse {
-      width: 6px; height: 6px; border-radius: 50%; background: #5ed38a; flex-shrink: 0;
+      width:6px; height:6px; border-radius:50%; background:#5ed38a; flex-shrink:0;
       animation: pulse 2s ease-in-out infinite;
     }
     @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.35; transform: scale(0.7); }
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:0.3; transform:scale(0.65); }
     }
-    .footer-text { font-size: 8px; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; }
-    .empty-msg { font-size: 11px; color: rgba(255,255,255,0.22); text-align: center; padding: 7px 0; }
+    .footer-text { font-size: 8px; color: rgba(255,255,255,0.22); letter-spacing:0.1em; }
+
+    .empty-msg { font-size:11px; color:rgba(255,255,255,0.2); padding:8px 0; }
   </style>
 </head>
 <body>
   <div class="card">
+
+    <!-- Header -->
     <div class="header">
       <span class="header-title">Emma &amp; Rhyder Youth National Fund</span>
-      <span id="headerTotal" class="header-total">$0.00</span>
+      <div style="display:flex;align-items:baseline;gap:6px;">
+        <span class="header-label">Total Raised</span>
+        <span id="headerTotal" class="header-total">$0.00</span>
+      </div>
     </div>
 
-    <div class="section-label">Top Donor</div>
-    <div id="spotlight" class="spotlight">
-      <div class="empty-msg">Loading&hellip;</div>
+    <!-- Two-column body -->
+    <div class="body">
+
+      <!-- LEFT: #1 Spotlight, always visible -->
+      <div class="left-col">
+        <div class="spotlight-badge"><span class="spotlight-crown">&#x1F451;</span>&nbsp; #1 &nbsp; Top Donor</div>
+        <div id="spotName"  class="spotlight-name">Loading&hellip;</div>
+        <div id="spotTotal" class="spotlight-total">&mdash;</div>
+        <div id="spotMeta"  class="spotlight-meta">&nbsp;</div>
+      </div>
+
+      <!-- RIGHT: Toggle between leaderboard and recent tips -->
+      <div class="right-col">
+
+        <!-- Panel A: Leaderboard #2-#5 -->
+        <div id="panelLB" class="panel visible">
+          <div class="panel-label">
+            <span>Leaderboard</span>
+            <div class="panel-tab-dots">
+              <div id="dot0" class="tab-dot active"></div>
+              <div id="dot1" class="tab-dot"></div>
+            </div>
+          </div>
+          <ul id="lbList" class="lb-list">
+            <li class="empty-msg">&mdash;</li>
+          </ul>
+        </div>
+
+        <!-- Panel B: Recent Tips -->
+        <div id="panelRecent" class="panel hidden">
+          <div class="panel-label">
+            <span>Recent Tips</span>
+            <div class="panel-tab-dots">
+              <div class="tab-dot"></div>
+              <div class="tab-dot active"></div>
+            </div>
+          </div>
+          <ul id="recentList" class="recent-list">
+            <li class="empty-msg">Loading&hellip;</li>
+          </ul>
+        </div>
+
+      </div>
     </div>
 
-    <div class="section-label">Leaderboard</div>
-    <ul id="lbList" class="lb-list">
-      <li class="empty-msg">&mdash;</li>
-    </ul>
-
-    <div class="section-label">Recent Tips</div>
-    <ul id="recentList" class="recent-list">
-      <li class="empty-msg">Loading&hellip;</li>
-    </ul>
-
+    <!-- Footer -->
     <div class="footer">
       <div class="pulse"></div>
       <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
@@ -153,12 +232,37 @@
   <script>
     const SUPABASE_URL      = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
-    const REFRESH_MS = 30000
+    const REFRESH_MS  = 30000
+    const TOGGLE_MS   = 7000   // switch panels every 7 seconds
 
     const headerTotalEl = document.getElementById('headerTotal')
-    const spotlightEl   = document.getElementById('spotlight')
+    const spotNameEl    = document.getElementById('spotName')
+    const spotTotalEl   = document.getElementById('spotTotal')
+    const spotMetaEl    = document.getElementById('spotMeta')
     const lbListEl      = document.getElementById('lbList')
     const recentListEl  = document.getElementById('recentList')
+    const panelLB       = document.getElementById('panelLB')
+    const panelRecent   = document.getElementById('panelRecent')
+    const dot0          = document.getElementById('dot0')
+    const dot1          = document.getElementById('dot1')
+
+    // ── Panel toggle ──
+    let showingLB = true
+    function switchPanel() {
+      const from = showingLB ? panelLB     : panelRecent
+      const to   = showingLB ? panelRecent : panelLB
+      showingLB  = !showingLB
+      from.classList.add('leaving')
+      setTimeout(() => {
+        from.classList.remove('visible', 'leaving')
+        from.classList.add('hidden')
+        to.classList.remove('hidden')
+        to.classList.add('visible')
+      }, 350)
+      dot0.classList.toggle('active',  showingLB)
+      dot1.classList.toggle('active', !showingLB)
+    }
+    setInterval(switchPanel, TOGGLE_MS)
 
     function fmt(v) {
       return new Intl.NumberFormat('en-CA', { style:'currency', currency:'CAD', minimumFractionDigits:2 }).format(v)
@@ -197,9 +301,11 @@
         headerTotalEl.textContent = fmt(grandTotal)
 
         if (!rows.length) {
-          spotlightEl.innerHTML  = '<div class="empty-msg">No donations yet</div>'
-          lbListEl.innerHTML     = '<li class="empty-msg">&mdash;</li>'
-          recentListEl.innerHTML = '<li class="empty-msg">No tips yet</li>'
+          spotNameEl.textContent  = 'No donations yet'
+          spotTotalEl.textContent = '$0.00'
+          spotMetaEl.textContent  = ''
+          lbListEl.innerHTML      = '<li class="empty-msg">&mdash;</li>'
+          recentListEl.innerHTML  = '<li class="empty-msg">No tips yet</li>'
           return
         }
 
@@ -216,44 +322,33 @@
           }
         }
 
-        // Sort leaderboard descending by total
+        // Sort leaderboard
         const board = [...map.values()].sort((a, b) => b.total - a.total)
-
-        // Rank lookup: UPPER_NAME -> rank number
         const rankOf = new Map()
         board.forEach((e, i) => rankOf.set(e.display.toUpperCase(), i + 1))
 
-        // Render #1 spotlight
+        // Render spotlight
         const top = board[0]
-        const topCountLabel = top.count === 1 ? '1 tip' : `${top.count} tips`
-        spotlightEl.innerHTML = `
-          <div class="spotlight-icon">&#x1F451;</div>
-          <div class="spotlight-info">
-            <div class="spotlight-rank">#1 &nbsp;Top Donor</div>
-            <div class="spotlight-name">${esc(top.display)}</div>
-            <div class="spotlight-meta">${topCountLabel} &middot; combined total</div>
-          </div>
-          <div class="spotlight-total">${fmt(top.total)}</div>
-        `
+        spotNameEl.textContent  = top.display
+        spotTotalEl.textContent = fmt(top.total)
+        spotMetaEl.textContent  = (top.count === 1 ? '1 tip' : `${top.count} tips`) + ' \u00b7 combined total'
 
         // Render leaderboard #2-#5
         const rest = board.slice(1, 5)
-        if (!rest.length) {
-          lbListEl.innerHTML = '<li class="empty-msg">No other donors yet</li>'
-        } else {
-          lbListEl.innerHTML = rest.map((e, i) => {
-            const rank = i + 2
-            const cl   = e.count === 1 ? '1 tip' : `${e.count} tips`
-            return `<li class="lb-item">
-              <span class="lb-rank">#${rank}</span>
-              <span class="lb-name">${esc(e.display)}</span>
-              <span class="lb-meta">${cl}</span>
-              <span class="lb-total">${fmt(e.total)}</span>
-            </li>`
-          }).join('')
-        }
+        lbListEl.innerHTML = rest.length
+          ? rest.map((e, i) => {
+              const rank = i + 2
+              const cl   = e.count === 1 ? '1 tip' : `${e.count} tips`
+              return `<li class="lb-item">
+                <span class="lb-rank">#${rank}</span>
+                <span class="lb-name">${esc(e.display)}</span>
+                <span class="lb-meta">${cl}</span>
+                <span class="lb-total">${fmt(e.total)}</span>
+              </li>`
+            }).join('')
+          : '<li class="empty-msg">No other donors yet</li>'
 
-        // Render last 3 individual tips with live rank badge
+        // Render last 3 recent tips with current rank
         const recent = rows.slice(0, 3)
         recentListEl.innerHTML = recent.map(r => {
           const name  = (r.donor_name || 'Anonymous').trim()
