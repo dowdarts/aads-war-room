@@ -160,3 +160,41 @@ export async function fetchAcknowledgements() {
     .order('submitted_at', { ascending: false })
   return { data: data || [], error }
 }
+
+/**
+ * Read payment link access control (for QR kill switch).
+ * Expected table: payment_access, row id=1
+ */
+export async function fetchPaymentAccessControl() {
+  if (!client) return { data: null, error: 'Supabase not initialized' }
+
+  const { data, error } = await client
+    .from('payment_access')
+    .select('id, enabled, require_key, access_key, expires_at, disabled_message, expired_message, invalid_key_message, updated_at')
+    .eq('id', 1)
+    .maybeSingle()
+
+  return { data: data || null, error }
+}
+
+/**
+ * Update payment link access control row (id=1).
+ */
+export async function updatePaymentAccessControl(payload) {
+  if (!client) return { error: 'Supabase not initialized' }
+
+  const record = {
+    id: 1,
+    enabled: payload.enabled,
+    require_key: payload.requireKey,
+    access_key: payload.accessKey,
+    expires_at: payload.expiresAt,
+    updated_at: new Date().toISOString(),
+  }
+
+  const { error } = await client
+    .from('payment_access')
+    .upsert(record, { onConflict: 'id' })
+
+  return { error }
+}

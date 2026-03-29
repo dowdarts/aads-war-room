@@ -1,9 +1,42 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { getBaseUrl } from '../utils/baseUrl.js'
 
 export default function PaymentLanding() {
-  const paymentUrl = useMemo(() => `${window.location.origin}${getBaseUrl()}payment.html`, [])
+  const basePaymentUrl = useMemo(() => `${window.location.origin}${getBaseUrl()}payment.html`, [])
+  const [paymentUrl, setPaymentUrl] = useState(basePaymentUrl)
+  const [accessStatus, setAccessStatus] = useState('loading')
   const [copiedField, setCopiedField] = useState('')
+
+  useEffect(() => {
+    let alive = true
+
+    async function loadAccessConfig() {
+      try {
+        const response = await fetch(`${getBaseUrl()}payment-access.json`, { cache: 'no-store' })
+        if (!response.ok) throw new Error(`HTTP ${response.status}`)
+
+        const config = await response.json()
+        const key = typeof config.accessKey === 'string' ? config.accessKey.trim() : ''
+        const requireKey = config.requireKey !== false
+        const enabled = config.enabled !== false
+
+        const nextUrl = requireKey && key
+          ? `${basePaymentUrl}?k=${encodeURIComponent(key)}`
+          : basePaymentUrl
+
+        if (!alive) return
+        setPaymentUrl(nextUrl)
+        setAccessStatus(enabled ? 'enabled' : 'disabled')
+      } catch (_) {
+        if (!alive) return
+        setPaymentUrl(basePaymentUrl)
+        setAccessStatus('config-error')
+      }
+    }
+
+    loadAccessConfig()
+    return () => { alive = false }
+  }, [basePaymentUrl])
 
   const copyToClipboard = async (text, field) => {
     try {
@@ -60,6 +93,15 @@ export default function PaymentLanding() {
                   QR Code Target URL
                 </p>
                 <p className="break-all font-mono text-sm text-orange-300">{paymentUrl}</p>
+                <p className="mt-3 text-xs text-gray-400">
+                  Access control status:{' '}
+                  <span className="font-bold text-white">
+                    {accessStatus === 'loading' && 'Loading config'}
+                    {accessStatus === 'enabled' && 'Enabled'}
+                    {accessStatus === 'disabled' && 'Disabled in control file'}
+                    {accessStatus === 'config-error' && 'Config unavailable'}
+                  </span>
+                </p>
               </div>
             </section>
 
@@ -70,7 +112,7 @@ export default function PaymentLanding() {
               <div className="space-y-4 text-sm leading-7 text-gray-300">
                 <p>Auto-deposit e-transfer details for Matthew Dow.</p>
                 <p>Quick-select bank buttons that open each donor’s own online banking.</p>
-                <p>A dedicated path you can use in posters, social posts, and QR codes.</p>
+                <p>Access can be disabled or expired in the payment-access.json control file.</p>
               </div>
             </aside>
           </div>

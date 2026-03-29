@@ -32,6 +32,9 @@
       width: min(1120px, calc(100% - 32px));
       margin: 32px auto;
     }
+    .hidden {
+      display: none;
+    }
     .hero {
       overflow: hidden;
       border: 1px solid #262626;
@@ -248,6 +251,46 @@
       color: var(--accent);
       font-weight: 800;
     }
+    .access-card {
+      padding: 34px;
+      border: 1px solid #2a2a2a;
+      border-radius: 24px;
+      background: #111111;
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+    }
+    .access-title {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+    .access-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+    .access-actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .access-btn {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid #303030;
+      background: #1b1b1b;
+      color: #f5f5f5;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .access-btn--primary {
+      border-color: transparent;
+      background: var(--accent);
+      color: #0f0f0f;
+    }
     @media (max-width: 960px) {
       .hero-body, .goals, .bank-grid-logo, .bank-grid-text { grid-template-columns: 1fr 1fr; }
       .hero-body { grid-template-columns: 1fr; }
@@ -265,7 +308,19 @@
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div id="accessGate" class="shell hidden">
+    <div class="access-card">
+      <p class="eyebrow" id="accessEyebrow">Access Check</p>
+      <h1 class="access-title" id="accessTitle">Checking payment access...</h1>
+      <p class="access-copy" id="accessMessage">Please wait while we verify this donation link.</p>
+      <div class="access-actions">
+        <a class="access-btn access-btn--primary" href="./">Back to Wiki</a>
+        <a class="access-btn" href="mailto:dow1800@gmail.com">Contact Organizer</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="paymentShell" class="shell hidden">
     <section class="hero">
       <div class="hero-band">Atlantic Amateur Darts Series</div>
       <div class="hero-body">
@@ -390,21 +445,146 @@
   </div>
 
   <script>
-    for (const button of document.querySelectorAll('[data-copy]')) {
-      button.addEventListener('click', async () => {
-        const target = document.getElementById(button.dataset.copy)
-        if (!target) return
-        try {
-          await navigator.clipboard.writeText(target.textContent.trim())
-          const original = button.textContent
-          button.textContent = 'Copied'
-          setTimeout(() => { button.textContent = original }, 1800)
-        } catch (_) {
-          button.textContent = 'Copy failed'
-          setTimeout(() => { button.textContent = 'Copy' }, 1800)
-        }
-      })
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+
+    const paymentShell = document.getElementById('paymentShell')
+    const accessGate = document.getElementById('accessGate')
+    const accessEyebrow = document.getElementById('accessEyebrow')
+    const accessTitle = document.getElementById('accessTitle')
+    const accessMessage = document.getElementById('accessMessage')
+
+    function showGate(eyebrow, title, message) {
+      accessEyebrow.textContent = eyebrow
+      accessTitle.textContent = title
+      accessMessage.textContent = message
+      accessGate.classList.remove('hidden')
+      paymentShell.classList.add('hidden')
     }
+
+    function showPayment() {
+      paymentShell.classList.remove('hidden')
+      accessGate.classList.add('hidden')
+    }
+
+    function attachCopyHandlers() {
+      for (const button of document.querySelectorAll('[data-copy]')) {
+        button.addEventListener('click', async () => {
+          const target = document.getElementById(button.dataset.copy)
+          if (!target) return
+          try {
+            await navigator.clipboard.writeText(target.textContent.trim())
+            const original = button.textContent
+            button.textContent = 'Copied'
+            setTimeout(() => { button.textContent = original }, 1800)
+          } catch (_) {
+            button.textContent = 'Copy failed'
+            setTimeout(() => { button.textContent = 'Copy' }, 1800)
+          }
+        })
+      }
+    }
+
+    function getQueryKey() {
+      const params = new URLSearchParams(window.location.search)
+      return (params.get('k') || '').trim()
+    }
+
+    async function loadAccessConfig() {
+      // First priority: live control from Supabase (updated from locked Data tab).
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/payment_access?id=eq.1&select=enabled,require_key,access_key,expires_at,disabled_message,expired_message,invalid_key_message`,
+          {
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            cache: 'no-store',
+          }
+        )
+
+        if (response.ok) {
+          const rows = await response.json()
+          if (Array.isArray(rows) && rows.length > 0) {
+            const row = rows[0]
+            return {
+              enabled: row.enabled,
+              requireKey: row.require_key,
+              accessKey: row.access_key,
+              expiresAt: row.expires_at,
+              disabledMessage: row.disabled_message,
+              expiredMessage: row.expired_message,
+              invalidKeyMessage: row.invalid_key_message,
+            }
+          }
+        }
+      } catch (_) {
+        // Fall through to static JSON fallback.
+      }
+
+      // Fallback: static file control (works even without Supabase table).
+      const response = await fetch('./payment-access.json', { cache: 'no-store' })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      return response.json()
+    }
+
+    function validateAccess(config) {
+      const enabled = config.enabled !== false
+      const requireKey = config.requireKey !== false
+      const accessKey = typeof config.accessKey === 'string' ? config.accessKey.trim() : ''
+      const queryKey = getQueryKey()
+
+      if (!enabled) {
+        return {
+          allowed: false,
+          eyebrow: 'Access Disabled',
+          title: 'This payment link is currently turned off.',
+          message: config.disabledMessage || 'Please contact the organizer for the active donation link.'
+        }
+      }
+
+      if (config.expiresAt) {
+        const expiresAtMs = Date.parse(config.expiresAt)
+        if (!Number.isNaN(expiresAtMs) && Date.now() > expiresAtMs) {
+          return {
+            allowed: false,
+            eyebrow: 'Link Expired',
+            title: 'This payment link has expired.',
+            message: config.expiredMessage || 'Please request the current active donation link.'
+          }
+        }
+      }
+
+      if (requireKey && (!accessKey || queryKey !== accessKey)) {
+        return {
+          allowed: false,
+          eyebrow: 'Access Key Required',
+          title: 'This link is not valid anymore.',
+          message: config.invalidKeyMessage || 'Use the latest QR code or ask the organizer for the current payment URL.'
+        }
+      }
+
+      return { allowed: true }
+    }
+
+    async function init() {
+      try {
+        const config = await loadAccessConfig()
+        const result = validateAccess(config)
+        if (!result.allowed) {
+          showGate(result.eyebrow, result.title, result.message)
+          return
+        }
+
+        showPayment()
+        attachCopyHandlers()
+      } catch (_) {
+        showGate('Access Check Failed', 'Payment page is temporarily unavailable.', 'Please contact the organizer for an updated link.')
+      }
+    }
+
+    init()
   </script>
 </body>
 </html>
