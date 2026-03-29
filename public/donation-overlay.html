@@ -13,18 +13,10 @@
       padding: 12px;
     }
 
-    /* Outer flex row — donation card + optional goal card */
-    .overlay-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-
     @keyframes fadeIn  { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
     @keyframes panelIn { from { opacity:0; } to { opacity:1; } }
     @keyframes panelOut{ from { opacity:1; } to { opacity:0; } }
 
-    /* ── Shared card shell ── */
     .card {
       background: rgba(10,10,10,0.91);
       border: 1px solid rgba(255,122,0,0.45);
@@ -34,9 +26,6 @@
       backdrop-filter: blur(8px);
     }
 
-    /* =====================
-       DONATION TRACKER CARD
-       ===================== */
     .donation-card { width: 780px; }
 
     .header {
@@ -57,7 +46,6 @@
       min-height: 130px;
     }
 
-    /* Left: spotlight */
     .left-col {
       width: 260px; flex-shrink: 0;
       border-right: 1px solid rgba(255,215,0,0.18);
@@ -70,7 +58,6 @@
     .spotlight-total { font-size: 26px; font-weight: 900; color: #ffd700; font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(255,215,0,0.5); line-height: 1; }
     .spotlight-meta  { font-size: 9px; color: rgba(255,255,255,0.37); margin-top: 2px; }
 
-    /* Right: toggle panels */
     .right-col { flex: 1; min-width: 0; position: relative; padding: 10px 14px; }
     .panel { position: absolute; inset: 10px 14px; display: flex; flex-direction: column; }
     .panel.hidden  { opacity: 0; pointer-events: none; }
@@ -85,6 +72,8 @@
     .panel-tab-dots { display: flex; gap: 4px; }
     .tab-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,179,71,0.25); transition: background 0.3s; }
     .tab-dot.active { background: rgba(255,179,71,0.75); }
+    .tab-dot.goal-dot { display: none; }
+    .goal-enabled .tab-dot.goal-dot { display: block; }
 
     .lb-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
     .lb-item {
@@ -109,6 +98,27 @@
     .recent-rank-badge { font-size: 9px; font-weight: 800; color: rgba(255,179,71,0.75); white-space:nowrap; flex-shrink:0; margin-left:5px; }
     .recent-amount { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
+    /* Goal panel (inside right-col) */
+    .goal-panel-inner { display: flex; flex-direction: column; gap: 7px; justify-content: center; flex: 1; }
+    .goal-panel-text  { font-size: 12px; font-weight: 700; color: #f0f0f0; line-height: 1.35; }
+    .goal-panel-amounts { display: flex; align-items: baseline; justify-content: space-between; }
+    .goal-panel-raised  { font-size: 22px; font-weight: 900; color: #a855f7; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 0 12px rgba(168,85,247,0.4); }
+    .goal-panel-target  { font-size: 11px; color: rgba(255,255,255,0.35); }
+    .progress-track {
+      background: rgba(255,255,255,0.07);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+      min-width: 4px;
+    }
+    .goal-panel-pct { font-size: 10px; font-weight: 900; color: #a855f7; text-align: right; font-variant-numeric: tabular-nums; }
+
     .tracker-footer {
       border-top: 1px solid rgba(255,255,255,0.05);
       padding: 5px 16px;
@@ -121,185 +131,131 @@
     @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.65); } }
     .footer-text { font-size: 8px; color: rgba(255,255,255,0.22); letter-spacing:0.1em; }
 
-    /* =====================
-       GOAL CARD (right side)
-       ===================== */
-    .goal-card {
-      width: 260px;
-      flex-shrink: 0;
-      display: none; /* shown via JS when goal_enabled */
-    }
-    .goal-card.active { display: block; animation: fadeIn 0.5s ease; }
-
-    .goal-header {
-      background: linear-gradient(90deg, #a855f7, #7c3aed);
-      padding: 7px 14px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .goal-header-icon { font-size: 14px; line-height:1; }
-    .goal-header-title { font-size: 9px; font-weight: 900; letter-spacing: 0.25em; text-transform: uppercase; color: #fff; }
-
-    .goal-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
-
-    .goal-label {
-      font-size: 12px; font-weight: 700; color: #f0f0f0;
-      line-height: 1.35;
-    }
-
-    .goal-amounts {
-      display: flex; align-items: baseline; justify-content: space-between;
-    }
-    .goal-raised   { font-size: 22px; font-weight: 900; color: #a855f7; font-variant-numeric: tabular-nums; line-height:1; }
-    .goal-target   { font-size: 11px; color: rgba(255,255,255,0.35); }
-
-    /* Progress bar */
-    .progress-track {
-      background: rgba(255,255,255,0.07);
-      border-radius: 999px;
-      height: 10px;
-      overflow: hidden;
-      position: relative;
-    }
-    .progress-fill {
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
-      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
-      min-width: 4px;
-    }
-
-    .goal-pct {
-      font-size: 10px; font-weight: 900; color: #a855f7; text-align: right;
-      font-variant-numeric: tabular-nums;
-    }
-
-    .goal-footer {
-      border-top: 1px solid rgba(255,255,255,0.05);
-      padding: 5px 14px;
-    }
-    .goal-footer-text { font-size: 8px; color: rgba(255,255,255,0.22); letter-spacing: 0.1em; }
-
     .empty-msg { font-size:11px; color:rgba(255,255,255,0.2); padding:8px 0; }
   </style>
 </head>
 <body>
-  <div class="overlay-row">
+  <div class="card donation-card">
 
-    <!-- ── DONATION TRACKER ── -->
-    <div class="card donation-card">
-
-      <div class="header">
-        <span class="header-title">Emma &amp; Rhyder Youth National Fund</span>
-        <div class="header-right">
-          <span class="header-label">Total Raised</span>
-          <span id="headerTotal" class="header-total">$0.00</span>
-        </div>
-      </div>
-
-      <div class="tracker-body">
-        <!-- LEFT: spotlight -->
-        <div class="left-col">
-          <div class="spotlight-badge">&#x1F451;&nbsp; #1 &nbsp; Top Donor</div>
-          <div id="spotName"  class="spotlight-name">Loading&hellip;</div>
-          <div id="spotTotal" class="spotlight-total">&mdash;</div>
-          <div id="spotMeta"  class="spotlight-meta">&nbsp;</div>
-        </div>
-
-        <!-- RIGHT: toggle leaderboard / recent -->
-        <div class="right-col">
-          <div id="panelLB" class="panel visible">
-            <div class="panel-label">
-              <span>Leaderboard</span>
-              <div class="panel-tab-dots">
-                <div id="dot0" class="tab-dot active"></div>
-                <div id="dot1" class="tab-dot"></div>
-              </div>
-            </div>
-            <ul id="lbList" class="lb-list"><li class="empty-msg">&mdash;</li></ul>
-          </div>
-
-          <div id="panelRecent" class="panel hidden">
-            <div class="panel-label">
-              <span>Recent Donations</span>
-              <div class="panel-tab-dots">
-                <div class="tab-dot"></div>
-                <div class="tab-dot active"></div>
-              </div>
-            </div>
-            <ul id="recentList" class="recent-list"><li class="empty-msg">Loading&hellip;</li></ul>
-          </div>
-        </div>
-      </div>
-
-      <div class="tracker-footer">
-        <div class="pulse"></div>
-        <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
+    <div class="header">
+      <span class="header-title">Emma &amp; Rhyder Youth National Fund</span>
+      <div class="header-right">
+        <span class="header-label">Total Raised</span>
+        <span id="headerTotal" class="header-total">$0.00</span>
       </div>
     </div>
 
-    <!-- ── FUNDRAISER GOAL ── -->
-    <div id="goalCard" class="card goal-card">
-      <div class="goal-header">
-        <span class="goal-header-icon">&#x1F3AF;</span>
-        <span class="goal-header-title">Fundraiser Goal</span>
+    <div class="tracker-body">
+      <!-- LEFT: spotlight -->
+      <div class="left-col">
+        <div class="spotlight-badge">&#x1F451;&nbsp; #1 &nbsp; Top Donor</div>
+        <div id="spotName"  class="spotlight-name">Loading&hellip;</div>
+        <div id="spotTotal" class="spotlight-total">&mdash;</div>
+        <div id="spotMeta"  class="spotlight-meta">&nbsp;</div>
       </div>
-      <div class="goal-body">
-        <div id="goalLabel" class="goal-label">Loading&hellip;</div>
-        <div class="goal-amounts">
-          <span id="goalRaised" class="goal-raised">$0.00</span>
-          <span id="goalTarget" class="goal-target">of $0.00</span>
+
+      <!-- RIGHT: cycling panels (LB / Recent / Goal) -->
+      <div id="rightCol" class="right-col">
+
+        <!-- Panel 0: Leaderboard -->
+        <div id="panelLB" class="panel visible">
+          <div class="panel-label">
+            <span>Leaderboard</span>
+            <div class="panel-tab-dots">
+              <div class="tab-dot active"></div>
+              <div class="tab-dot"></div>
+              <div class="tab-dot goal-dot"></div>
+            </div>
+          </div>
+          <ul id="lbList" class="lb-list"><li class="empty-msg">&mdash;</li></ul>
         </div>
-        <div class="progress-track">
-          <div id="progressFill" class="progress-fill" style="width:0%"></div>
+
+        <!-- Panel 1: Recent Donations -->
+        <div id="panelRecent" class="panel hidden">
+          <div class="panel-label">
+            <span>Recent Donations</span>
+            <div class="panel-tab-dots">
+              <div class="tab-dot"></div>
+              <div class="tab-dot active"></div>
+              <div class="tab-dot goal-dot"></div>
+            </div>
+          </div>
+          <ul id="recentList" class="recent-list"><li class="empty-msg">Loading&hellip;</li></ul>
         </div>
-        <div id="goalPct" class="goal-pct">0%</div>
-      </div>
-      <div class="goal-footer">
-        <span class="goal-footer-text">LIVE PROGRESS</span>
+
+        <!-- Panel 2: Fundraiser Goal (cycles in when goal_enabled) -->
+        <div id="panelGoal" class="panel hidden">
+          <div class="panel-label">
+            <span>&#x1F3AF; Fundraiser Goal</span>
+            <div class="panel-tab-dots">
+              <div class="tab-dot"></div>
+              <div class="tab-dot"></div>
+              <div class="tab-dot goal-dot active"></div>
+            </div>
+          </div>
+          <div class="goal-panel-inner">
+            <div id="gpText" class="goal-panel-text">Loading&hellip;</div>
+            <div class="goal-panel-amounts">
+              <span id="gpRaised" class="goal-panel-raised">$0.00</span>
+              <span id="gpTarget" class="goal-panel-target">of $0.00</span>
+            </div>
+            <div class="progress-track">
+              <div id="progressFill" class="progress-fill" style="width:0%"></div>
+            </div>
+            <div id="gpPct" class="goal-panel-pct">0%</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-  </div><!-- end overlay-row -->
+    <div class="tracker-footer">
+      <div class="pulse"></div>
+      <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
+    </div>
+  </div>
 
   <script>
     const SUPABASE_URL      = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
     const REFRESH_MS = 30000
-    const TOGGLE_MS  = 7000
+    const TOGGLE_MS  = 6000
 
-    const headerTotalEl = document.getElementById('headerTotal')
-    const spotNameEl    = document.getElementById('spotName')
-    const spotTotalEl   = document.getElementById('spotTotal')
-    const spotMetaEl    = document.getElementById('spotMeta')
-    const lbListEl      = document.getElementById('lbList')
-    const recentListEl  = document.getElementById('recentList')
-    const panelLB       = document.getElementById('panelLB')
-    const panelRecent   = document.getElementById('panelRecent')
-    const dot0          = document.getElementById('dot0')
-    const dot1          = document.getElementById('dot1')
-    const goalCardEl    = document.getElementById('goalCard')
-    const goalLabelEl   = document.getElementById('goalLabel')
-    const goalRaisedEl  = document.getElementById('goalRaised')
-    const goalTargetEl  = document.getElementById('goalTarget')
-    const progressFillEl= document.getElementById('progressFill')
-    const goalPctEl     = document.getElementById('goalPct')
+    const headerTotalEl  = document.getElementById('headerTotal')
+    const spotNameEl     = document.getElementById('spotName')
+    const spotTotalEl    = document.getElementById('spotTotal')
+    const spotMetaEl     = document.getElementById('spotMeta')
+    const lbListEl       = document.getElementById('lbList')
+    const recentListEl   = document.getElementById('recentList')
+    const panelLB        = document.getElementById('panelLB')
+    const panelRecent    = document.getElementById('panelRecent')
+    const panelGoal      = document.getElementById('panelGoal')
+    const rightColEl     = document.getElementById('rightCol')
+    const gpTextEl       = document.getElementById('gpText')
+    const gpRaisedEl     = document.getElementById('gpRaised')
+    const gpTargetEl     = document.getElementById('gpTarget')
+    const progressFillEl = document.getElementById('progressFill')
+    const gpPctEl        = document.getElementById('gpPct')
 
-    // Panel toggle
-    let showingLB = true
+    const panels = [panelLB, panelRecent, panelGoal]
+    let currentIdx  = 0
+    let goalEnabled = false
+
     function switchPanel() {
-      const from = showingLB ? panelLB : panelRecent
-      const to   = showingLB ? panelRecent : panelLB
-      showingLB  = !showingLB
+      const panelCount = goalEnabled ? 3 : 2
+      const nextIdx    = (currentIdx + 1) % panelCount
+      const from = panels[currentIdx]
+      const to   = panels[nextIdx]
       from.classList.add('leaving')
       setTimeout(() => {
-        from.classList.remove('visible','leaving')
+        from.classList.remove('visible', 'leaving')
         from.classList.add('hidden')
         to.classList.remove('hidden')
         to.classList.add('visible')
       }, 350)
-      dot0.classList.toggle('active',  showingLB)
-      dot1.classList.toggle('active', !showingLB)
+      currentIdx = nextIdx
     }
+
     setInterval(switchPanel, TOGGLE_MS)
 
     function fmt(v) {
@@ -320,18 +276,31 @@
 
     async function load() {
       try {
-        // Fetch config (event_start + goal fields)
-        let eventStart = null, goalEnabled = false, goalLabel = '', goalAmount = 500
+        let eventStart = null, goalLabel = '', goalAmount = 500
         try {
           const ac = await get('payment_access?id=eq.1&select=event_start,goal_enabled,goal_label,goal_amount')
           if (Array.isArray(ac) && ac[0]) {
             const cfg = ac[0]
-            if (cfg.event_start)  eventStart  = cfg.event_start
-            if (cfg.goal_enabled) goalEnabled  = true
-            if (cfg.goal_label)   goalLabel    = cfg.goal_label
-            if (cfg.goal_amount != null) goalAmount = Number(cfg.goal_amount) || 500
+            if (cfg.event_start)         eventStart  = cfg.event_start
+            goalEnabled = !!cfg.goal_enabled
+            if (cfg.goal_label)          goalLabel   = cfg.goal_label
+            if (cfg.goal_amount != null) goalAmount  = Number(cfg.goal_amount) || 500
           }
         } catch (_) {}
+
+        // Show/hide third dot + guard against goal panel being active when disabled
+        if (goalEnabled) {
+          rightColEl.classList.add('goal-enabled')
+        } else {
+          rightColEl.classList.remove('goal-enabled')
+          if (currentIdx === 2) {
+            panels[2].classList.remove('visible')
+            panels[2].classList.add('hidden')
+            panels[0].classList.remove('hidden')
+            panels[0].classList.add('visible')
+            currentIdx = 0
+          }
+        }
 
         const qs = eventStart
           ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
@@ -339,23 +308,19 @@
 
         const rows = await get(qs)
 
-        // Grand total
         const grandTotal = rows.reduce((s,r) => {
           const v = Number(r.amount); return s + (Number.isFinite(v) ? v : 0)
         }, 0)
         headerTotalEl.textContent = fmt(grandTotal)
 
-        // ── Goal panel ──
+        // Update goal panel content
         if (goalEnabled) {
-          goalCardEl.classList.add('active')
-          goalLabelEl.textContent  = goalLabel || 'Fundraiser Goal'
-          goalRaisedEl.textContent = fmt(grandTotal)
-          goalTargetEl.textContent = `of ${fmt(goalAmount)}`
+          gpTextEl.textContent   = goalLabel || 'Fundraiser Goal'
+          gpRaisedEl.textContent = fmt(grandTotal)
+          gpTargetEl.textContent = `of ${fmt(goalAmount)}`
           const pct = goalAmount > 0 ? Math.min(100, (grandTotal / goalAmount) * 100) : 0
           progressFillEl.style.width = `${pct.toFixed(1)}%`
-          goalPctEl.textContent = `${Math.floor(pct)}%`
-        } else {
-          goalCardEl.classList.remove('active')
+          gpPctEl.textContent = `${Math.floor(pct)}%`
         }
 
         if (!rows.length) {
