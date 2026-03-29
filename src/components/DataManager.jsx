@@ -230,8 +230,8 @@ export default function DataManager() {
       <div className="bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4">
         <div className="text-[10px] text-orange uppercase tracking-widest mb-2">Payment QR Access Control</div>
         <p className="text-gray-500 text-xs mb-3 leading-relaxed">
-          Locked-tab kill switch for the payment page QR link. Turn OFF to instantly block public access.
-          Turn ON to re-enable.
+          Locked-tab kill switch for the payment page QR link. ON now means blocked.
+          OFF means access is live.
         </p>
 
         {controlLoading && <p className="text-xs text-gray-400">Loading payment access state...</p>}
@@ -248,15 +248,15 @@ export default function DataManager() {
                     : 'bg-red-700 hover:bg-red-600 text-white'
                 } disabled:opacity-60`}
               >
-                {controlSaving ? 'Saving...' : paymentControl.enabled ? 'ON - Click to Turn OFF' : 'OFF - Click to Turn ON'}
+                {controlSaving ? 'Saving...' : paymentControl.enabled ? 'OFF - Click to Turn ON' : 'ON - Click to Turn OFF'}
               </button>
               <span className="text-xs text-gray-400">
-                Current status: {paymentControl.enabled ? 'Enabled' : 'Disabled'}
+                Current status: {paymentControl.enabled ? 'OFF (Access live)' : 'ON (Access blocked)'}
               </span>
             </div>
 
             <div className="text-xs text-gray-500 break-all">
-              Controlled URL: <span className="text-orange">{paymentControl.requireKey && paymentControl.accessKey ? `${paymentUrl}?k=${encodeURIComponent(paymentControl.accessKey)}` : paymentUrl}</span>
+              Controlled URL: <span className="text-orange">{paymentControl.enabled && paymentControl.requireKey && paymentControl.accessKey ? `${paymentUrl}?k=${encodeURIComponent(paymentControl.accessKey)}` : paymentUrl}</span>
             </div>
 
             {controlMessage && <div className="text-xs text-green-400">{controlMessage}</div>}
