@@ -62,6 +62,9 @@ export default function DataManager() {
         accessKey: (data?.access_key || '').trim(),
         expiresAt: data?.expires_at || null,
         eventStart: data?.event_start || null,
+        goalEnabled: data?.goal_enabled || false,
+        goalLabel: data?.goal_label || '',
+        goalAmount: data?.goal_amount ?? 500,
       })
       setControlLoading(false)
     }
@@ -307,7 +310,7 @@ export default function DataManager() {
               <p className="text-[10px] text-gray-600">Only donations received on or after this date appear on the stats page.</p>
             </div>
 
-            <div>
+            <div className="flex gap-2 flex-wrap">
               <a
                 href={`${window.location.origin}${getBaseUrl()}QR_Donation_stats.html`}
                 target="_blank"
@@ -316,6 +319,14 @@ export default function DataManager() {
               >
                 View QR Stats Page ↗
               </a>
+              <a
+                href={`${window.location.origin}${getBaseUrl()}donation-overlay.html`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-4 py-2 rounded-lg font-bold text-sm border border-[#303030] bg-[#171717] text-white hover:border-orange-500 hover:text-orange-300 transition-colors"
+              >
+                Preview OBS Overlay ↗
+              </a>
             </div>
 
             {controlMessage && <div className="text-xs text-green-400">{controlMessage}</div>}
@@ -323,6 +334,61 @@ export default function DataManager() {
         )}
 
         {controlError && <div className="text-xs text-red-400 mt-2">{controlError}</div>}
+      </div>
+
+      {/* Fundraiser Goal */}
+      <div className="bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4">
+        <div className="text-[10px] text-orange uppercase tracking-widest mb-2">Fundraiser Goal (OBS Overlay)</div>
+        <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+          Show a live progress bar on the OBS overlay. Set the objective text viewers will see and the target dollar amount.
+        </p>
+
+        {controlLoading && <p className="text-xs text-gray-400">Loading…</p>}
+
+        {!controlLoading && paymentControl && (
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => savePaymentControl({ ...paymentControl, goalEnabled: !paymentControl.goalEnabled })}
+                disabled={controlSaving}
+                className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
+                  paymentControl.goalEnabled
+                    ? 'bg-green-600 hover:bg-green-500 text-white'
+                    : 'bg-[#1f1f1f] border border-[#333] text-gray-400 hover:text-white'
+                } disabled:opacity-60`}
+              >
+                {paymentControl.goalEnabled ? '✓ Goal Visible' : 'Show Goal on Overlay'}
+              </button>
+              <span className="text-xs text-gray-500">{paymentControl.goalEnabled ? 'Progress bar is live on stream' : 'Progress bar hidden'}</span>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] text-gray-500 uppercase tracking-widest block">Objective Text</label>
+              <input
+                type="text"
+                placeholder="e.g. Raise $500 — Matthew gets a haircut live!"
+                value={paymentControl.goalLabel}
+                onChange={e => setPaymentControl({ ...paymentControl, goalLabel: e.target.value })}
+                onBlur={e => savePaymentControl({ ...paymentControl, goalLabel: e.target.value })}
+                className="w-full bg-[#0d0d0d] border border-[#303030] rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-orange-500"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] text-gray-500 uppercase tracking-widest block">Target Amount ($)</label>
+              <input
+                type="number"
+                min="1"
+                step="1"
+                placeholder="500"
+                value={paymentControl.goalAmount ?? ''}
+                onChange={e => setPaymentControl({ ...paymentControl, goalAmount: e.target.value })}
+                onBlur={e => savePaymentControl({ ...paymentControl, goalAmount: Number(e.target.value) || 500 })}
+                className="w-40 bg-[#0d0d0d] border border-[#303030] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Info box */}

@@ -11,14 +11,20 @@
       background: transparent;
       font-family: "Segoe UI", system-ui, sans-serif;
       padding: 12px;
-      width: 780px;
+    }
+
+    /* Outer flex row — donation card + optional goal card */
+    .overlay-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
     }
 
     @keyframes fadeIn  { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
     @keyframes panelIn { from { opacity:0; } to { opacity:1; } }
     @keyframes panelOut{ from { opacity:1; } to { opacity:0; } }
 
-    /* ── Outer card ── */
+    /* ── Shared card shell ── */
     .card {
       background: rgba(10,10,10,0.91);
       border: 1px solid rgba(255,122,0,0.45);
@@ -28,7 +34,11 @@
       backdrop-filter: blur(8px);
     }
 
-    /* ── Header bar ── */
+    /* =====================
+       DONATION TRACKER CARD
+       ===================== */
+    .donation-card { width: 780px; }
+
     .header {
       background: linear-gradient(90deg, #ff7a00, #ffb347);
       padding: 7px 16px;
@@ -36,118 +46,70 @@
       align-items: center;
       justify-content: space-between;
     }
-    .header-left { display: flex; align-items: center; gap: 10px; }
-    .header-title {
-      font-size: 11px; font-weight: 900; letter-spacing: 0.28em;
-      text-transform: uppercase; color: #111;
-    }
-    .header-total {
-      font-size: 18px; font-weight: 900; color: #111;
-      font-variant-numeric: tabular-nums;
-    }
-    .header-label {
-      font-size: 9px; font-weight: 700; color: rgba(0,0,0,0.5);
-      text-transform: uppercase; letter-spacing: 0.15em;
-    }
+    .header-title { font-size: 11px; font-weight: 900; letter-spacing: 0.28em; text-transform: uppercase; color: #111; }
+    .header-right  { display: flex; align-items: baseline; gap: 6px; }
+    .header-label  { font-size: 9px; font-weight: 700; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.15em; }
+    .header-total  { font-size: 18px; font-weight: 900; color: #111; font-variant-numeric: tabular-nums; }
 
-    /* ── Two-column body ── */
-    .body {
+    .tracker-body {
       display: flex;
       align-items: stretch;
       min-height: 130px;
     }
 
-    /* ── LEFT: Spotlight ── */
+    /* Left: spotlight */
     .left-col {
-      width: 260px;
-      flex-shrink: 0;
+      width: 260px; flex-shrink: 0;
       border-right: 1px solid rgba(255,215,0,0.18);
       background: linear-gradient(160deg, rgba(255,215,0,0.09), rgba(255,122,0,0.06));
       padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 4px;
+      display: flex; flex-direction: column; justify-content: center; gap: 4px;
     }
-    .spotlight-badge {
-      font-size: 8px; font-weight: 900; letter-spacing: 0.25em;
-      text-transform: uppercase; color: #ffd700;
-    }
-    .spotlight-crown { font-size: 11px; }
-    .spotlight-name {
-      font-size: 17px; font-weight: 900; color: #fff;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      line-height: 1.2;
-    }
-    .spotlight-total {
-      font-size: 26px; font-weight: 900; color: #ffd700;
-      font-variant-numeric: tabular-nums;
-      text-shadow: 0 0 16px rgba(255,215,0,0.5);
-      line-height: 1;
-    }
-    .spotlight-meta { font-size: 9px; color: rgba(255,255,255,0.37); margin-top: 2px; }
+    .spotlight-badge { font-size: 8px; font-weight: 900; letter-spacing: 0.25em; text-transform: uppercase; color: #ffd700; }
+    .spotlight-name  { font-size: 17px; font-weight: 900; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+    .spotlight-total { font-size: 26px; font-weight: 900; color: #ffd700; font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(255,215,0,0.5); line-height: 1; }
+    .spotlight-meta  { font-size: 9px; color: rgba(255,255,255,0.37); margin-top: 2px; }
 
-    /* ── RIGHT: Toggle panel ── */
-    .right-col {
-      flex: 1;
-      min-width: 0;
-      position: relative;
-      padding: 10px 14px;
-    }
-
-    .panel {
-      position: absolute;
-      inset: 10px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      transition: none;
-    }
-    .panel.hidden { opacity: 0; pointer-events: none; }
+    /* Right: toggle panels */
+    .right-col { flex: 1; min-width: 0; position: relative; padding: 10px 14px; }
+    .panel { position: absolute; inset: 10px 14px; display: flex; flex-direction: column; }
+    .panel.hidden  { opacity: 0; pointer-events: none; }
     .panel.visible { opacity: 1; animation: panelIn 0.45s ease; }
-    .panel.leaving  { opacity: 0; animation: panelOut 0.35s ease forwards; }
+    .panel.leaving { opacity: 0; animation: panelOut 0.35s ease forwards; }
 
     .panel-label {
-      font-size: 8px; font-weight: 900; letter-spacing: 0.22em;
-      text-transform: uppercase; color: rgba(255,179,71,0.6);
-      margin-bottom: 6px;
+      font-size: 8px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,179,71,0.6); margin-bottom: 6px;
       display: flex; align-items: center; justify-content: space-between;
     }
     .panel-tab-dots { display: flex; gap: 4px; }
-    .tab-dot {
-      width: 5px; height: 5px; border-radius: 50%;
-      background: rgba(255,179,71,0.25);
-      transition: background 0.3s;
-    }
+    .tab-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,179,71,0.25); transition: background 0.3s; }
     .tab-dot.active { background: rgba(255,179,71,0.75); }
 
-    /* Leaderboard rows */
     .lb-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
     .lb-item {
       display: flex; align-items: center; gap: 8px;
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
       border-radius: 7px; padding: 5px 10px; animation: fadeIn 0.3s ease;
     }
-    .lb-rank { font-size: 10px; font-weight: 900; color: rgba(255,179,71,0.7); width: 20px; flex-shrink:0; text-align:center; }
-    .lb-name { flex:1; font-size: 12px; font-weight: 700; color: #e8e8e8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .lb-meta { font-size: 9px; color: rgba(255,255,255,0.28); white-space:nowrap; margin-right:6px; }
+    .lb-rank  { font-size: 10px; font-weight: 900; color: rgba(255,179,71,0.7); width: 20px; flex-shrink:0; text-align:center; }
+    .lb-name  { flex:1; font-size: 12px; font-weight: 700; color: #e8e8e8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lb-meta  { font-size: 9px; color: rgba(255,255,255,0.28); white-space:nowrap; margin-right:6px; }
     .lb-total { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-    /* Recent donations rows */
     .recent-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
     .recent-item {
       display: flex; align-items: center; justify-content: space-between;
       background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.045);
       border-radius: 7px; padding: 5px 10px; animation: fadeIn 0.3s ease;
     }
-    .recent-left { display: flex; align-items: center; gap: 6px; min-width:0; }
-    .recent-dot { width:5px; height:5px; border-radius:50%; background:#5ed38a; flex-shrink:0; }
-    .recent-name { font-size: 12px; font-weight: 600; color: #d0d0d0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px; }
+    .recent-left   { display: flex; align-items: center; gap: 6px; min-width:0; }
+    .recent-dot    { width:5px; height:5px; border-radius:50%; background:#5ed38a; flex-shrink:0; }
+    .recent-name   { font-size: 12px; font-weight: 600; color: #d0d0d0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px; }
     .recent-rank-badge { font-size: 9px; font-weight: 800; color: rgba(255,179,71,0.75); white-space:nowrap; flex-shrink:0; margin-left:5px; }
     .recent-amount { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
 
-    /* ── Footer ── */
-    .footer {
+    .tracker-footer {
       border-top: 1px solid rgba(255,255,255,0.05);
       padding: 5px 16px;
       display: flex; align-items: center; gap: 7px;
@@ -156,84 +118,154 @@
       width:6px; height:6px; border-radius:50%; background:#5ed38a; flex-shrink:0;
       animation: pulse 2s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%,100% { opacity:1; transform:scale(1); }
-      50%      { opacity:0.3; transform:scale(0.65); }
-    }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.65); } }
     .footer-text { font-size: 8px; color: rgba(255,255,255,0.22); letter-spacing:0.1em; }
+
+    /* =====================
+       GOAL CARD (right side)
+       ===================== */
+    .goal-card {
+      width: 260px;
+      flex-shrink: 0;
+      display: none; /* shown via JS when goal_enabled */
+    }
+    .goal-card.active { display: block; animation: fadeIn 0.5s ease; }
+
+    .goal-header {
+      background: linear-gradient(90deg, #a855f7, #7c3aed);
+      padding: 7px 14px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .goal-header-icon { font-size: 14px; line-height:1; }
+    .goal-header-title { font-size: 9px; font-weight: 900; letter-spacing: 0.25em; text-transform: uppercase; color: #fff; }
+
+    .goal-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+    .goal-label {
+      font-size: 12px; font-weight: 700; color: #f0f0f0;
+      line-height: 1.35;
+    }
+
+    .goal-amounts {
+      display: flex; align-items: baseline; justify-content: space-between;
+    }
+    .goal-raised   { font-size: 22px; font-weight: 900; color: #a855f7; font-variant-numeric: tabular-nums; line-height:1; }
+    .goal-target   { font-size: 11px; color: rgba(255,255,255,0.35); }
+
+    /* Progress bar */
+    .progress-track {
+      background: rgba(255,255,255,0.07);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+      min-width: 4px;
+    }
+
+    .goal-pct {
+      font-size: 10px; font-weight: 900; color: #a855f7; text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .goal-footer {
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 5px 14px;
+    }
+    .goal-footer-text { font-size: 8px; color: rgba(255,255,255,0.22); letter-spacing: 0.1em; }
 
     .empty-msg { font-size:11px; color:rgba(255,255,255,0.2); padding:8px 0; }
   </style>
 </head>
 <body>
-  <div class="card">
+  <div class="overlay-row">
 
-    <!-- Header -->
-    <div class="header">
-      <span class="header-title">Emma &amp; Rhyder Youth National Fund</span>
-      <div style="display:flex;align-items:baseline;gap:6px;">
-        <span class="header-label">Total Raised</span>
-        <span id="headerTotal" class="header-total">$0.00</span>
-      </div>
-    </div>
+    <!-- ── DONATION TRACKER ── -->
+    <div class="card donation-card">
 
-    <!-- Two-column body -->
-    <div class="body">
-
-      <!-- LEFT: #1 Spotlight, always visible -->
-      <div class="left-col">
-        <div class="spotlight-badge"><span class="spotlight-crown">&#x1F451;</span>&nbsp; #1 &nbsp; Top Donor</div>
-        <div id="spotName"  class="spotlight-name">Loading&hellip;</div>
-        <div id="spotTotal" class="spotlight-total">&mdash;</div>
-        <div id="spotMeta"  class="spotlight-meta">&nbsp;</div>
+      <div class="header">
+        <span class="header-title">Emma &amp; Rhyder Youth National Fund</span>
+        <div class="header-right">
+          <span class="header-label">Total Raised</span>
+          <span id="headerTotal" class="header-total">$0.00</span>
+        </div>
       </div>
 
-      <!-- RIGHT: Toggle between leaderboard and recent donations -->
-      <div class="right-col">
-
-        <!-- Panel A: Leaderboard #2-#5 -->
-        <div id="panelLB" class="panel visible">
-          <div class="panel-label">
-            <span>Leaderboard</span>
-            <div class="panel-tab-dots">
-              <div id="dot0" class="tab-dot active"></div>
-              <div id="dot1" class="tab-dot"></div>
-            </div>
-          </div>
-          <ul id="lbList" class="lb-list">
-            <li class="empty-msg">&mdash;</li>
-          </ul>
+      <div class="tracker-body">
+        <!-- LEFT: spotlight -->
+        <div class="left-col">
+          <div class="spotlight-badge">&#x1F451;&nbsp; #1 &nbsp; Top Donor</div>
+          <div id="spotName"  class="spotlight-name">Loading&hellip;</div>
+          <div id="spotTotal" class="spotlight-total">&mdash;</div>
+          <div id="spotMeta"  class="spotlight-meta">&nbsp;</div>
         </div>
 
-        <!-- Panel B: Recent donations -->
-        <div id="panelRecent" class="panel hidden">
-          <div class="panel-label">
-            <span>Recent donations</span>
-            <div class="panel-tab-dots">
-              <div class="tab-dot"></div>
-              <div class="tab-dot active"></div>
+        <!-- RIGHT: toggle leaderboard / recent -->
+        <div class="right-col">
+          <div id="panelLB" class="panel visible">
+            <div class="panel-label">
+              <span>Leaderboard</span>
+              <div class="panel-tab-dots">
+                <div id="dot0" class="tab-dot active"></div>
+                <div id="dot1" class="tab-dot"></div>
+              </div>
             </div>
+            <ul id="lbList" class="lb-list"><li class="empty-msg">&mdash;</li></ul>
           </div>
-          <ul id="recentList" class="recent-list">
-            <li class="empty-msg">Loading&hellip;</li>
-          </ul>
-        </div>
 
+          <div id="panelRecent" class="panel hidden">
+            <div class="panel-label">
+              <span>Recent Donations</span>
+              <div class="panel-tab-dots">
+                <div class="tab-dot"></div>
+                <div class="tab-dot active"></div>
+              </div>
+            </div>
+            <ul id="recentList" class="recent-list"><li class="empty-msg">Loading&hellip;</li></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="tracker-footer">
+        <div class="pulse"></div>
+        <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="footer">
-      <div class="pulse"></div>
-      <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
+    <!-- ── FUNDRAISER GOAL ── -->
+    <div id="goalCard" class="card goal-card">
+      <div class="goal-header">
+        <span class="goal-header-icon">&#x1F3AF;</span>
+        <span class="goal-header-title">Fundraiser Goal</span>
+      </div>
+      <div class="goal-body">
+        <div id="goalLabel" class="goal-label">Loading&hellip;</div>
+        <div class="goal-amounts">
+          <span id="goalRaised" class="goal-raised">$0.00</span>
+          <span id="goalTarget" class="goal-target">of $0.00</span>
+        </div>
+        <div class="progress-track">
+          <div id="progressFill" class="progress-fill" style="width:0%"></div>
+        </div>
+        <div id="goalPct" class="goal-pct">0%</div>
+      </div>
+      <div class="goal-footer">
+        <span class="goal-footer-text">LIVE PROGRESS</span>
+      </div>
     </div>
-  </div>
+
+  </div><!-- end overlay-row -->
 
   <script>
     const SUPABASE_URL      = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
-    const REFRESH_MS  = 30000
-    const TOGGLE_MS   = 7000   // switch panels every 7 seconds
+    const REFRESH_MS = 30000
+    const TOGGLE_MS  = 7000
 
     const headerTotalEl = document.getElementById('headerTotal')
     const spotNameEl    = document.getElementById('spotName')
@@ -245,16 +277,22 @@
     const panelRecent   = document.getElementById('panelRecent')
     const dot0          = document.getElementById('dot0')
     const dot1          = document.getElementById('dot1')
+    const goalCardEl    = document.getElementById('goalCard')
+    const goalLabelEl   = document.getElementById('goalLabel')
+    const goalRaisedEl  = document.getElementById('goalRaised')
+    const goalTargetEl  = document.getElementById('goalTarget')
+    const progressFillEl= document.getElementById('progressFill')
+    const goalPctEl     = document.getElementById('goalPct')
 
-    // ── Panel toggle ──
+    // Panel toggle
     let showingLB = true
     function switchPanel() {
-      const from = showingLB ? panelLB     : panelRecent
+      const from = showingLB ? panelLB : panelRecent
       const to   = showingLB ? panelRecent : panelLB
       showingLB  = !showingLB
       from.classList.add('leaving')
       setTimeout(() => {
-        from.classList.remove('visible', 'leaving')
+        from.classList.remove('visible','leaving')
         from.classList.add('hidden')
         to.classList.remove('hidden')
         to.classList.add('visible')
@@ -265,7 +303,7 @@
     setInterval(switchPanel, TOGGLE_MS)
 
     function fmt(v) {
-      return new Intl.NumberFormat('en-CA', { style:'currency', currency:'CAD', minimumFractionDigits:2 }).format(v)
+      return new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',minimumFractionDigits:2}).format(v)
     }
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
@@ -282,10 +320,17 @@
 
     async function load() {
       try {
-        let eventStart = null
+        // Fetch config (event_start + goal fields)
+        let eventStart = null, goalEnabled = false, goalLabel = '', goalAmount = 500
         try {
-          const ac = await get('payment_access?id=eq.1&select=event_start')
-          if (Array.isArray(ac) && ac[0]?.event_start) eventStart = ac[0].event_start
+          const ac = await get('payment_access?id=eq.1&select=event_start,goal_enabled,goal_label,goal_amount')
+          if (Array.isArray(ac) && ac[0]) {
+            const cfg = ac[0]
+            if (cfg.event_start)  eventStart  = cfg.event_start
+            if (cfg.goal_enabled) goalEnabled  = true
+            if (cfg.goal_label)   goalLabel    = cfg.goal_label
+            if (cfg.goal_amount != null) goalAmount = Number(cfg.goal_amount) || 500
+          }
         } catch (_) {}
 
         const qs = eventStart
@@ -295,10 +340,23 @@
         const rows = await get(qs)
 
         // Grand total
-        const grandTotal = rows.reduce((s, r) => {
+        const grandTotal = rows.reduce((s,r) => {
           const v = Number(r.amount); return s + (Number.isFinite(v) ? v : 0)
         }, 0)
         headerTotalEl.textContent = fmt(grandTotal)
+
+        // ── Goal panel ──
+        if (goalEnabled) {
+          goalCardEl.classList.add('active')
+          goalLabelEl.textContent  = goalLabel || 'Fundraiser Goal'
+          goalRaisedEl.textContent = fmt(grandTotal)
+          goalTargetEl.textContent = `of ${fmt(goalAmount)}`
+          const pct = goalAmount > 0 ? Math.min(100, (grandTotal / goalAmount) * 100) : 0
+          progressFillEl.style.width = `${pct.toFixed(1)}%`
+          goalPctEl.textContent = `${Math.floor(pct)}%`
+        } else {
+          goalCardEl.classList.remove('active')
+        }
 
         if (!rows.length) {
           spotNameEl.textContent  = 'No donations yet'
@@ -313,31 +371,27 @@
         const map = new Map()
         for (const r of rows) {
           const display = (r.donor_name || 'Anonymous').trim()
-          const key     = display.toUpperCase()
-          const amt     = Number.isFinite(Number(r.amount)) ? Number(r.amount) : 0
-          if (map.has(key)) {
-            const e = map.get(key); e.total += amt; e.count++
-          } else {
-            map.set(key, { display, total: amt, count: 1 })
-          }
+          const key = display.toUpperCase()
+          const amt = Number.isFinite(Number(r.amount)) ? Number(r.amount) : 0
+          if (map.has(key)) { const e = map.get(key); e.total += amt; e.count++ }
+          else map.set(key, { display, total: amt, count: 1 })
         }
 
-        // Sort leaderboard
-        const board = [...map.values()].sort((a, b) => b.total - a.total)
+        const board = [...map.values()].sort((a,b) => b.total - a.total)
         const rankOf = new Map()
-        board.forEach((e, i) => rankOf.set(e.display.toUpperCase(), i + 1))
+        board.forEach((e,i) => rankOf.set(e.display.toUpperCase(), i + 1))
 
-        // Render spotlight
+        // Spotlight
         const top = board[0]
         spotNameEl.textContent  = top.display
         spotTotalEl.textContent = fmt(top.total)
         spotMetaEl.textContent  = (top.count === 1 ? '1 donation' : `${top.count} donations`) + ' \u00b7 combined total'
 
-        // Render leaderboard #2-#5
-        const rest = board.slice(1, 5)
+        // Leaderboard #2-#5
+        const rest = board.slice(1,5)
         lbListEl.innerHTML = rest.length
-          ? rest.map((e, i) => {
-              const rank = i + 2
+          ? rest.map((e,i) => {
+              const rank = i+2
               const cl   = e.count === 1 ? '1 donation' : `${e.count} donations`
               return `<li class="lb-item">
                 <span class="lb-rank">#${rank}</span>
@@ -348,8 +402,8 @@
             }).join('')
           : '<li class="empty-msg">No other donors yet</li>'
 
-        // Render last 3 recent donations with current rank
-        const recent = rows.slice(0, 3)
+        // Recent 3 with rank badges
+        const recent = rows.slice(0,3)
         recentListEl.innerHTML = recent.map(r => {
           const name  = (r.donor_name || 'Anonymous').trim()
           const rank  = rankOf.get(name.toUpperCase())
