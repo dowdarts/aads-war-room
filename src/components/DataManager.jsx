@@ -152,7 +152,7 @@ export default function DataManager() {
 
   async function togglePaymentEnabled() {
     if (!paymentControl || controlSaving) return
-    await savePaymentControl({ ...paymentControl, enabled: !paymentControl.enabled })
+    await savePaymentControl({ ...paymentControl, enabled: !paymentControl.enabled, requireKey: false })
   }
 
   const staticEventCount = events.filter(e => !e._runtime).length
@@ -256,7 +256,7 @@ export default function DataManager() {
             </div>
 
             <div className="text-xs text-gray-500 break-all">
-              Controlled URL: <span className="text-orange">{paymentControl.enabled && paymentControl.requireKey && paymentControl.accessKey ? `${paymentUrl}?k=${encodeURIComponent(paymentControl.accessKey)}` : paymentUrl}</span>
+              Controlled URL: <span className="text-orange">{paymentUrl}</span>
             </div>
 
             {controlMessage && <div className="text-xs text-green-400">{controlMessage}</div>}

@@ -20,9 +20,7 @@ export default function PaymentLanding() {
         const requireKey = config.requireKey !== false
         const enabled = config.enabled !== false
 
-        const nextUrl = enabled && requireKey && key
-          ? `${basePaymentUrl}?k=${encodeURIComponent(key)}`
-          : basePaymentUrl
+        const nextUrl = basePaymentUrl
 
         if (!alive) return
         setPaymentUrl(nextUrl)

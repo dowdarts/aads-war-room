@@ -1,6 +1,6 @@
 {
   "enabled": true,
-  "requireKey": true,
+  "requireKey": false,
   "accessKey": "aads-qr-2026-04",
   "expiresAt": "2026-12-31T23:59:59Z",
   "disabledMessage": "Donations are paused right now. Please contact the organizer for the current link.",
