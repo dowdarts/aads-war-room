@@ -159,6 +159,13 @@ export default function DataManager() {
   async function togglePaymentEnabled() {
     if (!paymentControl || controlSaving) return
     await savePaymentControl({ ...paymentControl, enabled: !paymentControl.enabled, requireKey: false })
+    const { count } = await fetchPaymentScanCount()
+    if (count !== null) setScanCount(count)
+  }
+
+  async function refreshScanCount() {
+    const { count } = await fetchPaymentScanCount()
+    if (count !== null) setScanCount(count)
   }
 
   const staticEventCount = events.filter(e => !e._runtime).length
@@ -260,8 +267,13 @@ export default function DataManager() {
                 Current status: {paymentControl.enabled ? 'OFF (Access live)' : 'ON (Access blocked)'}
               </span>
               {scanCount !== null && (
-                <span className="ml-auto text-xs font-bold text-orange-400 tabular-nums">
+                <span className="ml-auto flex items-center gap-1.5 text-xs font-bold text-orange-400 tabular-nums">
                   {scanCount} scan{scanCount !== 1 ? 's' : ''}
+                  <button
+                    onClick={refreshScanCount}
+                    title="Refresh scan count"
+                    className="text-gray-500 hover:text-orange-400 transition-colors leading-none"
+                  >↺</button>
                 </span>
               )}
             </div>
