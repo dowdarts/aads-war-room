@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -11,11 +11,16 @@
       background: transparent;
       font-family: "Segoe UI", system-ui, sans-serif;
       padding: 14px;
-      width: 420px;
+      width: 440px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
     .card {
-      background: rgba(10, 10, 10, 0.88);
+      background: rgba(10, 10, 10, 0.90);
       border: 1px solid rgba(255, 122, 0, 0.45);
       border-radius: 16px;
       overflow: hidden;
@@ -30,7 +35,6 @@
       align-items: center;
       justify-content: space-between;
     }
-
     .header-title {
       font-size: 10px;
       font-weight: 900;
@@ -38,202 +42,84 @@
       text-transform: uppercase;
       color: #111;
     }
-
     .header-total {
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 900;
       color: #111;
       font-variant-numeric: tabular-nums;
     }
 
-    .body {
-      padding: 10px 14px;
-    }
-
-    .row-label {
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: rgba(255,179,71,0.7);
-      margin-bottom: 6px;
-    }
-
-    .donor-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .donor-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 8px;
-      padding: 5px 10px;
-      animation: fadeIn 0.4s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .donor-name {
-      font-size: 12px;
-      font-weight: 700;
-      color: #f0f0f0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 240px;
-    }
-
-    .donor-amount {
-      font-size: 13px;
+    .section-label {
+      font-size: 8px;
       font-weight: 900;
-      color: #5ed38a;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,179,71,0.65);
+      padding: 10px 14px 5px;
     }
 
-    .footer {
-      padding: 5px 14px 8px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .pulse {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #5ed38a;
-      animation: pulse 2s ease-in-out infinite;
-      flex-shrink: 0;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.75); }
-    }
-
-    .footer-text {
-      font-size: 9px;
-      color: rgba(255,255,255,0.3);
-      letter-spacing: 0.1em;
-    }
-
-    .empty {
-      font-size: 11px;
-      color: rgba(255,255,255,0.25);
-      padding: 6px 0;
-      text-align: center;
-    }
-
-    /* ── Top Donor Spotlight ── */
     .spotlight {
-      margin: 0 0 10px;
+      margin: 0 10px 2px;
       border-radius: 12px;
-      background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,122,0,0.10));
-      border: 1px solid rgba(255,215,0,0.35);
+      background: linear-gradient(135deg, rgba(255,215,0,0.14), rgba(255,140,0,0.10));
+      border: 1px solid rgba(255,215,0,0.40);
       padding: 9px 12px;
       display: flex;
       align-items: center;
       gap: 10px;
       animation: fadeIn 0.5s ease;
     }
-
-    .spotlight-crown {
-      font-size: 22px;
-      line-height: 1;
-      flex-shrink: 0;
+    .spotlight-icon { font-size: 24px; line-height: 1; flex-shrink: 0; }
+    .spotlight-info { flex: 1; min-width: 0; }
+    .spotlight-rank {
+      font-size: 8px; font-weight: 900; letter-spacing: 0.2em;
+      color: #ffd700; text-transform: uppercase; margin-bottom: 1px;
     }
-
-    .spotlight-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .spotlight-badge {
-      font-size: 8px;
-      font-weight: 900;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: #ffd700;
-      margin-bottom: 2px;
-    }
-
     .spotlight-name {
-      font-size: 14px;
-      font-weight: 900;
-      color: #fff;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 14px; font-weight: 900; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .spotlight-meta { font-size: 9px; color: rgba(255,255,255,0.38); margin-top: 2px; }
+    .spotlight-total {
+      font-size: 21px; font-weight: 900; color: #ffd700;
+      font-variant-numeric: tabular-nums; white-space: nowrap;
+      text-shadow: 0 0 14px rgba(255,215,0,0.55);
     }
 
-    .spotlight-meta {
-      font-size: 9px;
-      color: rgba(255,255,255,0.4);
-      margin-top: 1px;
+    .lb-list { list-style: none; display: flex; flex-direction: column; gap: 3px; padding: 0 10px; }
+    .lb-item {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px; padding: 5px 10px; animation: fadeIn 0.4s ease;
     }
+    .lb-rank { font-size: 10px; font-weight: 900; color: rgba(255,179,71,0.7); width: 18px; flex-shrink: 0; text-align: center; }
+    .lb-name { flex: 1; font-size: 12px; font-weight: 700; color: #e8e8e8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lb-meta { font-size: 9px; color: rgba(255,255,255,0.3); white-space: nowrap; margin-right: 8px; }
+    .lb-total { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-    .spotlight-amount {
-      font-size: 20px;
-      font-weight: 900;
-      color: #ffd700;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-      text-shadow: 0 0 12px rgba(255,215,0,0.5);
+    .recent-list { list-style: none; display: flex; flex-direction: column; gap: 3px; padding: 0 10px 2px; }
+    .recent-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.045);
+      border-radius: 7px; padding: 4px 10px; animation: fadeIn 0.4s ease;
     }
+    .recent-left { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .recent-dot { width: 5px; height: 5px; border-radius: 50%; background: #5ed38a; flex-shrink: 0; }
+    .recent-name { font-size: 11px; font-weight: 600; color: #d0d0d0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 210px; }
+    .recent-rank-badge { font-size: 9px; font-weight: 800; color: rgba(255,179,71,0.75); white-space: nowrap; flex-shrink: 0; margin-left: 4px; }
+    .recent-amount { font-size: 12px; font-weight: 900; color: #5ed38a; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-    .spotlight-empty {
-      font-size: 11px;
-      color: rgba(255,255,255,0.2);
-      text-align: center;
-      padding: 6px 0;
+    .footer { padding: 6px 14px 9px; display: flex; align-items: center; gap: 6px; }
+    .pulse {
+      width: 6px; height: 6px; border-radius: 50%; background: #5ed38a; flex-shrink: 0;
+      animation: pulse 2s ease-in-out infinite;
     }
-
-    /* ── Recent list ── */
-    .donor-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.35; transform: scale(0.7); }
     }
-
-    .donor-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 8px;
-      padding: 5px 10px;
-      animation: fadeIn 0.4s ease;
-    }
-
-    .donor-name {
-      font-size: 12px;
-      font-weight: 700;
-      color: #f0f0f0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 240px;
-    }
-
-    .donor-amount {
-      font-size: 13px;
-      font-weight: 900;
-      color: #5ed38a;
-      font-variant-numeric: tabular-nums;
-      white-space: nowrap;
-    }
+    .footer-text { font-size: 8px; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; }
+    .empty-msg { font-size: 11px; color: rgba(255,255,255,0.22); text-align: center; padding: 7px 0; }
   </style>
 </head>
 <body>
@@ -242,19 +128,22 @@
       <span class="header-title">AADS Player Travel Fund</span>
       <span id="headerTotal" class="header-total">$0.00</span>
     </div>
-    <div class="body">
-      <!-- Top donor spotlight -->
-      <div class="row-label">Top Donor</div>
-      <div id="spotlight" class="spotlight">
-        <div class="spotlight-empty">Loading...</div>
-      </div>
 
-      <!-- Last 3 recent donations -->
-      <div class="row-label" style="margin-top:8px;">Recent Donations</div>
-      <ul id="donorList" class="donor-list">
-        <li class="empty">Loading...</li>
-      </ul>
+    <div class="section-label">Top Donor</div>
+    <div id="spotlight" class="spotlight">
+      <div class="empty-msg">Loading&hellip;</div>
     </div>
+
+    <div class="section-label">Leaderboard</div>
+    <ul id="lbList" class="lb-list">
+      <li class="empty-msg">&mdash;</li>
+    </ul>
+
+    <div class="section-label">Recent Tips</div>
+    <ul id="recentList" class="recent-list">
+      <li class="empty-msg">Loading&hellip;</li>
+    </ul>
+
     <div class="footer">
       <div class="pulse"></div>
       <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
@@ -264,20 +153,18 @@
   <script>
     const SUPABASE_URL      = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
-    const REFRESH_MS        = 30000
+    const REFRESH_MS = 30000
 
     const headerTotalEl = document.getElementById('headerTotal')
     const spotlightEl   = document.getElementById('spotlight')
-    const donorListEl   = document.getElementById('donorList')
+    const lbListEl      = document.getElementById('lbList')
+    const recentListEl  = document.getElementById('recentList')
 
-    function fmt(value) {
-      return new Intl.NumberFormat('en-CA', {
-        style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
-      }).format(value)
+    function fmt(v) {
+      return new Intl.NumberFormat('en-CA', { style:'currency', currency:'CAD', minimumFractionDigits:2 }).format(v)
     }
-
-    function esc(str) {
-      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     }
 
     async function get(path) {
@@ -291,80 +178,99 @@
 
     async function load() {
       try {
-        // Read event_start filter
         let eventStart = null
         try {
           const ac = await get('payment_access?id=eq.1&select=event_start')
           if (Array.isArray(ac) && ac[0]?.event_start) eventStart = ac[0].event_start
         } catch (_) {}
 
-        const filter = eventStart
+        const qs = eventStart
           ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
           : `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500`
 
-        const rows = await get(filter)
+        const rows = await get(qs)
 
-        // ── Grand total ──
-        const grandTotal = rows
-          .map(r => Number(r.amount))
-          .filter(v => Number.isFinite(v))
-          .reduce((a, b) => a + b, 0)
+        // Grand total
+        const grandTotal = rows.reduce((s, r) => {
+          const v = Number(r.amount); return s + (Number.isFinite(v) ? v : 0)
+        }, 0)
         headerTotalEl.textContent = fmt(grandTotal)
 
         if (!rows.length) {
-          spotlightEl.innerHTML = '<div class="spotlight-empty">No donations yet</div>'
-          donorListEl.innerHTML = '<li class="empty">No donations yet</li>'
+          spotlightEl.innerHTML  = '<div class="empty-msg">No donations yet</div>'
+          lbListEl.innerHTML     = '<li class="empty-msg">&mdash;</li>'
+          recentListEl.innerHTML = '<li class="empty-msg">No tips yet</li>'
           return
         }
 
-        // ── Aggregate totals & counts by normalised name ──
-        const totalsMap = new Map()   // key: normalised name → { display, total, count }
+        // Aggregate by normalised name
+        const map = new Map()
         for (const r of rows) {
           const display = (r.donor_name || 'Anonymous').trim()
           const key     = display.toUpperCase()
           const amt     = Number.isFinite(Number(r.amount)) ? Number(r.amount) : 0
-          if (totalsMap.has(key)) {
-            const e = totalsMap.get(key)
-            e.total += amt
-            e.count += 1
+          if (map.has(key)) {
+            const e = map.get(key); e.total += amt; e.count++
           } else {
-            totalsMap.set(key, { display, total: amt, count: 1 })
+            map.set(key, { display, total: amt, count: 1 })
           }
         }
 
-        // ── Top donor (highest aggregate total) ──
-        let topDonor = null
-        for (const entry of totalsMap.values()) {
-          if (!topDonor || entry.total > topDonor.total) topDonor = entry
+        // Sort leaderboard descending by total
+        const board = [...map.values()].sort((a, b) => b.total - a.total)
+
+        // Rank lookup: UPPER_NAME -> rank number
+        const rankOf = new Map()
+        board.forEach((e, i) => rankOf.set(e.display.toUpperCase(), i + 1))
+
+        // Render #1 spotlight
+        const top = board[0]
+        const topCountLabel = top.count === 1 ? '1 tip' : `${top.count} tips`
+        spotlightEl.innerHTML = `
+          <div class="spotlight-icon">&#x1F451;</div>
+          <div class="spotlight-info">
+            <div class="spotlight-rank">#1 &nbsp;Top Donor</div>
+            <div class="spotlight-name">${esc(top.display)}</div>
+            <div class="spotlight-meta">${topCountLabel} &middot; combined total</div>
+          </div>
+          <div class="spotlight-total">${fmt(top.total)}</div>
+        `
+
+        // Render leaderboard #2-#5
+        const rest = board.slice(1, 5)
+        if (!rest.length) {
+          lbListEl.innerHTML = '<li class="empty-msg">No other donors yet</li>'
+        } else {
+          lbListEl.innerHTML = rest.map((e, i) => {
+            const rank = i + 2
+            const cl   = e.count === 1 ? '1 tip' : `${e.count} tips`
+            return `<li class="lb-item">
+              <span class="lb-rank">#${rank}</span>
+              <span class="lb-name">${esc(e.display)}</span>
+              <span class="lb-meta">${cl}</span>
+              <span class="lb-total">${fmt(e.total)}</span>
+            </li>`
+          }).join('')
         }
 
-        if (topDonor) {
-          const countLabel = topDonor.count === 1 ? '1 donation' : `${topDonor.count} donations`
-          spotlightEl.innerHTML = `
-            <div class="spotlight-crown">👑</div>
-            <div class="spotlight-info">
-              <div class="spotlight-badge">Top Donor</div>
-              <div class="spotlight-name">${esc(topDonor.display)}</div>
-              <div class="spotlight-meta">${countLabel} — combined total</div>
-            </div>
-            <div class="spotlight-amount">${fmt(topDonor.total)}</div>
-          `
-        }
-
-        // ── Last 3 individual donations ──
+        // Render last 3 individual tips with live rank badge
         const recent = rows.slice(0, 3)
-        donorListEl.innerHTML = recent.map(r => {
-          const name   = esc(r.donor_name || 'Anonymous')
-          const amount = Number.isFinite(Number(r.amount)) ? fmt(Number(r.amount)) : '-'
-          return `<li class="donor-item">
-            <span class="donor-name">${name}</span>
-            <span class="donor-amount">${amount}</span>
+        recentListEl.innerHTML = recent.map(r => {
+          const name  = (r.donor_name || 'Anonymous').trim()
+          const rank  = rankOf.get(name.toUpperCase())
+          const amt   = Number.isFinite(Number(r.amount)) ? fmt(Number(r.amount)) : '-'
+          const badge = rank ? `<span class="recent-rank-badge">#${rank}</span>` : ''
+          return `<li class="recent-item">
+            <div class="recent-left">
+              <div class="recent-dot"></div>
+              <span class="recent-name">${esc(name)}</span>
+              ${badge}
+            </div>
+            <span class="recent-amount">${amt}</span>
           </li>`
         }).join('')
 
-      } catch (_) {
-        // Silently keep last render on error
-      }
+      } catch (_) { /* keep last render on network error */ }
     }
 
     load()
