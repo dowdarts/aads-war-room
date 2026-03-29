@@ -178,6 +178,19 @@ export async function fetchPaymentAccessControl() {
 }
 
 /**
+ * Fetch total scan count from payment_scans table.
+ */
+export async function fetchPaymentScanCount() {
+  if (!client) return { count: null, error: 'Supabase not initialized' }
+
+  const { count, error } = await client
+    .from('payment_scans')
+    .select('id', { count: 'exact', head: true })
+
+  return { count: count ?? null, error }
+}
+
+/**
  * Update payment link access control row (id=1).
  */
 export async function updatePaymentAccessControl(payload) {

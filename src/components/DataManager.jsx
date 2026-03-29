@@ -4,6 +4,7 @@ import { parsePlayerCSV } from '../utils/csvParser.js'
 import { getBaseUrl } from '../utils/baseUrl.js'
 import {
   fetchPaymentAccessControl,
+  fetchPaymentScanCount,
   getSupabaseClient,
   initSupabaseClient,
   updatePaymentAccessControl,
@@ -22,6 +23,7 @@ export default function DataManager() {
   const [controlError, setControlError] = useState('')
   const [controlSaving, setControlSaving] = useState(false)
   const [controlMessage, setControlMessage] = useState('')
+  const [scanCount, setScanCount] = useState(null)
   const paymentUrl = useMemo(() => {
     const origin = window.location.origin
     return `${origin}${getBaseUrl()}payment.html`
@@ -43,12 +45,16 @@ export default function DataManager() {
         return
       }
 
-      const { data, error } = await fetchPaymentAccessControl()
+      const [{ data, error }, { count }] = await Promise.all([
+        fetchPaymentAccessControl(),
+        fetchPaymentScanCount(),
+      ])
       if (!alive) return
 
       if (error) {
         setControlError('Could not read payment control row. Ensure table payment_access exists with id=1.')
       }
+      if (count !== null) setScanCount(count)
 
       setPaymentControl({
         enabled: data?.enabled !== false,
@@ -253,6 +259,11 @@ export default function DataManager() {
               <span className="text-xs text-gray-400">
                 Current status: {paymentControl.enabled ? 'OFF (Access live)' : 'ON (Access blocked)'}
               </span>
+              {scanCount !== null && (
+                <span className="ml-auto text-xs font-bold text-orange-400 tabular-nums">
+                  {scanCount} scan{scanCount !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
 
             <div className="text-xs text-gray-500 break-all">

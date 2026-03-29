@@ -568,6 +568,27 @@
       return { allowed: true }
     }
 
+    function recordScan() {
+      try {
+        fetch(
+          `${SUPABASE_URL}/rest/v1/payment_scans`,
+          {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=minimal',
+            },
+            body: JSON.stringify({
+              user_agent: navigator.userAgent,
+              referrer: document.referrer || null,
+            }),
+          }
+        ).catch(() => {})
+      } catch (_) {}
+    }
+
     async function init() {
       try {
         const config = await loadAccessConfig()
@@ -579,6 +600,7 @@
 
         showPayment()
         attachCopyHandlers()
+        recordScan()
       } catch (_) {
         showGate('Access Check Failed', 'Payment page is temporarily unavailable.', 'Please contact the organizer for an updated link.')
       }
