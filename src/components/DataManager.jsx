@@ -61,6 +61,7 @@ export default function DataManager() {
         requireKey: data?.require_key !== false,
         accessKey: (data?.access_key || '').trim(),
         expiresAt: data?.expires_at || null,
+        eventStart: data?.event_start || null,
       })
       setControlLoading(false)
     }
@@ -280,6 +281,30 @@ export default function DataManager() {
 
             <div className="text-xs text-gray-500 break-all">
               Controlled URL: <span className="text-orange">{paymentUrl}</span>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] text-gray-500 uppercase tracking-widest block">Event Start (donations filter)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="datetime-local"
+                  value={paymentControl.eventStart ? paymentControl.eventStart.slice(0, 16) : ''}
+                  onChange={async e => {
+                    const val = e.target.value
+                    const next = { ...paymentControl, eventStart: val ? new Date(val).toISOString() : null }
+                    await savePaymentControl(next)
+                  }}
+                  className="bg-[#0d0d0d] border border-[#303030] rounded-lg px-3 py-1.5 text-xs text-white"
+                />
+                {paymentControl.eventStart && (
+                  <button
+                    onClick={() => savePaymentControl({ ...paymentControl, eventStart: null })}
+                    className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+                    title="Clear event start"
+                  >✕ Clear</button>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-600">Only donations received on or after this date appear on the stats page.</p>
             </div>
 
             <div>

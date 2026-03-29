@@ -217,13 +217,13 @@
           <article class="tile">
             <div class="label">Donation Count</div>
             <div id="donationCount" class="value">-</div>
-            <div class="sub">Rows in payment_donations</div>
+            <div id="donationSub" class="sub">Event donations only</div>
           </article>
 
           <article class="tile">
             <div class="label">Total Donations</div>
             <div id="totalDonations" class="value">-</div>
-            <div class="sub">Sum of amount values</div>
+            <div id="donationWindow" class="sub">Event donations only</div>
           </article>
         </div>
 
@@ -253,6 +253,8 @@
     const scansTodayEl = document.getElementById('scansToday')
     const donationCountEl = document.getElementById('donationCount')
     const totalDonationsEl = document.getElementById('totalDonations')
+    const donationSubEl    = document.getElementById('donationSub')
+    const donationWindowEl = document.getElementById('donationWindow')
     const recentScanRowsEl = document.getElementById('recentScanRows')
     const refreshBtn = document.getElementById('refreshBtn')
 
@@ -325,15 +327,34 @@
 
         renderRecentScans(scans.slice(0, 20))
 
-        // Donation table is optional. If missing, show not configured.
+        // Donation table — filtered by event_start if set
         try {
-          const donations = await supabaseGet('payment_donations?select=amount,received_at,created_at&order=created_at.desc&limit=500')
+          // Fetch event_start from payment_access first
+          let eventStart = null
+          try {
+            const accessRows = await supabaseGet('payment_access?id=eq.1&select=event_start')
+            if (Array.isArray(accessRows) && accessRows.length > 0 && accessRows[0].event_start) {
+              eventStart = accessRows[0].event_start
+            }
+          } catch (_) {}
+
+          const donationFilter = eventStart
+            ? `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
+            : `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500`
+
+          const donations = await supabaseGet(donationFilter)
           const amounts = donations
             .map(row => Number(row.amount))
             .filter(v => Number.isFinite(v))
 
           donationCountEl.textContent = String(donations.length)
           totalDonationsEl.textContent = formatMoney(amounts.reduce((a, b) => a + b, 0))
+
+          const windowLabel = eventStart
+            ? `Since ${new Date(eventStart).toLocaleDateString()}`
+            : 'All-time'
+          donationSubEl.textContent = windowLabel
+          donationWindowEl.textContent = windowLabel
         } catch (_) {
           donationCountEl.textContent = 'N/A'
           totalDonationsEl.textContent = 'N/A'

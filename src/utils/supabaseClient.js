@@ -170,7 +170,7 @@ export async function fetchPaymentAccessControl() {
 
   const { data, error } = await client
     .from('payment_access')
-    .select('id, enabled, require_key, access_key, expires_at, disabled_message, expired_message, invalid_key_message, updated_at')
+    .select('id, enabled, require_key, access_key, expires_at, event_start, disabled_message, expired_message, invalid_key_message, updated_at')
     .eq('id', 1)
     .maybeSingle()
 
@@ -202,6 +202,7 @@ export async function updatePaymentAccessControl(payload) {
     require_key: payload.requireKey,
     access_key: payload.accessKey,
     expires_at: payload.expiresAt,
+    event_start: payload.eventStart || null,
     updated_at: new Date().toISOString(),
   }
 
