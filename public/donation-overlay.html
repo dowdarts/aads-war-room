@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Donation Overlay</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: transparent;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      padding: 14px;
+      width: 420px;
+    }
+
+    .card {
+      background: rgba(10, 10, 10, 0.88);
+      border: 1px solid rgba(255, 122, 0, 0.45);
+      border-radius: 16px;
+      overflow: hidden;
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+    }
+
+    .header {
+      background: linear-gradient(90deg, #ff7a00, #ffb347);
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header-title {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #111;
+    }
+
+    .header-total {
+      font-size: 16px;
+      font-weight: 900;
+      color: #111;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .body {
+      padding: 10px 14px;
+    }
+
+    .row-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,179,71,0.7);
+      margin-bottom: 6px;
+    }
+
+    .donor-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .donor-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+      padding: 5px 10px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .donor-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #f0f0f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+    }
+
+    .donor-amount {
+      font-size: 13px;
+      font-weight: 900;
+      color: #5ed38a;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .footer {
+      padding: 5px 14px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #5ed38a;
+      animation: pulse 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    .footer-text {
+      font-size: 9px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 0.1em;
+    }
+
+    .empty {
+      font-size: 11px;
+      color: rgba(255,255,255,0.25);
+      padding: 6px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <span class="header-title">AADS Player Travel Fund</span>
+      <span id="headerTotal" class="header-total">$0.00</span>
+    </div>
+    <div class="body">
+      <div class="row-label">Recent Donors</div>
+      <ul id="donorList" class="donor-list">
+        <li class="empty">Loading...</li>
+      </ul>
+    </div>
+    <div class="footer">
+      <div class="pulse"></div>
+      <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL      = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const REFRESH_MS        = 30000
+    const MAX_DONORS        = 5
+
+    const headerTotalEl = document.getElementById('headerTotal')
+    const donorListEl   = document.getElementById('donorList')
+
+    function fmt(value) {
+      return new Intl.NumberFormat('en-CA', {
+        style: 'currency', currency: 'CAD', minimumFractionDigits: 2,
+      }).format(value)
+    }
+
+    async function get(path) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        cache: 'no-store',
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    }
+
+    async function load() {
+      try {
+        // Read event_start filter
+        let eventStart = null
+        try {
+          const ac = await get('payment_access?id=eq.1&select=event_start')
+          if (Array.isArray(ac) && ac[0]?.event_start) eventStart = ac[0].event_start
+        } catch (_) {}
+
+        const filter = eventStart
+          ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=200&received_at=gte.${encodeURIComponent(eventStart)}`
+          : `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=200`
+
+        const rows = await get(filter)
+
+        const total = rows
+          .map(r => Number(r.amount))
+          .filter(v => Number.isFinite(v))
+          .reduce((a, b) => a + b, 0)
+
+        headerTotalEl.textContent = fmt(total)
+
+        const recent = rows.slice(0, MAX_DONORS)
+
+        if (!recent.length) {
+          donorListEl.innerHTML = '<li class="empty">No donations yet</li>'
+          return
+        }
+
+        donorListEl.innerHTML = recent.map(r => {
+          const name   = (r.donor_name || 'Anonymous').replace(/</g, '&lt;')
+          const amount = Number.isFinite(Number(r.amount)) ? fmt(Number(r.amount)) : '-'
+          return `<li class="donor-item">
+            <span class="donor-name">${name}</span>
+            <span class="donor-amount">${amount}</span>
+          </li>`
+        }).join('')
+      } catch (_) {
+        // Silently keep last render on error
+      }
+    }
+
+    load()
+    setInterval(load, REFRESH_MS)
+  </script>
+</body>
+</html>
