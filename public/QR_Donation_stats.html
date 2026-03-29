@@ -327,7 +327,7 @@
 
         // Donation table is optional. If missing, show not configured.
         try {
-          const donations = await supabaseGet('payment_donations?select=amount,donated_at,created_at&order=created_at.desc&limit=500')
+          const donations = await supabaseGet('payment_donations?select=amount,received_at,created_at&order=created_at.desc&limit=500')
           const amounts = donations
             .map(row => Number(row.amount))
             .filter(v => Number.isFinite(v))
