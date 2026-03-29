@@ -227,6 +227,23 @@
           </article>
         </div>
 
+        <p class="label" style="margin:0;">Donation Log</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:30%;">Donor</th>
+                <th style="width:20%;">Amount</th>
+                <th style="width:50%;">Received</th>
+              </tr>
+            </thead>
+            <tbody id="donationRows">
+              <tr><td colspan="3" class="muted">Loading donations...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="label" style="margin:0;">Recent QR Scans</p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -255,6 +272,7 @@
     const totalDonationsEl = document.getElementById('totalDonations')
     const donationSubEl    = document.getElementById('donationSub')
     const donationWindowEl = document.getElementById('donationWindow')
+    const donationRowsEl   = document.getElementById('donationRows')
     const recentScanRowsEl = document.getElementById('recentScanRows')
     const refreshBtn = document.getElementById('refreshBtn')
 
@@ -293,6 +311,21 @@
       }
 
       return response.json()
+    }
+
+    function renderDonations(rows) {
+      if (!Array.isArray(rows) || rows.length === 0) {
+        donationRowsEl.innerHTML = '<tr><td colspan="3" class="muted">No donations in this window yet.</td></tr>'
+        return
+      }
+      donationRowsEl.innerHTML = rows.map(row => {
+        const name = row.donor_name || '<span class="muted">Unknown</span>'
+        const amount = Number.isFinite(Number(row.amount))
+          ? new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(Number(row.amount))
+          : '-'
+        const when = formatDate(row.received_at || row.created_at)
+        return `<tr><td>${name}</td><td style="color:var(--ok);font-weight:700">${amount}</td><td>${when}</td></tr>`
+      }).join('')
     }
 
     function renderRecentScans(rows) {
@@ -355,6 +388,7 @@
             : 'All-time'
           donationSubEl.textContent = windowLabel
           donationWindowEl.textContent = windowLabel
+          renderDonations(donations)
         } catch (_) {
           donationCountEl.textContent = 'N/A'
           totalDonationsEl.textContent = 'N/A'
