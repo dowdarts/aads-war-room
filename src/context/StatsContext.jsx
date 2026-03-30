@@ -1,7 +1,8 @@
 import { createContext, useContext, useReducer, useMemo, useEffect } from 'react'
 import { parsePlayerCSV } from '../utils/csvParser.js'
 import { aggregatePlayerStats, buildH2HIndex } from '../utils/eventAggregator.js'
-import playersCSVRaw from '../data/players-with-images.csv?raw'
+import playersWithImagesRaw from '../data/players-with-images.csv?raw'
+import playersLegacyRaw from '../data/players.csv?raw'
 import event4Data from '../data/events/Final_Series1_Event4.json'
 
 // ─── Static data loaded at build-time ──────────────────────────────────────
@@ -13,7 +14,15 @@ const staticEvents = [
   event4Data
 ].sort((a, b) => a.metadata.event_id - b.metadata.event_id)
 
-const staticPlayers = parsePlayerCSV(playersCSVRaw)
+// Merge both CSVs: legacy has all players, images CSV has richer data for 8 players.
+// Players in the images CSV take precedence; legacy players fill in the rest.
+const playersWithImages = parsePlayerCSV(playersWithImagesRaw)
+const playersLegacy = parsePlayerCSV(playersLegacyRaw)
+const imagesByName = new Map(playersWithImages.map(p => [p.displayName.toLowerCase(), p]))
+const staticPlayers = [
+  ...playersWithImages,
+  ...playersLegacy.filter(p => !imagesByName.has(p.displayName.toLowerCase())),
+]
 
 // ─── Reducer ───────────────────────────────────────────────────────────────
 const initialState = {
