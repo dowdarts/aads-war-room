@@ -23,6 +23,7 @@ const initialState = {
   // runtime overrides (from localStorage)
   runtimeEvents: [],
   runtimePlayers: null,
+  provinceOverrides: {},
 }
 
 function init(state) {
@@ -33,6 +34,10 @@ function init(state) {
   try {
     const stored = localStorage.getItem('aads_runtime_players')
     if (stored) state = { ...state, runtimePlayers: JSON.parse(stored) }
+  } catch { /* ignore */ }
+  try {
+    const stored = localStorage.getItem('aads_province_overrides')
+    if (stored) state = { ...state, provinceOverrides: JSON.parse(stored) }
   } catch { /* ignore */ }
   return state
 }
@@ -62,6 +67,14 @@ function reducer(state, action) {
       localStorage.removeItem('aads_runtime_players')
       return { ...state, runtimePlayers: null }
     }
+    case 'SET_PROVINCE_OVERRIDES': {
+      localStorage.setItem('aads_province_overrides', JSON.stringify(action.payload))
+      return { ...state, provinceOverrides: action.payload }
+    }
+    case 'CLEAR_PROVINCE_OVERRIDES': {
+      localStorage.removeItem('aads_province_overrides')
+      return { ...state, provinceOverrides: {} }
+    }
     default:
       return state
   }
@@ -76,20 +89,34 @@ export function StatsProvider({ children }) {
   // Merged data: runtime players override matching static players by name,
   // but static players always fill in any that are missing from the runtime list.
   const players = useMemo(() => {
-    if (!state.runtimePlayers) return state.staticPlayers
+    const overrides = state.provinceOverrides || {}
+
+    const applyOverride = p => {
+      const key = p.displayName.toLowerCase()
+      const override = overrides[key]
+      if (override) {
+        return { ...p, province: override }
+      }
+      return p
+    }
+
+    if (!state.runtimePlayers) {
+      return state.staticPlayers.map(applyOverride)
+    }
+
     const runtimeByName = new Map(state.runtimePlayers.map(p => [p.displayName.toLowerCase(), p]))
     // Start with static list; swap in runtime version where available
     const merged = state.staticPlayers.map(p =>
-      runtimeByName.get(p.displayName.toLowerCase()) ?? p
+      applyOverride(runtimeByName.get(p.displayName.toLowerCase()) ?? p)
     )
     // Add any runtime players not already in static list
     for (const rp of state.runtimePlayers) {
       if (!state.staticPlayers.some(sp => sp.displayName.toLowerCase() === rp.displayName.toLowerCase())) {
-        merged.push(rp)
+        merged.push(applyOverride(rp))
       }
     }
     return merged
-  }, [state.runtimePlayers, state.staticPlayers])
+  }, [state.runtimePlayers, state.staticPlayers, state.provinceOverrides])
   const events = [...state.staticEvents, ...state.runtimeEvents].sort(
     (a, b) => a.metadata.event_id - b.metadata.event_id
   )
@@ -122,6 +149,7 @@ export function StatsProvider({ children }) {
     h2hIndex,
     csvNames,
     dispatch,
+    provinceOverrides: state.provinceOverrides,
     hasRuntimeEvents: state.runtimeEvents.length > 0,
     hasRuntimePlayers: !!state.runtimePlayers,
   }

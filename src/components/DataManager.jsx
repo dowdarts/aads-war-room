@@ -24,6 +24,8 @@ export default function DataManager() {
   const [controlSaving, setControlSaving] = useState(false)
   const [controlMessage, setControlMessage] = useState('')
   const [scanCount, setScanCount] = useState(null)
+  const [provinceOverrideText, setProvinceOverrideText] = useState('')
+  const [provinceOverrideMessage, setProvinceOverrideMessage] = useState('')
   const paymentUrl = useMemo(() => {
     const origin = window.location.origin
     return `${origin}${getBaseUrl()}payment.html`
@@ -143,6 +145,44 @@ export default function DataManager() {
     URL.revokeObjectURL(url)
   }
 
+  function normalizeProvince(code) {
+    if (!code) return null
+    const normalized = `${code}`.trim().toUpperCase()
+    if (['NB', 'NS', 'PE', 'NL', 'ON'].includes(normalized)) return normalized
+    return null
+  }
+
+  function applyProvinceOverrides() {
+    const lines = provinceOverrideText.split('\n').map(l => l.trim()).filter(Boolean)
+    if (!lines.length) {
+      setProvinceOverrideMessage('Enter one mapping per line: Name, Province code.')
+      return
+    }
+    const overrides = {}
+    for (const [idx, line] of lines.entries()) {
+      const parts = line.split(',')
+      if (parts.length < 2) {
+        setProvinceOverrideMessage(`Invalid format on line ${idx + 1}. Use Name, Province.`)
+        return
+      }
+      const name = parts[0].trim()
+      const province = normalizeProvince(parts[1])
+      if (!name || !province) {
+        setProvinceOverrideMessage(`Invalid province on line ${idx + 1}. Use NB, NS, PE, NL, ON.`)
+        return
+      }
+      overrides[name.toLowerCase()] = province
+    }
+    dispatch({ type: 'SET_PROVINCE_OVERRIDES', payload: overrides })
+    setProvinceOverrideMessage(`Province overrides applied for ${Object.keys(overrides).length} player(s).`)
+  }
+
+  function clearProvinceOverrides() {
+    dispatch({ type: 'CLEAR_PROVINCE_OVERRIDES' })
+    setProvinceOverrideText('')
+    setProvinceOverrideMessage('Province overrides cleared.')
+  }
+
   async function savePaymentControl(next) {
     setControlSaving(true)
     setControlError('')
@@ -241,6 +281,39 @@ export default function DataManager() {
         >
           📥 Export Players CSV
         </button>
+      </div>
+
+      {/* Province override lock */}
+      <div className="bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4">
+        <div className="text-[10px] text-orange uppercase tracking-widest mb-2">Province Lock Overrides</div>
+        <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+          Enter one mapping per line in the format <code>Name, Province</code> (e.g. <code>Tom Holden, NS</code>).
+          Supported codes: NB, NS, PE, NL, ON. This applies immediately and persists in localStorage.
+        </p>
+        <textarea
+          value={provinceOverrideText}
+          onChange={e => setProvinceOverrideText(e.target.value)}
+          placeholder="Tom Holden, NS\nRicky Perkins, NB"
+          className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-2 text-xs text-white focus:outline-none"
+          rows={4}
+        />
+        <div className="mt-3 flex gap-2 flex-wrap">
+          <button
+            onClick={applyProvinceOverrides}
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Apply overrides
+          </button>
+          <button
+            onClick={clearProvinceOverrides}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Clear overrides
+          </button>
+        </div>
+        {provinceOverrideMessage && (
+          <p className="mt-2 text-xs text-green-400">{provinceOverrideMessage}</p>
+        )}
       </div>
 
       {/* Payment Access Control */}

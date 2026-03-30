@@ -58,6 +58,7 @@ function detectProvince(hometown) {
 
 // Override provinces for players whose hometown text is ambiguous
 const PLAYER_PROVINCE_OVERRIDES = {
+  // Full name overrides (safe — unambiguous)
   'dana moss':         'NB',
   'colby burke':       'NL',
   'tom holden':        'NS',
@@ -65,12 +66,25 @@ const PLAYER_PROVINCE_OVERRIDES = {
   'jon casey':         'NS',
   'jonathan casey':    'NS',
   'mark maceachern':   'PE',
-  'corey lefort':      'PE',
-  'cory lefort':       'PE',
+  'mark mceachern':    'PE',
+  'mark maceachern':   'PE',
+  'corey lefort':      'NS',
+  'cory lefort':       'NB',
   'don higgins':       'NB',
   'cory wallace':      'NB',
   'jordan boyd':       'NS',
   'kevin blanchard':   'PE',
+  'darrell cormier':   'NB',
+  'kyle gray':         'NB',
+  'fernand pellerin':  'NB',
+  'corey o\'brien':    'NS',
+  'ricky chaisson':    'PE',
+  'wayne chapman':     'NB',
+  'drake berry':       'NS',
+  'zach davis':        'NB',
+  'royce milliea':     'NB',
+  'gerry johnston':    'NB',
+  'colby burke':       'NL',
 }
 
 /**
