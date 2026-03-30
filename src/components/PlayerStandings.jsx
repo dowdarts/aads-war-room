@@ -123,9 +123,9 @@ export default function PlayerStandings() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-[#1a1a1a]">
+      <div className="overflow-x-auto overflow-y-auto max-h-[70vh] rounded-lg border border-[#1a1a1a]">
         <table className="w-full text-sm border-collapse">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-[#0d0d0d] border-b border-[#1a1a1a]">
               {COLUMNS.map(col => (
                 <th
