@@ -3,10 +3,14 @@ import { useStats } from '../context/StatsContext.jsx'
 import { parsePlayerCSV } from '../utils/csvParser.js'
 import { getBaseUrl } from '../utils/baseUrl.js'
 import {
+  approveDonation,
+  fetchDonations,
   fetchPaymentAccessControl,
   fetchPaymentScanCount,
   getSupabaseClient,
   initSupabaseClient,
+  insertDonation,
+  rejectDonation,
   updatePaymentAccessControl,
 } from '../utils/supabaseClient.js'
 
@@ -26,6 +30,13 @@ export default function DataManager() {
   const [scanCount, setScanCount] = useState(null)
   const [provinceOverrideText, setProvinceOverrideText] = useState('')
   const [provinceOverrideMessage, setProvinceOverrideMessage] = useState('')
+  const [donations, setDonations] = useState([])
+  const [donationsLoading, setDonationsLoading] = useState(false)
+  const [donationsError, setDonationsError] = useState('')
+  const [donationForm, setDonationForm] = useState({ donorName: '', amount: '', message: '', transferRef: '' })
+  const [addingDonation, setAddingDonation] = useState(false)
+  const [addDonationMsg, setAddDonationMsg] = useState('')
+  const [showAddForm, setShowAddForm] = useState(false)
   const paymentUrl = useMemo(() => {
     const origin = window.location.origin
     return `${origin}${getBaseUrl()}payment.html`
@@ -67,6 +78,7 @@ export default function DataManager() {
         goalEnabled: data?.goal_enabled || false,
         goalLabel: data?.goal_label || '',
         goalAmount: data?.goal_amount ?? 500,
+        donationMode: data?.donation_mode || 'auto',
       })
       setControlLoading(false)
     }
@@ -75,7 +87,61 @@ export default function DataManager() {
     return () => { alive = false }
   }, [])
 
-  function handleEventUpload(e) {
+  useEffect(() => {
+    let alive = true
+    async function load() {
+      if (!alive) return
+      setDonationsLoading(true)
+      const { data, error } = await fetchDonations()
+      if (!alive) return
+      if (error) setDonationsError('Could not load donations. Ensure the donations table exists.')
+      else setDonationsError('')
+      setDonations(data)
+      setDonationsLoading(false)
+    }
+    load()
+    const timer = setInterval(load, 15000)
+    return () => { alive = false; clearInterval(timer) }
+  }, [])
+
+  async function refreshDonations() {
+    setDonationsLoading(true)
+    const { data, error } = await fetchDonations()
+    if (error) setDonationsError('Could not load donations.')
+    else { setDonationsError(''); setDonations(data) }
+    setDonationsLoading(false)
+  }
+
+  async function handleAddDonation() {
+    const amount = parseFloat(donationForm.amount)
+    if (!amount || amount <= 0) { setAddDonationMsg('Enter a valid amount.'); return }
+    if (!paymentControl) return
+    setAddingDonation(true)
+    setAddDonationMsg('')
+    const status = paymentControl.donationMode === 'auto' ? 'approved' : 'pending'
+    const { error } = await insertDonation({ ...donationForm, amount, status })
+    if (error) {
+      setAddDonationMsg(`Failed: ${error.message || error}`)
+    } else {
+      setDonationForm({ donorName: '', amount: '', message: '', transferRef: '' })
+      setAddDonationMsg(status === 'approved' ? 'Donation recorded and approved.' : 'Donation added to queue.')
+      setShowAddForm(false)
+      await refreshDonations()
+    }
+    setAddingDonation(false)
+  }
+
+  async function handleApproveDonation(id) {
+    const { error } = await approveDonation(id)
+    if (!error) setDonations(prev => prev.map(d => d.id === id ? { ...d, status: 'approved', approved_at: new Date().toISOString() } : d))
+  }
+
+  async function handleRejectDonation(id) {
+    const { error } = await rejectDonation(id)
+    if (!error) setDonations(prev => prev.map(d => d.id === id ? { ...d, status: 'rejected' } : d))
+  }
+
+
     const files = Array.from(e.target.files)
     files.forEach(file => {
       const reader = new FileReader()
@@ -214,6 +280,11 @@ export default function DataManager() {
 
   const staticEventCount = events.filter(e => !e._runtime).length
   // Note: runtime events don't carry a _runtime flag; we track via dispatch
+
+  const approvedTotal = donations
+    .filter(d => d.status === 'approved')
+    .reduce((sum, d) => sum + Number(d.amount), 0)
+  const pendingDonations = donations.filter(d => d.status === 'pending')
 
   return (
     <div className="p-4 max-w-3xl mx-auto space-y-6">
@@ -460,6 +531,203 @@ export default function DataManager() {
                 className="w-40 bg-[#0d0d0d] border border-[#303030] rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-orange-500"
               />
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Donation Queue */}
+      <div className="bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4">
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-[10px] text-orange uppercase tracking-widest">Donation Queue</div>
+          {pendingDonations.length > 0 && (
+            <span className="text-[10px] font-bold bg-orange text-black rounded-full px-2 py-0.5">
+              {pendingDonations.length} pending
+            </span>
+          )}
+        </div>
+        <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+          Track incoming bank transfers. In <strong className="text-gray-300">Auto</strong> mode every recorded donation is instantly approved and counted. In{' '}
+          <strong className="text-gray-300">Manual</strong> mode donations sit in a queue until you approve them.
+        </p>
+
+        {/* Mode toggle */}
+        {!controlLoading && paymentControl && (
+          <div className="flex items-center gap-3 mb-4">
+            <button
+              onClick={() => savePaymentControl({ ...paymentControl, donationMode: paymentControl.donationMode === 'auto' ? 'manual' : 'auto' })}
+              disabled={controlSaving}
+              className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors disabled:opacity-60 ${
+                paymentControl.donationMode === 'auto'
+                  ? 'bg-green-600 hover:bg-green-500 text-white'
+                  : 'bg-orange hover:bg-orange/90 text-black'
+              }`}
+            >
+              {paymentControl.donationMode === 'auto' ? '⚡ Auto-Accept' : '✋ Manual Approval'}
+            </button>
+            <span className="text-xs text-gray-500">
+              {paymentControl.donationMode === 'auto'
+                ? 'Transfers are instantly approved'
+                : 'Transfers wait for your approval'}
+            </span>
+          </div>
+        )}
+
+        {/* Totals bar */}
+        <div className="flex items-center gap-4 mb-4 p-3 bg-[#0a0a0a] border border-[#1e1e1e] rounded-lg">
+          <div className="text-center">
+            <div className="text-[10px] text-gray-500 uppercase tracking-widest">Total Approved</div>
+            <div className="text-xl font-bold text-green-400">${approvedTotal.toFixed(2)}</div>
+          </div>
+          <div className="w-px h-8 bg-[#222]" />
+          <div className="text-center">
+            <div className="text-[10px] text-gray-500 uppercase tracking-widest">Pending</div>
+            <div className={`text-xl font-bold ${pendingDonations.length > 0 ? 'text-orange' : 'text-gray-600'}`}>
+              {pendingDonations.length}
+            </div>
+          </div>
+          <div className="w-px h-8 bg-[#222]" />
+          <div className="text-center">
+            <div className="text-[10px] text-gray-500 uppercase tracking-widest">Total Recorded</div>
+            <div className="text-xl font-bold text-gray-300">{donations.length}</div>
+          </div>
+          <button
+            onClick={refreshDonations}
+            disabled={donationsLoading}
+            title="Refresh donations"
+            className="ml-auto text-sm text-gray-500 hover:text-orange transition-colors disabled:opacity-40"
+          >
+            {donationsLoading ? '…' : '↺'}
+          </button>
+        </div>
+
+        {/* Add donation form toggle */}
+        <div className="mb-3">
+          <button
+            onClick={() => { setShowAddForm(v => !v); setAddDonationMsg('') }}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-orange transition-colors"
+          >
+            {showAddForm ? '✕ Cancel' : '+ Record Transfer'}
+          </button>
+          {!showAddForm && addDonationMsg && (
+            <span className="ml-3 text-xs text-green-400">{addDonationMsg}</span>
+          )}
+        </div>
+
+        {showAddForm && (
+          <div className="mb-4 p-3 bg-[#0a0a0a] border border-[#242424] rounded-lg space-y-2">
+            <div className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Record Incoming Transfer</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-gray-600 block mb-0.5">Donor Name</label>
+                <input
+                  type="text"
+                  placeholder="Jane Smith"
+                  value={donationForm.donorName}
+                  onChange={e => setDonationForm(f => ({ ...f, donorName: e.target.value }))}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-orange-500"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-600 block mb-0.5">Amount ($) *</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  placeholder="25.00"
+                  value={donationForm.amount}
+                  onChange={e => setDonationForm(f => ({ ...f, amount: e.target.value }))}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-orange-500"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-gray-600 block mb-0.5">Message</label>
+                <input
+                  type="text"
+                  placeholder="Optional note"
+                  value={donationForm.message}
+                  onChange={e => setDonationForm(f => ({ ...f, message: e.target.value }))}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-orange-500"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-600 block mb-0.5">Transfer Ref</label>
+                <input
+                  type="text"
+                  placeholder="e-transfer ref / ID"
+                  value={donationForm.transferRef}
+                  onChange={e => setDonationForm(f => ({ ...f, transferRef: e.target.value }))}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-2 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:border-orange-500"
+                />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 pt-1">
+              <button
+                onClick={handleAddDonation}
+                disabled={addingDonation || !donationForm.amount}
+                className="bg-orange hover:bg-orange/90 text-black font-bold text-xs px-4 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {addingDonation ? 'Saving…' : paymentControl?.donationMode === 'auto' ? 'Record & Approve' : 'Add to Queue'}
+              </button>
+              {addDonationMsg && <span className="text-xs text-green-400">{addDonationMsg}</span>}
+            </div>
+          </div>
+        )}
+
+        {/* Donation list */}
+        {donationsError && <p className="text-xs text-red-400 mb-2">{donationsError}</p>}
+        {!donationsError && donations.length === 0 && !donationsLoading && (
+          <p className="text-xs text-gray-600 italic">No donations recorded yet.</p>
+        )}
+        {donations.length > 0 && (
+          <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+            {donations.map(d => (
+              <div
+                key={d.id}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${
+                  d.status === 'pending'
+                    ? 'border-orange/30 bg-orange/5'
+                    : d.status === 'approved'
+                    ? 'border-green-800/40 bg-green-900/10'
+                    : 'border-[#1e1e1e] bg-[#0a0a0a] opacity-50'
+                }`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                  d.status === 'pending' ? 'bg-orange' : d.status === 'approved' ? 'bg-green-500' : 'bg-gray-700'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold text-white">{d.donor_name || 'Anonymous'}</span>
+                  {d.message && <span className="text-gray-500 ml-1.5">"{d.message}"</span>}
+                  {d.transfer_ref && <span className="text-gray-600 ml-1.5">#{d.transfer_ref}</span>}
+                </div>
+                <div className="font-bold text-green-300 tabular-nums shrink-0">${Number(d.amount).toFixed(2)}</div>
+                <div className="text-gray-600 shrink-0 hidden sm:block">
+                  {new Date(d.created_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </div>
+                <div className={`text-[10px] font-bold uppercase tracking-wide shrink-0 w-16 text-center ${
+                  d.status === 'pending' ? 'text-orange' : d.status === 'approved' ? 'text-green-400' : 'text-gray-600'
+                }`}>
+                  {d.status}
+                </div>
+                {d.status === 'pending' && (
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => handleApproveDonation(d.id)}
+                      className="bg-green-700 hover:bg-green-600 text-white font-bold text-[10px] px-2 py-1 rounded transition-colors"
+                    >
+                      ✓
+                    </button>
+                    <button
+                      onClick={() => handleRejectDonation(d.id)}
+                      className="bg-red-900 hover:bg-red-800 text-white font-bold text-[10px] px-2 py-1 rounded transition-colors"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>

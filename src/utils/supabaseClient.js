@@ -170,7 +170,7 @@ export async function fetchPaymentAccessControl() {
 
   const { data, error } = await client
     .from('payment_access')
-    .select('id, enabled, require_key, access_key, expires_at, event_start, goal_enabled, goal_label, goal_amount, disabled_message, expired_message, invalid_key_message, updated_at')
+    .select('id, enabled, require_key, access_key, expires_at, event_start, goal_enabled, goal_label, goal_amount, donation_mode, disabled_message, expired_message, invalid_key_message, updated_at')
     .eq('id', 1)
     .maybeSingle()
 
@@ -206,12 +206,95 @@ export async function updatePaymentAccessControl(payload) {
     goal_enabled: payload.goalEnabled || false,
     goal_label: payload.goalLabel || '',
     goal_amount: payload.goalAmount != null ? Number(payload.goalAmount) : null,
+    donation_mode: payload.donationMode || 'auto',
     updated_at: new Date().toISOString(),
   }
 
   const { error } = await client
     .from('payment_access')
     .upsert(record, { onConflict: 'id' })
+
+  return { error }
+}
+
+/**
+ * Fetch all donations, newest first.
+ * Optionally filtered to only donations on/after eventStart (ISO string).
+ * Required table schema:
+ *   CREATE TABLE donations (
+ *     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+ *     donor_name text,
+ *     amount numeric(10,2) NOT NULL,
+ *     message text,
+ *     transfer_ref text,
+ *     status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
+ *     created_at timestamptz DEFAULT now(),
+ *     approved_at timestamptz
+ *   );
+ *   Also add: ALTER TABLE payment_access ADD COLUMN IF NOT EXISTS donation_mode text DEFAULT 'auto';
+ */
+export async function fetchDonations(eventStart = null) {
+  if (!client) return { data: [], error: 'Supabase not initialized' }
+
+  let query = client
+    .from('donations')
+    .select('id, donor_name, amount, message, transfer_ref, status, created_at, approved_at')
+    .order('created_at', { ascending: false })
+    .limit(200)
+
+  if (eventStart) {
+    query = query.gte('created_at', eventStart)
+  }
+
+  const { data, error } = await query
+  return { data: data || [], error }
+}
+
+/**
+ * Insert a new donation record.
+ * status defaults to 'pending' (manual mode) or 'approved' (auto mode) — caller sets it.
+ */
+export async function insertDonation({ donorName, amount, message, transferRef, status }) {
+  if (!client) return { error: 'Supabase not initialized' }
+
+  const { error } = await client
+    .from('donations')
+    .insert({
+      donor_name: donorName || null,
+      amount: Number(amount),
+      message: message || null,
+      transfer_ref: transferRef || null,
+      status: status || 'pending',
+      approved_at: status === 'approved' ? new Date().toISOString() : null,
+    })
+
+  return { error }
+}
+
+/**
+ * Approve a pending donation.
+ */
+export async function approveDonation(id) {
+  if (!client) return { error: 'Supabase not initialized' }
+
+  const { error } = await client
+    .from('donations')
+    .update({ status: 'approved', approved_at: new Date().toISOString() })
+    .eq('id', id)
+
+  return { error }
+}
+
+/**
+ * Reject a donation.
+ */
+export async function rejectDonation(id) {
+  if (!client) return { error: 'Supabase not initialized' }
+
+  const { error } = await client
+    .from('donations')
+    .update({ status: 'rejected' })
+    .eq('id', id)
 
   return { error }
 }
