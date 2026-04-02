@@ -43,6 +43,7 @@ export default function DataManager() {
   const [paymentDonationsLoading, setPaymentDonationsLoading] = useState(false)
   const [paymentDonationsError, setPaymentDonationsError] = useState('')
   const [showPaymentDonations, setShowPaymentDonations] = useState(false)
+  const [confirmIncludeId, setConfirmIncludeId] = useState(null)
   const paymentUrl = useMemo(() => {
     const origin = window.location.origin
     return `${origin}${getBaseUrl()}payment.html`
@@ -158,9 +159,19 @@ export default function DataManager() {
   }
 
   async function handleToggleExclude(id, currentExcluded) {
-    const next = !currentExcluded
-    const { error } = await setPaymentDonationExcluded(id, next)
-    if (!error) setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: next } : d))
+    if (currentExcluded) {
+      // Re-including requires confirmation — set pending state, button UI handles it
+      setConfirmIncludeId(id)
+      return
+    }
+    const { error } = await setPaymentDonationExcluded(id, true)
+    if (!error) setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: true } : d))
+  }
+
+  async function handleConfirmInclude(id) {
+    const { error } = await setPaymentDonationExcluded(id, false)
+    if (!error) setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: false } : d))
+    setConfirmIncludeId(null)
   }
 
   function handleEventUpload(e) {
@@ -815,16 +826,30 @@ export default function DataManager() {
                         </span>
                       </div>
                       <div className="font-bold text-green-300 tabular-nums shrink-0">${Number(d.amount).toFixed(2)}</div>
-                      <button
-                        onClick={() => handleToggleExclude(d.id, d.excluded)}
-                        className={`text-[10px] font-bold px-2 py-1 rounded transition-colors shrink-0 ${
-                          d.excluded
-                            ? 'bg-green-800 hover:bg-green-700 text-green-300'
-                            : 'bg-red-900 hover:bg-red-800 text-red-300'
-                        }`}
-                      >
-                        {d.excluded ? '+ Include' : '✕ Exclude'}
-                      </button>
+                      {d.excluded ? (
+                        confirmIncludeId === d.id ? (
+                          <div className="flex gap-1 shrink-0">
+                            <button
+                              onClick={() => handleConfirmInclude(d.id)}
+                              className="text-[10px] font-bold px-2 py-1 rounded bg-green-700 hover:bg-green-600 text-white transition-colors"
+                            >Yes, include</button>
+                            <button
+                              onClick={() => setConfirmIncludeId(null)}
+                              className="text-[10px] font-bold px-2 py-1 rounded bg-[#222] hover:bg-[#333] text-gray-400 transition-colors"
+                            >Cancel</button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmIncludeId(d.id)}
+                            className="text-[10px] font-bold px-2 py-1 rounded bg-green-800 hover:bg-green-700 text-green-300 transition-colors shrink-0"
+                          >+ Include</button>
+                        )
+                      ) : (
+                        <button
+                          onClick={() => handleToggleExclude(d.id, d.excluded)}
+                          className="text-[10px] font-bold px-2 py-1 rounded bg-red-900 hover:bg-red-800 text-red-300 transition-colors shrink-0"
+                        >✕ Exclude</button>
+                      )}
                     </div>
                   ))}
                 </div>
