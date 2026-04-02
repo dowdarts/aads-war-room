@@ -6,11 +6,13 @@ import {
   approveDonation,
   fetchDonations,
   fetchPaymentAccessControl,
+  fetchPaymentDonations,
   fetchPaymentScanCount,
   getSupabaseClient,
   initSupabaseClient,
   insertDonation,
   rejectDonation,
+  setPaymentDonationExcluded,
   updatePaymentAccessControl,
 } from '../utils/supabaseClient.js'
 
@@ -37,6 +39,10 @@ export default function DataManager() {
   const [addingDonation, setAddingDonation] = useState(false)
   const [addDonationMsg, setAddDonationMsg] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
+  const [paymentDonations, setPaymentDonations] = useState([])
+  const [paymentDonationsLoading, setPaymentDonationsLoading] = useState(false)
+  const [paymentDonationsError, setPaymentDonationsError] = useState('')
+  const [showPaymentDonations, setShowPaymentDonations] = useState(false)
   const paymentUrl = useMemo(() => {
     const origin = window.location.origin
     return `${origin}${getBaseUrl()}payment.html`
@@ -141,7 +147,23 @@ export default function DataManager() {
     if (!error) setDonations(prev => prev.map(d => d.id === id ? { ...d, status: 'rejected' } : d))
   }
 
+  async function loadPaymentDonations() {
+    setPaymentDonationsLoading(true)
+    setPaymentDonationsError('')
+    const eventStart = paymentControl?.eventStart || null
+    const { data, error } = await fetchPaymentDonations(eventStart)
+    setPaymentDonationsLoading(false)
+    if (error) { setPaymentDonationsError('Could not load payment donations. Ensure the excluded column exists — see info box below.'); return }
+    setPaymentDonations(data)
+  }
 
+  async function handleToggleExclude(id, currentExcluded) {
+    const next = !currentExcluded
+    const { error } = await setPaymentDonationExcluded(id, next)
+    if (!error) setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: next } : d))
+  }
+
+  function handleEventUpload(e) {
     const files = Array.from(e.target.files)
     files.forEach(file => {
       const reader = new FileReader()
@@ -729,6 +751,86 @@ export default function DataManager() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Payment Donations Filter */}
+      <div className="bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4">
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-[10px] text-orange uppercase tracking-widest">Payment Donations Filter</div>
+        </div>
+        <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+          View all entries in the <code className="text-orange">payment_donations</code> table and exclude any that shouldn't count toward the total on the overlay or stats page.
+        </p>
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() => {
+              if (!showPaymentDonations) loadPaymentDonations()
+              setShowPaymentDonations(v => !v)
+            }}
+            disabled={paymentDonationsLoading}
+            className="text-xs font-bold px-3 py-1.5 rounded-lg border border-[#2a2a2a] text-gray-400 hover:text-white hover:border-orange transition-colors disabled:opacity-50"
+          >
+            {paymentDonationsLoading ? 'Loading…' : showPaymentDonations ? '▲ Hide' : '▼ Show entries'}
+          </button>
+          {showPaymentDonations && (
+            <button
+              onClick={loadPaymentDonations}
+              disabled={paymentDonationsLoading}
+              className="text-xs text-gray-500 hover:text-orange transition-colors"
+            >↺ Refresh</button>
+          )}
+        </div>
+        {paymentDonationsError && (
+          <p className="text-xs text-red-400 mb-2">{paymentDonationsError}</p>
+        )}
+        {showPaymentDonations && !paymentDonationsLoading && !paymentDonationsError && (
+          <>
+            {paymentDonations.length === 0 && (
+              <p className="text-xs text-gray-600 italic">No entries found.</p>
+            )}
+            {paymentDonations.length > 0 && (
+              <>
+                <div className="text-[10px] text-gray-600 mb-2">
+                  {paymentDonations.filter(d => !d.excluded).length} active · {paymentDonations.filter(d => d.excluded).length} excluded
+                  {' '}· Active total: <span className="text-green-400 font-bold">
+                    ${paymentDonations.filter(d => !d.excluded).reduce((s, d) => s + Number(d.amount), 0).toFixed(2)}
+                  </span>
+                </div>
+                <div className="space-y-1.5 max-h-80 overflow-y-auto pr-1">
+                  {paymentDonations.map(d => (
+                    <div
+                      key={d.id}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs ${
+                        d.excluded
+                          ? 'border-[#1e1e1e] bg-[#0a0a0a] opacity-40'
+                          : 'border-green-800/30 bg-green-900/5'
+                      }`}
+                    >
+                      <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${d.excluded ? 'bg-gray-700' : 'bg-green-500'}`} />
+                      <div className="flex-1 min-w-0">
+                        <span className="font-semibold text-white">{d.donor_name || 'Anonymous'}</span>
+                        <span className="text-gray-600 ml-2 hidden sm:inline">
+                          {new Date(d.received_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div className="font-bold text-green-300 tabular-nums shrink-0">${Number(d.amount).toFixed(2)}</div>
+                      <button
+                        onClick={() => handleToggleExclude(d.id, d.excluded)}
+                        className={`text-[10px] font-bold px-2 py-1 rounded transition-colors shrink-0 ${
+                          d.excluded
+                            ? 'bg-green-800 hover:bg-green-700 text-green-300'
+                            : 'bg-red-900 hover:bg-red-800 text-red-300'
+                        }`}
+                      >
+                        {d.excluded ? '+ Include' : '✕ Exclude'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         )}
       </div>
 

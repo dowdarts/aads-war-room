@@ -303,8 +303,8 @@
         }
 
         const qs = eventStart
-          ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
-          : `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500`
+          ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&excluded=not.is.true&received_at=gte.${encodeURIComponent(eventStart)}`
+          : `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&excluded=not.is.true`
 
         const rows = await get(qs)
 

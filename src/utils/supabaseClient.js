@@ -298,3 +298,37 @@ export async function rejectDonation(id) {
 
   return { error }
 }
+
+/**
+ * Fetch payment_donations rows (from the public QR donation table), newest first.
+ * Run this SQL in Supabase first:
+ *   ALTER TABLE payment_donations ADD COLUMN IF NOT EXISTS excluded boolean DEFAULT false;
+ */
+export async function fetchPaymentDonations(eventStart = null) {
+  if (!client) return { data: [], error: 'Supabase not initialized' }
+
+  let query = client
+    .from('payment_donations')
+    .select('id, donor_name, amount, received_at, excluded')
+    .order('received_at', { ascending: false })
+    .limit(300)
+
+  if (eventStart) query = query.gte('received_at', eventStart)
+
+  const { data, error } = await query
+  return { data: data || [], error }
+}
+
+/**
+ * Toggle excluded flag on a payment_donations row.
+ */
+export async function setPaymentDonationExcluded(id, excluded) {
+  if (!client) return { error: 'Supabase not initialized' }
+
+  const { error } = await client
+    .from('payment_donations')
+    .update({ excluded })
+    .eq('id', id)
+
+  return { error }
+}

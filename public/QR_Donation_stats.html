@@ -372,8 +372,8 @@
           } catch (_) {}
 
           const donationFilter = eventStart
-            ? `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
-            : `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500`
+            ? `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500&excluded=not.is.true&received_at=gte.${encodeURIComponent(eventStart)}`
+            : `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500&excluded=not.is.true`
 
           const donations = await supabaseGet(donationFilter)
           const amounts = donations
