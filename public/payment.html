@@ -247,9 +247,15 @@
       gap: 16px;
       flex-wrap: wrap;
     }
-    .back-link {
-      color: var(--accent);
-      font-weight: 800;
+    .poster-wrap {
+      text-align: center;
+      padding: 24px 24px 0;
+    }
+    .poster-wrap img {
+      max-width: 100%;
+      width: min(520px, 100%);
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
     }
     .access-card {
       padding: 34px;
@@ -314,13 +320,19 @@
       <h1 class="access-title" id="accessTitle">Checking payment access...</h1>
       <p class="access-copy" id="accessMessage">Please wait while we verify this donation link.</p>
       <div class="access-actions">
-        <a class="access-btn access-btn--primary" href="./">Back to Wiki</a>
         <a class="access-btn" href="mailto:dow1800@gmail.com">Contact Organizer</a>
       </div>
     </div>
   </div>
 
   <div id="paymentShell" class="shell hidden">
+    <div class="poster-wrap">
+      <img
+        src="./images/emma-rhyder-poster.jpg.png"
+        alt="Emma &amp; Rhyder Youth National Fund"
+        onerror="this.style.display='none'"
+      />
+    </div>
     <section class="hero">
       <div class="hero-band">Atlantic Amateur Darts Series</div>
       <div class="hero-body">
@@ -337,23 +349,8 @@
     </section>
 
     <div class="grid">
-      <section class="panel">
-        <p class="eyebrow">Current Fundraising Goals</p>
-        <div class="goals">
-          <article class="goal-card">
-            <h3>Travel Costs</h3>
-            <p>Flights, fuel, ferry costs, and ground transportation for players travelling to compete.</p>
-            <p class="meta">Target: $2,500</p>
-          </article>
-          <article class="goal-card">
-            <h3>Hotels & Entry Fees</h3>
-            <p>Accommodations and event registration costs that help players reach the oche.</p>
-            <p class="meta">Target: $1,800</p>
-          </article>
-        </div>
-      </section>
 
-      <section class="panel">
+        <section class="panel">
         <p class="eyebrow">E-Transfer Information</p>
         <div class="success">Auto-deposit is enabled. No security question or answer is required.</div>
         <div class="info-grid">
@@ -440,7 +437,6 @@
 
     <div class="footer">
       <p class="contact">Questions about supporting a player? Contact dow1800@gmail.com</p>
-      <a class="back-link" href="./">Back to wiki</a>
     </div>
   </div>
 
