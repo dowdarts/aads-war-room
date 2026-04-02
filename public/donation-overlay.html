@@ -303,10 +303,15 @@
         }
 
         const qs = eventStart
-          ? `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&excluded=not.is.true&received_at=gte.${encodeURIComponent(eventStart)}`
-          : `payment_donations?select=donor_name,amount,received_at&order=received_at.desc&limit=500&excluded=not.is.true`
+          ? `payment_donations?select=id,donor_name,amount,received_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
+          : `payment_donations?select=id,donor_name,amount,received_at&order=received_at.desc&limit=500`
 
-        const rows = await get(qs)
+        function getExcludedIds() {
+          try { return new Set(JSON.parse(localStorage.getItem('aads_excluded_payment_donations') || '[]')) } catch { return new Set() }
+        }
+
+        let rows = await get(qs)
+        rows = rows.filter(r => !getExcludedIds().has(r.id))
 
         const grandTotal = rows.reduce((s,r) => {
           const v = Number(r.amount); return s + (Number.isFinite(v) ? v : 0)

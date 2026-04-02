@@ -372,10 +372,15 @@
           } catch (_) {}
 
           const donationFilter = eventStart
-            ? `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500&excluded=not.is.true&received_at=gte.${encodeURIComponent(eventStart)}`
-            : `payment_donations?select=amount,donor_name,received_at,created_at&order=received_at.desc&limit=500&excluded=not.is.true`
+            ? `payment_donations?select=id,amount,donor_name,received_at,created_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
+            : `payment_donations?select=id,amount,donor_name,received_at,created_at&order=received_at.desc&limit=500`
 
-          const donations = await supabaseGet(donationFilter)
+          function getExcludedIds() {
+            try { return new Set(JSON.parse(localStorage.getItem('aads_excluded_payment_donations') || '[]')) } catch { return new Set() }
+          }
+
+          let donations = await supabaseGet(donationFilter)
+          donations = donations.filter(r => !getExcludedIds().has(r.id))
           const amounts = donations
             .map(row => Number(row.amount))
             .filter(v => Number.isFinite(v))
