@@ -148,6 +148,16 @@ export default function DataManager() {
     if (!error) setDonations(prev => prev.map(d => d.id === id ? { ...d, status: 'rejected' } : d))
   }
 
+  const EXCLUDED_KEY = 'aads_excluded_payment_donations'
+
+  function getLocalExcluded() {
+    try { return new Set(JSON.parse(localStorage.getItem(EXCLUDED_KEY) || '[]')) } catch { return new Set() }
+  }
+
+  function saveLocalExcluded(set) {
+    localStorage.setItem(EXCLUDED_KEY, JSON.stringify([...set]))
+  }
+
   async function loadPaymentDonations() {
     setPaymentDonationsLoading(true)
     setPaymentDonationsError('')
@@ -155,23 +165,34 @@ export default function DataManager() {
     const { data, error } = await fetchPaymentDonations(eventStart)
     setPaymentDonationsLoading(false)
     if (error) { setPaymentDonationsError('Could not load payment donations. Ensure the excluded column exists — see info box below.'); return }
-    setPaymentDonations(data)
+    // Merge DB excluded flag with local override so refreshes never un-exclude a row
+    const localExcluded = getLocalExcluded()
+    setPaymentDonations(data.map(d => ({ ...d, excluded: d.excluded || localExcluded.has(d.id) })))
   }
 
   async function handleToggleExclude(id, currentExcluded) {
     if (currentExcluded) {
-      // Re-including requires confirmation — set pending state, button UI handles it
       setConfirmIncludeId(id)
       return
     }
-    const { error } = await setPaymentDonationExcluded(id, true)
-    if (!error) setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: true } : d))
+    // Add to local set immediately so it survives future refreshes
+    const set = getLocalExcluded()
+    set.add(id)
+    saveLocalExcluded(set)
+    setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: true } : d))
+    // Best-effort DB update
+    await setPaymentDonationExcluded(id, true)
   }
 
   async function handleConfirmInclude(id) {
-    const { error } = await setPaymentDonationExcluded(id, false)
-    if (!error) setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: false } : d))
+    // Remove from local set
+    const set = getLocalExcluded()
+    set.delete(id)
+    saveLocalExcluded(set)
+    setPaymentDonations(prev => prev.map(d => d.id === id ? { ...d, excluded: false } : d))
     setConfirmIncludeId(null)
+    // Best-effort DB update
+    await setPaymentDonationExcluded(id, false)
   }
 
   function handleEventUpload(e) {
