@@ -76,6 +76,17 @@ function reducer(state, action) {
       localStorage.removeItem('aads_runtime_players')
       return { ...state, runtimePlayers: null }
     }
+    case 'UPDATE_PLAYER': {
+      // Edits a single player by displayName; promotes staticPlayers to runtime if needed
+      const currentPlayers = state.runtimePlayers || state.staticPlayers
+      const next = currentPlayers.map(p =>
+        p.displayName.toLowerCase() === action.payload.displayName.toLowerCase()
+          ? { ...p, ...action.payload.updates }
+          : p
+      )
+      localStorage.setItem('aads_runtime_players', JSON.stringify(next))
+      return { ...state, runtimePlayers: next }
+    }
     case 'SET_PROVINCE_OVERRIDES': {
       localStorage.setItem('aads_province_overrides', JSON.stringify(action.payload))
       return { ...state, provinceOverrides: action.payload }

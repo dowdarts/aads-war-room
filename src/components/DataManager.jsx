@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useStats } from '../context/StatsContext.jsx'
 import { parsePlayerCSV } from '../utils/csvParser.js'
 import { getBaseUrl } from '../utils/baseUrl.js'
@@ -44,6 +44,53 @@ export default function DataManager() {
   const [paymentDonationsError, setPaymentDonationsError] = useState('')
   const [showPaymentDonations, setShowPaymentDonations] = useState(false)
   const [confirmIncludeId, setConfirmIncludeId] = useState(null)
+
+  // ── Player profile editor ───────────────────────────────────────────────
+  const [editSearch, setEditSearch]     = useState('')
+  const [editPlayer, setEditPlayer]     = useState(null)
+  const [editForm, setEditForm]         = useState({})
+  const [editSaved, setEditSaved]       = useState(false)
+  const [editExpanded, setEditExpanded] = useState(false)
+  const saveTimerRef = useRef(null)
+
+  const sortedPlayers = useMemo(
+    () => [...players].sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    [players]
+  )
+  const filteredPlayers = useMemo(() => {
+    const s = editSearch.trim().toLowerCase()
+    return s ? sortedPlayers.filter(p => p.displayName.toLowerCase().includes(s)) : sortedPlayers
+  }, [sortedPlayers, editSearch])
+
+  function selectEditPlayer(player) {
+    setEditPlayer(player)
+    setEditForm({
+      nickname:         player.nickname         || '',
+      province:         player.province         || 'NB',
+      hometown:         player.hometown         || '',
+      age:              player.age              || '',
+      yearsPlaying:     player.yearsPlaying     || '',
+      dartSetup:        player.dartSetup        || '',
+      dartConnectEmail: player.dartConnectEmail || '',
+      hobbies:          player.hobbies          || '',
+      achievements:     player.achievements     || '',
+      preMatchRituals:  player.preMatchRituals  || '',
+      aadsMeaning:      player.aadsMeaning      || '',
+    })
+    setEditSaved(false)
+  }
+
+  function saveEditPlayer() {
+    if (!editPlayer) return
+    dispatch({ type: 'UPDATE_PLAYER', payload: { displayName: editPlayer.displayName, updates: editForm } })
+    setEditSaved(true)
+    clearTimeout(saveTimerRef.current)
+    saveTimerRef.current = setTimeout(() => setEditSaved(false), 3000)
+  }
+
+  function ef(field) {
+    return (e) => setEditForm(f => ({ ...f, [field]: e.target.value }))
+  }
   const paymentUrl = useMemo(() => {
     const origin = window.location.origin
     return `${origin}${getBaseUrl()}payment.html`
@@ -406,6 +453,112 @@ export default function DataManager() {
         >
           📥 Export Players CSV
         </button>
+      </div>
+
+      {/* Player Profile Editor */}
+      <div className="bg-[#0f0f0f] border border-[#1a1a1a] rounded-xl p-4">
+        <div className="text-[10px] text-orange uppercase tracking-widest mb-2">Player Profile Editor</div>
+        <p className="text-gray-500 text-xs mb-3 leading-relaxed">
+          Edit a player&apos;s personal information and province. Game stats are loaded automatically from event JSON files.
+        </p>
+
+        {/* Search input */}
+        <input
+          type="text"
+          placeholder="Search player name…"
+          value={editSearch}
+          onChange={e => { setEditSearch(e.target.value); setEditPlayer(null); setEditForm({}) }}
+          className="w-full bg-[#111] border border-[#2a2a2a] rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-orange-500 mb-2"
+        />
+
+        {/* Dropdown results */}
+        {editSearch && !editPlayer && (
+          <div className="mb-3 max-h-48 overflow-y-auto rounded-lg border border-[#2a2a2a] bg-[#0a0a0a]">
+            {filteredPlayers.length === 0 && (
+              <p className="text-xs text-gray-600 italic p-3">No players found.</p>
+            )}
+            {filteredPlayers.map(p => (
+              <button
+                key={p.displayName}
+                onClick={() => { selectEditPlayer(p); setEditSearch(p.displayName) }}
+                className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-[#1a1a1a] hover:text-white transition-colors border-b border-[#1a1a1a] last:border-0"
+              >
+                {p.displayName}
+                {p.province && <span className="ml-2 text-[10px] text-orange">{p.province}</span>}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Edit form */}
+        {editPlayer && (
+          <div className="space-y-3">
+            <div className="text-sm font-bold text-white border-b border-[#1e1e1e] pb-2">
+              Editing: <span className="text-orange">{editPlayer.displayName}</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Nickname</label>
+                <input type="text" value={editForm.nickname} onChange={ef('nickname')}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Province</label>
+                <select value={editForm.province} onChange={ef('province')}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500">
+                  {['NB','NS','PE','NL','ON'].map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Hometown</label>
+                <input type="text" value={editForm.hometown} onChange={ef('hometown')}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Age</label>
+                <input type="text" value={editForm.age} onChange={ef('age')}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Years Playing</label>
+                <input type="text" value={editForm.yearsPlaying} onChange={ef('yearsPlaying')}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">DartConnect Email</label>
+                <input type="text" value={editForm.dartConnectEmail} onChange={ef('dartConnectEmail')}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">Dart Setup</label>
+              <input type="text" value={editForm.dartSetup} onChange={ef('dartSetup')}
+                className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500" />
+            </div>
+
+            {[['hobbies','Hobbies'],['achievements','Achievements'],['preMatchRituals','Pre-Match Rituals'],['aadsMeaning','What AADS Means']].map(([key, label]) => (
+              <div key={key}>
+                <label className="text-[10px] text-gray-500 uppercase tracking-widest block mb-1">{label}</label>
+                <textarea value={editForm[key]} onChange={ef(key)} rows={2}
+                  className="w-full bg-[#111] border border-[#2a2a2a] rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500 resize-y" />
+              </div>
+            ))}
+
+            <div className="flex items-center gap-3 pt-1">
+              <button onClick={saveEditPlayer}
+                className="bg-orange hover:bg-orange/90 text-black font-bold text-sm px-5 py-2 rounded-lg transition-colors">
+                Save Changes
+              </button>
+              <button onClick={() => { setEditPlayer(null); setEditSearch(''); setEditForm({}) }}
+                className="text-xs text-gray-500 hover:text-white transition-colors">
+                Cancel
+              </button>
+              {editSaved && <span className="text-xs text-green-400 font-semibold">✓ Saved!</span>}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Province override lock */}

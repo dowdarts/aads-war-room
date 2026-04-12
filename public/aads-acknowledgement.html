@@ -135,6 +135,13 @@
     }
     .wiki-btn:hover { border-color: #444; color: #aaa; }
     .wiki-btn:active { opacity: 0.7; }
+    .comp-form-btn {
+      padding: 16px 32px; background: var(--orange); border: none; border-radius: 12px;
+      color: #000; font-size: 15px; font-weight: 900; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; margin-bottom: 14px; width: 100%; max-width: 280px;
+      transition: opacity 0.15s; display: none;
+    }
+    .comp-form-btn:active { opacity: 0.7; }
     .spinner { display: none; width: 20px; height: 20px; border: 2px solid #0004; border-top-color: #000;
       border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto; }
     .submit-btn.loading .btn-text { display: none; }
@@ -223,8 +230,9 @@
   <div class="success-title">Acknowledged!</div>
   <p class="success-sub" id="success-msg">Your acknowledgement has been recorded. Thank you.</p>
   <button class="download-btn" id="download-btn" onclick="downloadSignedPDF()">&#8595;&nbsp; Download Signed Copy</button>
-  <button class="reset-btn" onclick="reset()">Done &mdash; Next Person</button>
-  <button class="wiki-btn" onclick="window.location.href='https://wiki.aadsdarts.com'">&#8592; Back to Wiki</button>
+  <button class="comp-form-btn" id="comp-form-btn" onclick="goToCompetitionForm()">&#9654;&nbsp; Fill Out Competition Form</button>
+  <button class="reset-btn" id="success-next-btn" onclick="reset()">Done &mdash; Next Person</button>
+  <button class="wiki-btn" id="success-wiki-btn" onclick="window.location.href='https://wiki.aadsdarts.com'">&#8592; Back to Wiki</button>
 </div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
@@ -437,6 +445,10 @@
       if (!res.ok) throw new Error('HTTP ' + res.status)
       document.getElementById('success-msg').textContent =
         'Thank you, ' + name + '! Your signed acknowledgement has been saved.'
+      const isPlayer = currentRole === 'player'
+      document.getElementById('comp-form-btn').style.display = isPlayer ? 'block' : 'none'
+      document.getElementById('success-next-btn').style.display = isPlayer ? 'none' : 'block'
+      document.getElementById('success-wiki-btn').style.display = isPlayer ? 'none' : 'block'
       goTo('success')
     } catch (e) {
       errEl.style.display = 'block'
@@ -594,6 +606,11 @@
       }
       img.src = dataUrl
     })
+  }
+
+  /* ── Navigate to competition form ── */
+  function goToCompetitionForm() {
+    window.location.href = BASE + 'competition-form.html'
   }
 
   /* ── Reset for next person ── */
