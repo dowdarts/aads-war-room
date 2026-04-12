@@ -1,0 +1,630 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AADS Signature Forms App</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --orange: #FF6600; --green: #22c55e; --blue: #3b82f6; }
+    body {
+      min-height: 100dvh; background: #050505; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; padding: 24px 20px; gap: 0;
+    }
+    .screen { width: 100%; max-width: 420px; display: none; flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
+    .logo { width: 64px; height: 64px; background: var(--orange); border-radius: 16px;
+      display: flex; align-items: center; justify-content: center; font-size: 28px;
+      font-weight: 900; color: #000; margin-bottom: 16px; box-shadow: 0 0 40px #FF660044; }
+    .league { font-size: 12px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
+    .title { font-size: clamp(18px, 5vw, 24px); font-weight: 900; text-align: center; line-height: 1.2; margin-bottom: 6px; }
+    .sub { font-size: 13px; color: #555; text-align: center; margin-bottom: 36px; }
+    .prompt { font-size: 13px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px; }
+    .role-btn {
+      display: flex; align-items: center; gap: 16px; padding: 20px 20px;
+      border-radius: 14px; border: 1.5px solid #1e1e1e; background: #0d0d0d;
+      cursor: pointer; width: 100%; margin-bottom: 12px; color: #fff;
+      transition: border-color 0.15s, background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .role-btn:active { transform: scale(0.97); }
+    .logo-kiosk { width: 320px; height: auto; object-fit: contain; margin-top: 24px; margin-bottom: 8px; }
+    .role-btn[data-role="player"]    { --acc: var(--orange); }
+    .role-btn[data-role="volunteer"] { --acc: var(--green); }
+    .role-btn[data-role="spectator"] { --acc: var(--blue); }
+    .role-btn:hover { border-color: var(--acc); background: color-mix(in srgb, var(--acc) 8%, #0d0d0d); }
+    .icon-wrap {
+      width: 48px; height: 48px; border-radius: 12px; font-size: 24px;
+      background: color-mix(in srgb, var(--acc) 15%, transparent);
+      border: 1px solid color-mix(in srgb, var(--acc) 30%, transparent);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .btn-label { font-size: 17px; font-weight: 800; display: block; margin-bottom: 2px; }
+    .btn-desc { font-size: 11px; color: #555; }
+    .arrow { font-size: 16px; color: #333; margin-left: auto; flex-shrink: 0; }
+    /* Policy screen */
+    #screen-policy { width: 100%; max-width: 100%; height: 100dvh; padding: 0; justify-content: flex-start; }
+    .policy-header {
+      width: 100%; padding: 14px 16px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a;
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .back-btn {
+      background: #1a1a1a; border: none; color: #fff; padding: 6px 14px; border-radius: 8px;
+      font-size: 13px; cursor: pointer; font-weight: 600; -webkit-tap-highlight-color: transparent;
+    }
+    .policy-title { font-size: 14px; font-weight: 700; color: #fff; flex: 1; }
+    .continue-btn {
+      background: var(--orange); border: none; color: #000; padding: 7px 16px; border-radius: 8px;
+      font-size: 13px; font-weight: 800; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    #pdf-frame { width: 100%; flex: 1; border: none; background: #111; }
+    /* Sign screen */
+    #screen-sign { justify-content: flex-start; padding-top: 0; width: 100%; max-width: 100%; }
+    .sign-header {
+      width: 100%; padding: 14px 16px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a;
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .sign-body { width: 100%; max-width: 520px; padding: 24px 20px 40px; display: flex; flex-direction: column; gap: 20px; align-self: center; overflow-y: auto; }
+    .sign-title { font-size: 20px; font-weight: 900; color: #fff; text-align: center; }
+    .sign-sub { font-size: 13px; color: #555; text-align: center; margin-top: -12px; }
+    .section-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #444; margin-bottom: 8px; }
+    label.field-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #666; display: block; margin-bottom: 6px; }
+    input[type="text"] {
+      width: 100%; padding: 14px 16px; background: #0d0d0d; border: 1.5px solid #1e1e1e;
+      border-radius: 10px; color: #fff; font-size: 16px; outline: none; transition: border-color 0.15s;
+    }
+    input[type="text"]:focus { border-color: var(--orange); }
+    .date-display {
+      width: 100%; padding: 14px 16px; background: #080808; border: 1px solid #1a1a1a;
+      border-radius: 10px; color: #555; font-size: 14px;
+    }
+    /* Policy checkboxes */
+    .policy-checks { display: flex; flex-direction: column; gap: 10px; }
+    .check-row {
+      display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px;
+      background: #0a0a0a; border: 1.5px solid #1e1e1e; border-radius: 10px; cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .check-row:has(input:checked) { border-color: #2a2a2a; background: #0d0d0d; }
+    .check-row input[type="checkbox"] { width: 20px; height: 20px; margin-top: 1px; accent-color: var(--orange); cursor: pointer; flex-shrink: 0; }
+    .check-text { font-size: 13px; color: #999; line-height: 1.5; }
+    .check-text strong { color: #ccc; font-weight: 700; }
+    /* Signature pad */
+    .sig-wrap { position: relative; border: 1.5px solid #1e1e1e; border-radius: 12px; overflow: hidden; background: #0d0d0d; touch-action: none; }
+    .sig-wrap.has-sig { border-color: #2a2a2a; }
+    #sig-canvas { display: block; width: 100%; height: 160px; cursor: crosshair; touch-action: none; }
+    .sig-clear {
+      position: absolute; top: 8px; right: 10px; background: #1a1a1a; border: 1px solid #2a2a2a;
+      color: #666; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .sig-hint { font-size: 11px; color: #2a2a2a; text-align: center; margin-top: 6px; }
+    /* Submit */
+    .submit-btn {
+      width: 100%; padding: 18px; background: var(--orange); border: none; border-radius: 12px;
+      color: #000; font-size: 17px; font-weight: 900; cursor: pointer; opacity: 0.4;
+      pointer-events: none; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent;
+    }
+    .submit-btn.ready { opacity: 1; pointer-events: auto; }
+    .submit-btn:active { opacity: 0.8; }
+    .error-msg { font-size: 13px; color: #ef4444; text-align: center; display: none; }
+    /* Success screen */
+    .success-icon { font-size: 64px; margin-bottom: 16px; }
+    .success-title { font-size: 26px; font-weight: 900; text-align: center; color: var(--green); margin-bottom: 8px; }
+    .success-sub { font-size: 14px; color: #555; text-align: center; margin-bottom: 36px; max-width: 300px; }
+    .reset-btn {
+      padding: 16px 40px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px;
+      color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .download-btn {
+      padding: 14px 32px; background: #0a0a0a; border: 1.5px solid var(--orange); border-radius: 12px;
+      color: var(--orange); font-size: 14px; font-weight: 800; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; margin-bottom: 14px; width: 100%; max-width: 280px;
+    }
+    .download-btn:active { opacity: 0.7; }
+    .wiki-btn {
+      padding: 14px 32px; background: transparent; border: 1.5px solid #2a2a2a; border-radius: 12px;
+      color: #666; font-size: 13px; font-weight: 700; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; margin-top: 8px; width: 100%; max-width: 280px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .wiki-btn:hover { border-color: #444; color: #aaa; }
+    .wiki-btn:active { opacity: 0.7; }
+    .comp-form-btn {
+      padding: 16px 32px; background: var(--orange); border: none; border-radius: 12px;
+      color: #000; font-size: 15px; font-weight: 900; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; margin-bottom: 14px; width: 100%; max-width: 280px;
+      transition: opacity 0.15s; display: none;
+    }
+    .comp-form-btn:active { opacity: 0.7; }
+    .spinner { display: none; width: 20px; height: 20px; border: 2px solid #0004; border-top-color: #000;
+      border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto; }
+    .submit-btn.loading .btn-text { display: none; }
+    .submit-btn.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- SCREEN 1: Landing / Role Selection -->
+<div class="screen active" id="screen-landing">
+  <img src="/logo-kiosk.png" alt="AADS Signature Forms" class="logo-kiosk" />
+  <h1 class="title">Media Release &amp;<br>Player Acknowledgment Forms</h1>
+  <p class="sub">Please select your role to begin</p>
+  <p class="prompt">I Am A&hellip;</p>
+  <button class="role-btn" data-role="player" onclick="selectRole('player')">
+    <div class="icon-wrap">&#127919;</div>
+    <div style="flex:1"><span class="btn-label">Player</span><span class="btn-desc">Competing in today&apos;s event</span></div>
+    <span class="arrow">&#8599;</span>
+  </button>
+  <button class="role-btn" data-role="volunteer" onclick="selectRole('volunteer')">
+    <div class="icon-wrap">&#128587;</div>
+    <div style="flex:1"><span class="btn-label">Volunteer</span><span class="btn-desc">Staff or event helper</span></div>
+    <span class="arrow">&#8599;</span>
+  </button>
+  <button class="role-btn" data-role="spectator" onclick="selectRole('spectator')">
+    <div class="icon-wrap">&#128064;</div>
+    <div style="flex:1"><span class="btn-label">Spectator / Visitor</span><span class="btn-desc">Attending to watch</span></div>
+    <span class="arrow">&#8599;</span>
+  </button>
+</div>
+
+<!-- SCREEN 2: Policy PDF Viewer -->
+<div class="screen" id="screen-policy">
+  <div class="policy-header">
+    <button class="back-btn" onclick="goTo('landing')">&#8592; Back</button>
+    <span class="policy-title" id="policy-title">Policy</span>
+    <button class="continue-btn" onclick="goTo('sign')">Sign &#8594;</button>
+  </div>
+  <iframe id="pdf-frame" src="" title="Policy Document"></iframe>
+</div>
+
+<!-- SCREEN 3: Sign -->
+<div class="screen" id="screen-sign">
+  <div class="sign-header">
+    <button class="back-btn" onclick="goTo('policy')">&#8592; Back</button>
+    <span class="policy-title" id="sign-header-title">Sign Your Acknowledgement</span>
+  </div>
+  <div class="sign-body">
+    <div class="sign-title" id="sign-role-title">Acknowledgement</div>
+    <p class="sign-sub" id="sign-date"></p>
+
+    <!-- Role-specific policy checkboxes rendered by JS -->
+    <div>
+      <div class="section-label">Policies &amp; Agreements</div>
+      <div class="policy-checks" id="policy-checks"></div>
+    </div>
+
+    <!-- Typed full name -->
+    <div>
+      <label class="field-label" for="signer-name">Full Name (typed signature)</label>
+      <input type="text" id="signer-name" placeholder="e.g. John Smith" oninput="checkReady()" autocomplete="name" />
+    </div>
+
+    <!-- Canvas signature pad -->
+    <div>
+      <label class="field-label">Hand Signature (sign with stylus or finger)</label>
+      <div class="sig-wrap" id="sig-wrap">
+        <canvas id="sig-canvas"></canvas>
+        <button class="sig-clear" onclick="clearCanvas()" type="button">Clear</button>
+      </div>
+      <p class="sig-hint">Use your finger, stylus, or mouse to sign above</p>
+    </div>
+
+    <p class="error-msg" id="error-msg">Something went wrong. Please try again.</p>
+    <button class="submit-btn" id="submit-btn" onclick="submitAck()">
+      <span class="btn-text">I Agree &amp; Submit</span>
+      <div class="spinner"></div>
+    </button>
+  </div>
+</div>
+
+<!-- SCREEN 4: Success -->
+<div class="screen" id="screen-success">
+  <div class="success-icon">&#10003;</div>
+  <div class="success-title">Acknowledged!</div>
+  <p class="success-sub" id="success-msg">Your acknowledgement has been recorded. Thank you.</p>
+  <button class="download-btn" id="download-btn" onclick="downloadSignedPDF()">&#8595;&nbsp; Download Signed Copy</button>
+  <button class="comp-form-btn" id="comp-form-btn" onclick="goToCompetitionForm()">&#9654;&nbsp; Fill Out Competition Form</button>
+  <button class="reset-btn" id="success-next-btn" onclick="reset()">Done &mdash; Next Person</button>
+  <button class="wiki-btn" id="success-wiki-btn" onclick="window.location.href='https://wiki.aadsdarts.com'">&#8592; Back to Wiki</button>
+</div>
+
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script>
+  const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+
+  const BASE = window.location.hostname === 'dowdarts.github.io'
+    ? (window.location.pathname.match(/^(\/[^\/]+\/)/)?.[1] ?? '/')
+    : '/'
+  const PDFS = {
+    player:    BASE + 'policies/AADS_Player_Booklet_INTERACTIVE.pdf',
+    volunteer: BASE + 'policies/AADS_Volunteer_Booklet_INTERACTIVE.pdf',
+    spectator: BASE + 'policies/AADS_Spectator_Booklet_INTERACTIVE.pdf',
+  }
+  const LABELS = { player: 'Player Policy', volunteer: 'Volunteer Policy', spectator: 'Spectator & Visitor Policy' }
+  const ROLE_TITLES = { player: 'Player Acknowledgement', volunteer: 'Volunteer Acknowledgement', spectator: 'Spectator & Visitor Acknowledgement' }
+
+  const POLICY_ITEMS = {
+    player: [
+      { bold: 'AADS Player Code of Conduct', text: 'I have read and agree to comply with the AADS Player Code of Conduct for this event.' },
+      { bold: 'Match Rules & Regulations', text: 'I have read and agree to the AADS Match Rules and Regulations governing competitive play.' },
+      { bold: 'Liability Waiver', text: 'I acknowledge and accept the liability waiver terms as a competing player in this AADS event.' }
+    ],
+    volunteer: [
+      { bold: 'AADS Volunteer Code of Conduct', text: 'I have read and agree to the AADS Volunteer Code of Conduct.' },
+      { bold: 'Volunteer Responsibilities', text: 'I acknowledge my responsibilities and duties as an official AADS volunteer or event helper.' },
+      { bold: 'Volunteer Liability Terms', text: 'I acknowledge and accept the liability terms applicable to volunteers at this event.' }
+    ],
+    spectator: [
+      { bold: 'AADS Spectator Code of Conduct', text: 'I have read and agree to the AADS Spectator and Visitor Code of Conduct.' },
+      { bold: 'Venue Rules & Liability', text: 'I acknowledge the venue rules and accept the liability terms as a visitor/spectator at this event.' }
+    ]
+  }
+
+  let currentRole = null
+  let canvasHasStrokes = false
+  let lastSubmission = null
+
+  /* ── Navigation ── */
+  function goTo(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+    document.getElementById('screen-' + screen).classList.add('active')
+    window.scrollTo(0, 0)
+  }
+
+  function selectRole(role) {
+    currentRole = role
+    document.getElementById('pdf-frame').src = PDFS[role]
+    document.getElementById('policy-title').textContent = LABELS[role]
+    goTo('policy')
+  }
+
+  /* ── Sign screen setup ── */
+  function goToSign() {
+    const now = new Date()
+    document.getElementById('sign-date').textContent =
+      now.toLocaleDateString('en-CA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    document.getElementById('sign-role-title').textContent = ROLE_TITLES[currentRole] || 'Acknowledgement'
+    renderCheckboxes(currentRole)
+    document.getElementById('signer-name').value = ''
+    goTo('sign')
+    // Delay so the canvas has rendered dimensions
+    setTimeout(initCanvas, 80)
+  }
+
+  // Override the policy screen continue button
+  document.querySelector('.continue-btn').onclick = goToSign
+
+  /* ── Role-specific checkboxes ── */
+  function renderCheckboxes(role) {
+    const container = document.getElementById('policy-checks')
+    container.innerHTML = ''
+    ;(POLICY_ITEMS[role] || []).forEach(function(item, i) {
+      const id = 'chk-' + i
+      const lbl = document.createElement('label')
+      lbl.className = 'check-row'
+      lbl.htmlFor = id
+      lbl.innerHTML =
+        '<input type="checkbox" id="' + id + '" onchange="checkReady()" />' +
+        '<span class="check-text"><strong>' + item.bold + '</strong> — ' + item.text + '</span>'
+      container.appendChild(lbl)
+    })
+  }
+
+  /* ── Canvas signature pad ── */
+  let _canvasListenersAttached = false
+
+  function initCanvas() {
+    const canvas = document.getElementById('sig-canvas')
+    const wrap = document.getElementById('sig-wrap')
+    const dpr = window.devicePixelRatio || 1
+    const w = wrap.getBoundingClientRect().width || wrap.offsetWidth || 300
+    canvas.width  = Math.round(w * dpr)
+    canvas.height = Math.round(160 * dpr)
+    canvas.style.height = '160px'
+    const ctx = canvas.getContext('2d')
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.scale(dpr, dpr)
+    ctx.clearRect(0, 0, w, 160)
+    ctx.strokeStyle = '#FF6600'
+    ctx.lineWidth = 2.2
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    canvasHasStrokes = false
+    wrap.classList.remove('has-sig')
+
+    if (_canvasListenersAttached) return
+    _canvasListenersAttached = true
+
+    let drawing = false, lx = 0, ly = 0
+
+    function getPos(e) {
+      const r = canvas.getBoundingClientRect()
+      const src = e.touches ? e.touches[0] : (e.changedTouches ? e.changedTouches[0] : e)
+      return { x: src.clientX - r.left, y: src.clientY - r.top }
+    }
+    function getCtx() {
+      const c = document.getElementById('sig-canvas')
+      const cx = c.getContext('2d')
+      cx.strokeStyle = '#FF6600'; cx.lineWidth = 2.2; cx.lineCap = 'round'; cx.lineJoin = 'round'
+      return cx
+    }
+    function onStart(e) {
+      e.preventDefault(); drawing = true
+      const p = getPos(e); lx = p.x; ly = p.y
+    }
+    function onMove(e) {
+      e.preventDefault(); if (!drawing) return
+      const p = getPos(e)
+      const cx = getCtx()
+      cx.beginPath(); cx.moveTo(lx, ly); cx.lineTo(p.x, p.y); cx.stroke()
+      lx = p.x; ly = p.y
+      if (!canvasHasStrokes) {
+        canvasHasStrokes = true
+        document.getElementById('sig-wrap').classList.add('has-sig')
+        checkReady()
+      }
+    }
+    function onEnd() { drawing = false }
+
+    canvas.addEventListener('pointerdown',  onStart)
+    canvas.addEventListener('pointermove',  onMove)
+    canvas.addEventListener('pointerup',    onEnd)
+    canvas.addEventListener('pointerleave', onEnd)
+    canvas.addEventListener('touchstart',   onStart, { passive: false })
+    canvas.addEventListener('touchmove',    onMove,  { passive: false })
+    canvas.addEventListener('touchend',     onEnd)
+    canvas.addEventListener('mousedown',    onStart)
+    canvas.addEventListener('mousemove',    onMove)
+    canvas.addEventListener('mouseup',      onEnd)
+    canvas.addEventListener('mouseleave',   onEnd)
+  }
+
+  function clearCanvas() {
+    const canvas = document.getElementById('sig-canvas')
+    const dpr = window.devicePixelRatio || 1
+    canvas.getContext('2d').clearRect(0, 0, canvas.width / dpr, 160)
+    canvasHasStrokes = false
+    document.getElementById('sig-wrap').classList.remove('has-sig')
+    checkReady()
+  }
+
+  /* ── Readiness check ── */
+  function checkReady() {
+    const name = document.getElementById('signer-name').value.trim()
+    const checks = Array.from(document.querySelectorAll('#policy-checks input[type="checkbox"]'))
+    const allChecked = checks.length > 0 && checks.every(function(c) { return c.checked })
+    const btn = document.getElementById('submit-btn')
+    if (name.length >= 2 && allChecked && canvasHasStrokes) {
+      btn.classList.add('ready')
+    } else {
+      btn.classList.remove('ready')
+    }
+  }
+
+  /* ── Submit ── */
+  async function submitAck() {
+    const name = document.getElementById('signer-name').value.trim()
+    if (!name) return
+    const btn = document.getElementById('submit-btn')
+    const errEl = document.getElementById('error-msg')
+    btn.classList.add('loading')
+    errEl.style.display = 'none'
+
+    // Capture all submission data first so PDF can be generated
+    const canvas = document.getElementById('sig-canvas')
+    lastSubmission = {
+      name: name,
+      role: currentRole,
+      date: document.getElementById('sign-date').textContent,
+      checks: (POLICY_ITEMS[currentRole] || []).map(function(item) { return item.bold + ' \u2014 ' + item.text }),
+      signatureImg: canvasHasStrokes ? canvas.toDataURL('image/png') : null,
+      timestamp: new Date().toISOString(),
+      ref: 'AADS-' + Date.now().toString(36).toUpperCase()
+    }
+    const pdfDataUri = await generatePDFDataUri()
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/rest/v1/acknowledgements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON,
+          'Authorization': 'Bearer ' + SUPABASE_ANON,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ name: name, role: currentRole, pdf_data: pdfDataUri })
+      })
+      if (!res.ok) throw new Error('HTTP ' + res.status)
+      document.getElementById('success-msg').textContent =
+        'Thank you, ' + name + '! Your signed acknowledgement has been saved.'
+      const isPlayer = currentRole === 'player'
+      document.getElementById('comp-form-btn').style.display = isPlayer ? 'block' : 'none'
+      document.getElementById('success-next-btn').style.display = isPlayer ? 'none' : 'block'
+      document.getElementById('success-wiki-btn').style.display = isPlayer ? 'none' : 'block'
+      goTo('success')
+    } catch (e) {
+      errEl.style.display = 'block'
+      btn.classList.remove('loading')
+      lastSubmission = null
+    }
+  }
+
+  /* ── PDF generation ── */
+  // Loads the real policy PDF and fills the signature page fields in-place.
+  async function buildPDF() {
+    if (!lastSubmission) return null
+    if (typeof PDFLib === 'undefined') { console.error('pdf-lib not loaded'); return null }
+    const { PDFDocument, rgb, StandardFonts } = PDFLib
+
+    const pdfUrl = PDFS[lastSubmission.role] || PDFS['player']
+    let existingBytes
+    try {
+      const res = await fetch(pdfUrl)
+      if (!res.ok) throw new Error('HTTP ' + res.status)
+      existingBytes = await res.arrayBuffer()
+    } catch(e) {
+      console.error('Could not fetch policy PDF:', e)
+      return null
+    }
+
+    let pdfDoc
+    try {
+      pdfDoc = await PDFDocument.load(existingBytes, { ignoreEncryption: true })
+    } catch(e) {
+      console.error('Could not load policy PDF:', e)
+      return null
+    }
+
+    const pages    = pdfDoc.getPages()
+    const lastPage = pages[pages.length - 1]
+    const { width, height } = lastPage.getSize()
+
+    const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const fontItalic  = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
+
+    // ── Exact field positions extracted from PDF content stream ───────────
+    // Page is 612 x 792 pts. Field underlines run from x=201.6 to x=468.
+    // Each underline Y is 2pts below the label baseline.
+    // Text sits 3pts above the underline (i.e. label Y - 1).
+    const LINE_X1  = 201.6
+    const LINE_X2  = 468.0
+    const LINE_MID = (LINE_X1 + LINE_X2) / 2   // 334.8
+
+    const NAME_LINE_Y = 574.0    // Full Name underline y (from bottom)
+    const DATE_LINE_Y = 473.2    // Date underline y
+    const SIG_LINE_Y  = 422.8    // Digital Signature underline y
+
+    const TEXT_ABOVE_LINE = 3    // pts above underline to place text baseline
+    // ─────────────────────────────────────────────────────────────────────
+
+    // Full Name — centered on the Full Name field line
+    const nameW = fontItalic.widthOfTextAtSize(lastSubmission.name, 11)
+    lastPage.drawText(lastSubmission.name, {
+      x: LINE_MID - nameW / 2,
+      y: NAME_LINE_Y + TEXT_ABOVE_LINE,
+      font: fontItalic, size: 11, color: rgb(0, 0, 0)
+    })
+
+    // Date — centered on the Date field line
+    const dateStr = lastSubmission.date || ''
+    const dateW = fontRegular.widthOfTextAtSize(dateStr, 9)
+    lastPage.drawText(dateStr, {
+      x: LINE_MID - dateW / 2,
+      y: DATE_LINE_Y + TEXT_ABOVE_LINE,
+      font: fontRegular, size: 9, color: rgb(0, 0, 0)
+    })
+
+    // Signature image — spans the field line, sitting above it
+    if (lastSubmission.signatureImg) {
+      try {
+        const blackSig = await toBlackSignature(lastSubmission.signatureImg)
+        const b64   = blackSig.split(',')[1]
+        const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0))
+        const img   = await pdfDoc.embedPng(bytes)
+        const sigH  = 35
+        lastPage.drawImage(img, {
+          x: LINE_X1, y: SIG_LINE_Y + TEXT_ABOVE_LINE,
+          width: LINE_X2 - LINE_X1, height: sigH
+        })
+      } catch(e) { console.error('Signature embed failed:', e) }
+    }
+
+    // Reference footer at very bottom of page
+    const ts = new Date(lastSubmission.timestamp)
+    const safeDate = [
+      ts.getFullYear(),
+      String(ts.getMonth() + 1).padStart(2, '0'),
+      String(ts.getDate()).padStart(2, '0')
+    ].join('-') + ' ' + [
+      String(ts.getHours()).padStart(2, '0'),
+      String(ts.getMinutes()).padStart(2, '0')
+    ].join(':')
+    lastPage.drawText(
+      'Electronically signed via AADS Digital Acknowledgement System  |  Ref: ' +
+        lastSubmission.ref + '  |  ' + safeDate,
+      { x: 55, y: 18, font: fontRegular, size: 6.5, color: rgb(0, 0, 0) }
+    )
+
+    return pdfDoc
+  }
+
+  async function generatePDFDataUri() {
+    const pdfDoc = await buildPDF()
+    if (!pdfDoc) return null
+    const pdfBytes = await pdfDoc.save()
+    // Convert Uint8Array to base64 in chunks to avoid call-stack limits
+    const chunk = 0x8000
+    let binary = ''
+    for (let i = 0; i < pdfBytes.length; i += chunk) {
+      binary += String.fromCharCode.apply(null, pdfBytes.subarray(i, i + chunk))
+    }
+    return 'data:application/pdf;base64,' + btoa(binary)
+  }
+
+  async function downloadSignedPDF() {
+    const btn = document.getElementById('download-btn')
+    if (btn) { btn.textContent = '\u23f3 Generating\u2026'; btn.disabled = true }
+    const pdfDoc = await buildPDF()
+    if (btn) { btn.textContent = '\u2193\u00a0Download Signed Copy'; btn.disabled = false }
+    if (!pdfDoc) return
+    const pdfBytes = await pdfDoc.save()
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url
+    const safeName = (lastSubmission.name || 'Acknowledgement').replace(/[^a-zA-Z0-9]/g, '_')
+    a.download = 'AADS_Signed_' + safeName + '.pdf'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  // Redraws the signature canvas image with all visible strokes turned pure black
+  function toBlackSignature(dataUrl) {
+    return new Promise(function(resolve) {
+      const img = new Image()
+      img.onload = function() {
+        const c = document.createElement('canvas')
+        c.width = img.width; c.height = img.height
+        const ctx = c.getContext('2d')
+        ctx.drawImage(img, 0, 0)
+        const d = ctx.getImageData(0, 0, c.width, c.height)
+        for (let i = 0; i < d.data.length; i += 4) {
+          if (d.data[i + 3] > 10) {          // any visible pixel → black
+            d.data[i] = 0; d.data[i+1] = 0; d.data[i+2] = 0
+          }
+        }
+        ctx.putImageData(d, 0, 0)
+        resolve(c.toDataURL('image/png'))
+      }
+      img.src = dataUrl
+    })
+  }
+
+  /* ── Navigate to competition form ── */
+  function goToCompetitionForm() {
+    window.location.href = BASE + 'competition-form.html'
+  }
+
+  /* ── Reset for next person ── */
+  function reset() {
+    lastSubmission = null
+    currentRole = null
+    document.getElementById('signer-name').value = ''
+    document.getElementById('submit-btn').classList.remove('ready','loading')
+    document.getElementById('error-msg').style.display = 'none'
+    document.getElementById('pdf-frame').src = ''
+    document.getElementById('sig-wrap').classList.remove('has-sig')
+    canvasHasStrokes = false
+    goTo('landing')
+  }
+</script>
+</body>
+</html>

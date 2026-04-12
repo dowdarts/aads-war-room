@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Player Travel Support</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #2a2a2a;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --success-bg: rgba(44, 122, 66, 0.18);
+      --success-line: rgba(84, 190, 113, 0.4);
+      --success-text: #b4f0c2;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255, 122, 0, 0.16), transparent 34%),
+        linear-gradient(180deg, #080808 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 32px auto;
+    }
+    .hidden {
+      display: none;
+    }
+    .hero {
+      overflow: hidden;
+      border: 1px solid #262626;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)), var(--panel);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+    }
+    .hero-band {
+      padding: 16px 24px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #090909;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+    .hero-body {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 32px;
+      padding: 32px;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+    .lead {
+      margin: 0;
+      max-width: 700px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.75;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(0,0,0,0.26);
+      padding: 24px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+    .grid {
+      display: grid;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .goals {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .goal-card, .info-card, .bank-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel-2);
+      padding: 20px;
+    }
+    .goal-card h3, .info-label, .section-title {
+      margin: 0 0 10px;
+    }
+    .goal-card h3 {
+      color: var(--accent);
+      font-size: 20px;
+    }
+    .goal-card p, .meta, .note, .bank-copy, .contact {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .meta {
+      margin-top: 14px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .success {
+      border: 1px solid var(--success-line);
+      border-radius: 18px;
+      background: var(--success-bg);
+      color: var(--success-text);
+      padding: 16px 18px;
+      line-height: 1.7;
+    }
+    .info-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .info-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .info-label {
+      color: #8d8d8d;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    .info-value {
+      font-size: 18px;
+      font-weight: 700;
+      word-break: break-word;
+    }
+    .copy-btn, .bank-btn, .back-link {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .copy-btn {
+      flex-shrink: 0;
+      border-radius: 14px;
+      background: var(--accent);
+      color: #111;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .bank-grid-logo {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .bank-grid-text {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .bank-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 84px;
+      border-radius: 18px;
+      border: 1px solid #d7d7d7;
+      background: #fff;
+      padding: 14px;
+      font-size: 17px;
+      font-weight: 900;
+      text-align: center;
+      transition: transform 120ms ease, box-shadow 120ms ease;
+    }
+    .bank-btn--logo {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 12px;
+    }
+    .bank-logo {
+      width: 96px;
+      height: 32px;
+      object-fit: contain;
+      object-position: center;
+      display: block;
+    }
+    .bank-name {
+      color: #202020;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .bank-subtitle {
+      margin: 22px 0 0;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    .bank-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    }
+    .bank-atb { color: #0f72bc; }
+    .bank-bmo { color: #1477bd; }
+    .bank-cibc { color: #bb133e; }
+    .bank-coast { color: #2263d4; }
+    .bank-desjardins { color: #0f8a52; }
+    .bank-laurentian { color: #083e78; }
+    .bank-meridian { color: #1d5d93; }
+    .bank-national { color: #e22726; }
+    .bank-pc { color: #db2d2d; }
+    .bank-peoples { color: #7a8faf; }
+    .bank-rbc { color: #0f4fa8; }
+    .bank-scotia { color: #e51920; }
+    .bank-simplii { color: #ee1998; }
+    .bank-tangerine { color: #f28c1b; }
+    .bank-td { color: #27a842; }
+    .bank-uni { color: #0a5fb4; }
+    .footer {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .poster-wrap {
+      text-align: center;
+      padding: 24px 24px 0;
+    }
+    .poster-wrap img {
+      max-width: 100%;
+      width: min(520px, 100%);
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    }
+    .access-card {
+      padding: 34px;
+      border: 1px solid #2a2a2a;
+      border-radius: 24px;
+      background: #111111;
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+    }
+    .access-title {
+      margin: 0 0 12px;
+      font-size: clamp(28px, 5vw, 44px);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+    .access-copy {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+    .access-actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .access-btn {
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid #303030;
+      background: #1b1b1b;
+      color: #f5f5f5;
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .access-btn--primary {
+      border-color: transparent;
+      background: var(--accent);
+      color: #0f0f0f;
+    }
+    @media (max-width: 960px) {
+      .hero-body, .goals, .bank-grid-logo, .bank-grid-text { grid-template-columns: 1fr 1fr; }
+      .hero-body { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .shell { width: min(100% - 20px, 1120px); margin: 12px auto 28px; }
+      .hero-band { padding: 14px 18px; letter-spacing: 0.22em; }
+      .hero-body { padding: 20px; gap: 20px; }
+      .goals, .bank-grid-logo, .bank-grid-text { grid-template-columns: 1fr 1fr; }
+      .info-card { align-items: flex-start; flex-direction: column; }
+      .copy-btn { width: 100%; }
+      .bank-btn { min-height: 74px; font-size: 15px; }
+      .bank-logo { width: 88px; height: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="accessGate" class="shell hidden">
+    <div class="access-card">
+      <p class="eyebrow" id="accessEyebrow">Access Check</p>
+      <h1 class="access-title" id="accessTitle">Checking payment access...</h1>
+      <p class="access-copy" id="accessMessage">Please wait while we verify this donation link.</p>
+      <div class="access-actions">
+        <a class="access-btn" href="mailto:dow1800@gmail.com">Contact Organizer</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="paymentShell" class="shell hidden">
+    <div class="poster-wrap">
+      <img
+        src="./images/emma-rhyder-poster.jpg.png"
+        alt="Emma &amp; Rhyder Youth National Fund"
+        onerror="this.style.display='none'"
+      />
+    </div>
+    <section class="hero">
+      <div class="hero-band">Atlantic Amateur Darts Series</div>
+      <div class="hero-body">
+        <div>
+          <p class="eyebrow">Player Travel Support</p>
+          <h1>Support a player getting to the next event.</h1>
+          <p class="lead">This page is built for direct sharing. Donors can copy the e-transfer details, choose their bank, sign in, and send support toward player travel, accommodations, and event costs.</p>
+        </div>
+        <div class="panel">
+          <p class="eyebrow">Direct Donation</p>
+          <p class="note">Scan a QR code, land here, copy the details, then tap your own bank below.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid">
+
+        <section class="panel">
+        <p class="eyebrow">E-Transfer Information</p>
+        <div class="success">Auto-deposit is enabled. No security question or answer is required.</div>
+        <div class="info-grid">
+          <div class="info-card">
+            <div>
+              <p class="info-label">Recipient Name</p>
+              <div class="info-value" id="recipientText">Matthew Dow</div>
+            </div>
+            <button class="copy-btn" data-copy="recipientText">Copy</button>
+          </div>
+          <div class="info-card">
+            <div>
+              <p class="info-label">Email Address</p>
+              <div class="info-value" id="emailText">dow1800@gmail.com</div>
+            </div>
+            <button class="copy-btn" data-copy="emailText">Copy</button>
+          </div>
+          <div class="info-card">
+            <div>
+              <p class="info-label">Message</p>
+              <div class="info-value" id="messageText">Emma Rhyder</div>
+            </div>
+            <button class="copy-btn" data-copy="messageText">Copy</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow">Choose Your Bank</p>
+        <p class="bank-copy">Tap your bank to open its online banking page in a new tab.</p>
+        <div class="bank-grid-logo">
+          <a class="bank-btn bank-btn--logo" href="https://www.bmo.com/main/personal/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/bmo.svg" alt="BMO logo" />
+            <span class="bank-name">BMO</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.cibc.com/en/personal-banking.html" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/cibc.svg" alt="CIBC logo" />
+            <span class="bank-name">CIBC</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.desjardins.com/ca/index.jsp" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/desjardins.svg" alt="Desjardins logo" />
+            <span class="bank-name">Desjardins</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.laurentianbank.ca/en/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/laurentian.svg" alt="Laurentian Bank logo" />
+            <span class="bank-name">Laurentian Bank</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.nbc.ca/personal.html" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/national-bank.svg" alt="National Bank logo" />
+            <span class="bank-name">National Bank</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.pcfinancial.ca/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/pc-financial.svg" alt="PC Financial logo" />
+            <span class="bank-name">PC Financial</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.rbcroyalbank.com/personal/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/rbc.svg" alt="RBC logo" />
+            <span class="bank-name">RBC</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.scotiabank.com/ca/en/personal.html" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/scotiabank.svg" alt="Scotiabank logo" />
+            <span class="bank-name">Scotiabank</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.td.com/ca/en/personal-banking/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/td.svg" alt="TD logo" />
+            <span class="bank-name">TD</span>
+          </a>
+          <a class="bank-btn bank-btn--logo" href="https://www.uni.ca/en/" target="_blank" rel="noopener noreferrer">
+            <img class="bank-logo" src="./bank-logos/uni.svg" alt="UNI logo" />
+            <span class="bank-name">UNI</span>
+          </a>
+        </div>
+        <p class="bank-subtitle">More Banks</p>
+        <div class="bank-grid-text">
+          <a class="bank-btn bank-atb" href="https://www.atb.com/personal/" target="_blank" rel="noopener noreferrer">ATB Financial</a>
+          <a class="bank-btn bank-coast" href="https://www.coastcapitalsavings.com/" target="_blank" rel="noopener noreferrer">Coast Capital</a>
+          <a class="bank-btn bank-meridian" href="https://www.meridiancu.ca/" target="_blank" rel="noopener noreferrer">Meridian</a>
+          <a class="bank-btn bank-peoples" href="https://www.peoplestrust.com/" target="_blank" rel="noopener noreferrer">Peoples Trust</a>
+          <a class="bank-btn bank-simplii" href="https://www.simplii.com/en/home.html" target="_blank" rel="noopener noreferrer">Simplii Financial</a>
+          <a class="bank-btn bank-tangerine" href="https://www.tangerine.ca/en" target="_blank" rel="noopener noreferrer">Tangerine</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <p class="contact">Questions about supporting a player? Contact dow1800@gmail.com</p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+
+    const paymentShell = document.getElementById('paymentShell')
+    const accessGate = document.getElementById('accessGate')
+    const accessEyebrow = document.getElementById('accessEyebrow')
+    const accessTitle = document.getElementById('accessTitle')
+    const accessMessage = document.getElementById('accessMessage')
+
+    function showGate(eyebrow, title, message) {
+      accessEyebrow.textContent = eyebrow
+      accessTitle.textContent = title
+      accessMessage.textContent = message
+      accessGate.classList.remove('hidden')
+      paymentShell.classList.add('hidden')
+    }
+
+    function showPayment() {
+      paymentShell.classList.remove('hidden')
+      accessGate.classList.add('hidden')
+    }
+
+    function attachCopyHandlers() {
+      for (const button of document.querySelectorAll('[data-copy]')) {
+        button.addEventListener('click', async () => {
+          const target = document.getElementById(button.dataset.copy)
+          if (!target) return
+          try {
+            await navigator.clipboard.writeText(target.textContent.trim())
+            const original = button.textContent
+            button.textContent = 'Copied'
+            setTimeout(() => { button.textContent = original }, 1800)
+          } catch (_) {
+            button.textContent = 'Copy failed'
+            setTimeout(() => { button.textContent = 'Copy' }, 1800)
+          }
+        })
+      }
+    }
+
+    function getQueryKey() {
+      const params = new URLSearchParams(window.location.search)
+      return (params.get('k') || '').trim()
+    }
+
+    async function loadAccessConfig() {
+      // First priority: live control from Supabase (updated from locked Data tab).
+      try {
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/payment_access?id=eq.1&select=enabled,require_key,access_key,expires_at,disabled_message,expired_message,invalid_key_message`,
+          {
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            cache: 'no-store',
+          }
+        )
+
+        if (response.ok) {
+          const rows = await response.json()
+          if (Array.isArray(rows) && rows.length > 0) {
+            const row = rows[0]
+            return {
+              enabled: row.enabled,
+              requireKey: row.require_key,
+              accessKey: row.access_key,
+              expiresAt: row.expires_at,
+              disabledMessage: row.disabled_message,
+              expiredMessage: row.expired_message,
+              invalidKeyMessage: row.invalid_key_message,
+            }
+          }
+        }
+      } catch (_) {
+        // Fall through to static JSON fallback.
+      }
+
+      // Fallback: static file control (works even without Supabase table).
+      const response = await fetch('./payment-access.json', { cache: 'no-store' })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      return response.json()
+    }
+
+    function validateAccess(config) {
+      const enabled = config.enabled !== false
+      const requireKey = config.requireKey !== false
+      const accessKey = typeof config.accessKey === 'string' ? config.accessKey.trim() : ''
+      const queryKey = getQueryKey()
+
+      if (!enabled) {
+        return {
+          allowed: false,
+          eyebrow: 'Access Disabled',
+          title: 'This payment link is currently turned off.',
+          message: config.disabledMessage || 'Please contact the organizer for the active donation link.'
+        }
+      }
+
+      if (config.expiresAt) {
+        const expiresAtMs = Date.parse(config.expiresAt)
+        if (!Number.isNaN(expiresAtMs) && Date.now() > expiresAtMs) {
+          return {
+            allowed: false,
+            eyebrow: 'Link Expired',
+            title: 'This payment link has expired.',
+            message: config.expiredMessage || 'Please request the current active donation link.'
+          }
+        }
+      }
+
+      if (requireKey && (!accessKey || queryKey !== accessKey)) {
+        return {
+          allowed: false,
+          eyebrow: 'Access Key Required',
+          title: 'This link is not valid anymore.',
+          message: config.invalidKeyMessage || 'Use the latest QR code or ask the organizer for the current payment URL.'
+        }
+      }
+
+      return { allowed: true }
+    }
+
+    function recordScan() {
+      try {
+        fetch(
+          `${SUPABASE_URL}/rest/v1/payment_scans`,
+          {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+              Prefer: 'return=minimal',
+            },
+            body: JSON.stringify({
+              user_agent: navigator.userAgent,
+              referrer: document.referrer || null,
+            }),
+          }
+        ).catch(() => {})
+      } catch (_) {}
+    }
+
+    async function init() {
+      try {
+        const config = await loadAccessConfig()
+        const result = validateAccess(config)
+        if (!result.allowed) {
+          showGate(result.eyebrow, result.title, result.message)
+          return
+        }
+
+        showPayment()
+        attachCopyHandlers()
+        recordScan()
+      } catch (_) {
+        showGate('Access Check Failed', 'Payment page is temporarily unavailable.', 'Please contact the organizer for an updated link.')
+      }
+    }
+
+    init()
+  </script>
+</body>
+</html>

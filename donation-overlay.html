@@ -1,0 +1,399 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Donation Overlay</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: transparent;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      padding: 12px;
+    }
+
+    @keyframes fadeIn  { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes panelIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes panelOut{ from { opacity:1; } to { opacity:0; } }
+
+    .card {
+      background: rgba(10,10,10,0.91);
+      border: 1px solid rgba(255,122,0,0.45);
+      border-radius: 16px;
+      overflow: hidden;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+    }
+
+    .donation-card { width: 780px; }
+
+    .header {
+      background: linear-gradient(90deg, #ff7a00, #ffb347);
+      padding: 7px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-title { font-size: 11px; font-weight: 900; letter-spacing: 0.28em; text-transform: uppercase; color: #111; }
+    .header-right  { display: flex; align-items: baseline; gap: 6px; }
+    .header-label  { font-size: 9px; font-weight: 700; color: rgba(0,0,0,0.5); text-transform: uppercase; letter-spacing: 0.15em; }
+    .header-total  { font-size: 18px; font-weight: 900; color: #111; font-variant-numeric: tabular-nums; }
+
+    .tracker-body {
+      display: flex;
+      align-items: stretch;
+      min-height: 130px;
+    }
+
+    .left-col {
+      width: 260px; flex-shrink: 0;
+      border-right: 1px solid rgba(255,215,0,0.18);
+      background: linear-gradient(160deg, rgba(255,215,0,0.09), rgba(255,122,0,0.06));
+      padding: 12px 14px;
+      display: flex; flex-direction: column; justify-content: center; gap: 4px;
+    }
+    .spotlight-badge { font-size: 8px; font-weight: 900; letter-spacing: 0.25em; text-transform: uppercase; color: #ffd700; }
+    .spotlight-name  { font-size: 17px; font-weight: 900; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+    .spotlight-total { font-size: 26px; font-weight: 900; color: #ffd700; font-variant-numeric: tabular-nums; text-shadow: 0 0 16px rgba(255,215,0,0.5); line-height: 1; }
+    .spotlight-meta  { font-size: 9px; color: rgba(255,255,255,0.37); margin-top: 2px; }
+
+    .right-col { flex: 1; min-width: 0; position: relative; padding: 10px 14px; }
+    .panel { position: absolute; inset: 10px 14px; display: flex; flex-direction: column; }
+    .panel.hidden  { opacity: 0; pointer-events: none; }
+    .panel.visible { opacity: 1; animation: panelIn 0.45s ease; }
+    .panel.leaving { opacity: 0; animation: panelOut 0.35s ease forwards; }
+
+    .panel-label {
+      font-size: 8px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase;
+      color: rgba(255,179,71,0.6); margin-bottom: 6px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .panel-tab-dots { display: flex; gap: 4px; }
+    .tab-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,179,71,0.25); transition: background 0.3s; }
+    .tab-dot.active { background: rgba(255,179,71,0.75); }
+    .tab-dot.goal-dot { display: none; }
+    .goal-enabled .tab-dot.goal-dot { display: block; }
+
+    .lb-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .lb-item {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 7px; padding: 5px 10px; animation: fadeIn 0.3s ease;
+    }
+    .lb-rank  { font-size: 10px; font-weight: 900; color: rgba(255,179,71,0.7); width: 20px; flex-shrink:0; text-align:center; }
+    .lb-name  { flex:1; font-size: 12px; font-weight: 700; color: #e8e8e8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .lb-meta  { font-size: 9px; color: rgba(255,255,255,0.28); white-space:nowrap; margin-right:6px; }
+    .lb-total { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+    .recent-list { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .recent-item {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.045);
+      border-radius: 7px; padding: 5px 10px; animation: fadeIn 0.3s ease;
+    }
+    .recent-left   { display: flex; align-items: center; gap: 6px; min-width:0; }
+    .recent-dot    { width:5px; height:5px; border-radius:50%; background:#5ed38a; flex-shrink:0; }
+    .recent-name   { font-size: 12px; font-weight: 600; color: #d0d0d0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:300px; }
+    .recent-rank-badge { font-size: 9px; font-weight: 800; color: rgba(255,179,71,0.75); white-space:nowrap; flex-shrink:0; margin-left:5px; }
+    .recent-amount { font-size: 13px; font-weight: 900; color: #5ed38a; font-variant-numeric:tabular-nums; white-space:nowrap; }
+
+    /* Goal panel (inside right-col) */
+    .goal-panel-inner { display: flex; flex-direction: column; gap: 7px; justify-content: center; flex: 1; }
+    .goal-panel-text  { font-size: 12px; font-weight: 700; color: #f0f0f0; line-height: 1.35; }
+    .goal-panel-amounts { display: flex; align-items: baseline; justify-content: space-between; }
+    .goal-panel-raised  { font-size: 22px; font-weight: 900; color: #a855f7; font-variant-numeric: tabular-nums; line-height: 1; text-shadow: 0 0 12px rgba(168,85,247,0.4); }
+    .goal-panel-target  { font-size: 11px; color: rgba(255,255,255,0.35); }
+    .progress-track {
+      background: rgba(255,255,255,0.07);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #7c3aed, #a855f7, #c084fc);
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+      min-width: 4px;
+    }
+    .goal-panel-pct { font-size: 10px; font-weight: 900; color: #a855f7; text-align: right; font-variant-numeric: tabular-nums; }
+
+    .tracker-footer {
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding: 5px 16px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .pulse {
+      width:6px; height:6px; border-radius:50%; background:#5ed38a; flex-shrink:0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.65); } }
+    .footer-text { font-size: 8px; color: rgba(255,255,255,0.22); letter-spacing:0.1em; }
+
+    .empty-msg { font-size:11px; color:rgba(255,255,255,0.2); padding:8px 0; }
+  </style>
+</head>
+<body>
+  <div class="card donation-card">
+
+    <div class="header">
+      <span class="header-title">Emma &amp; Rhyder Youth National Fund</span>
+      <div class="header-right">
+        <span class="header-label">Total Raised</span>
+        <span id="headerTotal" class="header-total">$0.00</span>
+      </div>
+    </div>
+
+    <div class="tracker-body">
+      <!-- LEFT: spotlight -->
+      <div class="left-col">
+        <div class="spotlight-badge">&#x1F451;&nbsp; #1 &nbsp; Top Donor</div>
+        <div id="spotName"  class="spotlight-name">Loading&hellip;</div>
+        <div id="spotTotal" class="spotlight-total">&mdash;</div>
+        <div id="spotMeta"  class="spotlight-meta">&nbsp;</div>
+      </div>
+
+      <!-- RIGHT: cycling panels (LB / Recent / Goal) -->
+      <div id="rightCol" class="right-col">
+
+        <!-- Panel 0: Leaderboard -->
+        <div id="panelLB" class="panel visible">
+          <div class="panel-label">
+            <span>Leaderboard</span>
+            <div class="panel-tab-dots">
+              <div class="tab-dot active"></div>
+              <div class="tab-dot"></div>
+              <div class="tab-dot goal-dot"></div>
+            </div>
+          </div>
+          <ul id="lbList" class="lb-list"><li class="empty-msg">&mdash;</li></ul>
+        </div>
+
+        <!-- Panel 1: Recent Donations -->
+        <div id="panelRecent" class="panel hidden">
+          <div class="panel-label">
+            <span>Recent Donations</span>
+            <div class="panel-tab-dots">
+              <div class="tab-dot"></div>
+              <div class="tab-dot active"></div>
+              <div class="tab-dot goal-dot"></div>
+            </div>
+          </div>
+          <ul id="recentList" class="recent-list"><li class="empty-msg">Loading&hellip;</li></ul>
+        </div>
+
+        <!-- Panel 2: Fundraiser Goal (cycles in when goal_enabled) -->
+        <div id="panelGoal" class="panel hidden">
+          <div class="panel-label">
+            <span>&#x1F3AF; Fundraiser Goal</span>
+            <div class="panel-tab-dots">
+              <div class="tab-dot"></div>
+              <div class="tab-dot"></div>
+              <div class="tab-dot goal-dot active"></div>
+            </div>
+          </div>
+          <div class="goal-panel-inner">
+            <div id="gpText" class="goal-panel-text">Loading&hellip;</div>
+            <div class="goal-panel-amounts">
+              <span id="gpRaised" class="goal-panel-raised">$0.00</span>
+              <span id="gpTarget" class="goal-panel-target">of $0.00</span>
+            </div>
+            <div class="progress-track">
+              <div id="progressFill" class="progress-fill" style="width:0%"></div>
+            </div>
+            <div id="gpPct" class="goal-panel-pct">0%</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="tracker-footer">
+      <div class="pulse"></div>
+      <span class="footer-text">LIVE &bull; Updates every 30s &bull; wiki.aadsdarts.com</span>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL      = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const REFRESH_MS = 30000
+    const TOGGLE_MS  = 6000
+
+    const headerTotalEl  = document.getElementById('headerTotal')
+    const spotNameEl     = document.getElementById('spotName')
+    const spotTotalEl    = document.getElementById('spotTotal')
+    const spotMetaEl     = document.getElementById('spotMeta')
+    const lbListEl       = document.getElementById('lbList')
+    const recentListEl   = document.getElementById('recentList')
+    const panelLB        = document.getElementById('panelLB')
+    const panelRecent    = document.getElementById('panelRecent')
+    const panelGoal      = document.getElementById('panelGoal')
+    const rightColEl     = document.getElementById('rightCol')
+    const gpTextEl       = document.getElementById('gpText')
+    const gpRaisedEl     = document.getElementById('gpRaised')
+    const gpTargetEl     = document.getElementById('gpTarget')
+    const progressFillEl = document.getElementById('progressFill')
+    const gpPctEl        = document.getElementById('gpPct')
+
+    const panels = [panelLB, panelRecent, panelGoal]
+    let currentIdx  = 0
+    let goalEnabled = false
+
+    function switchPanel() {
+      const panelCount = goalEnabled ? 3 : 2
+      const nextIdx    = (currentIdx + 1) % panelCount
+      const from = panels[currentIdx]
+      const to   = panels[nextIdx]
+      from.classList.add('leaving')
+      setTimeout(() => {
+        from.classList.remove('visible', 'leaving')
+        from.classList.add('hidden')
+        to.classList.remove('hidden')
+        to.classList.add('visible')
+      }, 350)
+      currentIdx = nextIdx
+    }
+
+    setInterval(switchPanel, TOGGLE_MS)
+
+    function fmt(v) {
+      return new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD',minimumFractionDigits:2}).format(v)
+    }
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    }
+
+    async function get(path) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        cache: 'no-store',
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    }
+
+    async function load() {
+      try {
+        let eventStart = null, goalLabel = '', goalAmount = 500
+        try {
+          const ac = await get('payment_access?id=eq.1&select=event_start,goal_enabled,goal_label,goal_amount')
+          if (Array.isArray(ac) && ac[0]) {
+            const cfg = ac[0]
+            if (cfg.event_start)         eventStart  = cfg.event_start
+            goalEnabled = !!cfg.goal_enabled
+            if (cfg.goal_label)          goalLabel   = cfg.goal_label
+            if (cfg.goal_amount != null) goalAmount  = Number(cfg.goal_amount) || 500
+          }
+        } catch (_) {}
+
+        // Show/hide third dot + guard against goal panel being active when disabled
+        if (goalEnabled) {
+          rightColEl.classList.add('goal-enabled')
+        } else {
+          rightColEl.classList.remove('goal-enabled')
+          if (currentIdx === 2) {
+            panels[2].classList.remove('visible')
+            panels[2].classList.add('hidden')
+            panels[0].classList.remove('hidden')
+            panels[0].classList.add('visible')
+            currentIdx = 0
+          }
+        }
+
+        const qs = eventStart
+          ? `payment_donations?select=id,donor_name,amount,received_at&order=received_at.desc&limit=500&received_at=gte.${encodeURIComponent(eventStart)}`
+          : `payment_donations?select=id,donor_name,amount,received_at&order=received_at.desc&limit=500`
+
+        function getExcludedIds() {
+          try { return new Set(JSON.parse(localStorage.getItem('aads_excluded_payment_donations') || '[]')) } catch { return new Set() }
+        }
+
+        let rows = await get(qs)
+        rows = rows.filter(r => !getExcludedIds().has(r.id))
+
+        const grandTotal = rows.reduce((s,r) => {
+          const v = Number(r.amount); return s + (Number.isFinite(v) ? v : 0)
+        }, 0)
+        headerTotalEl.textContent = fmt(grandTotal)
+
+        // Update goal panel content
+        if (goalEnabled) {
+          gpTextEl.textContent   = goalLabel || 'Fundraiser Goal'
+          gpRaisedEl.textContent = fmt(grandTotal)
+          gpTargetEl.textContent = `of ${fmt(goalAmount)}`
+          const pct = goalAmount > 0 ? Math.min(100, (grandTotal / goalAmount) * 100) : 0
+          progressFillEl.style.width = `${pct.toFixed(1)}%`
+          gpPctEl.textContent = `${Math.floor(pct)}%`
+        }
+
+        if (!rows.length) {
+          spotNameEl.textContent  = 'No donations yet'
+          spotTotalEl.textContent = '$0.00'
+          spotMetaEl.textContent  = ''
+          lbListEl.innerHTML      = '<li class="empty-msg">&mdash;</li>'
+          recentListEl.innerHTML  = '<li class="empty-msg">No donations yet</li>'
+          return
+        }
+
+        // Aggregate by normalised name
+        const map = new Map()
+        for (const r of rows) {
+          const display = (r.donor_name || 'Anonymous').trim()
+          const key = display.toUpperCase()
+          const amt = Number.isFinite(Number(r.amount)) ? Number(r.amount) : 0
+          if (map.has(key)) { const e = map.get(key); e.total += amt; e.count++ }
+          else map.set(key, { display, total: amt, count: 1 })
+        }
+
+        const board = [...map.values()].sort((a,b) => b.total - a.total)
+        const rankOf = new Map()
+        board.forEach((e,i) => rankOf.set(e.display.toUpperCase(), i + 1))
+
+        // Spotlight
+        const top = board[0]
+        spotNameEl.textContent  = top.display
+        spotTotalEl.textContent = fmt(top.total)
+        spotMetaEl.textContent  = (top.count === 1 ? '1 donation' : `${top.count} donations`) + ' \u00b7 combined total'
+
+        // Leaderboard #2-#5
+        const rest = board.slice(1,5)
+        lbListEl.innerHTML = rest.length
+          ? rest.map((e,i) => {
+              const rank = i+2
+              const cl   = e.count === 1 ? '1 donation' : `${e.count} donations`
+              return `<li class="lb-item">
+                <span class="lb-rank">#${rank}</span>
+                <span class="lb-name">${esc(e.display)}</span>
+                <span class="lb-meta">${cl}</span>
+                <span class="lb-total">${fmt(e.total)}</span>
+              </li>`
+            }).join('')
+          : '<li class="empty-msg">No other donors yet</li>'
+
+        // Recent 3 with rank badges
+        const recent = rows.slice(0,3)
+        recentListEl.innerHTML = recent.map(r => {
+          const name  = (r.donor_name || 'Anonymous').trim()
+          const rank  = rankOf.get(name.toUpperCase())
+          const amt   = Number.isFinite(Number(r.amount)) ? fmt(Number(r.amount)) : '-'
+          const badge = rank ? `<span class="recent-rank-badge">#${rank}</span>` : ''
+          return `<li class="recent-item">
+            <div class="recent-left">
+              <div class="recent-dot"></div>
+              <span class="recent-name">${esc(name)}</span>
+              ${badge}
+            </div>
+            <span class="recent-amount">${amt}</span>
+          </li>`
+        }).join('')
+
+      } catch (_) { /* keep last render on network error */ }
+    }
+
+    load()
+    setInterval(load, REFRESH_MS)
+  </script>
+</body>
+</html>
