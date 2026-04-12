@@ -127,6 +127,14 @@
       -webkit-tap-highlight-color: transparent; margin-bottom: 14px; width: 100%; max-width: 280px;
     }
     .download-btn:active { opacity: 0.7; }
+    .wiki-btn {
+      padding: 14px 32px; background: transparent; border: 1.5px solid #2a2a2a; border-radius: 12px;
+      color: #666; font-size: 13px; font-weight: 700; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; margin-top: 8px; width: 100%; max-width: 280px;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .wiki-btn:hover { border-color: #444; color: #aaa; }
+    .wiki-btn:active { opacity: 0.7; }
     .spinner { display: none; width: 20px; height: 20px; border: 2px solid #0004; border-top-color: #000;
       border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto; }
     .submit-btn.loading .btn-text { display: none; }
@@ -216,6 +224,7 @@
   <p class="success-sub" id="success-msg">Your acknowledgement has been recorded. Thank you.</p>
   <button class="download-btn" id="download-btn" onclick="downloadSignedPDF()">&#8595;&nbsp; Download Signed Copy</button>
   <button class="reset-btn" onclick="reset()">Done &mdash; Next Person</button>
+  <button class="wiki-btn" onclick="window.location.href='https://wiki.aadsdarts.com'">&#8592; Back to Wiki</button>
 </div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>

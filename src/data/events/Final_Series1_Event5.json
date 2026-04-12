@@ -1,0 +1,1019 @@
+{
+    "metadata": {
+        "series_id": 1,
+        "event_id": 5,
+        "event_name": "Series 1 - Event 5",
+        "event_date": "2026-04-04",
+        "champion": "Berry, Drake"
+    },
+    "player_event_stats": [
+        {
+            "name": "Berry, Drake",
+            "total_matches": 7,
+            "wins": 5,
+            "losses": 2,
+            "final_event_3da": 72.07,
+            "scores_100plus": 75,
+            "scores_140plus": 22,
+            "scores_180": 4,
+            "co_opportunities": 117,
+            "co_completed": 38,
+            "co_pct": 32.48,
+            "high_finish": 117
+        },
+        {
+            "name": "Oliver, Rhyder",
+            "total_matches": 7,
+            "wins": 3,
+            "losses": 4,
+            "final_event_3da": 66.87,
+            "scores_100plus": 74,
+            "scores_140plus": 20,
+            "scores_180": 5,
+            "co_opportunities": 139,
+            "co_completed": 30,
+            "co_pct": 21.58,
+            "high_finish": 112
+        },
+        {
+            "name": "Ferdinand, Scott",
+            "total_matches": 6,
+            "wins": 2,
+            "losses": 4,
+            "final_event_3da": 65.46,
+            "scores_100plus": 32,
+            "scores_140plus": 8,
+            "scores_180": 0,
+            "co_opportunities": 75,
+            "co_completed": 18,
+            "co_pct": 24,
+            "high_finish": 96
+        },
+        {
+            "name": "Casey, Jon",
+            "total_matches": 5,
+            "wins": 3,
+            "losses": 2,
+            "final_event_3da": 64.04,
+            "scores_100plus": 25,
+            "scores_140plus": 1,
+            "scores_180": 3,
+            "co_opportunities": 53,
+            "co_completed": 13,
+            "co_pct": 24.53,
+            "high_finish": 117
+        },
+        {
+            "name": "Spencer, Craig",
+            "total_matches": 4,
+            "wins": 0,
+            "losses": 4,
+            "final_event_3da": 62.77,
+            "scores_100plus": 9,
+            "scores_140plus": 3,
+            "scores_180": 0,
+            "co_opportunities": 37,
+            "co_completed": 7,
+            "co_pct": 18.92,
+            "high_finish": 71
+        },
+        {
+            "name": "Hicks, Stephen",
+            "total_matches": 6,
+            "wins": 4,
+            "losses": 2,
+            "final_event_3da": 61.85,
+            "scores_100plus": 38,
+            "scores_140plus": 6,
+            "scores_180": 4,
+            "co_opportunities": 92,
+            "co_completed": 18,
+            "co_pct": 19.57,
+            "high_finish": 92
+        },
+        {
+            "name": "Leger, Michel",
+            "total_matches": 5,
+            "wins": 2,
+            "losses": 3,
+            "final_event_3da": 50.62,
+            "scores_100plus": 20,
+            "scores_140plus": 1,
+            "scores_180": 0,
+            "co_opportunities": 40,
+            "co_completed": 9,
+            "co_pct": 22.5,
+            "high_finish": 96
+        },
+        {
+            "name": "Rushton, Steve",
+            "total_matches": 5,
+            "wins": 2,
+            "losses": 3,
+            "final_event_3da": 57.21,
+            "scores_100plus": 12,
+            "scores_140plus": 2,
+            "scores_180": 0,
+            "co_opportunities": 45,
+            "co_completed": 9,
+            "co_pct": 20,
+            "high_finish": 99
+        },
+        {
+            "name": "O'Brien, Corey",
+            "total_matches": 5,
+            "wins": 2,
+            "losses": 3,
+            "final_event_3da": 54.97,
+            "scores_100plus": 15,
+            "scores_140plus": 6,
+            "scores_180": 1,
+            "co_opportunities": 51,
+            "co_completed": 7,
+            "co_pct": 13.73,
+            "high_finish": 0
+        },
+        {
+            "name": "Chaisson, Ricky",
+            "total_matches": 4,
+            "wins": 1,
+            "losses": 3,
+            "final_event_3da": 52.57,
+            "scores_100plus": 10,
+            "scores_140plus": 2,
+            "scores_180": 1,
+            "co_opportunities": 39,
+            "co_completed": 4,
+            "co_pct": 10.26,
+            "high_finish": 0
+        }
+    ],
+    "round_robin": {
+        "standings": {
+            "groupA": [
+                {
+                    "rank": 1,
+                    "name": "Casey, Jon",
+                    "matches_played": 4,
+                    "matches_won": 3,
+                    "matches_lost": 1,
+                    "legs_won": 9,
+                    "legs_lost": 4
+                },
+                {
+                    "rank": 2,
+                    "name": "Rushton, Steve",
+                    "matches_played": 4,
+                    "matches_won": 2,
+                    "matches_lost": 2,
+                    "legs_won": 9,
+                    "legs_lost": 7
+                },
+                {
+                    "rank": 3,
+                    "name": "Leger, Michel",
+                    "matches_played": 4,
+                    "matches_won": 2,
+                    "matches_lost": 2,
+                    "legs_won": 9,
+                    "legs_lost": 7
+                },
+                {
+                    "rank": 4,
+                    "name": "O'Brien, Corey",
+                    "matches_played": 4,
+                    "matches_won": 2,
+                    "matches_lost": 2,
+                    "legs_won": 6,
+                    "legs_lost": 8
+                },
+                {
+                    "rank": 5,
+                    "name": "Chaisson, Ricky",
+                    "matches_played": 4,
+                    "matches_won": 1,
+                    "matches_lost": 3,
+                    "legs_won": 4,
+                    "legs_lost": 11
+                }
+            ],
+            "groupB": [
+                {
+                    "rank": 1,
+                    "name": "Ferdinand, Scott",
+                    "matches_played": 4,
+                    "matches_won": 2,
+                    "matches_lost": 2,
+                    "legs_won": 10,
+                    "legs_lost": 8
+                },
+                {
+                    "rank": 2,
+                    "name": "Berry, Drake",
+                    "matches_played": 4,
+                    "matches_won": 3,
+                    "matches_lost": 1,
+                    "legs_won": 10,
+                    "legs_lost": 5
+                },
+                {
+                    "rank": 3,
+                    "name": "Hicks, Stephen",
+                    "matches_played": 4,
+                    "matches_won": 3,
+                    "matches_lost": 1,
+                    "legs_won": 9,
+                    "legs_lost": 9
+                },
+                {
+                    "rank": 4,
+                    "name": "Oliver, Rhyder",
+                    "matches_played": 4,
+                    "matches_won": 2,
+                    "matches_lost": 2,
+                    "legs_won": 8,
+                    "legs_lost": 10
+                },
+                {
+                    "rank": 5,
+                    "name": "Spencer, Craig",
+                    "matches_played": 4,
+                    "matches_won": 0,
+                    "matches_lost": 4,
+                    "legs_won": 7,
+                    "legs_lost": 12
+                }
+            ]
+        },
+        "matches": {
+            "groupA": [
+                {
+                    "player1": "Casey, Jon",
+                    "player2": "Rushton, Steve",
+                    "player1_legs": 3,
+                    "player2_legs": 1,
+                    "start_time": "13:03",
+                    "player1_details": {
+                        "three_dart_avg": 63.51,
+                        "co_opportunities": 8,
+                        "co_completed": 3,
+                        "co_pct": 37.5,
+                        "scores_100plus": 5,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 60.67,
+                        "co_opportunities": 7,
+                        "co_completed": 1,
+                        "co_pct": 14.29,
+                        "scores_100plus": 5,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 66
+                    }
+                },
+                {
+                    "player1": "Casey, Jon",
+                    "player2": "Leger, Michel",
+                    "player1_legs": 0,
+                    "player2_legs": 3,
+                    "start_time": "00:00",
+                    "player1_details": {
+                        "three_dart_avg": 62.95,
+                        "co_opportunities": 7,
+                        "co_completed": 0,
+                        "co_pct": 0,
+                        "scores_100plus": 5,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 67.3,
+                        "co_opportunities": 6,
+                        "co_completed": 3,
+                        "co_pct": 50,
+                        "scores_100plus": 4,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 96
+                    }
+                },
+                {
+                    "player1": "Casey, Jon",
+                    "player2": "O'Brien, Corey",
+                    "player1_legs": 3,
+                    "player2_legs": 0,
+                    "start_time": "12:00",
+                    "player1_details": {
+                        "three_dart_avg": 62.63,
+                        "co_opportunities": 10,
+                        "co_completed": 3,
+                        "co_pct": 30,
+                        "scores_100plus": 4,
+                        "scores_140plus": 0,
+                        "scores_180": 1,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 58.39,
+                        "co_opportunities": 5,
+                        "co_completed": 0,
+                        "co_pct": 0,
+                        "scores_100plus": 4,
+                        "scores_140plus": 0,
+                        "scores_180": 1,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Casey, Jon",
+                    "player2": "Chaisson, Ricky",
+                    "player1_legs": 3,
+                    "player2_legs": 0,
+                    "start_time": "00:00",
+                    "player1_details": {
+                        "three_dart_avg": 64.41,
+                        "co_opportunities": 10,
+                        "co_completed": 3,
+                        "co_pct": 30,
+                        "scores_100plus": 3,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 49.35,
+                        "co_opportunities": 1,
+                        "co_completed": 0,
+                        "co_pct": 0,
+                        "scores_100plus": 2,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Rushton, Steve",
+                    "player2": "Leger, Michel",
+                    "player1_legs": 3,
+                    "player2_legs": 1,
+                    "start_time": "11:17",
+                    "player1_details": {
+                        "three_dart_avg": 59.52,
+                        "co_opportunities": 11,
+                        "co_completed": 3,
+                        "co_pct": 27.27,
+                        "scores_100plus": 4,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 54.34,
+                        "co_opportunities": 8,
+                        "co_completed": 1,
+                        "co_pct": 12.5,
+                        "scores_100plus": 4,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Rushton, Steve",
+                    "player2": "O'Brien, Corey",
+                    "player1_legs": 3,
+                    "player2_legs": 0,
+                    "start_time": "00:00",
+                    "player1_details": {
+                        "three_dart_avg": 55.67,
+                        "co_opportunities": 9,
+                        "co_completed": 3,
+                        "co_pct": 33.33,
+                        "scores_100plus": 0,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 47.77,
+                        "co_opportunities": 7,
+                        "co_completed": 0,
+                        "co_pct": 0,
+                        "scores_100plus": 2,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Rushton, Steve",
+                    "player2": "Chaisson, Ricky",
+                    "player1_legs": 2,
+                    "player2_legs": 3,
+                    "start_time": "12:02",
+                    "player1_details": {
+                        "three_dart_avg": 52.99,
+                        "co_opportunities": 18,
+                        "co_completed": 2,
+                        "co_pct": 11.11,
+                        "scores_100plus": 3,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 99
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 53.85,
+                        "co_opportunities": 17,
+                        "co_completed": 3,
+                        "co_pct": 17.65,
+                        "scores_100plus": 3,
+                        "scores_140plus": 1,
+                        "scores_180": 1,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Leger, Michel",
+                    "player2": "O'Brien, Corey",
+                    "player1_legs": 2,
+                    "player2_legs": 3,
+                    "start_time": "12:31",
+                    "player1_details": {
+                        "three_dart_avg": 60.87,
+                        "co_opportunities": 10,
+                        "co_completed": 2,
+                        "co_pct": 20,
+                        "scores_100plus": 6,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 65.86,
+                        "co_opportunities": 13,
+                        "co_completed": 3,
+                        "co_pct": 23.08,
+                        "scores_100plus": 7,
+                        "scores_140plus": 3,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Leger, Michel",
+                    "player2": "Chaisson, Ricky",
+                    "player1_legs": 3,
+                    "player2_legs": 1,
+                    "start_time": "12:53",
+                    "player1_details": {
+                        "three_dart_avg": 58.58,
+                        "co_opportunities": 10,
+                        "co_completed": 3,
+                        "co_pct": 30,
+                        "scores_100plus": 3,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 58.86,
+                        "co_opportunities": 10,
+                        "co_completed": 1,
+                        "co_pct": 10,
+                        "scores_100plus": 3,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "O'Brien, Corey",
+                    "player2": "Chaisson, Ricky",
+                    "player1_legs": 3,
+                    "player2_legs": 0,
+                    "start_time": "11:17",
+                    "player1_details": {
+                        "three_dart_avg": 48.48,
+                        "co_opportunities": 12,
+                        "co_completed": 3,
+                        "co_pct": 25,
+                        "scores_100plus": 1,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 48.23,
+                        "co_opportunities": 11,
+                        "co_completed": 0,
+                        "co_pct": 0,
+                        "scores_100plus": 2,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                }
+            ],
+            "groupB": [
+                {
+                    "player1": "Berry, Drake",
+                    "player2": "Hicks, Stephen",
+                    "player1_legs": 3,
+                    "player2_legs": 0,
+                    "start_time": "09:29",
+                    "player1_details": {
+                        "three_dart_avg": 72.73,
+                        "co_opportunities": 7,
+                        "co_completed": 3,
+                        "co_pct": 42.86,
+                        "scores_100plus": 3,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 64.9,
+                        "co_opportunities": 5,
+                        "co_completed": 0,
+                        "co_pct": 0,
+                        "scores_100plus": 3,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Berry, Drake",
+                    "player2": "Ferdinand, Scott",
+                    "player1_legs": 1,
+                    "player2_legs": 3,
+                    "start_time": "10:18",
+                    "player1_details": {
+                        "three_dart_avg": 75.04,
+                        "co_opportunities": 8,
+                        "co_completed": 1,
+                        "co_pct": 12.5,
+                        "scores_100plus": 1,
+                        "scores_140plus": 3,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 72.85,
+                        "co_opportunities": 7,
+                        "co_completed": 3,
+                        "co_pct": 42.86,
+                        "scores_100plus": 6,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 96
+                    }
+                },
+                {
+                    "player1": "Berry, Drake",
+                    "player2": "Oliver, Rhyder",
+                    "player1_legs": 3,
+                    "player2_legs": 0,
+                    "start_time": "09:08",
+                    "player1_details": {
+                        "three_dart_avg": 75.15,
+                        "co_opportunities": 8,
+                        "co_completed": 3,
+                        "co_pct": 37.5,
+                        "scores_100plus": 7,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 73.05,
+                        "co_opportunities": 4,
+                        "co_completed": 0,
+                        "co_pct": 0,
+                        "scores_100plus": 6,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Berry, Drake",
+                    "player2": "Spencer, Craig",
+                    "player1_legs": 3,
+                    "player2_legs": 2,
+                    "start_time": "10:49",
+                    "player1_details": {
+                        "three_dart_avg": 67.51,
+                        "co_opportunities": 12,
+                        "co_completed": 3,
+                        "co_pct": 25,
+                        "scores_100plus": 7,
+                        "scores_140plus": 2,
+                        "scores_180": 1,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 62.36,
+                        "co_opportunities": 9,
+                        "co_completed": 2,
+                        "co_pct": 22.22,
+                        "scores_100plus": 2,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Hicks, Stephen",
+                    "player2": "Ferdinand, Scott",
+                    "player1_legs": 3,
+                    "player2_legs": 2,
+                    "start_time": "09:52",
+                    "player1_details": {
+                        "three_dart_avg": 66.35,
+                        "co_opportunities": 13,
+                        "co_completed": 3,
+                        "co_pct": 23.08,
+                        "scores_100plus": 7,
+                        "scores_140plus": 1,
+                        "scores_180": 1,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 62.5,
+                        "co_opportunities": 12,
+                        "co_completed": 2,
+                        "co_pct": 16.67,
+                        "scores_100plus": 7,
+                        "scores_140plus": 2,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Hicks, Stephen",
+                    "player2": "Oliver, Rhyder",
+                    "player1_legs": 3,
+                    "player2_legs": 2,
+                    "start_time": "10:52",
+                    "player1_details": {
+                        "three_dart_avg": 60.15,
+                        "co_opportunities": 15,
+                        "co_completed": 3,
+                        "co_pct": 20,
+                        "scores_100plus": 5,
+                        "scores_140plus": 3,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 62.54,
+                        "co_opportunities": 11,
+                        "co_completed": 2,
+                        "co_pct": 18.18,
+                        "scores_100plus": 6,
+                        "scores_140plus": 2,
+                        "scores_180": 1,
+                        "high_finish": 106
+                    }
+                },
+                {
+                    "player1": "Hicks, Stephen",
+                    "player2": "Spencer, Craig",
+                    "player1_legs": 3,
+                    "player2_legs": 2,
+                    "start_time": "10:18",
+                    "player1_details": {
+                        "three_dart_avg": 59.11,
+                        "co_opportunities": 15,
+                        "co_completed": 3,
+                        "co_pct": 20,
+                        "scores_100plus": 6,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 80
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 59.34,
+                        "co_opportunities": 13,
+                        "co_completed": 2,
+                        "co_pct": 15.38,
+                        "scores_100plus": 4,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Ferdinand, Scott",
+                    "player2": "Oliver, Rhyder",
+                    "player1_legs": 2,
+                    "player2_legs": 3,
+                    "start_time": "09:38",
+                    "player1_details": {
+                        "three_dart_avg": 61.36,
+                        "co_opportunities": 5,
+                        "co_completed": 2,
+                        "co_pct": 40,
+                        "scores_100plus": 2,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 83
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 69.82,
+                        "co_opportunities": 12,
+                        "co_completed": 3,
+                        "co_pct": 25,
+                        "scores_100plus": 6,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Ferdinand, Scott",
+                    "player2": "Spencer, Craig",
+                    "player1_legs": 3,
+                    "player2_legs": 1,
+                    "start_time": "09:13",
+                    "player1_details": {
+                        "three_dart_avg": 70.21,
+                        "co_opportunities": 10,
+                        "co_completed": 3,
+                        "co_pct": 30,
+                        "scores_100plus": 5,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 65.06,
+                        "co_opportunities": 4,
+                        "co_completed": 1,
+                        "co_pct": 25,
+                        "scores_100plus": 2,
+                        "scores_140plus": 1,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    }
+                },
+                {
+                    "player1": "Oliver, Rhyder",
+                    "player2": "Spencer, Craig",
+                    "player1_legs": 3,
+                    "player2_legs": 2,
+                    "start_time": "09:52",
+                    "player1_details": {
+                        "three_dart_avg": 63.11,
+                        "co_opportunities": 9,
+                        "co_completed": 3,
+                        "co_pct": 33.33,
+                        "scores_100plus": 2,
+                        "scores_140plus": 2,
+                        "scores_180": 0,
+                        "high_finish": 0
+                    },
+                    "player2_details": {
+                        "three_dart_avg": 64.31,
+                        "co_opportunities": 11,
+                        "co_completed": 2,
+                        "co_pct": 18.18,
+                        "scores_100plus": 1,
+                        "scores_140plus": 0,
+                        "scores_180": 0,
+                        "high_finish": 71
+                    }
+                }
+            ]
+        }
+    },
+    "knockout": {
+        "quarterFinals": [
+            {
+                "match_id": "QF1",
+                "player1": "Casey, Jon",
+                "player2": "Oliver, Rhyder",
+                "player1_sets": 1,
+                "player2_sets": 2,
+                "player1_total_legs": 4,
+                "player2_total_legs": 6,
+                "winner": "Oliver, Rhyder",
+                "start_time": "13:45",
+                "player1_details": {
+                    "three_dart_avg": 66.71,
+                    "co_opportunities": 18,
+                    "co_completed": 4,
+                    "co_pct": 22.22,
+                    "scores_100plus": 8,
+                    "scores_140plus": 1,
+                    "scores_180": 2,
+                    "high_finish": 117
+                },
+                "player2_details": {
+                    "three_dart_avg": 68.87,
+                    "co_opportunities": 22,
+                    "co_completed": 6,
+                    "co_pct": 27.27,
+                    "scores_100plus": 15,
+                    "scores_140plus": 4,
+                    "scores_180": 1,
+                    "high_finish": 82
+                }
+            },
+            {
+                "match_id": "QF2",
+                "player1": "Berry, Drake",
+                "player2": "Leger, Michel",
+                "player1_sets": 2,
+                "player2_sets": 0,
+                "player1_total_legs": 6,
+                "player2_total_legs": 0,
+                "winner": "Berry, Drake",
+                "start_time": "00:00",
+                "player1_details": {
+                    "three_dart_avg": 66.8,
+                    "co_opportunities": 15,
+                    "co_completed": 6,
+                    "co_pct": 40,
+                    "scores_100plus": 9,
+                    "scores_140plus": 2,
+                    "scores_180": 0,
+                    "high_finish": 0
+                },
+                "player2_details": {
+                    "three_dart_avg": 50.62,
+                    "co_opportunities": 6,
+                    "co_completed": 0,
+                    "co_pct": 0,
+                    "scores_100plus": 3,
+                    "scores_140plus": 0,
+                    "scores_180": 0,
+                    "high_finish": 0
+                }
+            },
+            {
+                "match_id": "QF3",
+                "player1": "O'Brien, Corey",
+                "player2": "Ferdinand, Scott",
+                "player1_sets": 0,
+                "player2_sets": 2,
+                "player1_total_legs": 1,
+                "player2_total_legs": 6,
+                "winner": "Ferdinand, Scott",
+                "start_time": "00:00",
+                "player1_details": {
+                    "three_dart_avg": 54.33,
+                    "co_opportunities": 14,
+                    "co_completed": 1,
+                    "co_pct": 7.14,
+                    "scores_100plus": 1,
+                    "scores_140plus": 3,
+                    "scores_180": 0,
+                    "high_finish": 0
+                },
+                "player2_details": {
+                    "three_dart_avg": 63.39,
+                    "co_opportunities": 21,
+                    "co_completed": 6,
+                    "co_pct": 28.57,
+                    "scores_100plus": 4,
+                    "scores_140plus": 3,
+                    "scores_180": 0,
+                    "high_finish": 79
+                }
+            },
+            {
+                "match_id": "QF4",
+                "player1": "Rushton, Steve",
+                "player2": "Hicks, Stephen",
+                "player1_sets": 0,
+                "player2_sets": 2,
+                "player1_total_legs": 1,
+                "player2_total_legs": 6,
+                "winner": "Hicks, Stephen",
+                "start_time": "00:00",
+                "player1_details": {
+                    "three_dart_avg": 52.26,
+                    "co_opportunities": 13,
+                    "co_completed": 1,
+                    "co_pct": 7.69,
+                    "scores_100plus": 4,
+                    "scores_140plus": 1,
+                    "scores_180": 1,
+                    "high_finish": 0
+                },
+                "player2_details": {
+                    "three_dart_avg": 58.64,
+                    "co_opportunities": 26,
+                    "co_completed": 6,
+                    "co_pct": 23.08,
+                    "scores_100plus": 8,
+                    "scores_140plus": 1,
+                    "scores_180": 0,
+                    "high_finish": 44
+                }
+            }
+        ],
+        "semiFinals": [
+            {
+                "match_id": "SF1",
+                "player1": "Hicks, Stephen",
+                "player2": "Oliver, Rhyder",
+                "player1_sets": 1,
+                "player2_sets": 3,
+                "player1_total_legs": 9,
+                "player2_total_legs": 10,
+                "winner": "Oliver, Rhyder",
+                "start_time": "15:14",
+                "player1_details": {
+                    "three_dart_avg": 58.72,
+                    "co_opportunities": 44,
+                    "co_completed": 9,
+                    "co_pct": 20.45,
+                    "scores_100plus": 17,
+                    "scores_140plus": 1,
+                    "scores_180": 3,
+                    "high_finish": 92
+                },
+                "player2_details": {
+                    "three_dart_avg": 60.88,
+                    "co_opportunities": 55,
+                    "co_completed": 10,
+                    "co_pct": 18.18,
+                    "scores_100plus": 20,
+                    "scores_140plus": 6,
+                    "scores_180": 1,
+                    "high_finish": 108
+                }
+            },
+            {
+                "match_id": "SF2",
+                "player1": "Berry, Drake",
+                "player2": "Ferdinand, Scott",
+                "player1_sets": 3,
+                "player2_sets": 0,
+                "player1_total_legs": 9,
+                "player2_total_legs": 2,
+                "winner": "Berry, Drake",
+                "start_time": "16:40",
+                "player1_details": {
+                    "three_dart_avg": 71.86,
+                    "co_opportunities": 29,
+                    "co_completed": 9,
+                    "co_pct": 31.03,
+                    "scores_100plus": 22,
+                    "scores_140plus": 2,
+                    "scores_180": 2,
+                    "high_finish": 117
+                },
+                "player2_details": {
+                    "three_dart_avg": 62.45,
+                    "co_opportunities": 20,
+                    "co_completed": 2,
+                    "co_pct": 10,
+                    "scores_100plus": 8,
+                    "scores_140plus": 1,
+                    "scores_180": 0,
+                    "high_finish": 0
+                }
+            }
+        ],
+        "final": {
+            "match_id": "FINAL",
+            "player1": "Oliver, Rhyder",
+            "player2": "Berry, Drake",
+            "player1_sets": 1,
+            "player2_sets": 4,
+            "player1_total_legs": 6,
+            "player2_total_legs": 13,
+            "winner": "Berry, Drake",
+            "start_time": "17:31",
+            "player1_details": {
+                "three_dart_avg": 69.85,
+                "co_opportunities": 26,
+                "co_completed": 6,
+                "co_pct": 23.08,
+                "scores_100plus": 19,
+                "scores_140plus": 5,
+                "scores_180": 2,
+                "high_finish": 112
+            },
+            "player2_details": {
+                "three_dart_avg": 75.42,
+                "co_opportunities": 38,
+                "co_completed": 13,
+                "co_pct": 34.21,
+                "scores_100plus": 26,
+                "scores_140plus": 11,
+                "scores_180": 1,
+                "high_finish": 85
+            }
+        },
+        "champion": "Berry, Drake"
+    }
+}
