@@ -6,7 +6,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>AADS Event Registration</title>
+  <title>AADS Event Application</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -328,7 +328,7 @@
   <div class="header">
     <div class="logo-ring">🎯</div>
     <span class="eyebrow">AADS · Atlantic Darts</span>
-    <h1>Event Registration</h1>
+    <h1>Event Application</h1>
     <p>Apply to compete in an upcoming AADS event. Fill in your details and attach your DartConnect player card.</p>
   </div>
 
@@ -385,7 +385,7 @@
 
       <button type="submit" class="submit-btn" id="submit-btn">
         <div class="spinner"></div>
-        <span class="btn-text">🎯 Submit Registration</span>
+        <span class="btn-text">🎯 Submit Application</span>
       </button>
 
     </form>
@@ -394,7 +394,7 @@
   <!-- Success screen (replaces card) -->
   <div id="success-screen">
     <div class="success-icon">✅</div>
-    <div class="success-title">Registration Received!</div>
+    <div class="success-title">Application Received!</div>
     <div class="success-msg">
       Thanks, <span class="success-name" id="success-name"></span>! Your application has been submitted.
       The AADS team will review it and be in touch via email or phone.
@@ -405,7 +405,7 @@
   <div id="global-error"></div>
 
   <p class="footer-note">
-    Your information is used solely for AADS event registration.<br>
+    Your information is used solely for AADS event applications.<br>
     Questions? Contact us through the AADS Atlantic Darts channels.
   </p>
 
@@ -551,12 +551,12 @@
         const { data: urlData } = sb.storage.from(STORAGE_BUCKET).getPublicUrl(path)
         const cardUrl = urlData?.publicUrl || null
 
-        // 2. Insert registration record
+        // 2. Insert application record
         const { error: insertErr } = await sb
           .from(TABLE_NAME)
           .insert({ name, email, phone, dartconnect_card_url: cardUrl })
 
-        if (insertErr) throw new Error('Registration failed: ' + insertErr.message)
+        if (insertErr) throw new Error('Application failed: ' + insertErr.message)
 
         // 3. Show success
         successName.textContent = name.split(' ')[0]
