@@ -143,7 +143,7 @@ function SignedSubmissions() {
                   <div className="text-xs font-semibold text-white truncate">{r.name}</div>
                   <div className="text-[10px] text-gray-600">{new Date(r.submitted_at).toLocaleString()}</div>
                 </div>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
+                <div className="flex items-center gap-1.5 shrink-0">
                   {r.role && (
                     <span
                       className="text-[9px] font-black uppercase px-2 py-0.5 rounded"
@@ -156,6 +156,74 @@ function SignedSubmissions() {
                       className="text-[9px] font-black text-orange border border-orange/30 px-2 py-0.5 rounded hover:bg-orange/10 transition-colors"
                     >PDF</button>
                   )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function PlayerApplications() {
+  const [rows, setRows] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  async function loadRows() {
+    setLoading(true)
+    setError(null)
+    let client = getSupabaseClient()
+    if (!client) client = await initSupabaseClient()
+    if (!client) { setError('Supabase not connected'); setLoading(false); return }
+    const { data, error: err } = await client
+      .from('event_registrations')
+      .select('*')
+      .order('submitted_at', { ascending: false })
+    setLoading(false)
+    if (err) { setError(err.message); return }
+    setRows(data || [])
+  }
+
+  useEffect(() => { loadRows() }, [])
+
+  return (
+    <div className="border border-[#1a1a1a] rounded-xl overflow-hidden mb-4">
+      <div className="w-full px-4 py-3 flex items-center gap-2 bg-[#0d0d0d] text-left">
+        <span className="text-xs font-black uppercase tracking-widest text-orange">Player Applications</span>
+        <span className="ml-auto text-[10px] text-gray-600">{rows.length} record{rows.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div className="bg-[#080808] px-4 py-3">
+        <div className="flex justify-end items-center mb-2">
+          <button onClick={loadRows} className="text-[10px] text-orange hover:underline">↺ Refresh</button>
+        </div>
+        {loading && <p className="text-xs text-gray-500 py-2">Loading…</p>}
+        {error && <p className="text-xs text-red-500 py-2">{error}</p>}
+        {!loading && !error && rows.length === 0 && (
+          <p className="text-xs text-gray-600 py-2">No applications yet</p>
+        )}
+        {!loading && rows.length > 0 && (
+          <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
+            {rows.map(r => (
+              <div key={r.id} className="px-2 py-1.5 rounded bg-[#0d0d0d] border border-[#141414]">
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-white truncate">{r.name}</div>
+                    <div className="text-[10px] text-gray-500 truncate">{r.email}</div>
+                    <div className="text-[10px] text-gray-600">{new Date(r.submitted_at).toLocaleString()}</div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span className="text-[9px] text-gray-500">{r.phone}</span>
+                    {r.dartconnect_card_url && (
+                      <a
+                        href={r.dartconnect_card_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[9px] font-black text-orange border border-orange/30 px-2 py-0.5 rounded hover:bg-orange/10 transition-colors"
+                      >Card</a>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -216,6 +284,7 @@ export default function PolicyDocs({ uploadedPolicies, onUpload }) {
         {/* Categorized document list */}
         <div className="w-64 shrink-0 overflow-y-auto space-y-4 pr-1">
           <SignedSubmissions />
+          <PlayerApplications />
           {POLICY_CATEGORIES.map(cat => (
             <div key={cat.label}>
               <div className="text-[10px] uppercase tracking-widest text-gray-600 font-semibold mb-1.5 px-1">
