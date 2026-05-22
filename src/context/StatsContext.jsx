@@ -3,25 +3,42 @@ import { parsePlayerCSV } from '../utils/csvParser.js'
 import { aggregatePlayerStats, buildH2HIndex } from '../utils/eventAggregator.js'
 import playersWithImagesRaw from '../data/players-with-images.csv?raw'
 import playersLegacyRaw from '../data/players.csv?raw'
+import womenPlayersRaw from '../data/women-players.csv?raw'
 import event4Data from '../data/events/Final_Series1_Event4.json'
 
 // ─── Static data loaded at build-time ──────────────────────────────────────
 const EVENT_MODULES = import.meta.glob('../data/events/*.json', { eager: true })
-const staticEvents = [
-  ...Object.values(EVENT_MODULES)
-    .map(m => m.default)
-    .filter(e => e.metadata.event_id !== 4),
-  event4Data
-].sort((a, b) => a.metadata.event_id - b.metadata.event_id)
 
-// Merge both CSVs: legacy has all players, images CSV has richer data for 8 players.
-// Players in the images CSV take precedence; legacy players fill in the rest.
+// All events unfiltered, sorted by series then event id
+const allEventModules = [
+  ...Object.values(EVENT_MODULES).map(m => m.default).filter(e => e.metadata.event_id !== 4),
+  event4Data,
+]
+const allStaticEvents = [...allEventModules].sort((a, b) => {
+  const sa = a.metadata.series_id ?? 1
+  const sb = b.metadata.series_id ?? 1
+  if (sa !== sb) return sa - sb
+  return a.metadata.event_id - b.metadata.event_id
+})
+
+// Series 1 (men's) events only — used for standings, H2H and province stats
+const staticEvents = allEventModules
+  .filter(e => (e.metadata.series_id ?? 1) === 1)
+  .sort((a, b) => a.metadata.event_id - b.metadata.event_id)
+
+// Merge player CSVs: images CSV has richer data; legacy fills the rest; women appended last.
 const playersWithImages = parsePlayerCSV(playersWithImagesRaw)
 const playersLegacy = parsePlayerCSV(playersLegacyRaw)
+const womenPlayers = parsePlayerCSV(womenPlayersRaw)
 const imagesByName = new Map(playersWithImages.map(p => [p.displayName.toLowerCase(), p]))
-const staticPlayers = [
+const menPlayers = [
   ...playersWithImages,
   ...playersLegacy.filter(p => !imagesByName.has(p.displayName.toLowerCase())),
+]
+const menNames = new Set(menPlayers.map(p => p.displayName.toLowerCase()))
+const staticPlayers = [
+  ...menPlayers,
+  ...womenPlayers.filter(p => !menNames.has(p.displayName.toLowerCase())),
 ]
 
 // ─── Reducer ───────────────────────────────────────────────────────────────
@@ -137,9 +154,21 @@ export function StatsProvider({ children }) {
     }
     return merged
   }, [state.runtimePlayers, state.staticPlayers, state.provinceOverrides])
+  // Series 1 events only (for stats tabs)
   const events = [...state.staticEvents, ...state.runtimeEvents].sort(
     (a, b) => a.metadata.event_id - b.metadata.event_id
   )
+
+  // All events across all series (for Commentator tab)
+  const allEvents = useMemo(() => [
+    ...allStaticEvents,
+    ...state.runtimeEvents,
+  ].sort((a, b) => {
+    const sa = a.metadata.series_id ?? 1
+    const sb = b.metadata.series_id ?? 1
+    if (sa !== sb) return sa - sb
+    return a.metadata.event_id - b.metadata.event_id
+  }), [state.runtimeEvents])
 
   const csvNames = useMemo(() => players.map(p => p.displayName), [players])
 
@@ -165,6 +194,7 @@ export function StatsProvider({ children }) {
   const value = {
     players: enrichedPlayers,
     events,
+    allEvents,
     aggregatedStats,
     h2hIndex,
     csvNames,

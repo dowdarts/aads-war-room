@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "series_id": 2,
+    "event_id": 1,
+    "event_name": "Women's Invitational - Event 1",
+    "date": "2026-05-30",
+    "champion": null,
+    "status": "upcoming"
+  },
+  "players_invited": [
+    "Kathy Bourgeois",
+    "Reece Williams",
+    "Emily Alford",
+    "Danna Lee Foster",
+    "Tracy Lee Powers",
+    "Kayla Melanson",
+    "Tina Ouellette",
+    "Ashley Foster",
+    "Josianne Fenech",
+    "Joanne Luke"
+  ],
+  "player_event_stats": []
+}

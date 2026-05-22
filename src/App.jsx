@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { StatsProvider } from './context/StatsContext.jsx'
 import PinGate from './components/PinGate.jsx'
+import CommentatorGate from './components/CommentatorGate.jsx'
 import Nav from './components/Nav.jsx'
 import ProvinceLeaderboards from './components/ProvinceLeaderboards.jsx'
 import ProvinceWeightedStandings from './components/ProvinceWeightedStandings.jsx'
@@ -13,13 +14,14 @@ import QuickLinks from './components/QuickLinks.jsx'
 import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
 import LocalChat from './components/LocalChat.jsx'
 import PaymentLanding from './components/PaymentLanding.jsx'
+import Commentator from './components/Commentator.jsx'
 
 function AppShell() {
   const [tab, setTab] = useState(() => sessionStorage.getItem('activeTab') || 'provinces')
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
   const wakeLockRef = useRef(null)
-  const LOCKED_TABS = ['links', 'data', 'policy']
+  const LOCKED_TABS = ['links', 'data', 'policy', 'commentator']
   const [unlockedTabs, setUnlockedTabs] = useState(new Set())
   const [pendingTab, setPendingTab] = useState(null)
 
@@ -42,6 +44,10 @@ function AppShell() {
   function handleTabSelect(id) {
     if (id === 'form') {
       window.open('competition-form.html', '_blank', 'noopener,noreferrer')
+      return
+    }
+    if (id === 'merch') {
+      window.open('merch.html', '_blank', 'noopener,noreferrer')
       return
     }
     if (LOCKED_TABS.includes(id) && !unlockedTabs.has(id)) {
@@ -68,8 +74,14 @@ function AppShell() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
-      {pendingTab && (
+      {pendingTab && pendingTab !== 'commentator' && (
         <PinGate
+          onUnlock={handleUnlock}
+          onCancel={() => setPendingTab(null)}
+        />
+      )}
+      {pendingTab === 'commentator' && (
+        <CommentatorGate
           onUnlock={handleUnlock}
           onCancel={() => setPendingTab(null)}
         />
@@ -86,6 +98,7 @@ function AppShell() {
         {tab === 'policy' && <PolicyDocs uploadedPolicies={uploadedPolicies} onUpload={addPolicy} />}
         {tab === 'data' && <DataManager />}
         {tab === 'ack' && <AcknowledgementLauncher />}
+        {tab === 'commentator' && <Commentator />}
       </main>
       <LocalChat />
     </div>

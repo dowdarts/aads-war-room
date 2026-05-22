@@ -11,7 +11,9 @@ const TABS = [
   { id: 'policy', label: 'Policy Docs' },
   { id: 'ack', label: '📋 Acknowledgements' },
   { id: 'form', label: '📝 Competition Form' },
+  { id: 'merch', label: '👕 Merch Store' },
   { id: 'data', label: 'Data Manager' },
+  { id: 'commentator', label: '🎙️ Commentator' },
 ]
 
 export default function Nav({ active, onSelect }) {
