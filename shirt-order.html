@@ -315,16 +315,110 @@
     .warning-box { padding: 14px 18px; border-radius: 14px; background: rgba(255,122,0,0.06); border: 1px solid rgba(255,122,0,0.2); color: #d98840; font-size: 13px; line-height: 1.65; }
     .warning-box strong { color: var(--accent-2); }
 
+    /* ══ RESPONSIVE — full breakpoint stack ══════════════ */
+
+    /* Large desktop: wider layout */
+    @media (min-width: 1200px) {
+      .main-layout { max-width: 1200px; grid-template-columns: 1fr 400px; gap: 28px; }
+    }
+
+    /* Standard laptop / medium desktop (1024px – 1199px) */
+    @media (max-width: 1199px) and (min-width: 1025px) {
+      .main-layout { grid-template-columns: 1fr 340px; gap: 18px; }
+    }
+
+    /* Small laptop / large tablet landscape (780px – 1024px) */
+    @media (max-width: 1024px) and (min-width: 781px) {
+      .main-layout { grid-template-columns: 1fr 300px; gap: 16px; padding: 20px 16px 80px; }
+      .hero { padding: 28px 20px 24px; }
+      .section { padding: 20px; }
+    }
+
+    /* Tablet portrait / large phone: drop to single column, use mobile cart bar */
     @media (max-width: 780px) {
-      .main-layout { grid-template-columns: 1fr; padding-bottom: 100px; }
+      .main-layout { grid-template-columns: 1fr; gap: 0; padding: 16px 16px 120px; }
       .cart-panel { display: none; }
       .mobile-cart-bar { display: block; }
-      .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .hero { padding: 26px 18px 22px; }
+      .hero-eyebrow { font-size: 10px; letter-spacing: 0.28em; }
+      .flash-banner { padding: 9px 14px; font-size: 11px; letter-spacing: 0.22em; }
+      .flash-banner span { margin: 0 12px; }
+      .section { padding: 18px; border-radius: 18px; }
+      .confirm-wrap { padding: 0 16px 80px; }
     }
-    @media (max-width: 420px) {
-      .confirm-body { padding: 20px; }
-      .pay-row { flex-direction: column; align-items: flex-start; }
-      .copy-btn { width: 100%; }
+
+    /* Large phone (540px – 779px) */
+    @media (max-width: 640px) {
+      .hero-sub { font-size: 14px; }
+      .price-amount { font-size: clamp(52px, 15vw, 80px); }
+      .countdown-wrap { padding: 9px 16px; gap: 10px; flex-wrap: wrap; justify-content: center; }
+      .countdown-digits { font-size: 18px; }
+      .section { padding: 16px; border-radius: 16px; margin-bottom: 12px; }
+      .add-btn, .checkout-btn { min-height: 52px; }
+      .field input, .field select { min-height: 48px; }
+      .check-row { min-height: 48px; }
+      .confirm-body { padding: 22px; }
+      .confirm-order-num { font-size: clamp(24px, 8vw, 42px); }
+      .pay-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+      .copy-btn { width: 100%; text-align: center; padding: 12px 14px; }
+    }
+
+    /* Medium phone (400px – 539px) */
+    @media (max-width: 540px) {
+      .flash-banner { letter-spacing: 0.14em; font-size: 10px; padding: 8px 12px; }
+      .flash-banner span { margin: 0 8px; }
+      .hero { padding: 20px 14px 18px; }
+      .hero-eyebrow { letter-spacing: 0.2em; }
+      .hero-title { font-size: clamp(28px, 9vw, 44px); }
+      .price-amount { font-size: clamp(48px, 16vw, 72px); }
+      .hero-sub { font-size: 13px; line-height: 1.6; }
+      .color-grid { gap: 8px; }
+      .color-card-label { font-size: 10px; padding: 7px 4px; letter-spacing: 0.08em; }
+      .section { padding: 14px; border-radius: 14px; }
+      .form-stack { gap: 12px; }
+      .field input, .field select { padding: 12px 13px; font-size: 15px; }
+      .confirm-wrap { padding: 0 12px 80px; margin-top: 12px; }
+      .confirm-body { padding: 18px; }
+      .confirm-band { padding: 13px 18px; letter-spacing: 0.22em; }
+      .pay-box-body { padding: 14px; gap: 12px; }
+      .pay-val { font-size: 15px; }
+      .pay-val.highlight { font-size: 17px; }
+      .mobile-cart-bar { padding: 10px 14px 18px; }
+      .mobile-cart-btn { font-size: 13px; padding: 15px 16px; }
+    }
+
+    /* Small phone (< 400px) */
+    @media (max-width: 400px) {
+      .flash-banner { letter-spacing: 0.08em; font-size: 10px; }
+      .flash-banner span { margin: 0 6px; }
+      .hero-title { font-size: clamp(26px, 9.5vw, 38px); }
+      .price-amount { font-size: clamp(44px, 17vw, 64px); }
+      .price-currency { font-size: 18px; }
+      .price-per { font-size: 11px; }
+      .hero-sub { font-size: 13px; }
+      .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+      .section { padding: 12px; border-radius: 14px; }
+      .field input, .field select { padding: 11px 12px; font-size: 14px; border-radius: 11px; }
+      .check-row { padding: 11px 12px; border-radius: 11px; }
+      .add-btn { padding: 14px; font-size: 13px; letter-spacing: 0.16em; border-radius: 13px; }
+      .checkout-btn { padding: 14px; font-size: 13px; letter-spacing: 0.16em; }
+      .confirm-body { padding: 16px; }
+      .confirm-order-num { font-size: clamp(20px, 8vw, 34px); }
+      .mobile-cart-btn { font-size: 12px; padding: 14px; border-radius: 14px; }
+    }
+
+    /* Very small phone (< 360px) */
+    @media (max-width: 359px) {
+      .color-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero-sub { display: none; }
+      .section-title { font-size: 10px; }
+    }
+
+    /* iOS safe area insets (notch + home bar) */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      .mobile-cart-bar { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+      .cart-drawer { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
