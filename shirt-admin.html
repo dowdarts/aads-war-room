@@ -559,7 +559,7 @@
 
     async function fetchOrders() {
       const res = await fetch(
-        `${SUPABASE_URL}/rest/v1/shirt_orders?select=id,order_number,customer_name,shirt_name,no_name,size,color,status,created_at,confirmed_at&order=created_at.desc`,
+        `${SUPABASE_URL}/rest/v1/shirt_orders?select=id,order_number,customer_name,shirt_name,no_name,size,color,items,total_amount,status,created_at,confirmed_at&order=created_at.desc`,
         { headers }
       )
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -592,14 +592,16 @@
     }
 
     function updateStats() {
-      const total = allOrders.length
-      const pending = allOrders.filter(o => o.status === 'pending').length
+      const total     = allOrders.length
+      const pending   = allOrders.filter(o => o.status === 'pending').length
       const confirmed = allOrders.filter(o => o.status === 'confirmed').length
       const finalized = allOrders.filter(o => o.status === 'finalized').length
-      const collected = (confirmed + finalized) * 50
+      const collected = allOrders
+        .filter(o => o.status === 'confirmed' || o.status === 'finalized')
+        .reduce((sum, o) => sum + (o.total_amount ? Number(o.total_amount) : 50), 0)
 
-      document.getElementById('statTotal').textContent = total
-      document.getElementById('statPending').textContent = pending
+      document.getElementById('statTotal').textContent     = total
+      document.getElementById('statPending').textContent   = pending
       document.getElementById('statConfirmed').textContent = confirmed + finalized
       document.getElementById('statCollected').textContent = `$${collected}`
     }
@@ -623,11 +625,27 @@
       }
 
       const rows = filtered.map(order => {
-        const dot = COLOR_HEX[order.color]
-          ? `<span class="color-dot" style="background:${COLOR_HEX[order.color]}"></span>`
-          : ''
-        const colorName = order.color.charAt(0).toUpperCase() + order.color.slice(1)
-        const shirtNameDisplay = order.no_name ? '<em style="color:#555">No name</em>' : (order.shirt_name || '—')
+        // Build items cell — use items JSON if available, fall back to top-level columns
+        let itemsHtml = ''
+        if (Array.isArray(order.items) && order.items.length > 0) {
+          itemsHtml = order.items.map(it => {
+            const hex = COLOR_HEX[it.color] || '#888'
+            const nm  = it.no_name ? '<em style="color:#555">No name</em>' : (it.shirt_name || '—')
+            return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+              <span class="color-dot" style="background:${hex}"></span>
+              <span style="text-transform:capitalize;font-size:13px">${it.color} · <strong>${it.size}</strong> · ${nm}</span>
+            </div>`
+          }).join('')
+        } else {
+          const hex = COLOR_HEX[order.color] || '#888'
+          const nm  = order.no_name ? '<em style="color:#555">No name</em>' : (order.shirt_name || '—')
+          itemsHtml = `<div style="display:flex;align-items:center;gap:7px">
+            <span class="color-dot" style="background:${hex}"></span>
+            <span style="text-transform:capitalize;font-size:13px">${order.color || '—'} · <strong>${order.size || '—'}</strong> · ${nm}</span>
+          </div>`
+        }
+
+        const totalDisplay = order.total_amount ? `$${Number(order.total_amount).toFixed(0)}` : '$50'
         const date = new Date(order.created_at).toLocaleString('en-CA', {
           month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
         })
@@ -651,11 +669,9 @@
 
         return `
           <tr>
-            <td data-label="Order #"><span class="order-num">${order.order_number}</span></td>
+            <td data-label="Order #"><span class="order-num">${order.order_number}</span><br><span style="font-size:11px;color:#555">${totalDisplay}</span></td>
             <td data-label="Name">${escHtml(order.customer_name)}</td>
-            <td data-label="Colour">${dot}${colorName}</td>
-            <td data-label="Size"><span class="size-badge">${order.size}</span></td>
-            <td data-label="Shirt Name">${shirtNameDisplay}</td>
+            <td data-label="Items">${itemsHtml}</td>
             <td data-label="Placed">${date}</td>
             <td data-label="Status">${statusBadge}</td>
             <td data-label="Action">${actionBtn}</td>
@@ -669,9 +685,7 @@
             <tr>
               <th>Order #</th>
               <th>Name</th>
-              <th>Colour</th>
-              <th>Size</th>
-              <th>Shirt Name</th>
+              <th>Items</th>
               <th>Placed</th>
               <th>Status</th>
               <th>Action</th>
