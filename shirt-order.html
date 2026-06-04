@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CGC Dart Shirt Order — One-Time Offer</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #2a2a2a;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --success-bg: rgba(44, 122, 66, 0.18);
+      --success-line: rgba(84, 190, 113, 0.4);
+      --success-text: #b4f0c2;
+      --danger-bg: rgba(180, 30, 30, 0.15);
+      --danger-line: rgba(220, 60, 60, 0.4);
+      --danger-text: #ffb3b3;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255, 122, 0, 0.16), transparent 34%),
+        linear-gradient(180deg, #080808 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .shell {
+      width: min(920px, calc(100% - 32px));
+      margin: 32px auto 64px;
+    }
+    .hidden { display: none !important; }
+
+    /* ── Hero card ── */
+    .hero {
+      overflow: hidden;
+      border: 1px solid #262626;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)), var(--panel);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+    }
+    .hero-band {
+      padding: 16px 24px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #090909;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+    .hero-body {
+      padding: 32px;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.75;
+      max-width: 640px;
+    }
+
+    /* ── Countdown ── */
+    .countdown-wrap {
+      margin-top: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .countdown-label {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .countdown-digits {
+      font-size: 28px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+      color: var(--accent);
+    }
+    .countdown-digits span {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      margin-left: 2px;
+    }
+    .price-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 100px;
+      background: rgba(255,122,0,0.12);
+      border: 1px solid rgba(255,122,0,0.35);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+    }
+
+    /* ── Closed banner ── */
+    .closed-banner {
+      padding: 32px;
+      border: 1px solid var(--danger-line);
+      border-radius: 20px;
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .closed-banner h2 {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .closed-banner p {
+      margin: 0;
+      font-size: 15px;
+      opacity: 0.85;
+    }
+
+    /* ── Section blocks ── */
+    .section {
+      margin-top: 20px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--panel-2);
+      padding: 28px;
+    }
+    .section-title {
+      margin: 0 0 20px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* ── Color picker ── */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .color-card {
+      cursor: pointer;
+      border: 2px solid #2a2a2a;
+      border-radius: 18px;
+      background: #0d0d0d;
+      overflow: hidden;
+      transition: border-color 150ms ease, transform 120ms ease, box-shadow 150ms ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .color-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    }
+    .color-card.selected {
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 3px var(--card-color), 0 12px 36px rgba(0,0,0,0.5);
+      border-color: var(--card-color);
+    }
+    .color-card-img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+    }
+    .color-card-swatch {
+      width: 100%;
+      aspect-ratio: 3/4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .color-card-swatch svg {
+      width: 56%;
+      height: 56%;
+      opacity: 0.85;
+    }
+    .color-card-name {
+      padding: 10px 8px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-align: center;
+      color: var(--text);
+    }
+    .color-card.selected .color-card-name {
+      color: var(--card-color);
+    }
+
+    /* ── Form ── */
+    .form-grid {
+      display: grid;
+      gap: 20px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .field label {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .field input, .field select {
+      appearance: none;
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid #2a2a2a;
+      background: #0a0a0a;
+      color: var(--text);
+      font-size: 16px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 120ms;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--accent);
+    }
+    .field input::placeholder {
+      color: #555;
+    }
+    .field-note {
+      font-size: 12px;
+      color: #666;
+      margin: 0;
+    }
+    .field-optional {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #555;
+      margin-left: 6px;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid #2a2a2a;
+      background: #0a0a0a;
+      cursor: pointer;
+      transition: border-color 120ms;
+    }
+    .checkbox-row:hover {
+      border-color: #3a3a3a;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .checkbox-row label {
+      font-size: 15px;
+      color: var(--text);
+      cursor: pointer;
+      letter-spacing: normal;
+      text-transform: none;
+      font-weight: normal;
+    }
+
+    /* ── Validation error ── */
+    .error-msg {
+      padding: 14px 18px;
+      border: 1px solid var(--danger-line);
+      border-radius: 14px;
+      background: var(--danger-bg);
+      color: var(--danger-text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      appearance: none;
+      width: 100%;
+      padding: 18px;
+      border-radius: 16px;
+      border: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #090909;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 150ms, transform 120ms;
+    }
+    .submit-btn:hover:not(:disabled) {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    .submit-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* ── Confirmation card ── */
+    .confirm-card {
+      margin-top: 24px;
+      border: 1px solid var(--success-line);
+      border-radius: 28px;
+      background: var(--panel);
+      overflow: hidden;
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+    }
+    .confirm-band {
+      padding: 16px 24px;
+      background: linear-gradient(90deg, #1a7a35, #2da85a);
+      color: #060606;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+    .confirm-body {
+      padding: 32px;
+    }
+    .order-number-display {
+      font-size: clamp(40px, 8vw, 72px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: var(--success-text);
+      line-height: 1;
+      margin: 8px 0 16px;
+    }
+    .order-summary {
+      display: inline-flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .order-tag {
+      padding: 5px 12px;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid #303030;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: capitalize;
+    }
+    .payment-box {
+      border: 1px solid #2a2a2a;
+      border-radius: 20px;
+      background: #0a0a0a;
+      overflow: hidden;
+    }
+    .payment-box-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid #1e1e1e;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .payment-box-body {
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+    }
+    .pay-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .pay-row-info {
+      min-width: 0;
+    }
+    .pay-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #777;
+      margin: 0 0 4px;
+    }
+    .pay-value {
+      font-size: 18px;
+      font-weight: 700;
+      word-break: break-all;
+    }
+    .copy-btn {
+      flex-shrink: 0;
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      background: var(--accent);
+      color: #111;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 120ms;
+    }
+    .copy-btn:hover { opacity: 0.85; }
+    .copy-btn.copied {
+      background: #2da85a;
+      color: #fff;
+    }
+    .warning-box {
+      margin-top: 16px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      background: rgba(255,122,0,0.08);
+      border: 1px solid rgba(255,122,0,0.25);
+      color: var(--accent-2);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 640px) {
+      .shell { width: calc(100% - 20px); margin: 12px auto 40px; }
+      .hero-body, .confirm-body { padding: 20px; }
+      .section { padding: 20px; }
+      .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .countdown-digits { font-size: 22px; }
+      .pay-row { flex-direction: column; align-items: flex-start; }
+      .copy-btn { width: 100%; }
+    }
+    @media (max-width: 400px) {
+      .color-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+
+    <!-- ── Closed banner (shown after deadline) ── -->
+    <div id="closedBanner" class="closed-banner hidden">
+      <h2>Orders Are Closed</h2>
+      <p>The order window closed Sunday June 7 at 9 PM. The batch order has been placed. Thank you to everyone who ordered!</p>
+    </div>
+
+    <!-- ── Main ordering content ── -->
+    <div id="mainContent">
+
+      <div class="hero">
+        <div class="hero-band">CGC Members — One-Time Offer</div>
+        <div class="hero-body">
+          <p class="eyebrow">Dart Shirt Pre-Order</p>
+          <h1>Get your CGC dart shirt.</h1>
+          <p class="lead">
+            Five colours. Seven sizes. One price. This is a one-time group order placed Monday June 9 — choose your colour and size before the window closes.
+          </p>
+          <div class="countdown-wrap">
+            <span class="price-badge">$50 CAD</span>
+            <div>
+              <div class="countdown-label">Order window closes in</div>
+              <div class="countdown-digits" id="countdown">Loading…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Colour picker ── -->
+      <div class="section">
+        <p class="section-title">1 · Choose Your Colour</p>
+        <div class="color-grid" id="colorGrid">
+
+          <div class="color-card" data-color="red" style="--card-color:#e63b3b" onclick="selectColor('red', this)">
+            <img class="color-card-img" src="./images/shirts/shirt-red.png" alt="Red shirt"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-card-swatch" style="background:#1a0404;display:none">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#e63b3b" stroke="#ff6b6b" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div class="color-card-name">Red</div>
+          </div>
+
+          <div class="color-card" data-color="blue" style="--card-color:#3b7fe6" onclick="selectColor('blue', this)">
+            <img class="color-card-img" src="./images/shirts/shirt-blue.png" alt="Blue shirt"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-card-swatch" style="background:#040a1a;display:none">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#3b7fe6" stroke="#6baoff" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div class="color-card-name">Blue</div>
+          </div>
+
+          <div class="color-card" data-color="green" style="--card-color:#2da85a" onclick="selectColor('green', this)">
+            <img class="color-card-img" src="./images/shirts/shirt-green.png" alt="Green shirt"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-card-swatch" style="background:#041209;display:none">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#2da85a" stroke="#5dd88a" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div class="color-card-name">Green</div>
+          </div>
+
+          <div class="color-card" data-color="purple" style="--card-color:#9b3be6" onclick="selectColor('purple', this)">
+            <img class="color-card-img" src="./images/shirts/shirt-purple.png" alt="Purple shirt"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-card-swatch" style="background:#0e0417;display:none">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#9b3be6" stroke="#bf7af5" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div class="color-card-name">Purple</div>
+          </div>
+
+          <div class="color-card" data-color="orange" style="--card-color:#ff7a00" onclick="selectColor('orange', this)">
+            <img class="color-card-img" src="./images/shirts/shirt-orange.png" alt="Orange shirt"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-card-swatch" style="background:#160800;display:none">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#ff7a00" stroke="#ffb347" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div class="color-card-name">Orange</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── Order form ── -->
+      <div class="section">
+        <p class="section-title">2 · Your Order Details</p>
+        <form id="orderForm" novalidate>
+          <div class="form-grid">
+
+            <div class="field">
+              <label for="customerName">Your Name</label>
+              <input type="text" id="customerName" name="customerName"
+                placeholder="e.g. Matt Dow" autocomplete="name" required />
+            </div>
+
+            <div class="field">
+              <label for="sizeSelect">Shirt Size</label>
+              <select id="sizeSelect" name="size" required>
+                <option value="">— Select a size —</option>
+                <option value="S">S — Small</option>
+                <option value="M">M — Medium</option>
+                <option value="L">L — Large</option>
+                <option value="XL">XL — Extra Large</option>
+                <option value="XXL">XXL — 2X Large</option>
+                <option value="3XL">3XL — 3X Large</option>
+                <option value="4XL">4XL — 4X Large</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="shirtName">
+                First Name on Front of Shirt
+                <span class="field-optional">Optional</span>
+              </label>
+              <input type="text" id="shirtName" name="shirtName"
+                placeholder="e.g. Matt  (leave blank + check box below if no name)" maxlength="20" />
+              <p class="field-note">Up to 20 characters — printed on the front of the shirt.</p>
+            </div>
+
+            <div class="field">
+              <div class="checkbox-row" onclick="document.getElementById('noName').click()">
+                <input type="checkbox" id="noName" name="noName"
+                  onclick="event.stopPropagation(); handleNoNameChange()" />
+                <label for="noName">No name on shirt — I don't want a name printed</label>
+              </div>
+            </div>
+
+            <div id="formError" class="error-msg hidden"></div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+              Place My Order
+            </button>
+
+          </div>
+        </form>
+      </div>
+
+    </div><!-- end #mainContent -->
+
+    <!-- ── Confirmation card (shown after order) ── -->
+    <div id="confirmCard" class="confirm-card hidden">
+      <div class="confirm-band">✓ Order Placed — Awaiting Payment</div>
+      <div class="confirm-body">
+        <p class="eyebrow">Your Order Number</p>
+        <div class="order-number-display" id="confirmOrderNum">CGC-001</div>
+        <div class="order-summary" id="confirmSummary"></div>
+
+        <div class="payment-box">
+          <div class="payment-box-header">Send Your E-Transfer Now</div>
+          <div class="payment-box-body">
+            <div class="pay-row">
+              <div class="pay-row-info">
+                <p class="pay-label">Amount</p>
+                <div class="pay-value">$50.00 CAD</div>
+              </div>
+            </div>
+            <div class="pay-row">
+              <div class="pay-row-info">
+                <p class="pay-label">Send To (Email)</p>
+                <div class="pay-value" id="copyEmail">dow1800@gmail.com</div>
+              </div>
+              <button class="copy-btn" id="copyEmailBtn" onclick="copyField('copyEmail','copyEmailBtn')">Copy</button>
+            </div>
+            <div class="pay-row">
+              <div class="pay-row-info">
+                <p class="pay-label">Message Field — type exactly</p>
+                <div class="pay-value" id="copyOrderNum" style="color:var(--success-text)">CGC-001</div>
+              </div>
+              <button class="copy-btn" id="copyOrderNumBtn" onclick="copyField('copyOrderNum','copyOrderNumBtn')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          ⚠ Your order is <strong>not confirmed</strong> until your $50 e-transfer is received. Once confirmed you'll be notified. The order goes to the supplier <strong>Monday June 9</strong> — only confirmed (paid) orders will be included.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end .shell -->
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+
+    // Deadline: Sunday June 7, 2026 @ 9:00 PM ADT = Monday June 8, 2026 00:00:00 UTC
+    const DEADLINE = new Date('2026-06-08T00:00:00Z')
+
+    let selectedColor = null
+    let orderPlaced = false
+
+    // ── Deadline countdown ──────────────────────────────
+    function formatCountdown(ms) {
+      if (ms <= 0) return null
+      const totalSec = Math.floor(ms / 1000)
+      const d = Math.floor(totalSec / 86400)
+      const h = Math.floor((totalSec % 86400) / 3600)
+      const m = Math.floor((totalSec % 3600) / 60)
+      const s = totalSec % 60
+      const pad = n => String(n).padStart(2, '0')
+      if (d > 0) return `${d}<span>d</span> ${pad(h)}<span>h</span> ${pad(m)}<span>m</span> ${pad(s)}<span>s</span>`
+      return `${pad(h)}<span>h</span> ${pad(m)}<span>m</span> ${pad(s)}<span>s</span>`
+    }
+
+    function tickCountdown() {
+      const remaining = DEADLINE - Date.now()
+      const el = document.getElementById('countdown')
+      if (remaining <= 0) {
+        el.innerHTML = 'Closed'
+        showClosed()
+        return
+      }
+      el.innerHTML = formatCountdown(remaining)
+    }
+
+    function showClosed() {
+      document.getElementById('closedBanner').classList.remove('hidden')
+      document.getElementById('mainContent').classList.add('hidden')
+      document.getElementById('confirmCard').classList.add('hidden')
+    }
+
+    // ── Colour selection ────────────────────────────────
+    function selectColor(color, el) {
+      selectedColor = color
+      document.querySelectorAll('.color-card').forEach(c => c.classList.remove('selected'))
+      el.classList.add('selected')
+    }
+
+    // ── No-name checkbox ────────────────────────────────
+    function handleNoNameChange() {
+      const checked = document.getElementById('noName').checked
+      const nameInput = document.getElementById('shirtName')
+      if (checked) {
+        nameInput.value = ''
+        nameInput.disabled = true
+        nameInput.style.opacity = '0.35'
+      } else {
+        nameInput.disabled = false
+        nameInput.style.opacity = '1'
+      }
+    }
+
+    // ── Supabase helpers ────────────────────────────────
+    async function getOrderCount() {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/shirt_orders?select=id`,
+          {
+            headers: {
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+              Prefer: 'count=exact',
+            },
+          }
+        )
+        if (!res.ok) return 0
+        const range = res.headers.get('Content-Range') // "0-9/10" or "*/0"
+        if (!range) return 0
+        const total = parseInt(range.split('/').pop(), 10)
+        return isNaN(total) ? 0 : total
+      } catch (_) {
+        return 0
+      }
+    }
+
+    async function insertOrder({ orderNumber, customerName, shirtName, noName, size, color }) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/shirt_orders`,
+        {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({
+            order_number: orderNumber,
+            customer_name: customerName,
+            shirt_name: shirtName || null,
+            no_name: noName,
+            size,
+            color,
+          }),
+        }
+      )
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || `HTTP ${res.status}`)
+      }
+    }
+
+    // ── Form submission ─────────────────────────────────
+    function showError(msg) {
+      const el = document.getElementById('formError')
+      el.textContent = msg
+      el.classList.remove('hidden')
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+
+    function hideError() {
+      document.getElementById('formError').classList.add('hidden')
+    }
+
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      if (orderPlaced) return
+      if (Date.now() >= DEADLINE) { showClosed(); return }
+
+      hideError()
+
+      const customerName = document.getElementById('customerName').value.trim()
+      const size = document.getElementById('sizeSelect').value
+      const shirtName = document.getElementById('shirtName').value.trim()
+      const noName = document.getElementById('noName').checked
+
+      // Validation
+      if (!customerName) { showError('Please enter your name so we know whose order this is.'); return }
+      if (!size) { showError('Please select a shirt size.'); return }
+      if (!selectedColor) { showError('Please select a colour from the options above.'); return }
+      if (!shirtName && !noName) {
+        showError('Either enter a first name to print on the shirt, or check the "No name on shirt" box.')
+        return
+      }
+
+      const btn = document.getElementById('submitBtn')
+      btn.disabled = true
+      btn.textContent = 'Placing Order…'
+
+      try {
+        const count = await getOrderCount()
+        const orderNumber = `CGC-${String(count + 1).padStart(3, '0')}`
+
+        await insertOrder({ orderNumber, customerName, shirtName, noName, size, color: selectedColor })
+
+        orderPlaced = true
+        showConfirmation({ orderNumber, customerName, shirtName, noName, size, color: selectedColor })
+      } catch (err) {
+        console.error(err)
+        if (err.message && err.message.includes('duplicate') || err.message && err.message.includes('unique')) {
+          showError('There was an order number conflict — please click "Place My Order" again to retry.')
+        } else {
+          showError('Something went wrong placing your order. Please try again or contact Dow.')
+        }
+        btn.disabled = false
+        btn.textContent = 'Place My Order'
+      }
+    })
+
+    // ── Confirmation display ────────────────────────────
+    function showConfirmation({ orderNumber, customerName, shirtName, noName, size, color }) {
+      document.getElementById('mainContent').classList.add('hidden')
+
+      const nameTag = noName ? 'No name' : shirtName
+      document.getElementById('confirmOrderNum').textContent = orderNumber
+      document.getElementById('copyOrderNum').textContent = orderNumber
+
+      const summary = document.getElementById('confirmSummary')
+      summary.innerHTML = [
+        `<span class="order-tag">${color.charAt(0).toUpperCase() + color.slice(1)}</span>`,
+        `<span class="order-tag">${size}</span>`,
+        `<span class="order-tag">${nameTag}</span>`,
+        `<span class="order-tag">${customerName}</span>`,
+      ].join('')
+
+      document.getElementById('confirmCard').classList.remove('hidden')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    // ── Copy to clipboard ───────────────────────────────
+    async function copyField(valueId, btnId) {
+      const text = document.getElementById(valueId).textContent.trim()
+      const btn = document.getElementById(btnId)
+      try {
+        await navigator.clipboard.writeText(text)
+        btn.textContent = 'Copied!'
+        btn.classList.add('copied')
+        setTimeout(() => {
+          btn.textContent = 'Copy'
+          btn.classList.remove('copied')
+        }, 2000)
+      } catch (_) {
+        btn.textContent = 'Failed'
+        setTimeout(() => { btn.textContent = 'Copy' }, 1800)
+      }
+    }
+
+    // ── Init ────────────────────────────────────────────
+    function init() {
+      if (Date.now() >= DEADLINE) {
+        showClosed()
+        return
+      }
+      tickCountdown()
+      const timer = setInterval(() => {
+        if (Date.now() >= DEADLINE) {
+          clearInterval(timer)
+          showClosed()
+        } else {
+          tickCountdown()
+        }
+      }, 1000)
+    }
+
+    init()
+  </script>
+</body>
+</html>
