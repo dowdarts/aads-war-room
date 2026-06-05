@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CGC Shirt Orders — Admin</title>
+  <!--
+    ══════════════════════════════════════════════════
+    SUPABASE TABLE SETUP — run in SQL Editor once:
+    ══════════════════════════════════════════════════
+    CREATE TABLE shirt_orders (
+      id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+      order_number text UNIQUE NOT NULL,
+      customer_name text NOT NULL,
+      shirt_name text,
+      no_name boolean DEFAULT false,
+      size text NOT NULL,
+      color text NOT NULL,
+      status text DEFAULT 'pending'
+        CHECK (status IN ('pending','confirmed','finalized')),
+      created_at timestamptz DEFAULT now(),
+      confirmed_at timestamptz
+    );
+    ══════════════════════════════════════════════════
+  -->
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #2a2a2a;
+      --text: #f5f5f5;
+      --muted: #b8b8b8;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --success-bg: rgba(44, 122, 66, 0.18);
+      --success-line: rgba(84, 190, 113, 0.4);
+      --success-text: #b4f0c2;
+      --danger-bg: rgba(180, 30, 30, 0.15);
+      --danger-line: rgba(220, 60, 60, 0.4);
+      --danger-text: #ffb3b3;
+      --pending-color: #ffb347;
+      --confirmed-color: #5dd88a;
+      --finalized-color: #7ab8f5;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top, rgba(255, 122, 0, 0.1), transparent 30%),
+        linear-gradient(180deg, #080808 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .shell {
+      width: min(1140px, calc(100% - 32px));
+      margin: 32px auto 64px;
+    }
+    .hidden { display: none !important; }
+
+    /* ── Hero ── */
+    .hero {
+      overflow: hidden;
+      border: 1px solid #262626;
+      border-radius: 28px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)), var(--panel);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+      margin-bottom: 20px;
+    }
+    .hero-band {
+      padding: 16px 24px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #090909;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+    .hero-body {
+      padding: 28px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .hero-title {
+      margin: 0;
+      font-size: clamp(24px, 4vw, 40px);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .hero-sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .refresh-btn, .finalize-btn, .export-btn {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      transition: opacity 150ms, transform 120ms;
+    }
+    .refresh-btn:hover, .finalize-btn:hover, .export-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .refresh-btn {
+      background: #1e1e1e;
+      border: 1px solid #2e2e2e;
+      color: var(--text);
+    }
+    .finalize-btn {
+      background: linear-gradient(90deg, #1a7a35, #2da85a);
+      color: #060606;
+    }
+    .export-btn {
+      background: linear-gradient(90deg, #1a4a8a, #2d6fcf);
+      color: #f0f0f0;
+    }
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ── PIN gate ── */
+    .pin-card {
+      padding: 40px;
+      border: 1px solid #2a2a2a;
+      border-radius: 24px;
+      background: var(--panel);
+      box-shadow: 0 28px 80px rgba(0,0,0,0.42);
+      max-width: 420px;
+      margin: 0 auto;
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+    }
+    .pin-title {
+      margin: 0 0 20px;
+      font-size: 32px;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    .pin-input {
+      appearance: none;
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid #2a2a2a;
+      background: #0a0a0a;
+      color: var(--text);
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      text-align: center;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 120ms;
+    }
+    .pin-input:focus { border-color: var(--accent); }
+    .pin-input.pin-error { border-color: #cc4444; }
+    .pin-error-msg {
+      margin: 10px 0 0;
+      color: var(--danger-text);
+      font-size: 13px;
+      text-align: center;
+    }
+    .pin-submit {
+      appearance: none;
+      width: 100%;
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 14px;
+      border: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #090909;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 150ms;
+    }
+    .pin-submit:hover { opacity: 0.88; }
+
+    /* ── Stats bar ── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel-2);
+      padding: 18px 20px;
+    }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .stat-value.orange { color: var(--accent); }
+    .stat-value.yellow { color: var(--pending-color); }
+    .stat-value.green { color: var(--confirmed-color); }
+    .stat-value.blue { color: var(--finalized-color); }
+
+    /* ── Order table ── */
+    .table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel-2);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: wrap;
+    }
+    .table-title {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0;
+    }
+    .filter-row {
+      display: flex;
+      gap: 8px;
+    }
+    .filter-btn {
+      appearance: none;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      background: #0d0d0d;
+      color: var(--muted);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: border-color 120ms, color 120ms;
+    }
+    .filter-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #666;
+      border-bottom: 1px solid #1e1e1e;
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid #191919;
+      transition: background 120ms;
+    }
+    tbody tr:last-child { border-bottom: 0; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody td {
+      padding: 14px 16px;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+    .order-num {
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .color-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 7px;
+      vertical-align: middle;
+    }
+    .size-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid #2a2a2a;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 11px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+    .status-pending {
+      background: rgba(255,179,71,0.1);
+      border: 1px solid rgba(255,179,71,0.3);
+      color: var(--pending-color);
+    }
+    .status-confirmed {
+      background: rgba(93,216,138,0.1);
+      border: 1px solid rgba(93,216,138,0.3);
+      color: var(--confirmed-color);
+    }
+    .status-finalized {
+      background: rgba(122,184,245,0.1);
+      border: 1px solid rgba(122,184,245,0.3);
+      color: var(--finalized-color);
+    }
+    .action-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 10px;
+      padding: 7px 13px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: opacity 120ms, transform 100ms;
+      white-space: nowrap;
+    }
+    .action-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .action-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .btn-confirm {
+      background: linear-gradient(90deg, #1a7a35, #2da85a);
+      color: #060606;
+    }
+    .btn-finalize {
+      background: linear-gradient(90deg, #1a4a8a, #2d6fcf);
+      color: #f0f0f0;
+    }
+    .btn-unconfirm {
+      background: #1e1e1e;
+      border: 1px solid #2e2e2e;
+      color: var(--muted);
+    }
+
+    .empty-state {
+      padding: 48px 24px;
+      text-align: center;
+      color: #555;
+      font-size: 15px;
+    }
+    .loading-state {
+      padding: 48px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      padding: 14px 20px;
+      border-radius: 14px;
+      background: #1e1e1e;
+      border: 1px solid #2e2e2e;
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+      z-index: 9999;
+      transition: opacity 300ms, transform 300ms;
+      transform: translateY(0);
+    }
+    .toast.toast-success { border-color: rgba(93,216,138,0.4); color: var(--success-text); }
+    .toast.toast-error { border-color: var(--danger-line); color: var(--danger-text); }
+    .toast.toast-hide { opacity: 0; transform: translateY(10px); }
+
+    @media (max-width: 900px) {
+      .stats-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .shell { width: calc(100% - 20px); margin: 12px auto 40px; }
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      .hero-body { padding: 20px; }
+      thead { display: none; }
+      tbody tr { display: block; padding: 14px 16px; border-bottom: 1px solid #1a1a1a; }
+      tbody td { display: block; padding: 3px 0; border: 0; font-size: 13px; }
+      tbody td::before {
+        content: attr(data-label) ": ";
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #555;
+      }
+      .action-btn { width: 100%; margin-top: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+
+    <!-- ── PIN gate ── -->
+    <div id="pinGate">
+      <div class="pin-card">
+        <p class="eyebrow">Admin Access</p>
+        <h1 class="pin-title">CGC Shirt Orders</h1>
+        <input
+          class="pin-input"
+          type="password"
+          id="pinInput"
+          maxlength="10"
+          placeholder="• • • • •"
+          autocomplete="current-password"
+          oninput="clearPinError()"
+          onkeydown="if(event.key==='Enter')checkPin()"
+        />
+        <p id="pinErrorMsg" class="pin-error-msg hidden">Incorrect PIN — try again.</p>
+        <button class="pin-submit" onclick="checkPin()">Unlock Dashboard</button>
+      </div>
+    </div>
+
+    <!-- ── Dashboard (hidden until PIN correct) ── -->
+    <div id="dashboard" class="hidden">
+
+      <div class="hero">
+        <div class="hero-band">CGC Members · Dart Shirt Order Admin</div>
+        <div class="hero-body">
+          <div>
+            <h1 class="hero-title">Order Dashboard</h1>
+            <p class="hero-sub">Confirm payments · Finalize for Monday · Order closes Sunday June 7 @ 9 PM ADT</p>
+          </div>
+          <div class="btn-row">
+            <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+            <button class="finalize-btn" onclick="bulkFinalize()">Mark All Confirmed → Finalized</button>
+            <button class="refresh-btn" onclick="loadOrders()">↺ Refresh</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats bar -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <p class="stat-label">Total Orders</p>
+          <div class="stat-value orange" id="statTotal">—</div>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Pending Payment</p>
+          <div class="stat-value yellow" id="statPending">—</div>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Confirmed (Paid)</p>
+          <div class="stat-value green" id="statConfirmed">—</div>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Est. Collected</p>
+          <div class="stat-value blue" id="statCollected">—</div>
+        </div>
+      </div>
+
+      <!-- Order table -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <p class="table-title">All Orders</p>
+          <div class="filter-row">
+            <button class="filter-btn active" data-filter="all" onclick="setFilter('all', this)">All</button>
+            <button class="filter-btn" data-filter="pending" onclick="setFilter('pending', this)">Pending</button>
+            <button class="filter-btn" data-filter="confirmed" onclick="setFilter('confirmed', this)">Confirmed</button>
+            <button class="filter-btn" data-filter="finalized" onclick="setFilter('finalized', this)">Finalized</button>
+          </div>
+        </div>
+        <div id="tableBody">
+          <div class="loading-state">Loading orders…</div>
+        </div>
+      </div>
+
+    </div><!-- end #dashboard -->
+
+  </div><!-- end .shell -->
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast toast-hide"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const CORRECT_PIN = '40783'
+
+    const COLOR_HEX = {
+      red: '#e63b3b',
+      blue: '#3b7fe6',
+      green: '#2da85a',
+      purple: '#9b3be6',
+      orange: '#ff7a00',
+    }
+
+    let allOrders = []
+    let currentFilter = 'all'
+
+    // ── PIN ──────────────────────────────────────────────
+    function checkPin() {
+      const val = document.getElementById('pinInput').value
+      if (val === CORRECT_PIN) {
+        document.getElementById('pinGate').classList.add('hidden')
+        document.getElementById('dashboard').classList.remove('hidden')
+        loadOrders()
+      } else {
+        const input = document.getElementById('pinInput')
+        input.classList.add('pin-error')
+        document.getElementById('pinErrorMsg').classList.remove('hidden')
+        input.value = ''
+        input.focus()
+      }
+    }
+
+    function clearPinError() {
+      document.getElementById('pinInput').classList.remove('pin-error')
+      document.getElementById('pinErrorMsg').classList.add('hidden')
+    }
+
+    // ── Supabase helpers ─────────────────────────────────
+    const headers = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+    }
+
+    async function fetchOrders() {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/shirt_orders?select=id,order_number,customer_name,shirt_name,no_name,size,color,items,total_amount,status,created_at,confirmed_at&order=created_at.desc`,
+        { headers }
+      )
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    }
+
+    async function patchOrder(id, payload) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/shirt_orders?id=eq.${id}`,
+        {
+          method: 'PATCH',
+          headers: { ...headers, Prefer: 'return=minimal' },
+          body: JSON.stringify(payload),
+        }
+      )
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    }
+
+    // ── Load & render ────────────────────────────────────
+    async function loadOrders() {
+      document.getElementById('tableBody').innerHTML = '<div class="loading-state">Loading orders…</div>'
+      try {
+        allOrders = await fetchOrders()
+        updateStats()
+        renderTable()
+      } catch (err) {
+        document.getElementById('tableBody').innerHTML =
+          `<div class="empty-state" style="color:#cc4444">Failed to load orders: ${err.message}</div>`
+      }
+    }
+
+    function updateStats() {
+      const total     = allOrders.length
+      const pending   = allOrders.filter(o => o.status === 'pending').length
+      const confirmed = allOrders.filter(o => o.status === 'confirmed').length
+      const finalized = allOrders.filter(o => o.status === 'finalized').length
+      const collected = allOrders
+        .filter(o => o.status === 'confirmed' || o.status === 'finalized')
+        .reduce((sum, o) => sum + (o.total_amount ? Number(o.total_amount) : 50), 0)
+
+      document.getElementById('statTotal').textContent     = total
+      document.getElementById('statPending').textContent   = pending
+      document.getElementById('statConfirmed').textContent = confirmed + finalized
+      document.getElementById('statCollected').textContent = `$${collected}`
+    }
+
+    function setFilter(filter, btn) {
+      currentFilter = filter
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+      btn.classList.add('active')
+      renderTable()
+    }
+
+    function renderTable() {
+      const filtered = currentFilter === 'all'
+        ? allOrders
+        : allOrders.filter(o => o.status === currentFilter)
+
+      if (filtered.length === 0) {
+        document.getElementById('tableBody').innerHTML =
+          `<div class="empty-state">No orders ${currentFilter !== 'all' ? `with status "${currentFilter}"` : 'yet'}.</div>`
+        return
+      }
+
+      const rows = filtered.map(order => {
+        // Build items cell — use items JSON if available, fall back to top-level columns
+        let itemsHtml = ''
+        if (Array.isArray(order.items) && order.items.length > 0) {
+          itemsHtml = order.items.map(it => {
+            const hex = COLOR_HEX[it.color] || '#888'
+            const nm  = it.no_name ? '<em style="color:#555">No name</em>' : (it.shirt_name || '—')
+            return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
+              <span class="color-dot" style="background:${hex}"></span>
+              <span style="text-transform:capitalize;font-size:13px">${it.color} · <strong>${it.size}</strong> · ${nm}</span>
+            </div>`
+          }).join('')
+        } else {
+          const hex = COLOR_HEX[order.color] || '#888'
+          const nm  = order.no_name ? '<em style="color:#555">No name</em>' : (order.shirt_name || '—')
+          itemsHtml = `<div style="display:flex;align-items:center;gap:7px">
+            <span class="color-dot" style="background:${hex}"></span>
+            <span style="text-transform:capitalize;font-size:13px">${order.color || '—'} · <strong>${order.size || '—'}</strong> · ${nm}</span>
+          </div>`
+        }
+
+        const totalDisplay = order.total_amount ? `$${Number(order.total_amount).toFixed(0)}` : '$50'
+        const date = new Date(order.created_at).toLocaleString('en-CA', {
+          month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+        })
+
+        let statusBadge = ''
+        let actionBtn = ''
+
+        if (order.status === 'pending') {
+          statusBadge = '<span class="status-badge status-pending">Pending</span>'
+          actionBtn = `<button class="action-btn btn-confirm" onclick="confirmOrder('${order.id}')">✓ Mark Paid</button>`
+        } else if (order.status === 'confirmed') {
+          statusBadge = '<span class="status-badge status-confirmed">Confirmed</span>'
+          actionBtn = `
+            <button class="action-btn btn-finalize" onclick="finalizeOrder('${order.id}')">Finalize</button>
+            <button class="action-btn btn-unconfirm" style="margin-left:6px" onclick="unconfirmOrder('${order.id}')">Undo</button>
+          `
+        } else {
+          statusBadge = '<span class="status-badge status-finalized">Finalized</span>'
+          actionBtn = `<button class="action-btn btn-unconfirm" onclick="unconfirmOrder('${order.id}')">Undo</button>`
+        }
+
+        return `
+          <tr>
+            <td data-label="Order #"><span class="order-num">${order.order_number}</span><br><span style="font-size:11px;color:#555">${totalDisplay}</span></td>
+            <td data-label="Name">${escHtml(order.customer_name)}</td>
+            <td data-label="Items">${itemsHtml}</td>
+            <td data-label="Placed">${date}</td>
+            <td data-label="Status">${statusBadge}</td>
+            <td data-label="Action">${actionBtn}</td>
+          </tr>
+        `
+      }).join('')
+
+      document.getElementById('tableBody').innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Name</th>
+              <th>Items</th>
+              <th>Placed</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `
+    }
+
+    // ── Actions ──────────────────────────────────────────
+    async function confirmOrder(id) {
+      try {
+        await patchOrder(id, {
+          status: 'confirmed',
+          confirmed_at: new Date().toISOString(),
+        })
+        const order = allOrders.find(o => o.id === id)
+        if (order) { order.status = 'confirmed'; order.confirmed_at = new Date().toISOString() }
+        updateStats()
+        renderTable()
+        showToast('✓ Marked as paid', 'success')
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'error')
+      }
+    }
+
+    async function finalizeOrder(id) {
+      try {
+        await patchOrder(id, { status: 'finalized' })
+        const order = allOrders.find(o => o.id === id)
+        if (order) order.status = 'finalized'
+        updateStats()
+        renderTable()
+        showToast('Order finalized', 'success')
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'error')
+      }
+    }
+
+    async function unconfirmOrder(id) {
+      try {
+        await patchOrder(id, { status: 'pending', confirmed_at: null })
+        const order = allOrders.find(o => o.id === id)
+        if (order) { order.status = 'pending'; order.confirmed_at = null }
+        updateStats()
+        renderTable()
+        showToast('Order moved back to pending', 'success')
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'error')
+      }
+    }
+
+    async function bulkFinalize() {
+      const confirmed = allOrders.filter(o => o.status === 'confirmed')
+      if (confirmed.length === 0) {
+        showToast('No confirmed orders to finalize.', 'error')
+        return
+      }
+      if (!confirm(`Finalize all ${confirmed.length} confirmed order(s)? This marks them ready for the supplier order on Monday.`)) return
+      try {
+        await Promise.all(confirmed.map(o => patchOrder(o.id, { status: 'finalized' })))
+        confirmed.forEach(o => { o.status = 'finalized' })
+        updateStats()
+        renderTable()
+        showToast(`${confirmed.length} order(s) finalized`, 'success')
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'error')
+        loadOrders()
+      }
+    }
+
+    // ── CSV Export ───────────────────────────────────────
+    function exportCSV() {
+      const toExport = currentFilter === 'all' ? allOrders : allOrders.filter(o => o.status === currentFilter)
+      if (toExport.length === 0) { showToast('No orders to export.', 'error'); return }
+
+      const rows = [
+        ['Order Number', 'Customer Name', 'Colour', 'Size', 'Shirt Name', 'No Name', 'Status', 'Placed At', 'Confirmed At'],
+        ...toExport.map(o => [
+          o.order_number,
+          o.customer_name,
+          o.color,
+          o.size,
+          o.shirt_name || '',
+          o.no_name ? 'Yes' : 'No',
+          o.status,
+          new Date(o.created_at).toLocaleString('en-CA'),
+          o.confirmed_at ? new Date(o.confirmed_at).toLocaleString('en-CA') : '',
+        ])
+      ]
+
+      const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n')
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `cgc-shirt-orders-${new Date().toISOString().slice(0,10)}.csv`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      showToast('CSV downloaded', 'success')
+    }
+
+    // ── Toast ────────────────────────────────────────────
+    let toastTimer = null
+    function showToast(msg, type = '') {
+      const el = document.getElementById('toast')
+      el.textContent = msg
+      el.className = `toast${type ? ' toast-' + type : ''}`
+      if (toastTimer) clearTimeout(toastTimer)
+      toastTimer = setTimeout(() => {
+        el.classList.add('toast-hide')
+      }, 3000)
+    }
+
+    // ── Utils ─────────────────────────────────────────────
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+    }
+  </script>
+</body>
+</html>

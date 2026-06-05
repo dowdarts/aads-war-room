@@ -225,3 +225,71 @@ export async function setPaymentDonationExcluded(id, excluded) {
 
   return { error }
 }
+
+// ── SHIRT ORDERS ─────────────────────────────────────
+/**
+ * Required table schema (run in Supabase SQL Editor):
+ *   CREATE TABLE shirt_orders (
+ *     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+ *     order_number text UNIQUE NOT NULL,
+ *     customer_name text NOT NULL,
+ *     shirt_name text,
+ *     no_name boolean DEFAULT false,
+ *     size text NOT NULL,
+ *     color text NOT NULL,
+ *     status text DEFAULT 'pending'
+ *       CHECK (status IN ('pending','confirmed','finalized')),
+ *     created_at timestamptz DEFAULT now(),
+ *     confirmed_at timestamptz
+ *   );
+ */
+
+export async function getShirtOrderCount() {
+  if (!client) return { count: 0, error: 'Supabase not initialized' }
+  const { count, error } = await client
+    .from('shirt_orders')
+    .select('id', { count: 'exact', head: true })
+  return { count: count ?? 0, error }
+}
+
+export async function insertShirtOrder({ orderNumber, customerName, shirtName, noName, size, color }) {
+  if (!client) return { error: 'Supabase not initialized' }
+  const { error } = await client
+    .from('shirt_orders')
+    .insert({
+      order_number: orderNumber,
+      customer_name: customerName,
+      shirt_name: shirtName || null,
+      no_name: noName || false,
+      size,
+      color,
+    })
+  return { error }
+}
+
+export async function fetchShirtOrders() {
+  if (!client) return { data: [], error: 'Supabase not initialized' }
+  const { data, error } = await client
+    .from('shirt_orders')
+    .select('id, order_number, customer_name, shirt_name, no_name, size, color, status, created_at, confirmed_at')
+    .order('created_at', { ascending: false })
+  return { data: data || [], error }
+}
+
+export async function confirmShirtOrder(id) {
+  if (!client) return { error: 'Supabase not initialized' }
+  const { error } = await client
+    .from('shirt_orders')
+    .update({ status: 'confirmed', confirmed_at: new Date().toISOString() })
+    .eq('id', id)
+  return { error }
+}
+
+export async function finalizeShirtOrder(id) {
+  if (!client) return { error: 'Supabase not initialized' }
+  const { error } = await client
+    .from('shirt_orders')
+    .update({ status: 'finalized' })
+    .eq('id', id)
+  return { error }
+}
