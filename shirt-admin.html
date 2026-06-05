@@ -372,6 +372,12 @@
       border: 1px solid #2e2e2e;
       color: var(--muted);
     }
+    .btn-delete {
+      background: rgba(180,30,30,0.15);
+      border: 1px solid rgba(220,60,60,0.35);
+      color: #ff7070;
+    }
+    .btn-delete:hover { background: rgba(200,30,30,0.35) !important; }
 
     .empty-state {
       padding: 48px 24px;
@@ -653,18 +659,21 @@
         let statusBadge = ''
         let actionBtn = ''
 
+        const deleteBtn = `<button class="action-btn btn-delete" style="margin-left:6px" onclick="deleteOrder('${order.id}','${escHtml(order.order_number)}')">🗑 Delete</button>`
+
         if (order.status === 'pending') {
           statusBadge = '<span class="status-badge status-pending">Pending</span>'
-          actionBtn = `<button class="action-btn btn-confirm" onclick="confirmOrder('${order.id}')">✓ Mark Paid</button>`
+          actionBtn = `<button class="action-btn btn-confirm" onclick="confirmOrder('${order.id}')">✓ Mark Paid</button>${deleteBtn}`
         } else if (order.status === 'confirmed') {
           statusBadge = '<span class="status-badge status-confirmed">Confirmed</span>'
           actionBtn = `
             <button class="action-btn btn-finalize" onclick="finalizeOrder('${order.id}')">Finalize</button>
             <button class="action-btn btn-unconfirm" style="margin-left:6px" onclick="unconfirmOrder('${order.id}')">Undo</button>
+            ${deleteBtn}
           `
         } else {
           statusBadge = '<span class="status-badge status-finalized">Finalized</span>'
-          actionBtn = `<button class="action-btn btn-unconfirm" onclick="unconfirmOrder('${order.id}')">Undo</button>`
+          actionBtn = `<button class="action-btn btn-unconfirm" onclick="unconfirmOrder('${order.id}')">Undo</button>${deleteBtn}`
         }
 
         return `
@@ -734,6 +743,23 @@
         updateStats()
         renderTable()
         showToast('Order moved back to pending', 'success')
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'error')
+      }
+    }
+
+    async function deleteOrder(id, orderNum) {
+      if (!confirm(`Delete order ${orderNum}?\n\nThis permanently removes it from the database and cannot be undone.`)) return
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/shirt_orders?id=eq.${id}`,
+          { method: 'DELETE', headers: { ...headers, Prefer: 'return=minimal' } }
+        )
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        allOrders = allOrders.filter(o => o.id !== id)
+        updateStats()
+        renderTable()
+        showToast(`Order ${orderNum} deleted`, 'success')
       } catch (err) {
         showToast(`Error: ${err.message}`, 'error')
       }
