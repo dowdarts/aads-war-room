@@ -502,7 +502,7 @@
 <body>
 
   <div class="flash-banner">
-    🔥 ONE-TIME 50% OFF FLASH SALE<span>·</span>$50 CAD Per Shirt (15% Tax Included)<span>·</span>Closes Sunday June 7 @ 9 PM<span>·</span>🔥
+    🔥 ONE-TIME 50% OFF FLASH SALE<span>·</span>$43.48 CAD Per Shirt<span>·</span>Closes Sunday June 7 @ 9 PM<span>·</span>🔥
   </div>
 
   <!-- ══ CLOSED ══ -->
@@ -519,7 +519,7 @@
       <div class="hero-eyebrow">CGC Members — Dart Shirt Pre-Order</div>
       <h1 class="hero-title">Your shirt. Your colour. <em>One shot.</em></h1>
       <div class="price-block">
-        <div class="price-amount">$50</div>
+        <div class="price-amount">$43.48</div>
         <div class="price-right">
           <div class="price-currency">CAD</div>
           <div class="price-per">per shirt</div>
@@ -675,7 +675,7 @@
       <!-- Catalog shirts section -->
       <div class="section catalog-section">
         <p class="section-title" style="color:var(--accent)">Also Available — AADS and CGC Darts Catalog</p>
-        <p class="catalog-desc">Pre-designed CGC &amp; AADS shirts — $50 CAD each (15% tax included), same batch order. Click any shirt to preview and add to cart.</p>
+        <p class="catalog-desc">Pre-designed CGC &amp; AADS shirts — $43.48 each (plus 15% tax), same batch order. Click any shirt to preview and add to cart.</p>
         <div class="catalog-grid" id="catalogGrid"></div>
       </div>
 
@@ -1101,7 +1101,7 @@
       const bar = document.getElementById('cartSummaryBar')
       if (cart.length === 0) { bar.classList.add('hidden'); return }
       bar.classList.remove('hidden')
-      const total = cart.length * 50
+      const total = cart.length * 43.48
       document.getElementById('cartSummaryCount').textContent = cart.length
       document.getElementById('cartSummaryText').textContent = `${cart.length} item${cart.length > 1 ? 's' : ''} in cart`
       document.getElementById('cartSummaryTotal').textContent = `$${total} CAD`
@@ -1128,7 +1128,7 @@
                 <div class="cart-item-main">${item.product}</div>
                 <div class="cart-item-sub">${item.shirtName || '—'} · ${item.size}</div>
               </div>
-              <span class="cart-item-price">$50</span>
+              <span class="cart-item-price">$43.48</span>
               <button class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
             </div>`
           }
@@ -1141,12 +1141,15 @@
               <div class="cart-item-main">${item.color} · ${item.size} · ${extras}</div>
               <div class="cart-item-sub">${nameLabel}</div>
             </div>
-            <span class="cart-item-price">$50</span>
+            <span class="cart-item-price">$43.48</span>
             <button class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
           </div>`
         }).join('')
       }
-      totalEl.innerHTML = `$${cart.length * 50} <em>CAD</em>`
+      const subtotal = cart.length * 43.48
+      const tax = subtotal * 0.15
+      const total = subtotal + tax
+      totalEl.innerHTML = `$${subtotal.toFixed(2)} + $${tax.toFixed(2)} tax = $${total.toFixed(2)} <em>CAD</em>`
     }
 
     function removeFromCart(id) {
@@ -1164,7 +1167,7 @@
           return `<div class="review-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
             <span class="review-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}</span>
-            <span class="review-item-price">$50</span>
+            <span class="review-item-price">$43.48</span>
           </div>`
         }
         const hex = COLOR_HEX[item.color] || '#888'
@@ -1173,10 +1176,13 @@
         return `<div class="review-item">
           <span class="review-item-dot" style="background:${hex}"></span>
           <span class="review-item-desc">${item.color} · ${item.size} · ${extras} · ${nameLabel}</span>
-          <span class="review-item-price">$50</span>
+          <span class="review-item-price">$43.48</span>
         </div>`
       }).join('')
-      document.getElementById('checkoutTotal').innerHTML = `$${cart.length * 50} <em>CAD</em>`
+      const subtotal = cart.length * 43.48
+      const tax = subtotal * 0.15
+      const total = subtotal + tax
+      document.getElementById('checkoutTotal').innerHTML = `$${subtotal.toFixed(2)} + $${tax.toFixed(2)} tax = $${total.toFixed(2)} <em>CAD</em>`
     }
 
     // ── Place order ───────────────────────────────────────
@@ -1200,7 +1206,8 @@
 
       try {
         const orderNumber = generateOrderNumber()
-        const totalAmount = cart.length * 50
+        const subtotal = cart.length * 43.48
+        const totalAmount = subtotal * 1.15  // Add 15% tax
         const firstItem   = cart[0]
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/shirt_orders`, {
@@ -1251,7 +1258,9 @@
       document.getElementById('activeView').classList.add('hidden')
       document.getElementById('cfOrderNum').textContent     = orderNumber
       document.getElementById('cfOrderNumCopy').textContent = orderNumber
-      document.getElementById('cfTotal').textContent        = `$${totalAmount} CAD`
+      const subtotal = totalAmount / 1.15
+      const tax = totalAmount - subtotal
+      document.getElementById('cfTotal').textContent        = `$${subtotal.toFixed(2)} + $${tax.toFixed(2)} tax = $${totalAmount.toFixed(2)} CAD`
       document.getElementById('cfPayAmount').textContent    = `$${totalAmount.toFixed(2)} CAD`
 
       try {
@@ -1268,7 +1277,7 @@
           return `<div class="confirm-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
             <span class="confirm-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}</span>
-            <span class="confirm-item-price">$50</span>
+            <span class="confirm-item-price">$43.48</span>
           </div>`
         }
         const hex = COLOR_HEX[item.color] || '#888'
@@ -1277,7 +1286,7 @@
         return `<div class="confirm-item">
           <span class="confirm-item-dot" style="background:${hex}"></span>
           <span class="confirm-item-desc">${item.color} · ${item.size} · ${extras} · ${nameLabel}</span>
-          <span class="confirm-item-price">$50</span>
+          <span class="confirm-item-price">$43.48</span>
         </div>`
       }).join('')
 
@@ -1315,7 +1324,7 @@
         card.innerHTML =
           `<img class="catalog-card-img" src="${shirt.img}" alt="${shirt.name.replace(/"/g, '&quot;')}" loading="lazy">` +
           `<div class="catalog-card-name">${shirt.name}</div>` +
-          `<div class="catalog-card-price">$50</div>`
+          `<div class="catalog-card-price">$43.48</div>`
         grid.appendChild(card)
       })
     })()
