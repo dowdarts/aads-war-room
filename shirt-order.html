@@ -244,10 +244,17 @@
     }
     @media (min-width: 480px) { .catalog-grid { grid-template-columns: repeat(3, 1fr); } }
     .catalog-card {
+      position: relative;
       background: #111; border: 1.5px solid #222; border-radius: 14px; overflow: hidden;
       cursor: pointer; transition: border-color 180ms, transform 150ms;
     }
     .catalog-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .catalog-card-badge {
+      position: absolute; top: 10px; left: 10px;
+      background: #e03e3e; color: #fff; font-size: 10px; font-weight: 800;
+      letter-spacing: .08em; padding: 4px 8px; border-radius: 999px; z-index: 2;
+      text-transform: uppercase; box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
     .catalog-card-img {
       width: 100%; aspect-ratio: 1 / 1; object-fit: cover; display: block; background: #0d0d0d;
     }
@@ -255,8 +262,18 @@
       font-size: 10px; font-weight: 700; color: #ccc; text-align: center;
       padding: 8px 6px 2px; line-height: 1.3;
     }
+    .catalog-card-prices {
+      display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center;
+      padding-bottom: 10px;
+    }
+    .catalog-card-price-old {
+      font-size: 10px; color: #888; text-decoration: line-through; font-weight: 700;
+    }
     .catalog-card-price {
-      font-size: 11px; color: var(--accent); text-align: center; padding-bottom: 8px; font-weight: 900;
+      font-size: 11px; color: var(--accent); text-align: center; font-weight: 900;
+    }
+    .catalog-card-price-tax {
+      font-size: 9px; color: #aaa; text-transform: uppercase; letter-spacing: .05em;
     }
     /* catalog footer inside the preview modal */
     .catalog-preview-footer {
@@ -1322,9 +1339,14 @@
         card.className = 'catalog-card'
         card.onclick = () => openCatalogPreview(i)
         card.innerHTML =
+          `<div class="catalog-card-badge">Sale</div>` +
           `<img class="catalog-card-img" src="${shirt.img}" alt="${shirt.name.replace(/"/g, '&quot;')}" loading="lazy">` +
           `<div class="catalog-card-name">${shirt.name}</div>` +
-          `<div class="catalog-card-price">$43.48</div>`
+          `<div class="catalog-card-prices">` +
+            `<div class="catalog-card-price-old">$86.96</div>` +
+            `<div class="catalog-card-price">$43.48</div>` +
+            `<div class="catalog-card-price-tax">+ tax</div>` +
+          `</div>`
         grid.appendChild(card)
       })
     })()
