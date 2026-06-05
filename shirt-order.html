@@ -270,6 +270,20 @@
       background: #111; color: #fff; border: 1.5px solid #333; border-radius: 8px;
     }
     .catalog-preview-size:focus { outline: none; border-color: var(--accent); }
+    .catalog-name-fields {
+      display: flex; gap: 10px; width: 100%;
+    }
+    .catalog-name-input {
+      flex: 1; padding: 10px 12px; font-size: 14px; font-weight: 700;
+      background: #111; color: #fff; border: 1.5px solid #333; border-radius: 8px;
+    }
+    .catalog-name-input::placeholder { color: #666; }
+    .catalog-name-input:focus { outline: none; border-color: var(--accent); }
+    .catalog-locked-name-note {
+      font-size: 13px; color: #aaa; text-align: center; line-height: 1.5;
+      padding: 12px; background: rgba(255,122,0,0.08); border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
 
     /* ══ STEP PROGRESS ══ */
     .steps-wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 0; }
@@ -797,6 +811,13 @@
           <option value="4XL">4XL — 4X Large</option>
           <option value="5XL">5XL — 5X Large</option>
         </select>
+        <div class="catalog-name-fields" id="catalogNameFields" style="display:none">
+          <input type="text" id="catalogFirstName" class="catalog-name-input" placeholder="First name" maxlength="15">
+          <input type="text" id="catalogLastName" class="catalog-name-input" placeholder="Last name" maxlength="15">
+        </div>
+        <div class="catalog-locked-name-note" id="catalogLockedNameNote" style="display:none">
+          This is a player replica shirt. The only name available on this shirt is <strong id="catalogLockedNameText"></strong>.
+        </div>
         <div class="shirt-preview-actions">
           <button class="shirt-preview-close" onclick="closePreview()">Close</button>
           <button class="shirt-preview-select" onclick="addCatalogFromPreview()">Add to Cart ✓</button>
@@ -824,25 +845,25 @@
     const COLOR_SVG_BG = { red:'#1a0404', blue:'#040a1a', green:'#041209', purple:'#0e0417', orange:'#160800' }
 
     const CATALOG_SHIRTS = [
-      { name: 'CGC Blue Female Camo', img: 'https://maxcorners.us/cdn/shop/files/LM26102024-DT-PL10-KH_3.jpg?v=1733741818' },
-      { name: 'Rhyder Event 5 Finalist Player Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM25062024MC-PL77-CYAN-KH_1.jpg?v=1776324369&width=713' },
-      { name: 'Tammy Walsh CGC Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT18072025MC-DS-PL3-Pink-KH.jpg?v=1776314848&width=713' },
-      { name: 'AADS Fan Jersey', img: 'https://maxcorners.us/cdn/shop/files/TU11082025MC-PL3-Orange-KH.jpg?v=1759463577&width=713' },
-      { name: 'Rob Sibbick Event 6 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM05152026MC-PL10-Blue-KH.jpg?v=1778837458&width=713' },
-      { name: 'Drake Berry Event 5 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM25022025MC-CAO-PL02-Blue-KH.jpg?v=1775634592&width=713' },
-      { name: 'Kayla Melanson Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/1709.jpg?v=1759287978&width=713' },
-      { name: 'Tyler Stewart CGC Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM14825MC-PL07-FCZ-Orange-KH.jpg?v=1758536785&width=713' },
-      { name: 'Tyler Cyr Event 3 Champion Player Replica Jersey', img: 'https://maxcorners.us/cdn/shop/files/TU19062025MC-PL1-KH.jpg?v=1760410684&width=713' },
-      { name: 'Tom Holden Event 1 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM12052025MC-PL46-BLUE-KH.jpg?v=1756974935&width=713' },
-      { name: 'CGC Classic White Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT12112024MC-DAR-DT-PL1-KH_1.jpg?v=1733741942&width=713' },
-      { name: 'AADS Commentary Duo Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM25925MC-MK-PL12-WHITE-KH.jpg?v=1770864082&width=713' },
-      { name: 'Denis Cormier Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM040925MC-PL3-FCZ-Green-KH-1.jpg?v=1760327313&width=713' },
-      { name: 'CGC Gold Jersey', img: 'https://maxcorners.us/cdn/shop/files/DT29032024MC-PL2-Gold-KH1_1.jpg?v=1741079399&width=713' },
-      { name: 'Event 4 Champion Dee Cormier Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT18122024MC-DT-PL4-Dar-Gold-KH.jpg?v=1773804554&width=713' },
-      { name: 'AADS Ricky Chaisson Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT15052025MC-CAO-PL1-KH.jpg?v=1759462241&width=713' },
-      { name: 'Kyle Gray Event 2 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/0504_72e312b3-5fbe-4e51-8553-fb07d1b5fbc6.jpg?v=1757393067&width=713' },
-      { name: 'CGC Breast Cancer Awareness Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM060425MC-CAO-PL10-KH.jpg?v=1762137646&width=713' },
-      { name: 'CGC White and Grey Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT29092024MC-DT-PL90-KH1.jpg?v=1741079113&width=713' },
+      { name: 'CGC Blue Female Camo', img: 'https://maxcorners.us/cdn/shop/files/LM26102024-DT-PL10-KH_3.jpg?v=1733741818', isPlayerReplica: false, allowCustomName: true },
+      { name: 'Rhyder Event 5 Finalist Player Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM25062024MC-PL77-CYAN-KH_1.jpg?v=1776324369&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Rhyder Oliver' },
+      { name: 'Tammy Walsh CGC Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT18072025MC-DS-PL3-Pink-KH.jpg?v=1776314848&width=713', isPlayerReplica: false, allowCustomName: true },
+      { name: 'AADS Fan Jersey', img: 'https://maxcorners.us/cdn/shop/files/TU11082025MC-PL3-Orange-KH.jpg?v=1759463577&width=713', isPlayerReplica: false, allowCustomName: true },
+      { name: 'Rob Sibbick Event 6 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM05152026MC-PL10-Blue-KH.jpg?v=1778837458&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Rob Sibbick' },
+      { name: 'Drake Berry Event 5 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM25022025MC-CAO-PL02-Blue-KH.jpg?v=1775634592&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Drake Berry' },
+      { name: 'Kayla Melanson Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/1709.jpg?v=1759287978&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Kayla Melanson' },
+      { name: 'Tyler Stewart CGC Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM14825MC-PL07-FCZ-Orange-KH.jpg?v=1758536785&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Tyler Stewart' },
+      { name: 'Tyler Cyr Event 3 Champion Player Replica Jersey', img: 'https://maxcorners.us/cdn/shop/files/TU19062025MC-PL1-KH.jpg?v=1760410684&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Tyler Cyr' },
+      { name: 'Tom Holden Event 1 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM12052025MC-PL46-BLUE-KH.jpg?v=1756974935&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Tom Holden' },
+      { name: 'CGC Classic White Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT12112024MC-DAR-DT-PL1-KH_1.jpg?v=1733741942&width=713', isPlayerReplica: false, allowCustomName: true },
+      { name: 'AADS Commentary Duo Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM25925MC-MK-PL12-WHITE-KH.jpg?v=1770864082&width=713', isPlayerReplica: false, allowCustomName: true },
+      { name: 'Denis Cormier Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM040925MC-PL3-FCZ-Green-KH-1.jpg?v=1760327313&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Dee Cormier' },
+      { name: 'CGC Gold Jersey', img: 'https://maxcorners.us/cdn/shop/files/DT29032024MC-PL2-Gold-KH1_1.jpg?v=1741079399&width=713', isPlayerReplica: false, allowCustomName: true },
+      { name: 'Event 4 Champion Dee Cormier Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT18122024MC-DT-PL4-Dar-Gold-KH.jpg?v=1773804554&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Dee Cormier' },
+      { name: 'AADS Ricky Chaisson Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT15052025MC-CAO-PL1-KH.jpg?v=1759462241&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Ricky Chaisson' },
+      { name: 'Kyle Gray Event 2 Champion Player Replica Shirt', img: 'https://maxcorners.us/cdn/shop/files/0504_72e312b3-5fbe-4e51-8553-fb07d1b5fbc6.jpg?v=1757393067&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Kyle Gray' },
+      { name: 'CGC Breast Cancer Awareness Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM060425MC-CAO-PL10-KH.jpg?v=1762137646&width=713', isPlayerReplica: false, allowCustomName: true },
+      { name: 'CGC White and Grey Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT29092024MC-DT-PL90-KH1.jpg?v=1741079113&width=713', isPlayerReplica: false, allowCustomName: true },
     ]
 
     let pendingColor = null
@@ -975,28 +996,62 @@
       catFooter.style.display = 'flex'
       document.getElementById('catalogPreviewTitle').textContent = shirt.name
       document.getElementById('catalogPreviewSize').value = ''
+
+      // Show/hide name fields based on product type
+      const nameFields = document.getElementById('catalogNameFields')
+      const lockedNote = document.getElementById('catalogLockedNameNote')
+      if (shirt.allowCustomName) {
+        nameFields.style.display = 'flex'
+        lockedNote.style.display = 'none'
+        document.getElementById('catalogFirstName').value = ''
+        document.getElementById('catalogLastName').value = ''
+      } else {
+        nameFields.style.display = 'none'
+        lockedNote.style.display = 'block'
+        document.getElementById('catalogLockedNameText').textContent = shirt.lockedName
+      }
+
       document.getElementById('shirtPreviewOverlay').classList.add('open')
       document.body.style.overflow = 'hidden'
     }
 
     function addCatalogFromPreview() {
       const sizeEl = document.getElementById('catalogPreviewSize')
+      const shirt = CATALOG_SHIRTS[pendingCatalogIndex]
+
+      // Validate size
       if (!sizeEl.value) {
         sizeEl.style.borderColor = '#e63b3b'
         setTimeout(() => { sizeEl.style.borderColor = '' }, 1500)
         return
       }
-      const shirt = CATALOG_SHIRTS[pendingCatalogIndex]
+
+      // Validate name fields for custom-name products
+      let firstName = '', lastName = '', shirtName = ''
+      if (shirt.allowCustomName) {
+        firstName = document.getElementById('catalogFirstName').value.trim()
+        lastName = document.getElementById('catalogLastName').value.trim()
+        if (!firstName || !lastName) {
+          alert('Please enter both first and last name.')
+          return
+        }
+        shirtName = `${firstName} ${lastName}`
+      } else {
+        shirtName = shirt.lockedName
+      }
+
       cart.push({
         id:        `cat-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         type:      'catalog',
         product:   shirt.name,
         img:       shirt.img,
         size:      sizeEl.value,
+        isPlayerReplica: shirt.isPlayerReplica,
+        allowCustomName: shirt.allowCustomName,
+        shirtName: shirtName,
         color:     null,
         poloStyle: null,
         pocket:    false,
-        shirtName: null,
         noName:    false,
       })
       closePreview()
@@ -1071,7 +1126,7 @@
               <img src="${item.img}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;">
               <div class="cart-item-info">
                 <div class="cart-item-main">${item.product}</div>
-                <div class="cart-item-sub">Size: ${item.size} &middot; MaxCorners Catalog</div>
+                <div class="cart-item-sub">${item.shirtName || '—'} · ${item.size}</div>
               </div>
               <span class="cart-item-price">$50</span>
               <button class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
@@ -1108,7 +1163,7 @@
         if (item.type === 'catalog') {
           return `<div class="review-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
-            <span class="review-item-desc">${item.product} &middot; ${item.size}</span>
+            <span class="review-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}</span>
             <span class="review-item-price">$50</span>
           </div>`
         }
@@ -1166,7 +1221,7 @@
             shirt_name:    firstItem.shirtName || null,
             no_name:       firstItem.noName,
             items:         cart.map(item => item.type === 'catalog'
-              ? { type: 'catalog', product: item.product, size: item.size }
+              ? { type: 'catalog', product: item.product, size: item.size, shirt_name: item.shirtName }
               : { type: 'polo', color: item.color, size: item.size, polo_style: item.poloStyle, pocket: item.pocket, shirt_name: item.shirtName || null, no_name: item.noName }),
             total_amount:  totalAmount,
           }),
@@ -1212,7 +1267,7 @@
         if (item.type === 'catalog') {
           return `<div class="confirm-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
-            <span class="confirm-item-desc">${item.product} &middot; ${item.size}</span>
+            <span class="confirm-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}</span>
             <span class="confirm-item-price">$50</span>
           </div>`
         }
