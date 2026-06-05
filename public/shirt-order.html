@@ -184,6 +184,58 @@
     .add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .add-btn.added { background: linear-gradient(90deg, var(--green), var(--green-2)); color: #040a08; }
 
+    /* ══ SHIRT PREVIEW MODAL ══ */
+    .shirt-preview-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.88); z-index: 500;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .shirt-preview-overlay.open { display: flex; }
+    .shirt-preview-card {
+      position: relative; background: #111; border: 1px solid #222;
+      border-radius: 24px; overflow: hidden;
+      max-width: 480px; width: 100%;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+      animation: previewIn 180ms ease;
+    }
+    @keyframes previewIn {
+      from { opacity: 0; transform: scale(0.93); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .shirt-preview-img {
+      width: 100%; display: block; object-fit: contain;
+      max-height: 72vh; background: #0a0a0a;
+    }
+    .shirt-preview-footer {
+      padding: 16px 20px; display: flex; align-items: center;
+      justify-content: space-between; border-top: 1px solid #1e1e1e; gap: 12px;
+    }
+    .shirt-preview-label {
+      font-size: 15px; font-weight: 900; text-transform: capitalize;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .shirt-preview-dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
+    .shirt-preview-actions { display: flex; gap: 10px; }
+    .shirt-preview-close {
+      appearance: none; border: 1px solid #333; background: #0d0d0d;
+      color: var(--muted); padding: 10px 18px; border-radius: 11px;
+      font-size: 13px; font-weight: 700; cursor: pointer; transition: border-color 120ms, color 120ms;
+    }
+    .shirt-preview-close:hover { border-color: #555; color: var(--text); }
+    .shirt-preview-select {
+      appearance: none; border: 0;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #0a0a0a; padding: 10px 20px; border-radius: 11px;
+      font-size: 13px; font-weight: 900; letter-spacing: 0.14em;
+      text-transform: uppercase; cursor: pointer; transition: opacity 120ms;
+    }
+    .shirt-preview-select:hover { opacity: 0.88; }
+    .shirt-preview-swatch {
+      width: 100%; aspect-ratio: 3/4; display: flex;
+      align-items: center; justify-content: center; background: #0a0a0a;
+    }
+    .shirt-preview-swatch svg { width: 55%; height: 55%; }
+
     /* ══ STEP PROGRESS ══ */
     .steps-wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 0; }
     .step-progress { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
@@ -672,6 +724,26 @@
     </div>
   </div>
 
+  <!-- ══ SHIRT PREVIEW MODAL ══ -->
+  <div class="shirt-preview-overlay" id="shirtPreviewOverlay" onclick="closePreview()">
+    <div class="shirt-preview-card" onclick="event.stopPropagation()">
+      <img class="shirt-preview-img" id="shirtPreviewImg" src="" alt="" />
+      <div class="shirt-preview-swatch" id="shirtPreviewSwatch" style="display:none">
+        <svg id="shirtPreviewSvg" viewBox="0 0 64 64" fill="none"></svg>
+      </div>
+      <div class="shirt-preview-footer">
+        <div class="shirt-preview-label">
+          <span class="shirt-preview-dot" id="shirtPreviewDot"></span>
+          <span id="shirtPreviewName"></span>
+        </div>
+        <div class="shirt-preview-actions">
+          <button class="shirt-preview-close" onclick="closePreview()">Close</button>
+          <button class="shirt-preview-select" onclick="confirmColorFromPreview()">Select This Colour ✓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
@@ -679,6 +751,19 @@
     // Sunday June 7 2026 @ 9 PM ADT = June 8 2026 00:00:00 UTC
     const DEADLINE = new Date('2026-06-08T00:00:00Z')
     const COLOR_HEX = { red:'#e63b3b', blue:'#3b7fe6', green:'#2da85a', purple:'#9b3be6', orange:'#ff7a00' }
+    const COLOR_IMG = {
+      red:    './images/shirts/shirt-red.png',
+      blue:   './images/shirts/shirt-blue.png',
+      green:  './images/shirts/shirt-green.png',
+      purple: './images/shirts/shirt-purple.png',
+      orange: './images/shirts/shirt-orange.png',
+    }
+    const COLOR_SVG_FILL = { red:'#e63b3b', blue:'#3b7fe6', green:'#2da85a', purple:'#9b3be6', orange:'#ff7a00' }
+    const COLOR_SVG_STROKE = { red:'#ff6b6b', blue:'#6ba0ff', green:'#5dd88a', purple:'#bf7af5', orange:'#ffb347' }
+    const COLOR_SVG_BG = { red:'#1a0404', blue:'#040a1a', green:'#041209', purple:'#0e0417', orange:'#160800' }
+
+    let pendingColor = null
+    let pendingCardEl = null
 
     let cart = []
     let selectedColor = null
@@ -738,13 +823,49 @@
 
     // ── Colour picker ─────────────────────────────────────
     function pickColor(color, el) {
-      selectedColor = color
+      pendingColor  = color
+      pendingCardEl = el
+
+      // Populate modal
+      const hex    = COLOR_HEX[color]
+      const imgEl  = document.getElementById('shirtPreviewImg')
+      const swatchEl = document.getElementById('shirtPreviewSwatch')
+      const img    = COLOR_IMG[color]
+
+      imgEl.src = img
+      imgEl.alt = color
+      imgEl.style.display = 'block'
+      swatchEl.style.display = 'none'
+
+      imgEl.onerror = () => {
+        imgEl.style.display = 'none'
+        const svgEl = document.getElementById('shirtPreviewSvg')
+        svgEl.innerHTML = `<path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="${COLOR_SVG_FILL[color]}" stroke="${COLOR_SVG_STROKE[color]}" stroke-width="1.5"/>`
+        swatchEl.style.background = COLOR_SVG_BG[color]
+        swatchEl.style.display = 'flex'
+      }
+
+      document.getElementById('shirtPreviewDot').style.background = hex
+      document.getElementById('shirtPreviewName').textContent = color.charAt(0).toUpperCase() + color.slice(1)
+      document.getElementById('shirtPreviewOverlay').classList.add('open')
+      document.body.style.overflow = 'hidden'
+    }
+
+    function confirmColorFromPreview() {
+      if (!pendingColor) return
+      selectedColor = pendingColor
       document.querySelectorAll('.color-card').forEach(c => c.classList.remove('selected'))
-      el.classList.add('selected')
-      const hex = COLOR_HEX[color]
+      if (pendingCardEl) pendingCardEl.classList.add('selected')
+      const hex = COLOR_HEX[selectedColor]
       const display = document.getElementById('colorDisplay')
       display.className = 'selected-color-display has-color'
-      display.innerHTML = `<span class="col-dot" style="background:${hex}"></span><span style="text-transform:capitalize;font-weight:700">${color}</span>`
+      display.innerHTML = `<span class="col-dot" style="background:${hex}"></span><span style="text-transform:capitalize;font-weight:700">${selectedColor}</span>`
+      closePreview()
+    }
+
+    function closePreview() {
+      document.getElementById('shirtPreviewOverlay').classList.remove('open')
+      document.body.style.overflow = ''
     }
 
     // ── No-name toggle ────────────────────────────────────
