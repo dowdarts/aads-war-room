@@ -107,9 +107,8 @@
     .closed-card p { color: var(--muted); line-height: 1.7; }
 
     /* ══ LAYOUT ══ */
-    .main-layout {
-      display: grid; grid-template-columns: 1fr 360px; gap: 20px;
-      max-width: 1080px; margin: 0 auto; padding: 24px 20px 80px; align-items: start;
+    .page-content {
+      max-width: 680px; margin: 0 auto; padding: 0 20px 80px;
     }
     .section {
       border: 1px solid var(--line); border-radius: 22px;
@@ -185,87 +184,115 @@
     .add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .add-btn.added { background: linear-gradient(90deg, var(--green), var(--green-2)); color: #040a08; }
 
-    /* ══ CART PANEL ══ */
-    .cart-panel { position: sticky; top: 20px; }
-    .cart-box { border: 1px solid var(--line); border-radius: 22px; background: var(--panel); overflow: hidden; }
-    .cart-header {
-      padding: 16px 20px; border-bottom: 1px solid var(--line);
-      display: flex; align-items: center; justify-content: space-between;
+    /* ══ STEP PROGRESS ══ */
+    .steps-wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 0; }
+    .step-progress { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 140px; }
+    .step-circle {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid #333;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; color: #444; background: #0d0d0d;
+      transition: all 200ms; flex-shrink: 0;
     }
-    .cart-title { font-size: 12px; font-weight: 900; letter-spacing: 0.24em; text-transform: uppercase; color: var(--accent); }
-    .cart-count-badge { padding: 3px 10px; border-radius: 100px; background: var(--accent); color: #0a0a0a; font-size: 12px; font-weight: 900; }
-    .cart-items { padding: 12px; }
+    .step-item.active .step-circle { border-color: var(--accent); color: var(--accent); background: rgba(255,122,0,0.1); }
+    .step-item.done .step-circle { border-color: var(--green); color: #040a08; background: var(--green); }
+    .step-label { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #444; transition: color 200ms; white-space: nowrap; }
+    .step-item.active .step-label { color: var(--accent); }
+    .step-item.done .step-label { color: var(--green-2); }
+    .step-connector { height: 2px; flex: 1; background: #222; margin-bottom: 22px; transition: background 200ms; max-width: 60px; }
+    .step-connector.done { background: var(--green); }
+
+    /* ══ CART SUMMARY BAR ══ */
+    .cart-summary-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-radius: 16px;
+      background: rgba(255,122,0,0.06); border: 1px solid rgba(255,122,0,0.2); margin-top: 4px;
+    }
+    .cart-summary-info { display: flex; align-items: center; gap: 10px; }
+    .cart-summary-count {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+      color: #0a0a0a; font-size: 13px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cart-summary-text { font-size: 14px; font-weight: 700; color: var(--text); }
+    .cart-summary-total { font-size: 13px; font-weight: 900; color: var(--accent); }
+    .view-cart-btn {
+      appearance: none; border: 0; padding: 10px 18px; border-radius: 11px;
+      background: var(--accent); color: #0a0a0a; font-size: 12px; font-weight: 900;
+      letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; transition: opacity 120ms; white-space: nowrap;
+    }
+    .view-cart-btn:hover { opacity: 0.85; }
+
+    /* ══ CART PAGE ══ */
     .cart-empty { padding: 28px 16px; text-align: center; color: #444; font-size: 13px; line-height: 1.65; }
     .cart-item {
-      display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px;
-      background: #0d0d0d; border: 1px solid #1e1e1e; margin-bottom: 8px;
-      animation: slideIn 200ms ease;
+      display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+      border-radius: 16px; background: #0d0d0d; border: 1px solid #1e1e1e;
+      margin-bottom: 8px; animation: slideIn 200ms ease;
     }
     .cart-item:last-child { margin-bottom: 0; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-    .cart-item-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .cart-item-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
     .cart-item-info { flex: 1; min-width: 0; }
-    .cart-item-main { font-size: 13px; font-weight: 700; text-transform: capitalize; }
-    .cart-item-sub { font-size: 11px; color: #666; margin-top: 2px; }
-    .cart-item-price { font-size: 13px; font-weight: 900; color: var(--accent); white-space: nowrap; }
+    .cart-item-main { font-size: 15px; font-weight: 700; text-transform: capitalize; }
+    .cart-item-sub { font-size: 12px; color: #666; margin-top: 3px; }
+    .cart-item-price { font-size: 15px; font-weight: 900; color: var(--accent); white-space: nowrap; }
     .cart-remove {
-      appearance: none; border: 0; background: #1e1e1e; color: #666; width: 24px; height: 24px;
-      border-radius: 6px; cursor: pointer; font-size: 14px; line-height: 24px;
+      appearance: none; border: 0; background: #1e1e1e; color: #666; width: 28px; height: 28px;
+      border-radius: 7px; cursor: pointer; font-size: 14px; line-height: 28px;
       text-align: center; flex-shrink: 0; transition: background 120ms, color 120ms;
     }
     .cart-remove:hover { background: #cc3333; color: #fff; }
-    .cart-footer { padding: 16px; border-top: 1px solid var(--line); }
-    .cart-total-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; }
-    .cart-total-label { font-size: 11px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
-    .cart-total-amount { font-size: 26px; font-weight: 900; letter-spacing: -0.02em; color: var(--text); }
-    .cart-total-amount em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--muted); margin-left: 4px; }
-    .checkout-name-wrap { margin-bottom: 12px; }
-    .checkout-name-label { font-size: 10px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; display: block; }
-    .checkout-name-wrap input {
-      appearance: none; width: 100%; padding: 12px 14px; border-radius: 12px;
-      border: 1px solid #272727; background: #0a0a0a; color: var(--text);
-      font-size: 14px; font-family: inherit; outline: none; transition: border-color 120ms;
+    .cart-total-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 16px 20px; border-radius: 16px;
+      background: rgba(255,122,0,0.06); border: 1px solid rgba(255,122,0,0.15); margin-top: 12px;
     }
-    .checkout-name-wrap input:focus { border-color: var(--accent); }
-    .checkout-name-wrap input::placeholder { color: #444; }
-    .checkout-btn {
-      appearance: none; width: 100%; padding: 16px; border-radius: 15px; border: 0;
-      background: linear-gradient(90deg, var(--green), var(--green-2));
-      color: #040a08; font-size: 14px; font-weight: 900; letter-spacing: 0.2em;
-      text-transform: uppercase; cursor: pointer; transition: opacity 150ms, transform 120ms;
-    }
-    .checkout-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
-    .checkout-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-    .cart-error {
-      margin-top: 10px; padding: 10px 14px; border-radius: 12px;
-      background: var(--danger-bg); border: 1px solid var(--danger-line);
-      color: var(--danger-text); font-size: 13px; line-height: 1.55;
-    }
+    .cart-total-label { font-size: 12px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .cart-total-amount { font-size: 28px; font-weight: 900; letter-spacing: -0.02em; color: var(--text); }
+    .cart-total-amount em { font-style: normal; font-size: 14px; font-weight: 700; color: var(--muted); margin-left: 5px; }
 
-    /* ══ MOBILE CART BAR ══ */
-    .mobile-cart-bar {
-      display: none; position: fixed; bottom: 0; left: 0; right: 0;
-      padding: 12px 20px 20px;
-      background: linear-gradient(0deg, #0d0d0d 80%, transparent);
-      z-index: 100;
+    /* ══ STEP NAV ══ */
+    .step-nav { display: flex; gap: 12px; margin-top: 16px; }
+    .step-nav-back {
+      appearance: none; border: 1px solid #333; background: #0d0d0d; color: var(--muted);
+      padding: 14px 20px; border-radius: 14px; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer;
+      transition: border-color 120ms, color 120ms; flex-shrink: 0;
     }
-    .mobile-cart-btn {
-      appearance: none; width: 100%; padding: 16px 20px; border-radius: 16px; border: 0;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      color: #0a0a0a; font-size: 14px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase;
-      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    .step-nav-back:hover { border-color: #555; color: var(--text); }
+    .step-nav-fwd {
+      appearance: none; border: 0; flex: 1;
+      background: linear-gradient(90deg, var(--green), var(--green-2));
+      color: #040a08; padding: 16px; border-radius: 14px;
+      font-size: 14px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; transition: opacity 150ms, transform 120ms;
     }
-    .mobile-cart-btn.empty { background: #1a1a1a; color: #555; cursor: default; }
-    .cart-drawer-overlay {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200;
+    .step-nav-fwd:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .step-nav-fwd:disabled { opacity: 0.35; cursor: not-allowed; }
+    .step-nav-fwd.accent { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+
+    /* ══ CHECKOUT ══ */
+    .checkout-name-label { font-size: 11px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; display: block; }
+    .checkout-name-field {
+      appearance: none; width: 100%; padding: 14px 16px; border-radius: 13px;
+      border: 1px solid #272727; background: #0a0a0a; color: var(--text);
+      font-size: 16px; font-family: inherit; outline: none; transition: border-color 120ms;
     }
-    .cart-drawer-overlay.open { display: block; }
-    .cart-drawer {
-      position: fixed; bottom: 0; left: 0; right: 0; background: #111;
-      border-radius: 24px 24px 0 0; border-top: 1px solid #222;
-      padding: 0 0 32px; max-height: 85vh; overflow-y: auto; z-index: 201;
+    .checkout-name-field:focus { border-color: var(--accent); }
+    .checkout-name-field::placeholder { color: #444; }
+    .review-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border-radius: 14px; background: #0a0a0a; border: 1px solid #1a1a1a; margin-bottom: 8px;
     }
-    .cart-drawer-handle { width: 36px; height: 4px; border-radius: 2px; background: #333; margin: 14px auto 12px; }
+    .review-item-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .review-item-desc { flex: 1; font-size: 14px; font-weight: 700; text-transform: capitalize; }
+    .review-item-price { font-size: 14px; font-weight: 900; color: var(--accent); }
+    .error-box {
+      padding: 12px 16px; border-radius: 12px;
+      background: var(--danger-bg); border: 1px solid var(--danger-line);
+      color: var(--danger-text); font-size: 13px; line-height: 1.55; margin-top: 10px;
+    }
 
     /* ══ CONFIRMATION ══ */
     .confirm-wrap { max-width: 680px; margin: 32px auto; padding: 0 20px 80px; }
@@ -314,62 +341,38 @@
     .copy-btn.copied { background: var(--green); color: #fff; }
     .warning-box { padding: 14px 18px; border-radius: 14px; background: rgba(255,122,0,0.06); border: 1px solid rgba(255,122,0,0.2); color: #d98840; font-size: 13px; line-height: 1.65; }
     .warning-box strong { color: var(--accent-2); }
+    .contact-box { margin-top: 12px; padding: 14px 18px; border-radius: 14px; background: rgba(45,168,90,0.07); border: 1px solid rgba(93,216,138,0.25); color: #7ed4a0; font-size: 13px; line-height: 1.65; }
+    .contact-box strong { color: var(--green-2); }
 
-    /* ══ RESPONSIVE — full breakpoint stack ══════════════ */
-
-    /* Large desktop: wider layout */
-    @media (min-width: 1200px) {
-      .main-layout { max-width: 1200px; grid-template-columns: 1fr 400px; gap: 28px; }
-    }
-
-    /* Standard laptop / medium desktop (1024px – 1199px) */
-    @media (max-width: 1199px) and (min-width: 1025px) {
-      .main-layout { grid-template-columns: 1fr 340px; gap: 18px; }
-    }
-
-    /* Small laptop / large tablet landscape (780px – 1024px) */
-    @media (max-width: 1024px) and (min-width: 781px) {
-      .main-layout { grid-template-columns: 1fr 300px; gap: 16px; padding: 20px 16px 80px; }
-      .hero { padding: 28px 20px 24px; }
-      .section { padding: 20px; }
-    }
-
-    /* Tablet portrait / large phone: drop to single column, use mobile cart bar */
+    /* ══ RESPONSIVE ══ */
     @media (max-width: 780px) {
-      .main-layout { grid-template-columns: 1fr; gap: 0; padding: 16px 16px 120px; }
-      .cart-panel { display: none; }
-      .mobile-cart-bar { display: block; }
-      .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+      .page-content { padding: 0 16px 80px; }
       .hero { padding: 26px 18px 22px; }
       .hero-eyebrow { font-size: 10px; letter-spacing: 0.28em; }
       .flash-banner { padding: 9px 14px; font-size: 11px; letter-spacing: 0.22em; }
       .flash-banner span { margin: 0 12px; }
       .section { padding: 18px; border-radius: 18px; }
-      .confirm-wrap { padding: 0 16px 80px; }
+      .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
     }
-
-    /* Large phone (540px – 779px) */
     @media (max-width: 640px) {
       .hero-sub { font-size: 14px; }
       .price-amount { font-size: clamp(52px, 15vw, 80px); }
       .countdown-wrap { padding: 9px 16px; gap: 10px; flex-wrap: wrap; justify-content: center; }
       .countdown-digits { font-size: 18px; }
       .section { padding: 16px; border-radius: 16px; margin-bottom: 12px; }
-      .add-btn, .checkout-btn { min-height: 52px; }
+      .add-btn, .step-nav-fwd { min-height: 52px; }
       .field input, .field select { min-height: 48px; }
       .check-row { min-height: 48px; }
       .confirm-body { padding: 22px; }
       .confirm-order-num { font-size: clamp(24px, 8vw, 42px); }
       .pay-row { flex-direction: column; align-items: flex-start; gap: 10px; }
       .copy-btn { width: 100%; text-align: center; padding: 12px 14px; }
+      .step-label { display: none; }
     }
-
-    /* Medium phone (400px – 539px) */
     @media (max-width: 540px) {
       .flash-banner { letter-spacing: 0.14em; font-size: 10px; padding: 8px 12px; }
       .flash-banner span { margin: 0 8px; }
       .hero { padding: 20px 14px 18px; }
-      .hero-eyebrow { letter-spacing: 0.2em; }
       .hero-title { font-size: clamp(28px, 9vw, 44px); }
       .price-amount { font-size: clamp(48px, 16vw, 72px); }
       .hero-sub { font-size: 13px; line-height: 1.6; }
@@ -377,48 +380,21 @@
       .color-card-label { font-size: 10px; padding: 7px 4px; letter-spacing: 0.08em; }
       .section { padding: 14px; border-radius: 14px; }
       .form-stack { gap: 12px; }
-      .field input, .field select { padding: 12px 13px; font-size: 15px; }
-      .confirm-wrap { padding: 0 12px 80px; margin-top: 12px; }
+      .confirm-wrap { padding: 16px 14px 80px; margin-top: 0; }
       .confirm-body { padding: 18px; }
-      .confirm-band { padding: 13px 18px; letter-spacing: 0.22em; }
       .pay-box-body { padding: 14px; gap: 12px; }
-      .pay-val { font-size: 15px; }
-      .pay-val.highlight { font-size: 17px; }
-      .mobile-cart-bar { padding: 10px 14px 18px; }
-      .mobile-cart-btn { font-size: 13px; padding: 15px 16px; }
     }
-
-    /* Small phone (< 400px) */
     @media (max-width: 400px) {
-      .flash-banner { letter-spacing: 0.08em; font-size: 10px; }
-      .flash-banner span { margin: 0 6px; }
       .hero-title { font-size: clamp(26px, 9.5vw, 38px); }
       .price-amount { font-size: clamp(44px, 17vw, 64px); }
-      .price-currency { font-size: 18px; }
-      .price-per { font-size: 11px; }
-      .hero-sub { font-size: 13px; }
       .color-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
       .section { padding: 12px; border-radius: 14px; }
-      .field input, .field select { padding: 11px 12px; font-size: 14px; border-radius: 11px; }
-      .check-row { padding: 11px 12px; border-radius: 11px; }
-      .add-btn { padding: 14px; font-size: 13px; letter-spacing: 0.16em; border-radius: 13px; }
-      .checkout-btn { padding: 14px; font-size: 13px; letter-spacing: 0.16em; }
-      .confirm-body { padding: 16px; }
-      .confirm-order-num { font-size: clamp(20px, 8vw, 34px); }
-      .mobile-cart-btn { font-size: 12px; padding: 14px; border-radius: 14px; }
+      .step-nav-back { padding: 12px 16px; font-size: 12px; }
+      .step-nav-fwd { padding: 14px; font-size: 13px; }
     }
-
-    /* Very small phone (< 360px) */
     @media (max-width: 359px) {
       .color-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .hero-sub { display: none; }
-      .section-title { font-size: 10px; }
-    }
-
-    /* iOS safe area insets (notch + home bar) */
-    @supports (padding-bottom: env(safe-area-inset-bottom)) {
-      .mobile-cart-bar { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-      .cart-drawer { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
     }
   </style>
 </head>
@@ -455,135 +431,198 @@
       </div>
     </div>
 
-    <div class="main-layout">
-
-      <!-- Configurator -->
-      <div>
-        <div class="section">
-          <p class="section-title">Step 1 · Choose Colour</p>
-          <div class="color-grid">
-
-            <div class="color-card" id="card-red" style="--card-col:#e63b3b" onclick="pickColor('red',this)">
-              <img class="color-card-img" src="./images/shirts/shirt-red.png" alt="Red"
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-              <div class="color-swatch" style="background:#1a0404">
-                <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#e63b3b" stroke="#ff6b6b" stroke-width="1.5"/></svg>
-              </div>
-              <div class="color-card-label">Red</div>
-            </div>
-
-            <div class="color-card" id="card-blue" style="--card-col:#3b7fe6" onclick="pickColor('blue',this)">
-              <img class="color-card-img" src="./images/shirts/shirt-blue.png" alt="Blue"
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-              <div class="color-swatch" style="background:#040a1a">
-                <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#3b7fe6" stroke="#6ba0ff" stroke-width="1.5"/></svg>
-              </div>
-              <div class="color-card-label">Blue</div>
-            </div>
-
-            <div class="color-card" id="card-green" style="--card-col:#2da85a" onclick="pickColor('green',this)">
-              <img class="color-card-img" src="./images/shirts/shirt-green.png" alt="Green"
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-              <div class="color-swatch" style="background:#041209">
-                <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#2da85a" stroke="#5dd88a" stroke-width="1.5"/></svg>
-              </div>
-              <div class="color-card-label">Green</div>
-            </div>
-
-            <div class="color-card" id="card-purple" style="--card-col:#9b3be6" onclick="pickColor('purple',this)">
-              <img class="color-card-img" src="./images/shirts/shirt-purple.png" alt="Purple"
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-              <div class="color-swatch" style="background:#0e0417">
-                <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#9b3be6" stroke="#bf7af5" stroke-width="1.5"/></svg>
-              </div>
-              <div class="color-card-label">Purple</div>
-            </div>
-
-            <div class="color-card" id="card-orange" style="--card-col:#ff7a00" onclick="pickColor('orange',this)">
-              <img class="color-card-img" src="./images/shirts/shirt-orange.png" alt="Orange"
-                onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-              <div class="color-swatch" style="background:#160800">
-                <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#ff7a00" stroke="#ffb347" stroke-width="1.5"/></svg>
-              </div>
-              <div class="color-card-label">Orange</div>
-            </div>
-
-          </div>
+    <!-- Step Progress -->
+    <div class="steps-wrap">
+      <div class="step-progress">
+        <div class="step-item active" id="step-ind-1">
+          <div class="step-circle">1</div>
+          <div class="step-label">Store</div>
         </div>
-
-        <div class="section">
-          <p class="section-title">Step 2 · Size &amp; Name</p>
-          <div class="form-stack">
-
-            <div class="field">
-              <label>Selected Colour</label>
-              <div class="selected-color-display" id="colorDisplay">
-                <span style="color:#444">← Pick a colour above first</span>
-              </div>
-            </div>
-
-            <div class="field">
-              <label for="sizeSelect">Size</label>
-              <select id="sizeSelect">
-                <option value="">— Select size —</option>
-                <option value="S">S — Small</option>
-                <option value="M">M — Medium</option>
-                <option value="L">L — Large</option>
-                <option value="XL">XL — Extra Large</option>
-                <option value="XXL">XXL — 2X Large</option>
-                <option value="3XL">3XL — 3X Large</option>
-                <option value="4XL">4XL — 4X Large</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="shirtNameInput">Name on Front of Shirt <span class="opt-tag">Optional</span></label>
-              <input type="text" id="shirtNameInput" placeholder="e.g. Matt  (leave blank if checking box below)" maxlength="20" />
-              <span class="field-hint">Up to 20 characters — printed on front.</span>
-            </div>
-
-            <div class="field">
-              <div class="check-row" onclick="document.getElementById('noNameCheck').click()">
-                <input type="checkbox" id="noNameCheck" onclick="event.stopPropagation();toggleNoName()">
-                <label for="noNameCheck">No name on shirt — I don't want a name printed</label>
-              </div>
-            </div>
-
-            <div id="addError" class="cart-error hidden"></div>
-
-            <button class="add-btn" id="addBtn" onclick="addToCart()">+ Add to Cart</button>
-
-          </div>
+        <div class="step-connector" id="step-conn-1"></div>
+        <div class="step-item" id="step-ind-2">
+          <div class="step-circle">2</div>
+          <div class="step-label">Cart</div>
+        </div>
+        <div class="step-connector" id="step-conn-2"></div>
+        <div class="step-item" id="step-ind-3">
+          <div class="step-circle">3</div>
+          <div class="step-label">Checkout</div>
+        </div>
+        <div class="step-connector" id="step-conn-3"></div>
+        <div class="step-item" id="step-ind-4">
+          <div class="step-circle">4</div>
+          <div class="step-label">Payment</div>
         </div>
       </div>
-
-      <!-- Desktop cart -->
-      <div class="cart-panel">
-        <div class="cart-box">
-          <div class="cart-header">
-            <span class="cart-title">Your Cart</span>
-            <span class="cart-count-badge" id="cartBadgeDesktop">0</span>
-          </div>
-          <div class="cart-items" id="cartItemsDesktop">
-            <div class="cart-empty">Your cart is empty.<br>Add a shirt to get started.</div>
-          </div>
-          <div class="cart-footer" id="cartFooterDesktop" style="display:none">
-            <div class="cart-total-row">
-              <span class="cart-total-label">Total</span>
-              <span class="cart-total-amount" id="cartTotalDesktop">$0 <em>CAD</em></span>
-            </div>
-            <div class="checkout-name-wrap">
-              <span class="checkout-name-label">Your Name (for the order)</span>
-              <input type="text" id="checkoutNameDesktop" placeholder="e.g. Matt Dow" autocomplete="name" />
-            </div>
-            <button class="checkout-btn" id="checkoutBtnDesktop" onclick="placeOrder('desktop')">Place Order →</button>
-            <div id="checkoutErrorDesktop" class="cart-error hidden"></div>
-          </div>
-        </div>
-      </div>
-
     </div>
-  </div>
+
+    <!-- ── Step 1: Store ────────────────────────────────── -->
+    <div id="stepStore" class="page-content">
+      <div class="section">
+        <p class="section-title">Step 1 · Choose Colour</p>
+        <div class="color-grid">
+
+          <div class="color-card" id="card-red" style="--card-col:#e63b3b" onclick="pickColor('red',this)">
+            <img class="color-card-img" src="./images/shirts/shirt-red.png" alt="Red"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-swatch" style="background:#1a0404">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#e63b3b" stroke="#ff6b6b" stroke-width="1.5"/></svg>
+            </div>
+            <div class="color-card-label">Red</div>
+          </div>
+
+          <div class="color-card" id="card-blue" style="--card-col:#3b7fe6" onclick="pickColor('blue',this)">
+            <img class="color-card-img" src="./images/shirts/shirt-blue.png" alt="Blue"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-swatch" style="background:#040a1a">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#3b7fe6" stroke="#6ba0ff" stroke-width="1.5"/></svg>
+            </div>
+            <div class="color-card-label">Blue</div>
+          </div>
+
+          <div class="color-card" id="card-green" style="--card-col:#2da85a" onclick="pickColor('green',this)">
+            <img class="color-card-img" src="./images/shirts/shirt-green.png" alt="Green"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-swatch" style="background:#041209">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#2da85a" stroke="#5dd88a" stroke-width="1.5"/></svg>
+            </div>
+            <div class="color-card-label">Green</div>
+          </div>
+
+          <div class="color-card" id="card-purple" style="--card-col:#9b3be6" onclick="pickColor('purple',this)">
+            <img class="color-card-img" src="./images/shirts/shirt-purple.png" alt="Purple"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-swatch" style="background:#0e0417">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#9b3be6" stroke="#bf7af5" stroke-width="1.5"/></svg>
+            </div>
+            <div class="color-card-label">Purple</div>
+          </div>
+
+          <div class="color-card" id="card-orange" style="--card-col:#ff7a00" onclick="pickColor('orange',this)">
+            <img class="color-card-img" src="./images/shirts/shirt-orange.png" alt="Orange"
+              onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="color-swatch" style="background:#160800">
+              <svg viewBox="0 0 64 64" fill="none"><path d="M12 18L8 26H20V54H44V26H56L52 18L40 14C40 14 38 20 32 20C26 20 24 14 24 14L12 18Z" fill="#ff7a00" stroke="#ffb347" stroke-width="1.5"/></svg>
+            </div>
+            <div class="color-card-label">Orange</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="section">
+        <p class="section-title">Step 2 · Size &amp; Name</p>
+        <div class="form-stack">
+
+          <div class="field">
+            <label>Selected Colour</label>
+            <div class="selected-color-display" id="colorDisplay">
+              <span style="color:#444">← Pick a colour above first</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="sizeSelect">Size</label>
+            <select id="sizeSelect">
+              <option value="">— Select size —</option>
+              <option value="S">S — Small</option>
+              <option value="M">M — Medium</option>
+              <option value="L">L — Large</option>
+              <option value="XL">XL — Extra Large</option>
+              <option value="XXL">XXL — 2X Large</option>
+              <option value="3XL">3XL — 3X Large</option>
+              <option value="4XL">4XL — 4X Large</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="poloStyleSelect">Polo Style</label>
+            <select id="poloStyleSelect">
+              <option value="">— Select polo style —</option>
+              <option value="Button Polo">Button Polo</option>
+              <option value="Zipper Polo">Zipper Polo</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <div class="check-row" onclick="document.getElementById('pocketCheck').click()">
+              <input type="checkbox" id="pocketCheck" onclick="event.stopPropagation()">
+              <label for="pocketCheck">Add a chest pocket to the shirt</label>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="shirtNameInput">Name on Front of Shirt <span class="opt-tag">Optional</span></label>
+            <input type="text" id="shirtNameInput" placeholder="e.g. Matt  (leave blank if checking box below)" maxlength="20" />
+            <span class="field-hint">Up to 20 characters — printed on front.</span>
+          </div>
+
+          <div class="field">
+            <div class="check-row" onclick="document.getElementById('noNameCheck').click()">
+              <input type="checkbox" id="noNameCheck" onclick="event.stopPropagation();toggleNoName()">
+              <label for="noNameCheck">No name on shirt — I don't want a name printed</label>
+            </div>
+          </div>
+
+          <div id="addError" class="error-box hidden"></div>
+          <button class="add-btn" id="addBtn" onclick="addToCart()">+ Add to Cart</button>
+
+        </div>
+      </div>
+
+      <!-- Cart summary bar — appears after first item added -->
+      <div id="cartSummaryBar" class="cart-summary-bar hidden">
+        <div class="cart-summary-info">
+          <div class="cart-summary-count" id="cartSummaryCount">0</div>
+          <div>
+            <div class="cart-summary-text" id="cartSummaryText">0 items in cart</div>
+            <div class="cart-summary-total" id="cartSummaryTotal">$0 CAD</div>
+          </div>
+        </div>
+        <button class="view-cart-btn" onclick="goToStep(2)">View Cart →</button>
+      </div>
+    </div>
+
+    <!-- ── Step 2: Cart ─────────────────────────────────── -->
+    <div id="stepCart" class="page-content hidden">
+      <div class="section">
+        <p class="section-title">Your Cart</p>
+        <div id="cartItemsList"></div>
+        <p id="cartEmptyMsg" class="cart-empty hidden">Your cart is empty. Go back and add some shirts!</p>
+      </div>
+      <div class="cart-total-row" id="cartTotalRow">
+        <span class="cart-total-label">Total</span>
+        <span class="cart-total-amount" id="cartTotal">$0 <em>CAD</em></span>
+      </div>
+      <div class="step-nav">
+        <button class="step-nav-back" onclick="goToStep(1)">← Add More</button>
+        <button class="step-nav-fwd" id="cartCheckoutBtn" onclick="goToStep(3)">Proceed to Checkout →</button>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Checkout ─────────────────────────────── -->
+    <div id="stepCheckout" class="page-content hidden">
+      <div class="section">
+        <p class="section-title">Order Review</p>
+        <div id="checkoutItemsList"></div>
+        <div class="cart-total-row" style="margin-top:12px">
+          <span class="cart-total-label">Total Due</span>
+          <span class="cart-total-amount" id="checkoutTotal">$0 <em>CAD</em></span>
+        </div>
+      </div>
+      <div class="section">
+        <p class="section-title">Your Details</p>
+        <label class="checkout-name-label" for="checkoutName">Your Name (for the order)</label>
+        <input type="text" class="checkout-name-field" id="checkoutName" placeholder="e.g. Matt Dow" autocomplete="name" />
+        <div id="checkoutError" class="error-box hidden"></div>
+      </div>
+      <div class="step-nav">
+        <button class="step-nav-back" onclick="goToStep(2)">← Back to Cart</button>
+        <button class="step-nav-fwd accent" id="placeOrderBtn" onclick="placeOrder()">Place Order →</button>
+      </div>
+    </div>
+
+  </div><!-- end activeView -->
 
   <!-- ══ CONFIRMATION ══ -->
   <div id="confirmView" class="confirm-wrap hidden">
@@ -624,41 +663,10 @@
           </div>
         </div>
         <div class="warning-box">
-          ⚠ Your order is <strong>not confirmed</strong> until your e-transfer is received and matched to your order number. Only paid orders are placed with the supplier on <strong>Monday June 9</strong>.
+          ⚠ Your order is <strong>not confirmed</strong> until your e-transfer is received and matched to your order number. Only paid orders are placed with the supplier on <strong>Monday June 8</strong>.
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ MOBILE CART BAR ══ -->
-  <div class="mobile-cart-bar" id="mobileCartBar">
-    <button class="mobile-cart-btn empty" id="mobileCartBtn" onclick="openMobileCart()">
-      <span id="mobileCartBtnLeft">Cart is empty</span>
-      <span id="mobileCartBtnRight"></span>
-    </button>
-  </div>
-
-  <!-- Mobile drawer -->
-  <div class="cart-drawer-overlay" id="drawerOverlay" onclick="closeMobileCart()">
-    <div class="cart-drawer" onclick="event.stopPropagation()">
-      <div class="cart-drawer-handle"></div>
-      <div style="padding:0 16px 8px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <span style="font-size:12px;font-weight:900;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent)">Your Cart</span>
-          <button onclick="closeMobileCart()" style="appearance:none;border:0;background:#1e1e1e;color:#aaa;border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;font-weight:700">Close</button>
-        </div>
-        <div id="cartItemsMobile"><div class="cart-empty">Your cart is empty.</div></div>
-        <div id="cartFooterMobile" style="display:none;margin-top:12px">
-          <div class="cart-total-row">
-            <span class="cart-total-label">Total</span>
-            <span class="cart-total-amount" id="cartTotalMobile">$0 <em>CAD</em></span>
-          </div>
-          <div class="checkout-name-wrap">
-            <span class="checkout-name-label">Your Name (for the order)</span>
-            <input type="text" id="checkoutNameMobile" placeholder="e.g. Matt Dow" autocomplete="name" />
-          </div>
-          <button class="checkout-btn" id="checkoutBtnMobile" onclick="placeOrder('mobile')">Place Order →</button>
-          <div id="checkoutErrorMobile" class="cart-error hidden"></div>
+        <div class="contact-box">
+          📞 <strong>Matthew will personally contact you</strong> to confirm your order details before Sunday night — keep an eye out for a message.
         </div>
       </div>
     </div>
@@ -675,22 +683,22 @@
     let cart = []
     let selectedColor = null
     let confirmedCartSnapshot = []
+    let currentStep = 1
 
-    // ── Order number: timestamp-based ────────────────────
-    // Format: CGC-YYYYMMDD-HHmmSS  e.g. CGC-20260607-213456
+    // ── Order number ──────────────────────────────────────
     function generateOrderNumber() {
       const now = new Date()
       const pad = n => String(n).padStart(2, '0')
-      const y  = now.getFullYear()
+      const y = now.getFullYear()
       const mo = pad(now.getMonth() + 1)
-      const d  = pad(now.getDate())
-      const h  = pad(now.getHours())
+      const d = pad(now.getDate())
+      const h = pad(now.getHours())
       const mi = pad(now.getMinutes())
-      const s  = pad(now.getSeconds())
+      const s = pad(now.getSeconds())
       return `CGC-${y}${mo}${d}-${h}${mi}${s}`
     }
 
-    // ── Countdown ────────────────────────────────────────
+    // ── Countdown ─────────────────────────────────────────
     function tickCountdown() {
       const ms = DEADLINE - Date.now()
       const el = document.getElementById('countdown')
@@ -708,10 +716,27 @@
     function showClosed() {
       document.getElementById('activeView').classList.add('hidden')
       document.getElementById('closedView').classList.remove('hidden')
-      document.getElementById('mobileCartBar').style.display = 'none'
     }
 
-    // ── Colour picker ────────────────────────────────────
+    // ── Step navigation ───────────────────────────────────
+    function goToStep(n) {
+      if (n === 2 && cart.length === 0) return
+      if (n === 3 && cart.length === 0) return
+      currentStep = n
+      document.getElementById('stepStore').classList.toggle('hidden', n !== 1)
+      document.getElementById('stepCart').classList.toggle('hidden', n !== 2)
+      document.getElementById('stepCheckout').classList.toggle('hidden', n !== 3)
+      for (let i = 1; i <= 4; i++) {
+        const ind = document.getElementById(`step-ind-${i}`)
+        ind.className = 'step-item' + (i < n ? ' done' : (i === n ? ' active' : ''))
+        if (i < 4) document.getElementById(`step-conn-${i}`).className = 'step-connector' + (i < n ? ' done' : '')
+      }
+      if (n === 2) renderCartPage()
+      if (n === 3) renderCheckoutPage()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    // ── Colour picker ─────────────────────────────────────
     function pickColor(color, el) {
       selectedColor = color
       document.querySelectorAll('.color-card').forEach(c => c.classList.remove('selected'))
@@ -722,7 +747,7 @@
       display.innerHTML = `<span class="col-dot" style="background:${hex}"></span><span style="text-transform:capitalize;font-weight:700">${color}</span>`
     }
 
-    // ── No-name toggle ───────────────────────────────────
+    // ── No-name toggle ────────────────────────────────────
     function toggleNoName() {
       const checked = document.getElementById('noNameCheck').checked
       const input = document.getElementById('shirtNameInput')
@@ -730,60 +755,23 @@
       if (checked) input.value = ''
     }
 
-    // ── Cart rendering ───────────────────────────────────
-    function renderCartItems(containerId) {
-      const el = document.getElementById(containerId)
-      if (cart.length === 0) { el.innerHTML = '<div class="cart-empty">Your cart is empty.<br>Add a shirt above.</div>'; return }
-      el.innerHTML = cart.map(item => {
-        const hex = COLOR_HEX[item.color] || '#888'
-        const nameLabel = item.noName ? '<em style="color:#555">No name</em>' : (item.shirtName || '—')
-        return `<div class="cart-item">
-          <span class="cart-item-dot" style="background:${hex}"></span>
-          <div class="cart-item-info">
-            <div class="cart-item-main">${item.color} · ${item.size}</div>
-            <div class="cart-item-sub">${nameLabel}</div>
-          </div>
-          <span class="cart-item-price">$50</span>
-          <button class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">✕</button>
-        </div>`
-      }).join('')
-    }
-
-    function renderCart() {
-      const total = cart.length * 50
-      const hasItems = cart.length > 0
-
-      // Desktop
-      renderCartItems('cartItemsDesktop')
-      document.getElementById('cartBadgeDesktop').textContent = cart.length
-      document.getElementById('cartTotalDesktop').innerHTML = `$${total} <em>CAD</em>`
-      document.getElementById('cartFooterDesktop').style.display = hasItems ? 'block' : 'none'
-
-      // Mobile
-      renderCartItems('cartItemsMobile')
-      document.getElementById('cartTotalMobile').innerHTML = `$${total} <em>CAD</em>`
-      document.getElementById('cartFooterMobile').style.display = hasItems ? 'block' : 'none'
-
-      // Mobile bar
-      const btn = document.getElementById('mobileCartBtn')
-      btn.className = hasItems ? 'mobile-cart-btn' : 'mobile-cart-btn empty'
-      document.getElementById('mobileCartBtnLeft').textContent = hasItems ? `View Cart · ${cart.length} item${cart.length > 1 ? 's' : ''}` : 'Cart is empty'
-      document.getElementById('mobileCartBtnRight').textContent = hasItems ? `$${total} CAD →` : ''
-    }
-
+    // ── Add to cart ───────────────────────────────────────
     function addToCart() {
-      const errorEl = document.getElementById('addError')
+      const errorEl   = document.getElementById('addError')
       errorEl.classList.add('hidden')
-      const size      = document.getElementById('sizeSelect').value
-      const shirtName = document.getElementById('shirtNameInput').value.trim()
-      const noName    = document.getElementById('noNameCheck').checked
+      const size       = document.getElementById('sizeSelect').value
+      const poloStyle  = document.getElementById('poloStyleSelect').value
+      const pocket     = document.getElementById('pocketCheck').checked
+      const shirtName  = document.getElementById('shirtNameInput').value.trim()
+      const noName     = document.getElementById('noNameCheck').checked
 
       if (!selectedColor) { errorEl.textContent = 'Please select a colour first.'; errorEl.classList.remove('hidden'); return }
       if (!size)          { errorEl.textContent = 'Please select a size.';          errorEl.classList.remove('hidden'); return }
+      if (!poloStyle)     { errorEl.textContent = 'Please select a polo style (Button or Zipper).'; errorEl.classList.remove('hidden'); return }
       if (!shirtName && !noName) { errorEl.textContent = 'Enter a name to print on the shirt, or check "No name on shirt".'; errorEl.classList.remove('hidden'); return }
 
-      cart.push({ id: Math.random().toString(36).slice(2,10), color: selectedColor, size, shirtName, noName })
-      renderCart()
+      cart.push({ id: Math.random().toString(36).slice(2,10), color: selectedColor, size, poloStyle, pocket, shirtName, noName })
+      updateCartSummaryBar()
 
       const btn = document.getElementById('addBtn')
       btn.textContent = '✓ Added to Cart!'
@@ -791,43 +779,95 @@
       setTimeout(() => { btn.textContent = '+ Add to Cart'; btn.classList.remove('added') }, 1500)
 
       document.getElementById('sizeSelect').value = ''
+      document.getElementById('poloStyleSelect').value = ''
+      document.getElementById('pocketCheck').checked = false
       document.getElementById('shirtNameInput').value = ''
       document.getElementById('noNameCheck').checked = false
       document.getElementById('shirtNameInput').disabled = false
     }
 
+    function updateCartSummaryBar() {
+      const bar = document.getElementById('cartSummaryBar')
+      if (cart.length === 0) { bar.classList.add('hidden'); return }
+      bar.classList.remove('hidden')
+      const total = cart.length * 50
+      document.getElementById('cartSummaryCount').textContent = cart.length
+      document.getElementById('cartSummaryText').textContent = `${cart.length} item${cart.length > 1 ? 's' : ''} in cart`
+      document.getElementById('cartSummaryTotal').textContent = `$${total} CAD`
+    }
+
+    // ── Cart page ─────────────────────────────────────────
+    function renderCartPage() {
+      const listEl     = document.getElementById('cartItemsList')
+      const emptyEl    = document.getElementById('cartEmptyMsg')
+      const totalEl    = document.getElementById('cartTotal')
+      const checkoutBtn = document.getElementById('cartCheckoutBtn')
+      if (cart.length === 0) {
+        listEl.innerHTML = ''
+        emptyEl.classList.remove('hidden')
+        checkoutBtn.disabled = true
+      } else {
+        emptyEl.classList.add('hidden')
+        checkoutBtn.disabled = false
+        listEl.innerHTML = cart.map(item => {
+          const hex = COLOR_HEX[item.color] || '#888'
+          const nameLabel = item.noName ? '<em style="color:#555">No name</em>' : (item.shirtName || '—')
+          const extras = [item.poloStyle, item.pocket ? 'Pocket' : null].filter(Boolean).join(' · ')
+          return `<div class="cart-item">
+            <span class="cart-item-dot" style="background:${hex}"></span>
+            <div class="cart-item-info">
+              <div class="cart-item-main">${item.color} · ${item.size} · ${extras}</div>
+              <div class="cart-item-sub">${nameLabel}</div>
+            </div>
+            <span class="cart-item-price">$50</span>
+            <button class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">✕</button>
+          </div>`
+        }).join('')
+      }
+      totalEl.innerHTML = `$${cart.length * 50} <em>CAD</em>`
+    }
+
     function removeFromCart(id) {
       cart = cart.filter(i => i.id !== id)
-      renderCart()
+      updateCartSummaryBar()
+      renderCartPage()
+      if (cart.length === 0) goToStep(1)
     }
 
-    // ── Mobile drawer ────────────────────────────────────
-    function openMobileCart() {
-      if (!cart.length) return
-      document.getElementById('drawerOverlay').classList.add('open')
-      document.body.style.overflow = 'hidden'
-    }
-    function closeMobileCart() {
-      document.getElementById('drawerOverlay').classList.remove('open')
-      document.body.style.overflow = ''
+    // ── Checkout page ─────────────────────────────────────
+    function renderCheckoutPage() {
+      const listEl = document.getElementById('checkoutItemsList')
+      listEl.innerHTML = cart.map(item => {
+        const hex = COLOR_HEX[item.color] || '#888'
+        const nameLabel = item.noName ? 'No name' : (item.shirtName || '—')
+        const extras = [item.poloStyle, item.pocket ? 'Pocket' : null].filter(Boolean).join(' · ')
+        return `<div class="review-item">
+          <span class="review-item-dot" style="background:${hex}"></span>
+          <span class="review-item-desc">${item.color} · ${item.size} · ${extras} · ${nameLabel}</span>
+          <span class="review-item-price">$50</span>
+        </div>`
+      }).join('')
+      document.getElementById('checkoutTotal').innerHTML = `$${cart.length * 50} <em>CAD</em>`
     }
 
-    // ── Place order ──────────────────────────────────────
-    async function placeOrder(source) {
+    // ── Place order ───────────────────────────────────────
+    async function placeOrder() {
       if (Date.now() >= DEADLINE) { showClosed(); return }
       if (!cart.length) return
 
-      const nameId  = source === 'mobile' ? 'checkoutNameMobile'  : 'checkoutNameDesktop'
-      const errId   = source === 'mobile' ? 'checkoutErrorMobile' : 'checkoutErrorDesktop'
-      const btnId   = source === 'mobile' ? 'checkoutBtnMobile'   : 'checkoutBtnDesktop'
-      const customerName = document.getElementById(nameId).value.trim()
-      const errEl = document.getElementById(errId)
+      const errEl        = document.getElementById('checkoutError')
+      const btn          = document.getElementById('placeOrderBtn')
+      const customerName = document.getElementById('checkoutName').value.trim()
       errEl.classList.add('hidden')
 
-      if (!customerName) { errEl.textContent = 'Please enter your name so we know whose order this is.'; errEl.classList.remove('hidden'); return }
+      if (!customerName) {
+        errEl.textContent = 'Please enter your name so we know whose order this is.'
+        errEl.classList.remove('hidden')
+        return
+      }
 
-      const btn = document.getElementById(btnId)
-      btn.disabled = true; btn.textContent = 'Placing Order…'
+      btn.disabled = true
+      btn.textContent = 'Placing Order…'
 
       try {
         const orderNumber = generateOrderNumber()
@@ -847,9 +887,11 @@
             customer_name: customerName,
             size:          firstItem.size,
             color:         firstItem.color,
+            polo_style:    firstItem.poloStyle,
+            pocket:        firstItem.pocket,
             shirt_name:    firstItem.shirtName || null,
             no_name:       firstItem.noName,
-            items:         cart.map(({ color, size, shirtName, noName }) => ({ color, size, shirt_name: shirtName || null, no_name: noName })),
+            items:         cart.map(({ color, size, poloStyle, pocket, shirtName, noName }) => ({ color, size, polo_style: poloStyle, pocket, shirt_name: shirtName || null, no_name: noName })),
             total_amount:  totalAmount,
           }),
         })
@@ -857,27 +899,30 @@
 
         confirmedCartSnapshot = [...cart]
         cart = []
-        closeMobileCart()
         showConfirmation({ orderNumber, totalAmount })
       } catch (err) {
         console.error(err)
         errEl.textContent = 'Something went wrong — please try again or contact Dow.'
         errEl.classList.remove('hidden')
-        btn.disabled = false; btn.textContent = 'Place Order →'
+        btn.disabled = false
+        btn.textContent = 'Place Order →'
       }
     }
 
-    // ── Show confirmation ─────────────────────────────────
+    // ── Show confirmation (step 4) ────────────────────────
     function showConfirmation({ orderNumber, totalAmount }) {
+      // Mark all steps done, step 4 active
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`step-ind-${i}`).className = 'step-item' + (i < 4 ? ' done' : ' active')
+        if (i < 4) document.getElementById(`step-conn-${i}`).className = 'step-connector done'
+      }
+
       document.getElementById('activeView').classList.add('hidden')
-      document.getElementById('mobileCartBar').style.display = 'none'
-
-      document.getElementById('cfOrderNum').textContent    = orderNumber
+      document.getElementById('cfOrderNum').textContent     = orderNumber
       document.getElementById('cfOrderNumCopy').textContent = orderNumber
-      document.getElementById('cfTotal').textContent      = `$${totalAmount} CAD`
-      document.getElementById('cfPayAmount').textContent  = `$${totalAmount}.00 CAD`
+      document.getElementById('cfTotal').textContent        = `$${totalAmount} CAD`
+      document.getElementById('cfPayAmount').textContent    = `$${totalAmount}.00 CAD`
 
-      // Decode timestamp from order number for human-readable date
       try {
         const [, ds, ts] = orderNumber.split('-')
         const yr=ds.slice(0,4), mo=ds.slice(4,6), dy=ds.slice(6,8)
@@ -887,13 +932,13 @@
           'Ordered ' + d.toLocaleString('en-CA', { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' })
       } catch (_) {}
 
-      // Items list from snapshot
       document.getElementById('cfItems').innerHTML = confirmedCartSnapshot.map(item => {
         const hex = COLOR_HEX[item.color] || '#888'
         const nameLabel = item.noName ? 'No name' : (item.shirtName || '—')
+        const extras = [item.poloStyle, item.pocket ? 'Pocket' : null].filter(Boolean).join(' · ')
         return `<div class="confirm-item">
           <span class="confirm-item-dot" style="background:${hex}"></span>
-          <span class="confirm-item-desc">${item.color} · ${item.size} · ${nameLabel}</span>
+          <span class="confirm-item-desc">${item.color} · ${item.size} · ${extras} · ${nameLabel}</span>
           <span class="confirm-item-price">$50</span>
         </div>`
       }).join('')
@@ -902,7 +947,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
-    // ── Copy ─────────────────────────────────────────────
+    // ── Copy ──────────────────────────────────────────────
     async function copyField(valueId, btnId) {
       const text = document.getElementById(valueId).textContent.trim()
       const btn  = document.getElementById(btnId)
@@ -916,7 +961,7 @@
       }
     }
 
-    // ── Init ─────────────────────────────────────────────
+    // ── Init ──────────────────────────────────────────────
     if (Date.now() >= DEADLINE) { showClosed() } else {
       tickCountdown()
       setInterval(() => { Date.now() >= DEADLINE ? showClosed() : tickCountdown() }, 1000)
