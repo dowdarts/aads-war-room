@@ -661,9 +661,23 @@
         <input type="text" id="editShirtName" class="modal-input" placeholder="Optional" />
       </div>
       <div class="modal-field">
+        <label class="modal-label">Polo Style</label>
+        <select id="editPoloStyle" class="modal-select">
+          <option value="">— Select —</option>
+          <option value="Button Collar">Button Collar</option>
+          <option value="Zipper Collar">Zipper Collar</option>
+        </select>
+      </div>
+      <div class="modal-field">
         <label class="modal-label">
-          <input type="checkbox" id="editNoName" style="margin-right: 8px;" />
-          No Name on Shirt
+          <input type="checkbox" id="editPocket" />
+          <span style="margin-left:8px">Pocket</span>
+        </label>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">
+          <input type="checkbox" id="editNoName" />
+          <span style="margin-left:8px">No Name on Shirt</span>
         </label>
       </div>
       <div class="modal-field">
@@ -796,9 +810,13 @@
           itemsHtml = order.items.map(it => {
             const hex = COLOR_HEX[it.color] || '#888'
             const nm  = it.no_name ? '<em style="color:#555">No name</em>' : (it.shirt_name || '—')
+            const poloDisplay = it.polo_style ? `${it.polo_style}${it.pocket ? ' + Pocket' : ''}` : 'N/A'
             return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:4px">
               <span class="color-dot" style="background:${hex}"></span>
-              <span style="text-transform:capitalize;font-size:13px">${it.color} · <strong>${it.size}</strong> · ${nm}</span>
+              <div style="font-size:13px">
+                <div>${it.color} · <strong>${it.size}</strong> · ${nm}</div>
+                <div style="font-size:11px;color:#888">${poloDisplay}</div>
+              </div>
             </div>`
           }).join('')
         } else {
@@ -950,18 +968,28 @@
       if (toExport.length === 0) { showToast('No orders to export.', 'error'); return }
 
       const rows = [
-        ['Order Number', 'Customer Name', 'Colour', 'Size', 'Shirt Name', 'No Name', 'Status', 'Placed At', 'Confirmed At'],
-        ...toExport.map(o => [
-          o.order_number,
-          o.customer_name,
-          o.color,
-          o.size,
-          o.shirt_name || '',
-          o.no_name ? 'Yes' : 'No',
-          o.status,
-          new Date(o.created_at).toLocaleString('en-CA'),
-          o.confirmed_at ? new Date(o.confirmed_at).toLocaleString('en-CA') : '',
-        ])
+        ['Order Number', 'Customer Name', 'Colour', 'Size', 'Shirt Name', 'No Name', 'Polo Style', 'Pocket', 'Status', 'Placed At', 'Confirmed At'],
+        ...toExport.map(o => {
+          let poloStyle = ''
+          let pocket = ''
+          if (Array.isArray(o.items) && o.items.length > 0) {
+            poloStyle = o.items[0].polo_style || ''
+            pocket = o.items[0].pocket ? 'Yes' : 'No'
+          }
+          return [
+            o.order_number,
+            o.customer_name,
+            o.color,
+            o.size,
+            o.shirt_name || '',
+            o.no_name ? 'Yes' : 'No',
+            poloStyle,
+            pocket,
+            o.status,
+            new Date(o.created_at).toLocaleString('en-CA'),
+            o.confirmed_at ? new Date(o.confirmed_at).toLocaleString('en-CA') : '',
+          ]
+        })
       ]
 
       const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n')
@@ -1003,6 +1031,16 @@
       document.getElementById('editNoName').checked = order.no_name || false
       document.getElementById('editTotalAmount').value = order.total_amount || 50
 
+      // Extract polo style and pocket from items array if available
+      if (Array.isArray(order.items) && order.items.length > 0) {
+        const firstItem = order.items[0]
+        document.getElementById('editPoloStyle').value = firstItem.polo_style || ''
+        document.getElementById('editPocket').checked = firstItem.pocket || false
+      } else {
+        document.getElementById('editPoloStyle').value = ''
+        document.getElementById('editPocket').checked = false
+      }
+
       document.getElementById('editModal').classList.add('modal-open')
     }
 
@@ -1015,6 +1053,41 @@
       if (!editingOrderId) return
 
       try {
+        const poloStyle = document.getElementById('editPoloStyle').value
+        const pocket = document.getElementById('editPocket').checked
+        
+        // Build items array with updated data
+        const order = allOrders.find(o => o.id === editingOrderId)
+        let updatedItems = []
+        if (Array.isArray(order.items) && order.items.length > 0) {
+          updatedItems = order.items.map((item, idx) => {
+            // Update first item with form data, keep others unchanged
+            if (idx === 0) {
+              return {
+                ...item,
+                color: document.getElementById('editColor').value,
+                size: document.getElementById('editSize').value,
+                polo_style: poloStyle,
+                pocket: pocket,
+                shirt_name: document.getElementById('editShirtName').value,
+                no_name: document.getElementById('editNoName').checked,
+              }
+            }
+            return item
+          })
+        } else {
+          // Create items array if it doesn't exist
+          updatedItems = [{
+            type: 'polo',
+            color: document.getElementById('editColor').value,
+            size: document.getElementById('editSize').value,
+            polo_style: poloStyle,
+            pocket: pocket,
+            shirt_name: document.getElementById('editShirtName').value || null,
+            no_name: document.getElementById('editNoName').checked,
+          }]
+        }
+
         const payload = {
           customer_name: document.getElementById('editCustomerName').value,
           color: document.getElementById('editColor').value,
@@ -1022,13 +1095,14 @@
           shirt_name: document.getElementById('editShirtName').value,
           no_name: document.getElementById('editNoName').checked,
           total_amount: parseFloat(document.getElementById('editTotalAmount').value) || 50,
+          items: updatedItems,
         }
 
         await patchOrder(editingOrderId, payload)
 
-        const order = allOrders.find(o => o.id === editingOrderId)
-        if (order) {
-          Object.assign(order, payload)
+        const orderToUpdate = allOrders.find(o => o.id === editingOrderId)
+        if (orderToUpdate) {
+          Object.assign(orderToUpdate, payload)
         }
 
         closeEditModal()
