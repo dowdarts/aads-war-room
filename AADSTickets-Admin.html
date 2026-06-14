@@ -437,6 +437,9 @@
     document.getElementById('resolveModalDesc').textContent  = `${playerTickets.length} GA tickets are currently reserved for ${playerName}'s family.`
     document.getElementById('resolveQty').value = playerTickets.length
     document.getElementById('resolveQty').max = playerTickets.length
+    // Pre-fill contact info if already saved on the tickets
+    document.getElementById('resolvePhone').value = playerTickets[0]?.purchaser_phone || ''
+    document.getElementById('resolveEmail').value = playerTickets[0]?.purchaser_email || ''
     updateResolveSplit()
     document.getElementById('resolveModal').classList.add('open')
   }
@@ -460,10 +463,9 @@
 
     try {
       if (keep > 0) {
-        const phone    = document.getElementById('resolvePhone').value.trim()
-        const email    = document.getElementById('resolveEmail').value.trim()
+        const phone    = document.getElementById('resolvePhone').value.trim() || null
+        const email    = document.getElementById('resolveEmail').value.trim() || null
         const delivery = document.getElementById('resolveDelivery').value
-        if (!phone || !email) { showToast('Please enter phone and email for the player.', 'error'); return }
 
         // Confirm the kept tickets
         const keepTickets = activeResolvePlayer.tickets.slice(0, keep)
