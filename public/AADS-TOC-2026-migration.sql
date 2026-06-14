@@ -87,6 +87,14 @@ ALTER TABLE public.toc_config  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.toc_orders  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.toc_tickets ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "anon read config"    ON public.toc_config;
+DROP POLICY IF EXISTS "anon update config"  ON public.toc_config;
+DROP POLICY IF EXISTS "anon read tickets"   ON public.toc_tickets;
+DROP POLICY IF EXISTS "anon update tickets" ON public.toc_tickets;
+DROP POLICY IF EXISTS "anon read orders"    ON public.toc_orders;
+DROP POLICY IF EXISTS "anon update orders"  ON public.toc_orders;
+DROP POLICY IF EXISTS "anon delete orders"  ON public.toc_orders;
+
 CREATE POLICY "anon read config"    ON public.toc_config  FOR SELECT TO anon USING (true);
 CREATE POLICY "anon update config"  ON public.toc_config  FOR UPDATE TO anon USING (true);
 CREATE POLICY "anon read tickets"   ON public.toc_tickets FOR SELECT TO anon USING (true);
@@ -359,7 +367,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-VIP-T01-S03-003','VIP-003','AADS-TOC-2026-VIP-T01-S03-003','VIP','VIP Table 1 - PharmaChoice',1,3,0.00,'RESERVED','COMP','PharmaChoice Partner','Amherst PharmaChoice',true),
 ('AADS-TOC-2026-VIP-T01-S04-004','VIP-004','AADS-TOC-2026-VIP-T01-S04-004','VIP','VIP Table 1 - PharmaChoice',1,4,0.00,'RESERVED','COMP','PharmaChoice Partner','Amherst PharmaChoice',true),
 ('AADS-TOC-2026-VIP-T01-S05-005','VIP-005','AADS-TOC-2026-VIP-T01-S05-005','VIP','VIP Table 1 - PharmaChoice',1,5,0.00,'RESERVED','COMP','PharmaChoice Partner','Amherst PharmaChoice',true),
-('AADS-TOC-2026-VIP-T01-S06-006','VIP-006','AADS-TOC-2026-VIP-T01-S06-006','VIP','VIP Table 1 - PharmaChoice',1,6,0.00,'RESERVED','COMP','PharmaChoice Partner','Amherst PharmaChoice',true);
+('AADS-TOC-2026-VIP-T01-S06-006','VIP-006','AADS-TOC-2026-VIP-T01-S06-006','VIP','VIP Table 1 - PharmaChoice',1,6,0.00,'RESERVED','COMP','PharmaChoice Partner','Amherst PharmaChoice',true)
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- VIP Table 2 — CGC Darts COMP (pre-assigned, not for sale)
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,table_number,seat_number,price,sold_status,payment_status,ticket_holder_name,purchaser_name,generated) VALUES
@@ -368,7 +377,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-VIP-T02-S03-009','VIP-009','AADS-TOC-2026-VIP-T02-S03-009','VIP','VIP Table 2 - CGC Darts',2,3,0.00,'RESERVED','COMP','Tanya Holland','CGC Darts',true),
 ('AADS-TOC-2026-VIP-T02-S04-010','VIP-010','AADS-TOC-2026-VIP-T02-S04-010','VIP','VIP Table 2 - CGC Darts',2,4,0.00,'RESERVED','COMP','Dawn Leblanc','CGC Darts',true),
 ('AADS-TOC-2026-VIP-T02-S05-011','VIP-011','AADS-TOC-2026-VIP-T02-S05-011','VIP','VIP Table 2 - CGC Darts',2,5,0.00,'RESERVED','COMP','CGC Darts Guest','CGC Darts',true),
-('AADS-TOC-2026-VIP-T02-S06-012','VIP-012','AADS-TOC-2026-VIP-T02-S06-012','VIP','VIP Table 2 - CGC Darts',2,6,0.00,'RESERVED','COMP','CGC Darts Guest','CGC Darts',true);
+('AADS-TOC-2026-VIP-T02-S06-012','VIP-012','AADS-TOC-2026-VIP-T02-S06-012','VIP','VIP Table 2 - CGC Darts',2,6,0.00,'RESERVED','COMP','CGC Darts Guest','CGC Darts',true)
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- VIP Tables 3–6 — Available for sale ($110/table)
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,table_number,seat_number,price,sold_status,payment_status) VALUES
@@ -395,7 +405,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-VIP-T06-S03-033','VIP-033','AADS-TOC-2026-VIP-T06-S03-033','VIP','VIP Table 6',6,3,18.33,'AVAILABLE','UNPAID'),
 ('AADS-TOC-2026-VIP-T06-S04-034','VIP-034','AADS-TOC-2026-VIP-T06-S04-034','VIP','VIP Table 6',6,4,18.33,'AVAILABLE','UNPAID'),
 ('AADS-TOC-2026-VIP-T06-S05-035','VIP-035','AADS-TOC-2026-VIP-T06-S05-035','VIP','VIP Table 6',6,5,18.33,'AVAILABLE','UNPAID'),
-('AADS-TOC-2026-VIP-T06-S06-036','VIP-036','AADS-TOC-2026-VIP-T06-S06-036','VIP','VIP Table 6',6,6,18.33,'AVAILABLE','UNPAID');
+('AADS-TOC-2026-VIP-T06-S06-036','VIP-036','AADS-TOC-2026-VIP-T06-S06-036','VIP','VIP Table 6',6,6,18.33,'AVAILABLE','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- GA-001–005: Tom Holden player reserve (5 tickets, $10 each, pre-blocked)
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status) VALUES
@@ -403,7 +414,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-GA-002','GA-002','AADS-TOC-2026-GA-002','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-003','GA-003','AADS-TOC-2026-GA-003','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-004','GA-004','AADS-TOC-2026-GA-004','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID'),
-('AADS-TOC-2026-GA-005','GA-005','AADS-TOC-2026-GA-005','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID');
+('AADS-TOC-2026-GA-005','GA-005','AADS-TOC-2026-GA-005','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- GA-006–010: Kyle Gray player reserve
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status) VALUES
@@ -411,7 +423,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-GA-007','GA-007','AADS-TOC-2026-GA-007','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-008','GA-008','AADS-TOC-2026-GA-008','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-009','GA-009','AADS-TOC-2026-GA-009','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID'),
-('AADS-TOC-2026-GA-010','GA-010','AADS-TOC-2026-GA-010','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID');
+('AADS-TOC-2026-GA-010','GA-010','AADS-TOC-2026-GA-010','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- GA-011–015: Tyler Cyr player reserve
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status) VALUES
@@ -419,7 +432,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-GA-012','GA-012','AADS-TOC-2026-GA-012','GA','Player Reserve - Tyler Cyr',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-013','GA-013','AADS-TOC-2026-GA-013','GA','Player Reserve - Tyler Cyr',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-014','GA-014','AADS-TOC-2026-GA-014','GA','Player Reserve - Tyler Cyr',10.00,'RESERVED','UNPAID'),
-('AADS-TOC-2026-GA-015','GA-015','AADS-TOC-2026-GA-015','GA','Player Reserve - Tyler Cyr',10.00,'RESERVED','UNPAID');
+('AADS-TOC-2026-GA-015','GA-015','AADS-TOC-2026-GA-015','GA','Player Reserve - Tyler Cyr',10.00,'RESERVED','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- GA-016–020: Drake Berry player reserve
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status) VALUES
@@ -427,7 +441,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-GA-017','GA-017','AADS-TOC-2026-GA-017','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-018','GA-018','AADS-TOC-2026-GA-018','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-019','GA-019','AADS-TOC-2026-GA-019','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID'),
-('AADS-TOC-2026-GA-020','GA-020','AADS-TOC-2026-GA-020','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID');
+('AADS-TOC-2026-GA-020','GA-020','AADS-TOC-2026-GA-020','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- GA-021–025: Dee Cormier player reserve
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status) VALUES
@@ -435,7 +450,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-GA-022','GA-022','AADS-TOC-2026-GA-022','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-023','GA-023','AADS-TOC-2026-GA-023','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-024','GA-024','AADS-TOC-2026-GA-024','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID'),
-('AADS-TOC-2026-GA-025','GA-025','AADS-TOC-2026-GA-025','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID');
+('AADS-TOC-2026-GA-025','GA-025','AADS-TOC-2026-GA-025','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- GA-026–030: Rob Sibbick player reserve
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status) VALUES
@@ -443,7 +459,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-GA-027','GA-027','AADS-TOC-2026-GA-027','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-028','GA-028','AADS-TOC-2026-GA-028','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID'),
 ('AADS-TOC-2026-GA-029','GA-029','AADS-TOC-2026-GA-029','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID'),
-('AADS-TOC-2026-GA-030','GA-030','AADS-TOC-2026-GA-030','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID');
+('AADS-TOC-2026-GA-030','GA-030','AADS-TOC-2026-GA-030','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- GA-031–064: Public General Admission pool (34 tickets)
 INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status) VALUES
@@ -480,7 +497,8 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
 ('AADS-TOC-2026-GA-061','GA-061','AADS-TOC-2026-GA-061','GA','General Admission',10.00,'AVAILABLE','UNPAID'),
 ('AADS-TOC-2026-GA-062','GA-062','AADS-TOC-2026-GA-062','GA','General Admission',10.00,'AVAILABLE','UNPAID'),
 ('AADS-TOC-2026-GA-063','GA-063','AADS-TOC-2026-GA-063','GA','General Admission',10.00,'AVAILABLE','UNPAID'),
-('AADS-TOC-2026-GA-064','GA-064','AADS-TOC-2026-GA-064','GA','General Admission',10.00,'AVAILABLE','UNPAID');
+('AADS-TOC-2026-GA-064','GA-064','AADS-TOC-2026-GA-064','GA','General Admission',10.00,'AVAILABLE','UNPAID')
+ON CONFLICT (ticket_code) DO NOTHING;
 
 -- ── Done! ────────────────────────────────────────────────────────
 -- Inventory after seed:
