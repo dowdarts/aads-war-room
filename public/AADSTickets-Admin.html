@@ -412,7 +412,7 @@
             <div class="player-field-row">
               <div class="player-field">
                 <label>Tickets Requested</label>
-                <input type="number" id="pe_qty_${safeId}" min="0" max="${total}" value="${held}" />
+                <input type="number" id="pe_qty_${safeId}" min="0" value="${held}" />
               </div>
               <div class="player-field" style="display:flex;align-items:flex-end">
                 <button class="action-btn btn-confirm" style="width:100%;margin:0" onclick="savePlayerInfo('${esc(player)}')">Save</button>
@@ -503,11 +503,36 @@
     const playerTickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${playerName}`)
     const heldTickets   = playerTickets.filter(t => t.sold_status === 'RESERVED')
     const currentHeld   = heldTickets.length
+    const diff = newQty - currentHeld
 
     try {
-      // Save contact info to all currently held tickets
-      const toSave = heldTickets.slice(0, Math.min(newQty, currentHeld))
-      for (const t of toSave) {
+      if (diff > 0) {
+        // Pull additional tickets from the GA public pool
+        const gaPool = allTickets.filter(t =>
+          t.ticket_type === 'GA' &&
+          t.ticket_group === 'General Admission' &&
+          t.sold_status === 'AVAILABLE' &&
+          t.ticket_status === 'ACTIVE'
+        ).slice(0, diff)
+
+        if (gaPool.length < diff) {
+          showToast(`Only ${gaPool.length} GA tickets available in the public pool — can't reserve ${diff} more.`, 'error')
+          return
+        }
+        for (const t of gaPool) {
+          await patch('toc_tickets', `id=eq.${t.id}`, {
+            ticket_group: `Player Reserve - ${playerName}`,
+            sold_status: 'RESERVED',
+            purchaser_name: playerName,
+            purchaser_email: email || null,
+            purchaser_phone: phone || null,
+            updated_at: new Date().toISOString()
+          })
+        }
+      }
+
+      // Save contact info to all held tickets (including any just added)
+      for (const t of heldTickets) {
         await patch('toc_tickets', `id=eq.${t.id}`, {
           purchaser_name: playerName,
           purchaser_email: email || null,
@@ -517,7 +542,7 @@
       }
 
       // Release excess tickets if qty was reduced
-      if (newQty < currentHeld) {
+      if (diff < 0) {
         const toRelease = heldTickets.slice(newQty)
         for (const t of toRelease) {
           await patch('toc_tickets', `id=eq.${t.id}`, {
@@ -529,7 +554,9 @@
             updated_at: new Date().toISOString()
           })
         }
-        showToast(`✓ Saved — ${newQty} tickets kept for ${playerName}, ${currentHeld - newQty} released to GA pool`, 'success')
+        showToast(`✓ Saved — ${newQty} tickets for ${playerName}, ${Math.abs(diff)} released to GA pool`, 'success')
+      } else if (diff > 0) {
+        showToast(`✓ Saved — ${diff} more ticket${diff !== 1 ? 's' : ''} pulled from GA pool for ${playerName} (${newQty} total)`, 'success')
       } else {
         showToast(`✓ Info saved for ${playerName}`, 'success')
       }
