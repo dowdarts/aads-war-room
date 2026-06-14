@@ -241,7 +241,7 @@
     <p id="resolveModalDesc" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
 
     <div class="modal-field">
-      <label class="modal-label">How many tickets does this player want?</label>
+      <label class="modal-label" for="resolveQty">How many tickets does this player want?</label>
       <input type="number" id="resolveQty" class="modal-input" min="0" max="5" value="5" oninput="updateResolveSplit()" />
     </div>
 
@@ -252,15 +252,15 @@
 
     <div id="resolveContactFields">
       <div class="modal-field">
-        <label class="modal-label">Player Phone</label>
+        <label class="modal-label" for="resolvePhone">Player Phone</label>
         <input type="tel" id="resolvePhone" class="modal-input" placeholder="506-555-0100" />
       </div>
       <div class="modal-field">
-        <label class="modal-label">Player Email</label>
+        <label class="modal-label" for="resolveEmail">Player Email</label>
         <input type="email" id="resolveEmail" class="modal-input" placeholder="player@example.com" />
       </div>
       <div class="modal-field">
-        <label class="modal-label">Delivery Method</label>
+        <label class="modal-label" for="resolveDelivery">Delivery Method</label>
         <select id="resolveDelivery" class="modal-select">
           <option value="pickup">Pick Up at Box Office</option>
           <option value="virtual">Virtual Ticket by Email</option>
@@ -282,7 +282,7 @@
     <h2 class="modal-title">Confirm Payment</h2>
     <p id="confirmModalDesc" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
     <div class="modal-field">
-      <label class="modal-label">Payment Status</label>
+      <label class="modal-label" for="confirmPayStatus">Payment Status</label>
       <select id="confirmPayStatus" class="modal-select">
         <option value="PAID">PAID — E-Transfer Received ✓</option>
         <option value="COMP">COMP — Complimentary</option>
@@ -401,17 +401,17 @@
           <div class="player-fields">
             <div class="player-field-row">
               <div class="player-field">
-                <label>Email</label>
+                <label for="pe_email_${safeId}">Email</label>
                 <input type="email" id="pe_email_${safeId}" placeholder="player@example.com" value="${esc(existingEmail)}" />
               </div>
               <div class="player-field">
-                <label>Phone</label>
+                <label for="pe_phone_${safeId}">Phone</label>
                 <input type="tel" id="pe_phone_${safeId}" placeholder="506-555-0100" value="${esc(existingPhone)}" />
               </div>
             </div>
             <div class="player-field-row">
               <div class="player-field">
-                <label>Tickets Requested</label>
+                <label for="pe_qty_${safeId}">Tickets Requested</label>
                 <input type="number" id="pe_qty_${safeId}" min="0" value="${held}" />
               </div>
               <div class="player-field" style="display:flex;align-items:flex-end">
