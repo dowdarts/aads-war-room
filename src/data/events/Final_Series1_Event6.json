@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "series_id": 1,
+    "event_id": 6,
+    "event_name": "Series 1 - Event 6",
+    "event_date": "2026-05-15",
+    "champion": "Sibbick, Rob",
+    "stats_status": "pending"
+  },
+  "players_invited": [
+    "Rob Sibbick"
+  ],
+  "player_event_stats": [],
+  "round_robin": {
+    "standings": {},
+    "matches": {}
+  },
+  "knockout": {
+    "quarterFinals": [],
+    "semiFinals": [],
+    "final": [],
+    "champion": "Sibbick, Rob"
+  }
+}

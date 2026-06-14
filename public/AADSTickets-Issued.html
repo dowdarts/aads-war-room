@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS TOC 2026 — Issued Tickets</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505; --panel: #0e0e0e; --line: #1e1e1e;
+      --text: #f5f5f5; --muted: #888; --muted2: #555;
+      --gold: #f5c518; --gold-2: #ffe066;
+      --green: #16a34a; --green-2: #5dd88a;
+      --red: #dc2626; --amber: #d97706; --accent: #ff7a00;
+    }
+    body { background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    .hdr { background: #080808; border-bottom: 1px solid #1a1a1a; padding: 14px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .hdr-title { font-size: 16px; font-weight: 900; letter-spacing: 0.05em; }
+    .hdr-sub { font-size: 12px; color: var(--muted); }
+    .hdr-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+    .btn { appearance: none; border: 0; border-radius: 10px; padding: 9px 18px; font-size: 12px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 120ms; }
+    .btn:hover { opacity: 0.82; }
+    .btn-gold    { background: linear-gradient(90deg, var(--gold), var(--gold-2)); color: #090909; }
+    .btn-outline { background: transparent; border: 1px solid #333; color: var(--muted); }
+    .btn-green   { background: var(--green); color: #fff; }
+    .btn-sm { padding: 5px 12px; font-size: 11px; border-radius: 8px; }
+
+    /* ── FILTERS ── */
+    .filter-bar { padding: 14px 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid #1a1a1a; }
+    .search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 360px; }
+    .search-wrap input {
+      width: 100%; background: #111; border: 1px solid #2a2a2a; border-radius: 10px;
+      padding: 8px 12px 8px 34px; color: var(--text); font-size: 13px; outline: none;
+    }
+    .search-wrap input:focus { border-color: #444; }
+    .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; pointer-events: none; }
+
+    .filter-select { background: #111; border: 1px solid #2a2a2a; border-radius: 10px; padding: 8px 12px; color: var(--text); font-size: 13px; outline: none; cursor: pointer; }
+
+    .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+    .chip { padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border: 1px solid #2a2a2a; background: #111; color: var(--muted); transition: all 120ms; }
+    .chip.active { border-color: var(--gold); color: var(--gold); background: rgba(245,197,24,0.08); }
+
+    /* ── STATS ROW ── */
+    .stats-row { display: flex; gap: 10px; padding: 12px 20px; flex-wrap: wrap; border-bottom: 1px solid #1a1a1a; }
+    .stat-pill { background: #111; border: 1px solid #222; border-radius: 10px; padding: 7px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+    .stat-pill .sv { font-weight: 800; color: var(--gold); }
+    .stat-pill.green .sv { color: var(--green-2); }
+    .stat-pill.red   .sv { color: #f87171; }
+    .stat-pill.muted .sv { color: var(--muted); }
+
+    /* ── TABLE ── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { background: #0a0a0a; padding: 10px 14px; font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid #1e1e1e; text-align: left; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #141414; transition: background 80ms; }
+    tbody tr:hover { background: #0e0e0e; }
+    tbody tr.sel  { background: rgba(245,197,24,0.04); }
+    td { padding: 10px 14px; font-size: 13px; vertical-align: middle; }
+    td.center { text-align: center; }
+
+    .check-col input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--gold); }
+
+    /* Type badges */
+    .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+    .badge-vip   { background: rgba(245,197,24,0.12); border: 1px solid rgba(245,197,24,0.3); color: var(--gold); }
+    .badge-ga    { background: rgba(255,122,0,0.1);   border: 1px solid rgba(255,122,0,0.3);   color: var(--accent); }
+    .badge-comp  { background: rgba(120,80,200,0.12); border: 1px solid rgba(120,80,200,0.35); color: #c4a0f5; }
+
+    /* Status badges */
+    .status-paid      { background: rgba(22,163,74,0.12);  border: 1px solid rgba(22,163,74,0.35);  color: var(--green-2); }
+    .status-pending   { background: rgba(217,119,6,0.12);  border: 1px solid rgba(217,119,6,0.35);  color: #fcd34d; }
+    .status-checkedin { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.35); color: #7dd3fc; }
+    .status-comp      { background: rgba(120,80,200,0.12); border: 1px solid rgba(120,80,200,0.35); color: #c4a0f5; }
+    .status-void      { background: rgba(220,38,38,0.12);  border: 1px solid rgba(220,38,38,0.35);  color: #f87171; }
+    .status-avail     { background: rgba(80,80,80,0.12);   border: 1px solid #2a2a2a;               color: var(--muted); }
+
+    /* Seat / holder */
+    .holder-name { font-weight: 600; }
+    .holder-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+    /* Action buttons */
+    .row-actions { display: flex; gap: 6px; align-items: center; }
+
+    /* Empty / loading */
+    .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+    .spin { display: inline-block; width: 24px; height: 24px; border: 3px solid #222; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── BULK BAR (appears when rows selected) ── */
+    .bulk-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #101008; border-top: 1px solid rgba(245,197,24,0.25);
+      padding: 12px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      transform: translateY(100%); transition: transform 200ms; z-index: 100;
+    }
+    .bulk-bar.show { transform: translateY(0); }
+    .bulk-count { font-size: 13px; font-weight: 700; color: var(--gold); }
+    .bulk-bar-actions { display: flex; gap: 8px; }
+
+    /* ── PAY MODAL ── */
+    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: flex; align-items: center; justify-content: center; }
+    .modal { background: #101010; border: 1px solid #2a2a2a; border-radius: 16px; padding: 28px; max-width: 420px; width: 92%; }
+    .modal h3 { font-size: 15px; font-weight: 900; margin-bottom: 18px; }
+    .modal label { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 6px; }
+    .modal input, .modal select { width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 13px; outline: none; margin-bottom: 14px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+    .hidden { display: none !important; }
+
+    .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 10px 20px; font-size: 13px; z-index: 300; animation: fadeInUp 0.2s ease; }
+    @keyframes fadeInUp { from { opacity:0; transform: translateX(-50%) translateY(10px); } to { opacity:1; transform: translateX(-50%) translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <div class="hdr">
+    <div>
+      <div class="hdr-title">🎟️ Issued Tickets</div>
+      <div class="hdr-sub">Tournament of Champions · July 25, 2026</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="btn btn-outline" onclick="history.back()">← Back</button>
+      <button class="btn btn-outline btn-sm" onclick="loadTickets()">↻ Refresh</button>
+      <button class="btn btn-gold" onclick="openSelected()">Open Selected Tickets</button>
+    </div>
+  </div>
+
+  <div class="stats-row" id="statsRow">
+    <div class="stat-pill muted"><span class="sv" id="statTotal">—</span> total</div>
+    <div class="stat-pill green"><span class="sv" id="statPaid">—</span> paid</div>
+    <div class="stat-pill"><span class="sv" id="statComp">—</span> comp</div>
+    <div class="stat-pill red"><span class="sv" id="statPending">—</span> pending</div>
+    <div class="stat-pill"><span class="sv" id="statCheckedIn">—</span> checked in</div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="searchBox" type="text" placeholder="Search name, email, ticket code, table…" oninput="filterTable()" />
+    </div>
+    <div class="filter-chips" id="statusChips">
+      <span class="chip active" data-status="all" onclick="setStatusFilter('all', this)">All</span>
+      <span class="chip" data-status="PAID"     onclick="setStatusFilter('PAID', this)">Paid</span>
+      <span class="chip" data-status="COMP"     onclick="setStatusFilter('COMP', this)">Comp</span>
+      <span class="chip" data-status="PENDING"  onclick="setStatusFilter('PENDING', this)">Pending</span>
+      <span class="chip" data-status="checkedin" onclick="setStatusFilter('checkedin', this)">Checked In</span>
+    </div>
+    <div class="filter-chips">
+      <span class="chip active" data-type="all" onclick="setTypeFilter('all', this)">All Types</span>
+      <span class="chip" data-type="VIP"             onclick="setTypeFilter('VIP', this)">VIP</span>
+      <span class="chip" data-type="GENERAL ADMISSION" onclick="setTypeFilter('GENERAL ADMISSION', this)">GA</span>
+    </div>
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="check-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" /></th>
+          <th>Ticket #</th>
+          <th>Ticket Code</th>
+          <th>Holder Name</th>
+          <th>Type</th>
+          <th>Seat</th>
+          <th>Buyer</th>
+          <th>Status</th>
+          <th>Checked In</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tblBody">
+        <tr><td colspan="10" class="empty"><span class="spin"></span>Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count" id="bulkCount">0 selected</span>
+    <div class="bulk-bar-actions">
+      <button class="btn btn-gold btn-sm" onclick="openSelected()">🖨️ Open & Print Selected</button>
+      <button class="btn btn-outline btn-sm" onclick="markSelectedPaid()">✓ Mark Selected Paid</button>
+      <button class="btn btn-outline btn-sm" onclick="clearSelection()">✕ Clear</button>
+    </div>
+  </div>
+
+  <!-- Mark Paid Modal -->
+  <div id="payModal" class="overlay hidden">
+    <div class="modal">
+      <h3>Mark Ticket as Paid</h3>
+      <label>Ticket Code</label>
+      <input type="text" id="payModalCode" readonly />
+      <label>Holder Name</label>
+      <input type="text" id="payModalHolder" readonly />
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closePayModal()">Cancel</button>
+        <button class="btn btn-green" onclick="confirmMarkPaid()">✓ Confirm Paid</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const HDR = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    }
+
+    let allTickets = []
+    let statusFilter = 'all'
+    let typeFilter   = 'all'
+    let selectedCodes = new Set()
+    let payTarget = null
+
+    async function loadTickets() {
+      document.getElementById('tblBody').innerHTML =
+        '<tr><td colspan="10" class="empty"><span class="spin"></span>Loading…</td></tr>'
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/toc_tickets?select=*,toc_orders(purchaser_first_name,purchaser_last_name,purchaser_email,purchaser_phone)&order=ticket_number.asc`,
+          { headers: HDR }
+        )
+        const data = await res.json()
+        if (!Array.isArray(data)) throw new Error('Bad response')
+        // Only show tickets that are reserved/sold (have an order or are COMP)
+        allTickets = data.filter(t => t.payment_status === 'COMP' || t.sold_status === 'SOLD' || t.sold_status === 'HELD')
+        updateStats()
+        filterTable()
+      } catch (e) {
+        document.getElementById('tblBody').innerHTML =
+          `<tr><td colspan="10" class="empty">Error loading tickets: ${e.message}</td></tr>`
+      }
+    }
+
+    function updateStats() {
+      const all   = allTickets.length
+      const paid  = allTickets.filter(t => t.payment_status === 'PAID').length
+      const comp  = allTickets.filter(t => t.payment_status === 'COMP').length
+      const pend  = allTickets.filter(t => t.payment_status === 'PENDING').length
+      const ci    = allTickets.filter(t => t.checked_in).length
+      document.getElementById('statTotal').textContent     = all
+      document.getElementById('statPaid').textContent      = paid
+      document.getElementById('statComp').textContent      = comp
+      document.getElementById('statPending').textContent   = pend
+      document.getElementById('statCheckedIn').textContent = ci
+    }
+
+    function setStatusFilter(val, el) {
+      statusFilter = val
+      document.querySelectorAll('#statusChips .chip').forEach(c => c.classList.remove('active'))
+      el.classList.add('active')
+      filterTable()
+    }
+
+    function setTypeFilter(val, el) {
+      typeFilter = val
+      el.closest('.filter-chips').querySelectorAll('.chip').forEach(c => c.classList.remove('active'))
+      el.classList.add('active')
+      filterTable()
+    }
+
+    function filterTable() {
+      const q = document.getElementById('searchBox').value.toLowerCase()
+      const filtered = allTickets.filter(t => {
+        const buyerName = [t.toc_orders?.purchaser_first_name, t.toc_orders?.purchaser_last_name].filter(Boolean).join(' ')
+        const searchable = [
+          t.ticket_number, t.ticket_code, t.ticket_holder_name,
+          buyerName, t.toc_orders?.purchaser_email, t.table_number
+        ].filter(Boolean).join(' ').toLowerCase()
+        const matchQ = !q || searchable.includes(q)
+        const matchS = statusFilter === 'all'
+          ? true
+          : statusFilter === 'checkedin'
+            ? t.checked_in === true
+            : t.payment_status === statusFilter
+        const matchT = typeFilter === 'all' || t.ticket_type === typeFilter || t.ticket_category === typeFilter
+        return matchQ && matchS && matchT
+      })
+      renderRows(filtered)
+    }
+
+    function renderRows(tickets) {
+      if (!tickets.length) {
+        document.getElementById('tblBody').innerHTML =
+          '<tr><td colspan="10" class="empty">No tickets match your filters.</td></tr>'
+        return
+      }
+      const rows = tickets.map(t => {
+        const isVIP  = t.ticket_type === 'VIP' || t.ticket_category === 'VIP'
+        const isComp = t.payment_status === 'COMP'
+        const isSel  = selectedCodes.has(t.ticket_code)
+        const buyerFirst = t.toc_orders?.purchaser_first_name || ''
+        const buyerLast  = t.toc_orders?.purchaser_last_name  || ''
+        const buyerName  = [buyerFirst, buyerLast].filter(Boolean).join(' ') || t.purchaser_name || '—'
+        const buyerEmail = t.toc_orders?.purchaser_email || '—'
+
+        const typeBadgeClass = isComp ? 'badge-comp' : isVIP ? 'badge-vip' : 'badge-ga'
+        const typeBadgeText  = isComp ? '👑 Comp' : isVIP ? '👑 VIP' : '🎟️ GA'
+
+        let statusBadgeClass, statusBadgeText
+        if (t.checked_in)                         { statusBadgeClass = 'status-checkedin'; statusBadgeText = '✅ In' }
+        else if (t.payment_status === 'COMP')      { statusBadgeClass = 'status-comp';      statusBadgeText = 'COMP' }
+        else if (t.payment_status === 'PAID')      { statusBadgeClass = 'status-paid';      statusBadgeText = 'PAID' }
+        else if (t.payment_status === 'PENDING')   { statusBadgeClass = 'status-pending';   statusBadgeText = 'PENDING' }
+        else if (t.sold_status === 'VOID')         { statusBadgeClass = 'status-void';      statusBadgeText = 'VOID' }
+        else                                       { statusBadgeClass = 'status-avail';     statusBadgeText = t.payment_status || '—' }
+
+        const seatText = isVIP
+          ? `T${t.table_number || '?'} S${t.seat_number || '?'}`
+          : 'GA'
+
+        const checkInText = t.checked_in
+          ? `<span style="color:var(--green-2);font-size:11px">✅ ${t.checked_in_by ? t.checked_in_by + '<br>' : ''}${t.checked_in_at ? new Date(t.checked_in_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : ''}</span>`
+          : '<span style="color:var(--muted2);font-size:11px">—</span>'
+
+        const canMarkPaid = t.payment_status === 'PENDING' && !t.checked_in
+        const viewUrl = `AADSTickets-View.html?code=${encodeURIComponent(t.ticket_code)}`
+
+        return `<tr class="${isSel ? 'sel' : ''}" data-code="${t.ticket_code}">
+          <td class="check-col center">
+            <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleRow('${t.ticket_code}', this)" />
+          </td>
+          <td style="font-family:monospace;font-weight:700">${t.ticket_number || '—'}</td>
+          <td style="font-family:monospace;font-size:11px;color:var(--muted)">${t.ticket_code || '—'}</td>
+          <td>
+            <div class="holder-name">${t.ticket_holder_name || '—'}</div>
+          </td>
+          <td><span class="badge ${typeBadgeClass}">${typeBadgeText}</span></td>
+          <td style="font-size:12px;color:var(--muted)">${seatText}</td>
+          <td>
+            <div style="font-size:12px">${buyerName}</div>
+            <div style="font-size:11px;color:var(--muted)">${buyerEmail}</div>
+          </td>
+          <td><span class="badge ${statusBadgeClass}">${statusBadgeText}</span></td>
+          <td>${checkInText}</td>
+          <td>
+            <div class="row-actions">
+              <a href="${viewUrl}" target="_blank" rel="noopener noreferrer">
+                <button class="btn btn-gold btn-sm">🖨️ Open</button>
+              </a>
+              ${canMarkPaid ? `<button class="btn btn-outline btn-sm" onclick='openPayModal(${JSON.stringify(t)})'>✓ Pay</button>` : ''}
+              ${buyerEmail !== '—' && buyerEmail ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(t.ticket_code)}','${buyerEmail}')">📧</button>` : ''}
+            </div>
+          </td>
+        </tr>`
+      }).join('')
+      document.getElementById('tblBody').innerHTML = rows
+    }
+
+    function toggleRow(code, cb) {
+      if (cb.checked) selectedCodes.add(code)
+      else selectedCodes.delete(code)
+      const row = document.querySelector(`tr[data-code="${code}"]`)
+      if (row) row.classList.toggle('sel', cb.checked)
+      updateBulkBar()
+    }
+
+    function toggleSelectAll(cb) {
+      const visibleBoxes = document.querySelectorAll('#tblBody input[type=checkbox]')
+      visibleBoxes.forEach(box => {
+        const row = box.closest('tr')
+        const code = row?.dataset?.code
+        if (!code) return
+        box.checked = cb.checked
+        if (cb.checked) selectedCodes.add(code)
+        else selectedCodes.delete(code)
+        row.classList.toggle('sel', cb.checked)
+      })
+      updateBulkBar()
+    }
+
+    function clearSelection() {
+      selectedCodes.clear()
+      document.querySelectorAll('#tblBody input[type=checkbox]').forEach(b => { b.checked = false; b.closest('tr')?.classList.remove('sel') })
+      document.getElementById('selectAll').checked = false
+      updateBulkBar()
+    }
+
+    function updateBulkBar() {
+      const n = selectedCodes.size
+      document.getElementById('bulkBar').classList.toggle('show', n > 0)
+      document.getElementById('bulkCount').textContent = `${n} ticket${n !== 1 ? 's' : ''} selected`
+    }
+
+    function openSelected() {
+      if (!selectedCodes.size) { showToast('Select at least one ticket first'); return }
+      const baseUrl = window.location.href.replace(/\/[^/]*$/, '/')
+      selectedCodes.forEach(code => {
+        window.open(`${baseUrl}AADSTickets-View.html?code=${encodeURIComponent(code)}`, '_blank', 'noopener,noreferrer')
+      })
+    }
+
+    function emailTicket(code, email) {
+      const baseUrl = window.location.href.replace(/\/[^/]*$/, '/')
+      const ticketUrl = `${baseUrl}AADSTickets-View.html?code=${decodeURIComponent(code)}`
+      const subject = encodeURIComponent('Your AADS Tournament of Champions Ticket')
+      const body = encodeURIComponent(`Hi,\n\nYour ticket is ready! Click the link below to view, print, or save your ticket:\n\n${ticketUrl}\n\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\n\n— AADS`)
+      window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
+    }
+
+    function openPayModal(ticket) {
+      payTarget = ticket
+      document.getElementById('payModalCode').value   = ticket.ticket_code
+      document.getElementById('payModalHolder').value = ticket.ticket_holder_name || ticket.purchaser_name || '—'
+      document.getElementById('payModal').classList.remove('hidden')
+    }
+
+    function closePayModal() {
+      payTarget = null
+      document.getElementById('payModal').classList.add('hidden')
+    }
+
+    async function confirmMarkPaid() {
+      if (!payTarget) return
+      try {
+        // Update this ticket's payment_status to PAID
+        const r = await fetch(
+          `${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(payTarget.ticket_code)}`,
+          { method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'PAID' }) }
+        )
+        if (!r.ok) throw new Error('Update failed')
+
+        // If this ticket has an order_id, also update all tickets in that order
+        if (payTarget.order_id) {
+          await fetch(
+            `${SUPABASE_URL}/rest/v1/toc_tickets?order_id=eq.${payTarget.order_id}`,
+            { method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'PAID' }) }
+          )
+          // Update the order itself
+          await fetch(
+            `${SUPABASE_URL}/rest/v1/toc_orders?id=eq.${payTarget.order_id}`,
+            { method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'PAID', confirmed_at: new Date().toISOString() }) }
+          )
+        }
+
+        closePayModal()
+        showToast('✅ Marked as PAID')
+        await loadTickets()
+      } catch (e) {
+        showToast('Error: ' + e.message)
+      }
+    }
+
+    async function markSelectedPaid() {
+      if (!selectedCodes.size) return
+      const codes = [...selectedCodes]
+      try {
+        await Promise.all(codes.map(code =>
+          fetch(
+            `${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}`,
+            { method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify({ payment_status: 'PAID' }) }
+          )
+        ))
+        clearSelection()
+        showToast(`✅ ${codes.length} ticket${codes.length !== 1 ? 's' : ''} marked as PAID`)
+        await loadTickets()
+      } catch (e) {
+        showToast('Error: ' + e.message)
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.createElement('div')
+      t.className = 'toast'
+      t.textContent = msg
+      document.body.appendChild(t)
+      setTimeout(() => t.remove(), 3000)
+    }
+
+    loadTickets()
+  </script>
+</body>
+</html>
