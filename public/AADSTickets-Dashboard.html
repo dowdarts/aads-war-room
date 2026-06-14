@@ -105,7 +105,7 @@
     <!-- Live stats -->
     <div class="stats-row">
       <div class="stat-pill"><div class="stat-pill-val gold" id="svip">—</div><div class="stat-pill-label">VIP Tables Sold</div></div>
-      <div class="stat-pill"><div class="stat-pill-val orange" id="sga">—</div><div class="stat-pill-label">GA Tickets Sold</div></div>
+      <div class="stat-pill"><div class="stat-pill-val orange" id="sga">—</div><div class="stat-pill-label">GA Available</div></div>
       <div class="stat-pill"><div class="stat-pill-val green" id="scheckin">—</div><div class="stat-pill-label">Checked In Today</div></div>
     </div>
 
@@ -173,13 +173,14 @@
 
     async function loadStats() {
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?select=ticket_type,ticket_group,table_number,payment_status,checked_in`, { headers: HDR })
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?select=ticket_type,ticket_group,table_number,payment_status,sold_status,checked_in`, { headers: HDR })
         const tickets = await res.json()
-        const vipSold = tickets.filter(t => t.ticket_type === 'VIP' && t.table_number >= 3 && t.payment_status === 'PAID').length / 6
-        const gaSold  = tickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission' && t.payment_status === 'PAID').length
-        const checkedIn = tickets.filter(t => t.checked_in).length
+        const vipSold     = tickets.filter(t => t.ticket_type === 'VIP' && t.table_number >= 3 && t.payment_status === 'PAID').length / 6
+        const gaAvailable = tickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission' && t.sold_status === 'AVAILABLE').length
+        const gaTotal     = tickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission').length
+        const checkedIn   = tickets.filter(t => t.checked_in).length
         document.getElementById('svip').textContent = `${vipSold}/4`
-        document.getElementById('sga').textContent  = `${gaSold}/34`
+        document.getElementById('sga').textContent  = `${gaAvailable}/${gaTotal}`
         document.getElementById('scheckin').textContent = `${checkedIn}/100`
       } catch (e) {
         document.getElementById('svip').textContent = '—'
