@@ -341,7 +341,7 @@
     try {
       const [orders, tickets, cfg] = await Promise.all([
         api('/rest/v1/toc_orders?select=id,order_number,order_type,purchaser_name,purchaser_email,purchaser_phone,ticket_type,quantity,total_amount,delivery_method,payment_status,expires_at,notes,confirmed_at,created_at&order=created_at.desc'),
-        api('/rest/v1/toc_tickets?select=id,ticket_code,ticket_type,ticket_group,table_number,seat_number,sold_status,payment_status,ticket_holder_name,purchaser_name,order_id,checked_in,generated,print_file&order=ticket_code.asc'),
+        api('/rest/v1/toc_tickets?select=id,ticket_code,ticket_type,ticket_group,table_number,seat_number,sold_status,payment_status,ticket_status,ticket_holder_name,purchaser_name,purchaser_email,purchaser_phone,order_id,checked_in,generated,print_file&order=ticket_code.asc'),
         api('/rest/v1/toc_config?id=eq.1&select=sale_open')
       ])
       allOrders  = orders  || []
