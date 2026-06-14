@@ -234,14 +234,16 @@
 
       try {
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}&select=*,toc_orders(purchaser_email)`,
+          `${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}&select=*`,
           { headers: HDR }
         )
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
         const rows = await res.json()
         const t = Array.isArray(rows) ? rows[0] : null
         if (!t) { showNotFound(); return }
         renderTicket(t)
-      } catch {
+      } catch (err) {
+        console.error('Ticket load error:', err)
         showNotFound()
       }
     }
@@ -300,7 +302,7 @@
         `${t.ticket_number || t.ticket_code} · ${t.payment_status}`
 
       // Email button
-      const email = t.toc_orders?.purchaser_email
+      const email = t.purchaser_email
       if (email) {
         const ticketUrl = location.href
         const emailBtn = document.getElementById('emailBtn')
