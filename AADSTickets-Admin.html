@@ -200,7 +200,7 @@
       <div class="stat-card"><p class="stat-label">Pending Payment</p><div class="stat-value yellow" id="statPending">—</div></div>
       <div class="stat-card"><p class="stat-label">Confirmed (Paid)</p><div class="stat-value green" id="statConfirmed">—</div></div>
       <div class="stat-card"><p class="stat-label">VIP Tables Sold</p><div class="stat-value gold" id="statVip">—</div></div>
-      <div class="stat-card"><p class="stat-label">GA Tickets Sold</p><div class="stat-value blue" id="statGa">—</div></div>
+      <div class="stat-card"><p class="stat-label">GA Available</p><div class="stat-value blue" id="statGa">—</div></div>
     </div>
 
     <!-- Player reservations panel -->
@@ -363,12 +363,13 @@
     const pending   = publicOrders.filter(o => o.payment_status === 'PENDING_PAYMENT').length
     const confirmed = publicOrders.filter(o => o.payment_status === 'PAID').length
     const vipSold   = allTickets.filter(t => t.ticket_type === 'VIP' && t.table_number >= 3 && t.payment_status === 'PAID').length / 6
-    const gaSold    = allTickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission' && t.payment_status === 'PAID').length
+    const gaAvailable = allTickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission' && t.sold_status === 'AVAILABLE').length
+    const gaTotal     = allTickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission').length
     document.getElementById('statTotal').textContent     = publicOrders.length
     document.getElementById('statPending').textContent   = pending
     document.getElementById('statConfirmed').textContent = confirmed
     document.getElementById('statVip').textContent       = `${vipSold}/4`
-    document.getElementById('statGa').textContent        = `${gaSold}/34`
+    document.getElementById('statGa').textContent        = `${gaAvailable}/${gaTotal}`
   }
 
   // ── Player Reserves ────────────────────────────────────────────
@@ -478,13 +479,13 @@
         // Release the rest
         const releaseTickets = activeResolvePlayer.tickets.slice(keep)
         for (const t of releaseTickets) {
-          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', updated_at: new Date().toISOString() })
+          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', purchaser_name: null, purchaser_email: null, purchaser_phone: null, updated_at: new Date().toISOString() })
         }
         showToast(`✓ ${keep} ticket${keep !== 1 ? 's' : ''} confirmed for ${activeResolvePlayer.name}${release > 0 ? `, ${release} released` : ''}`, 'success')
       } else {
         // Release all
         for (const t of activeResolvePlayer.tickets) {
-          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', updated_at: new Date().toISOString() })
+          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', purchaser_name: null, purchaser_email: null, purchaser_phone: null, updated_at: new Date().toISOString() })
         }
         showToast(`All ${total} tickets released back to GA pool`, 'success')
       }
