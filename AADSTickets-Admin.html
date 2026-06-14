@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS TOC 2026 — Ticket Admin</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --bg: #050505; --panel: #111; --panel-2: #161616; --line: #2a2a2a;
+      --text: #f5f5f5; --muted: #b8b8b8; --accent: #ff7a00; --accent-2: #ffb347;
+      --gold: #f5c518; --gold-2: #ffe066;
+      --green: #2da85a; --green-2: #5dd88a;
+      --success-bg: rgba(44,122,66,0.18); --success-line: rgba(84,190,113,0.4); --success-text: #b4f0c2;
+      --danger-bg: rgba(180,30,30,0.15); --danger-line: rgba(220,60,60,0.4); --danger-text: #ffb3b3;
+      --pending-color: #ffb347; --confirmed-color: #5dd88a; --blue-color: #7ab8f5;
+    }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(circle at top, rgba(245,197,24,0.06), transparent 30%), linear-gradient(180deg, #080808 0%, var(--bg) 100%); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; }
+    .shell { width: min(1160px, calc(100% - 32px)); margin: 32px auto 64px; }
+    .hidden { display: none !important; }
+
+    /* ── PIN GATE ── */
+    .pin-card { padding: 40px; border: 1px solid #2a2a2a; border-radius: 24px; background: var(--panel); box-shadow: 0 28px 80px rgba(0,0,0,0.42); max-width: 420px; margin: 0 auto; }
+    .eyebrow { margin: 0 0 10px; color: var(--gold); font-size: 12px; font-weight: 900; letter-spacing: 0.28em; text-transform: uppercase; }
+    .pin-title { margin: 0 0 20px; font-size: 32px; letter-spacing: -0.03em; line-height: 1.1; }
+    .pin-input { appearance: none; width: 100%; padding: 16px; border-radius: 14px; border: 1px solid #2a2a2a; background: #0a0a0a; color: var(--text); font-size: 28px; font-weight: 900; letter-spacing: 0.3em; text-align: center; font-family: inherit; outline: none; transition: border-color 120ms; }
+    .pin-input:focus { border-color: var(--gold); }
+    .pin-input.pin-error { border-color: #cc4444; }
+    .pin-error-msg { margin: 10px 0 0; color: var(--danger-text); font-size: 13px; text-align: center; }
+    .pin-submit { appearance: none; width: 100%; margin-top: 16px; padding: 16px; border-radius: 14px; border: 0; background: linear-gradient(90deg, var(--gold), var(--gold-2)); color: #090909; font-size: 14px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; cursor: pointer; transition: opacity 150ms; }
+    .pin-submit:hover { opacity: 0.88; }
+
+    /* ── HERO ── */
+    .hero { overflow: hidden; border: 1px solid #262626; border-radius: 28px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)), var(--panel); box-shadow: 0 28px 80px rgba(0,0,0,0.42); margin-bottom: 20px; }
+    .hero-band { padding: 14px 24px; background: linear-gradient(90deg, #a08400, var(--gold)); color: #090909; font-size: 12px; font-weight: 900; letter-spacing: 0.34em; text-transform: uppercase; }
+    .hero-body { padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+    .hero-title { margin: 0; font-size: clamp(20px, 3.5vw, 36px); letter-spacing: -0.03em; line-height: 1; }
+    .hero-sub { margin: 5px 0 0; color: var(--muted); font-size: 13px; }
+    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .hbtn { appearance: none; border: 0; cursor: pointer; border-radius: 12px; padding: 10px 18px; font-size: 12px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; transition: opacity 150ms, transform 120ms; }
+    .hbtn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .hbtn-refresh { background: #1e1e1e; border: 1px solid #2e2e2e; color: var(--text); }
+    .hbtn-export  { background: linear-gradient(90deg, #1a4a8a, #2d6fcf); color: #f0f0f0; }
+    .hbtn-export2 { background: linear-gradient(90deg, #2a1a6a, #4d2dcf); color: #f0f0f0; }
+    .hbtn-issued  { background: linear-gradient(90deg, #8a6c00, #f5c518); color: #090909; }
+
+    /* ── SALE TOGGLE ── */
+    .sale-toggle-row { display: flex; align-items: center; gap: 16px; padding: 14px 20px; border-radius: 16px; border: 1px solid var(--line); background: var(--panel-2); margin-bottom: 20px; }
+    .sale-toggle-label { flex: 1; font-size: 14px; font-weight: 700; }
+    .sale-toggle-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .toggle-switch { position: relative; width: 52px; height: 28px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track { position: absolute; inset: 0; background: #333; border-radius: 100px; cursor: pointer; transition: background 200ms; }
+    .toggle-track::before { content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%; background: #fff; top: 4px; left: 4px; transition: transform 200ms; }
+    input:checked + .toggle-track { background: var(--green); }
+    input:checked + .toggle-track::before { transform: translateX(24px); }
+
+    /* ── STATS ── */
+    .stats-bar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { border: 1px solid var(--line); border-radius: 18px; background: var(--panel-2); padding: 16px 18px; }
+    .stat-label { font-size: 10px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+    .stat-value { font-size: 28px; font-weight: 900; line-height: 1; letter-spacing: -0.02em; }
+    .stat-value.orange { color: var(--accent); } .stat-value.yellow { color: var(--pending-color); }
+    .stat-value.green { color: var(--confirmed-color); } .stat-value.blue { color: var(--blue-color); }
+    .stat-value.gold { color: var(--gold); }
+
+    /* ── PLAYER RESERVES PANEL ── */
+    .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--panel-2); overflow: hidden; margin-bottom: 20px; }
+    .panel-header { padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+    .panel-title { font-size: 12px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin: 0; }
+    .player-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; padding: 16px; }
+    .player-card { border: 1px solid var(--line); border-radius: 14px; background: #0d0d0d; padding: 14px 16px; }
+    .player-card-name { font-size: 15px; font-weight: 900; margin-bottom: 4px; }
+    .player-card-detail { font-size: 12px; color: var(--muted); margin-bottom: 12px; }
+    .player-status-badge { display: inline-block; padding: 3px 10px; border-radius: 7px; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 10px; }
+    .ps-reserved  { background: rgba(255,179,71,0.1); border: 1px solid rgba(255,179,71,0.3); color: var(--pending-color); }
+    .ps-confirmed { background: rgba(93,216,138,0.1); border: 1px solid rgba(93,216,138,0.3); color: var(--confirmed-color); }
+    .ps-released  { background: rgba(180,30,30,0.1);  border: 1px solid rgba(220,60,60,0.3);  color: var(--danger-text); }
+    .player-actions { display: flex; gap: 8px; }
+    .action-btn { appearance: none; border: 0; border-radius: 9px; padding: 7px 12px; font-size: 11px; font-weight: 900; letter-spacing: 0.08em; cursor: pointer; transition: opacity 120ms; white-space: nowrap; }
+    .action-btn:hover:not(:disabled) { opacity: 0.82; }
+    .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-resolve { background: linear-gradient(90deg, #1a7a35, var(--green)); color: #060606; }
+    .btn-release { background: rgba(180,30,30,0.2); border: 1px solid rgba(220,60,60,0.35); color: #ff7070; }
+    .btn-view    { background: #1e1e1e; border: 1px solid #2e2e2e; color: var(--muted); }
+
+    /* ── ORDER TABLE ── */
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-btn { appearance: none; border: 1px solid #2a2a2a; border-radius: 8px; background: #0d0d0d; color: var(--muted); padding: 6px 12px; font-size: 12px; font-weight: 700; cursor: pointer; transition: border-color 120ms, color 120ms; }
+    .filter-btn.active { border-color: var(--gold); color: var(--gold); }
+    table { width: 100%; border-collapse: collapse; }
+    thead th { padding: 11px 14px; text-align: left; font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #666; border-bottom: 1px solid #1e1e1e; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid #191919; transition: background 120ms; }
+    tbody tr:last-child { border-bottom: 0; }
+    tbody tr:hover { background: rgba(255,255,255,0.025); }
+    tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
+    .order-num { font-weight: 900; font-size: 13px; white-space: nowrap; }
+    .status-badge { display: inline-block; padding: 3px 9px; border-radius: 7px; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+    .sb-pending   { background: rgba(255,179,71,0.1); border: 1px solid rgba(255,179,71,0.3); color: var(--pending-color); }
+    .sb-confirmed { background: rgba(93,216,138,0.1); border: 1px solid rgba(93,216,138,0.3); color: var(--confirmed-color); }
+    .sb-cancelled { background: rgba(180,30,30,0.1); border: 1px solid rgba(220,60,60,0.3); color: var(--danger-text); }
+    .sb-reserved  { background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.25); color: var(--gold); }
+    .btn-confirm  { background: linear-gradient(90deg, #1a7a35, var(--green)); color: #060606; }
+    .btn-cancel   { background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.3); color: #ff7070; }
+    .btn-delete   { background: rgba(130,20,20,0.2); border: 1px solid rgba(180,30,30,0.3); color: #cc5555; }
+    .btn-assign   { background: linear-gradient(90deg, #1a4a8a, #2d6fcf); color: #f0f0f0; }
+    .btn-undo     { background: #1e1e1e; border: 1px solid #2e2e2e; color: var(--muted); }
+    .delivery-chip { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .dc-pickup  { background: rgba(122,184,245,0.1); color: var(--blue-color); }
+    .dc-virtual { background: rgba(93,216,138,0.1); color: var(--green-2); }
+    .expires-red { color: var(--danger-text); font-size: 11px; }
+    .expires-ok  { color: #555; font-size: 11px; }
+    .empty-state  { padding: 48px 24px; text-align: center; color: #555; font-size: 14px; }
+    .loading-state { padding: 48px 24px; text-align: center; color: var(--muted); font-size: 14px; }
+
+    /* ── TOAST ── */
+    .toast { position: fixed; bottom: 28px; right: 28px; padding: 13px 20px; border-radius: 14px; background: #1e1e1e; border: 1px solid #2e2e2e; color: var(--text); font-size: 13px; font-weight: 700; box-shadow: 0 12px 40px rgba(0,0,0,0.6); z-index: 9999; transition: opacity 300ms, transform 300ms; transform: translateY(0); }
+    .toast.toast-success { border-color: rgba(93,216,138,0.4); color: var(--success-text); }
+    .toast.toast-error   { border-color: var(--danger-line); color: var(--danger-text); }
+    .toast.toast-hide    { opacity: 0; transform: translateY(10px); }
+
+    /* ── MODALS ── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 200ms; padding: 20px; }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-content { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 28px; max-width: 520px; width: 100%; box-shadow: 0 28px 80px rgba(0,0,0,0.6); max-height: 90vh; overflow-y: auto; }
+    .modal-title { font-size: 18px; font-weight: 900; margin: 0 0 20px; letter-spacing: -0.02em; }
+    .modal-field { margin-bottom: 14px; }
+    .modal-label { display: block; font-size: 11px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .modal-input, .modal-select { appearance: none; width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 9px; background: #0a0a0a; color: var(--text); font-size: 14px; font-family: inherit; outline: none; transition: border-color 120ms; }
+    .modal-input:focus, .modal-select:focus { border-color: var(--gold); }
+    .modal-btns { display: flex; gap: 12px; margin-top: 20px; }
+    .modal-btn { appearance: none; border: 0; border-radius: 9px; padding: 11px 18px; font-size: 13px; font-weight: 900; letter-spacing: 0.1em; cursor: pointer; transition: opacity 120ms; flex: 1; }
+    .modal-btn:hover { opacity: 0.85; }
+    .modal-btn-save   { background: linear-gradient(90deg, var(--gold), var(--gold-2)); color: #090909; }
+    .modal-btn-green  { background: linear-gradient(90deg, #1a7a35, var(--green)); color: #060606; }
+    .modal-btn-cancel { background: #1e1e1e; border: 1px solid #2e2e2e; color: var(--muted); }
+    .modal-btn-danger { background: rgba(180,30,30,0.2); border: 1px solid rgba(220,60,60,0.3); color: #ff7070; }
+    .resolve-split-display { padding: 14px 16px; border-radius: 12px; background: #0a0a0a; border: 1px solid #1e1e1e; margin-bottom: 14px; display: grid; gap: 6px; }
+    .resolve-split-row { display: flex; justify-content: space-between; font-size: 13px; }
+    .resolve-split-label { color: var(--muted); }
+    .resolve-split-val-green { color: var(--green-2); font-weight: 700; }
+    .resolve-split-val-red   { color: var(--danger-text); font-weight: 700; }
+    .tickets-assigned-list { padding: 12px 14px; border-radius: 12px; background: #0a0a0a; border: 1px solid #1a1a1a; font-size: 12px; color: var(--muted); line-height: 1.7; max-height: 160px; overflow-y: auto; }
+
+    @media (max-width: 1024px) { .stats-bar { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 900px)  { .stats-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 640px)  {
+      .shell { width: calc(100% - 20px); margin: 12px auto 40px; }
+      .hero-body { padding: 18px; }
+      thead { display: none; }
+      tbody tr { display: block; padding: 12px 14px; border-bottom: 1px solid #1a1a1a; }
+      tbody td { display: block; padding: 3px 0; border: 0; font-size: 12px; }
+      tbody td::before { content: attr(data-label) ": "; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; color: #555; }
+      .action-btn { width: 100%; margin-top: 6px; }
+    }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ── DASHBOARD ── -->
+  <div id="dashboard">
+
+    <div class="hero">
+      <div class="hero-band">AADS Tournament of Champions 2026 · Ticket Admin</div>
+      <div class="hero-body">
+        <div>
+          <h1 class="hero-title">Ticket Dashboard</h1>
+          <p class="hero-sub">Confirm payments · Manage player reserves · Export scanner CSV</p>
+        </div>
+        <div class="btn-row">
+          <button class="hbtn hbtn-export2" onclick="exportDoorList()">Export Door List</button>
+          <button class="hbtn hbtn-export" onclick="exportScannerCSV()">Export Scanner CSV</button>
+          <button class="hbtn hbtn-issued" onclick="window.open('AADSTickets-Issued.html','_blank','noopener,noreferrer')">🖨️ Issued Tickets</button>
+          <button class="hbtn hbtn-refresh" onclick="loadAll()">↺ Refresh</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sale toggle -->
+    <div class="sale-toggle-row">
+      <div>
+        <div class="sale-toggle-label">Ticket Sales</div>
+        <div class="sale-toggle-sub" id="saleStatusText">Loading…</div>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="saleToggle" onchange="toggleSale()" />
+        <span class="toggle-track"></span>
+      </label>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card"><p class="stat-label">Total Orders</p><div class="stat-value orange" id="statTotal">—</div></div>
+      <div class="stat-card"><p class="stat-label">Pending Payment</p><div class="stat-value yellow" id="statPending">—</div></div>
+      <div class="stat-card"><p class="stat-label">Confirmed (Paid)</p><div class="stat-value green" id="statConfirmed">—</div></div>
+      <div class="stat-card"><p class="stat-label">VIP Tables Sold</p><div class="stat-value gold" id="statVip">—</div></div>
+      <div class="stat-card"><p class="stat-label">GA Tickets Sold</p><div class="stat-value blue" id="statGa">—</div></div>
+    </div>
+
+    <!-- Player reservations panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <p class="panel-title">Player Family Reservations</p>
+        <span style="font-size:12px;color:var(--muted)" id="playerReserveCount">Loading…</span>
+      </div>
+      <div class="player-grid" id="playerGrid">
+        <div class="loading-state">Loading player reserves…</div>
+      </div>
+    </div>
+
+    <!-- Public orders table -->
+    <div class="panel">
+      <div class="panel-header">
+        <p class="panel-title">All Orders</p>
+        <div class="filter-row">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">All</button>
+          <button class="filter-btn" data-filter="pending" onclick="setFilter('pending',this)">Pending</button>
+          <button class="filter-btn" data-filter="confirmed" onclick="setFilter('confirmed',this)">Confirmed</button>
+          <button class="filter-btn" data-filter="cancelled" onclick="setFilter('cancelled',this)">Cancelled</button>
+        </div>
+      </div>
+      <div id="ordersTable"><div class="loading-state">Loading orders…</div></div>
+    </div>
+
+  </div><!-- /#dashboard -->
+</div><!-- /.shell -->
+
+<!-- Toast -->
+<div id="toast" class="toast toast-hide"></div>
+
+<!-- ── RESOLVE PLAYER RESERVATION MODAL ── -->
+<div id="resolveModal" class="modal-overlay">
+  <div class="modal-content">
+    <h2 class="modal-title" id="resolveModalTitle">Resolve Player Reservation</h2>
+    <p id="resolveModalDesc" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
+
+    <div class="modal-field">
+      <label class="modal-label">How many tickets does this player want?</label>
+      <input type="number" id="resolveQty" class="modal-input" min="0" max="5" value="5" oninput="updateResolveSplit()" />
+    </div>
+
+    <div class="resolve-split-display" id="resolveSplitDisplay">
+      <div class="resolve-split-row"><span class="resolve-split-label">Confirmed for player:</span><span class="resolve-split-val-green" id="splitForPlayer">5 tickets · $50.00</span></div>
+      <div class="resolve-split-row"><span class="resolve-split-label">Released back to GA pool:</span><span class="resolve-split-val-red" id="splitReleased">0 tickets</span></div>
+    </div>
+
+    <div id="resolveContactFields">
+      <div class="modal-field">
+        <label class="modal-label">Player Phone</label>
+        <input type="tel" id="resolvePhone" class="modal-input" placeholder="506-555-0100" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Player Email</label>
+        <input type="email" id="resolveEmail" class="modal-input" placeholder="player@example.com" />
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Delivery Method</label>
+        <select id="resolveDelivery" class="modal-select">
+          <option value="pickup">Pick Up at Box Office</option>
+          <option value="virtual">Virtual Ticket by Email</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeResolveModal()">Cancel</button>
+      <button class="modal-btn modal-btn-danger" onclick="resolvePlayer(0)">Release All to Public</button>
+      <button class="modal-btn modal-btn-green" id="resolveConfirmBtn" onclick="resolvePlayer()">Confirm Reservation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM PAYMENT MODAL ── -->
+<div id="confirmModal" class="modal-overlay">
+  <div class="modal-content">
+    <h2 class="modal-title">Confirm Payment</h2>
+    <p id="confirmModalDesc" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
+    <div class="modal-field">
+      <label class="modal-label">Payment Status</label>
+      <select id="confirmPayStatus" class="modal-select">
+        <option value="PAID">PAID — E-Transfer Received ✓</option>
+        <option value="COMP">COMP — Complimentary</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+      <button class="modal-btn modal-btn-green" onclick="confirmPayment()">Confirm Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ASSIGNED TICKETS VIEW MODAL ── -->
+<div id="ticketsModal" class="modal-overlay">
+  <div class="modal-content">
+    <h2 class="modal-title" id="ticketsModalTitle">Assigned Tickets</h2>
+    <div class="tickets-assigned-list" id="ticketsModalList"></div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeTicketsModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+  const HDR = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }
+
+  let allOrders = []
+  let allTickets = []
+  let currentFilter = 'all'
+  let activeResolvePlayer = null  // { group, tickets[], reservedCount }
+  let activeConfirmOrderId = null
+
+  const PLAYERS = ['Tom Holden','Kyle Gray','Tyler Cyr','Drake Berry','Dee Cormier','Rob Sibbick']
+
+  // ── API helpers ────────────────────────────────────────────────
+  async function api(path, opts = {}) {
+    const res = await fetch(`${SUPABASE_URL}${path}`, { headers: HDR, ...opts })
+    if (!res.ok) { const t = await res.text(); throw new Error(t || `HTTP ${res.status}`) }
+    return res.json().catch(() => null)
+  }
+  async function patch(table, filter, body) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${filter}`, { method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify(body) })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  }
+  async function rpc(fn, body) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { ...HDR, Prefer: 'return=representation' }, body: JSON.stringify(body) })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data?.message || `HTTP ${res.status}`)
+    return data
+  }
+
+  // ── Load all data ──────────────────────────────────────────────
+  async function loadAll() {
+    try {
+      const [orders, tickets, cfg] = await Promise.all([
+        api('/rest/v1/toc_orders?select=id,order_number,order_type,purchaser_name,purchaser_email,purchaser_phone,ticket_type,quantity,total_amount,delivery_method,payment_status,expires_at,notes,confirmed_at,created_at&order=created_at.desc'),
+        api('/rest/v1/toc_tickets?select=id,ticket_code,ticket_type,ticket_group,table_number,seat_number,sold_status,payment_status,ticket_holder_name,purchaser_name,order_id,checked_in,generated,print_file&order=ticket_code.asc'),
+        api('/rest/v1/toc_config?id=eq.1&select=sale_open')
+      ])
+      allOrders  = orders  || []
+      allTickets = tickets || []
+      const saleOpen = cfg?.[0]?.sale_open ?? true
+      document.getElementById('saleToggle').checked = saleOpen
+      document.getElementById('saleStatusText').textContent = saleOpen ? 'Sales are OPEN — public can purchase tickets' : 'Sales are CLOSED — new orders blocked'
+      updateStats()
+      renderPlayerReserves()
+      renderOrdersTable()
+    } catch (e) {
+      showToast(`Load error: ${e.message}`, 'error')
+    }
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────
+  function updateStats() {
+    const publicOrders = allOrders.filter(o => o.order_type === 'public')
+    const pending   = publicOrders.filter(o => o.payment_status === 'PENDING_PAYMENT').length
+    const confirmed = publicOrders.filter(o => o.payment_status === 'PAID').length
+    const vipSold   = allTickets.filter(t => t.ticket_type === 'VIP' && t.table_number >= 3 && t.payment_status === 'PAID').length / 6
+    const gaSold    = allTickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission' && t.payment_status === 'PAID').length
+    document.getElementById('statTotal').textContent     = publicOrders.length
+    document.getElementById('statPending').textContent   = pending
+    document.getElementById('statConfirmed').textContent = confirmed
+    document.getElementById('statVip').textContent       = `${vipSold}/4`
+    document.getElementById('statGa').textContent        = `${gaSold}/34`
+  }
+
+  // ── Player Reserves ────────────────────────────────────────────
+  function renderPlayerReserves() {
+    const grid = document.getElementById('playerGrid')
+    let resolved = 0
+
+    const cards = PLAYERS.map(player => {
+      const playerTickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${player}`)
+      const held = playerTickets.filter(t => t.sold_status === 'RESERVED').length
+      const confirmed = playerTickets.filter(t => t.payment_status === 'PAID').length
+      const released = playerTickets.filter(t => t.ticket_group === 'General Admission' || t.sold_status === 'AVAILABLE').length
+      const total = playerTickets.length
+
+      let statusClass = 'ps-reserved', statusLabel = `${held} tickets held`
+      if (confirmed > 0) { statusClass = 'ps-confirmed'; statusLabel = `${confirmed} confirmed`; resolved++ }
+      else if (held === 0) { statusClass = 'ps-released'; statusLabel = 'All released to public'; resolved++ }
+
+      const canResolve = held > 0 && confirmed === 0
+      return `
+        <div class="player-card">
+          <div class="player-card-name">${esc(player)}</div>
+          <div class="player-card-detail">5 GA tickets pre-reserved · $50.00</div>
+          <div><span class="player-status-badge ${statusClass}">${statusLabel}</span></div>
+          <div class="player-actions">
+            ${canResolve ? `<button class="action-btn btn-resolve" onclick="openResolveModal('${esc(player)}')">Resolve Reservation</button>` : ''}
+            <button class="action-btn btn-view" onclick="viewPlayerTickets('${esc(player)}')">View Tickets</button>
+          </div>
+        </div>`
+    }).join('')
+
+    grid.innerHTML = cards
+    document.getElementById('playerReserveCount').textContent = `${resolved}/6 resolved`
+  }
+
+  function openResolveModal(playerName) {
+    const playerTickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${playerName}`)
+    activeResolvePlayer = { name: playerName, tickets: playerTickets }
+    document.getElementById('resolveModalTitle').textContent = `Resolve: ${playerName}`
+    document.getElementById('resolveModalDesc').textContent  = `${playerTickets.length} GA tickets are currently reserved for ${playerName}'s family.`
+    document.getElementById('resolveQty').value = playerTickets.length
+    document.getElementById('resolveQty').max = playerTickets.length
+    updateResolveSplit()
+    document.getElementById('resolveModal').classList.add('open')
+  }
+  function closeResolveModal() { document.getElementById('resolveModal').classList.remove('open'); activeResolvePlayer = null }
+
+  function updateResolveSplit() {
+    const total = activeResolvePlayer?.tickets?.length ?? 5
+    const keep  = Math.max(0, Math.min(total, parseInt(document.getElementById('resolveQty').value) || 0))
+    const release = total - keep
+    document.getElementById('splitForPlayer').textContent = `${keep} ticket${keep !== 1 ? 's' : ''} · $${(keep * 10).toFixed(2)}`
+    document.getElementById('splitReleased').textContent  = `${release} ticket${release !== 1 ? 's' : ''}`
+    document.getElementById('resolveContactFields').style.display = keep > 0 ? '' : 'none'
+    document.getElementById('resolveConfirmBtn').textContent = keep > 0 ? `Confirm ${keep} Ticket${keep !== 1 ? 's' : ''} for Player` : 'Release All to Public'
+  }
+
+  async function resolvePlayer(forceZero) {
+    if (!activeResolvePlayer) return
+    const total = activeResolvePlayer.tickets.length
+    const keep  = forceZero === 0 ? 0 : Math.max(0, Math.min(total, parseInt(document.getElementById('resolveQty').value) || 0))
+    const release = total - keep
+
+    try {
+      if (keep > 0) {
+        const phone    = document.getElementById('resolvePhone').value.trim()
+        const email    = document.getElementById('resolveEmail').value.trim()
+        const delivery = document.getElementById('resolveDelivery').value
+        if (!phone || !email) { showToast('Please enter phone and email for the player.', 'error'); return }
+
+        // Confirm the kept tickets
+        const keepTickets = activeResolvePlayer.tickets.slice(0, keep)
+        for (const t of keepTickets) {
+          await patch('toc_tickets', `id=eq.${t.id}`, {
+            payment_status: 'PAID', sold_status: 'SOLD',
+            purchaser_name: activeResolvePlayer.name, purchaser_email: email, purchaser_phone: phone, delivery_method: delivery, updated_at: new Date().toISOString()
+          })
+        }
+        // Release the rest
+        const releaseTickets = activeResolvePlayer.tickets.slice(keep)
+        for (const t of releaseTickets) {
+          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', updated_at: new Date().toISOString() })
+        }
+        showToast(`✓ ${keep} ticket${keep !== 1 ? 's' : ''} confirmed for ${activeResolvePlayer.name}${release > 0 ? `, ${release} released` : ''}`, 'success')
+      } else {
+        // Release all
+        for (const t of activeResolvePlayer.tickets) {
+          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', updated_at: new Date().toISOString() })
+        }
+        showToast(`All ${total} tickets released back to GA pool`, 'success')
+      }
+
+      closeResolveModal()
+      await loadAll()
+    } catch (e) {
+      showToast(`Error: ${e.message}`, 'error')
+    }
+  }
+
+  function viewPlayerTickets(playerName) {
+    const tickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${playerName}`)
+    document.getElementById('ticketsModalTitle').textContent = `${playerName} — Reserved Tickets`
+    document.getElementById('ticketsModalList').innerHTML = tickets.map(t =>
+      `<div style="padding:4px 0;border-bottom:1px solid #1a1a1a"><strong>${t.ticket_code}</strong> — ${t.payment_status} | ${t.sold_status}</div>`
+    ).join('') || '<div style="color:var(--muted)">No tickets found.</div>'
+    document.getElementById('ticketsModal').classList.add('open')
+  }
+  function closeTicketsModal() { document.getElementById('ticketsModal').classList.remove('open') }
+
+  // ── Orders table ───────────────────────────────────────────────
+  function setFilter(f, btn) {
+    currentFilter = f
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    renderOrdersTable()
+  }
+
+  function renderOrdersTable() {
+    const publicOrders = allOrders.filter(o => o.order_type === 'public')
+    let filtered = currentFilter === 'all' ? publicOrders : publicOrders.filter(o => {
+      if (currentFilter === 'pending')   return o.payment_status === 'PENDING_PAYMENT'
+      if (currentFilter === 'confirmed') return o.payment_status === 'PAID'
+      if (currentFilter === 'cancelled') return o.payment_status === 'CANCELLED'
+      return true
+    })
+
+    if (!filtered.length) {
+      document.getElementById('ordersTable').innerHTML = `<div class="empty-state">No orders${currentFilter !== 'all' ? ` with status "${currentFilter}"` : ''} yet.</div>`
+      return
+    }
+
+    const rows = filtered.map(o => {
+      const assignedTickets = allTickets.filter(t => t.order_id === o.id)
+      const typeLabel = o.ticket_type === 'VIP_TABLE' ? `VIP Table × 1 (6 seats)` : `GA × ${o.quantity}`
+      const delivChip = o.delivery_method === 'virtual' ? '<span class="delivery-chip dc-virtual">Virtual</span>' : '<span class="delivery-chip dc-pickup">Pickup</span>'
+      const expiresAt = o.expires_at ? new Date(o.expires_at) : null
+      const isExpired = expiresAt && expiresAt < new Date() && o.payment_status === 'PENDING_PAYMENT'
+      const expiresStr = expiresAt
+        ? `<div class="${isExpired ? 'expires-red' : 'expires-ok'}">${isExpired ? '⚠ EXPIRED' : 'Holds until'} ${expiresAt.toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit' })}</div>`
+        : ''
+      const date = new Date(o.created_at).toLocaleString('en-CA', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+
+      let badge = ''
+      let actions = ''
+      if (o.payment_status === 'PENDING_PAYMENT') {
+        badge = '<span class="status-badge sb-pending">Pending</span>'
+        actions = `
+          <button class="action-btn btn-confirm" onclick="openConfirmModal('${o.id}','${esc(o.order_number)}','${o.ticket_type}',${o.quantity})">✓ Mark Paid</button>
+          <button class="action-btn btn-cancel" style="margin-left:6px" onclick="cancelOrder('${o.id}','${esc(o.order_number)}')">✗ Cancel</button>`
+      } else if (o.payment_status === 'PAID') {
+        badge = '<span class="status-badge sb-confirmed">Confirmed</span>'
+        const assigned = assignedTickets.length > 0
+        actions = `
+          ${assigned ? `<button class="action-btn btn-view" onclick="viewOrderTickets('${o.id}')">View Tickets</button>` : ''}
+          <button class="action-btn btn-undo" style="margin-left:${assigned?'6px':'0'}" onclick="unconfirmOrder('${o.id}')">Undo</button>`
+      } else {
+        badge = '<span class="status-badge sb-cancelled">Cancelled</span>'
+        actions = `<button class="action-btn btn-delete" onclick="deleteOrder('${o.id}','${esc(o.order_number)}')">Delete</button>`
+      }
+
+      return `<tr>
+        <td data-label="Order #"><span class="order-num">${o.order_number}</span><br><span style="font-size:11px;color:#555">$${Number(o.total_amount).toFixed(2)}</span></td>
+        <td data-label="Name">${esc(o.purchaser_name)}<br><span style="font-size:11px;color:#666">${esc(o.purchaser_email||'')} ${o.purchaser_phone ? '· '+esc(o.purchaser_phone) : ''}</span></td>
+        <td data-label="Tickets">${typeLabel}<br>${delivChip}${expiresStr}</td>
+        <td data-label="Placed">${date}</td>
+        <td data-label="Status">${badge}</td>
+        <td data-label="Action">${actions}</td>
+      </tr>`
+    }).join('')
+
+    document.getElementById('ordersTable').innerHTML = `
+      <table>
+        <thead><tr><th>Order #</th><th>Name / Contact</th><th>Tickets / Delivery</th><th>Placed</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`
+  }
+
+  // ── Confirm payment ────────────────────────────────────────────
+  function openConfirmModal(id, orderNum, ticketType, qty) {
+    activeConfirmOrderId = id
+    document.getElementById('confirmModalDesc').textContent = `Order ${orderNum} — ${ticketType === 'VIP_TABLE' ? 'VIP Table (6 seats)' : `GA × ${qty}`} · Mark as paid?`
+    document.getElementById('confirmModal').classList.add('open')
+  }
+  function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('open'); activeConfirmOrderId = null }
+
+  async function confirmPayment() {
+    if (!activeConfirmOrderId) return
+    const payStatus = document.getElementById('confirmPayStatus').value
+    try {
+      await patch('toc_orders', `id=eq.${activeConfirmOrderId}`, { payment_status: payStatus, confirmed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      await patch('toc_tickets', `order_id=eq.${activeConfirmOrderId}`, { payment_status: payStatus, sold_status: 'SOLD', updated_at: new Date().toISOString() })
+      const o = allOrders.find(x => x.id === activeConfirmOrderId)
+      if (o) { o.payment_status = payStatus; o.confirmed_at = new Date().toISOString() }
+      allTickets.filter(t => t.order_id === activeConfirmOrderId).forEach(t => { t.payment_status = payStatus; t.sold_status = 'SOLD' })
+      closeConfirmModal()
+      updateStats()
+      renderPlayerReserves()
+      renderOrdersTable()
+      showToast(`✓ Payment confirmed`, 'success')
+    } catch (e) { showToast(`Error: ${e.message}`, 'error') }
+  }
+
+  async function unconfirmOrder(id) {
+    try {
+      await patch('toc_orders', `id=eq.${id}`, { payment_status: 'PENDING_PAYMENT', confirmed_at: null, updated_at: new Date().toISOString() })
+      await patch('toc_tickets', `order_id=eq.${id}`, { payment_status: 'PENDING_PAYMENT', sold_status: 'RESERVED', updated_at: new Date().toISOString() })
+      await loadAll(); showToast('Order moved back to pending', 'success')
+    } catch (e) { showToast(`Error: ${e.message}`, 'error') }
+  }
+
+  async function cancelOrder(id, orderNum) {
+    if (!confirm(`Cancel order ${orderNum}? This will release the held tickets back to the pool.`)) return
+    try {
+      await patch('toc_orders', `id=eq.${id}`, { payment_status: 'CANCELLED', updated_at: new Date().toISOString() })
+      await patch('toc_tickets', `order_id=eq.${id}`, { payment_status: 'UNPAID', sold_status: 'AVAILABLE', order_id: null, purchaser_name: null, purchaser_email: null, purchaser_phone: null, ticket_holder_name: null, delivery_method: null, updated_at: new Date().toISOString() })
+      await loadAll(); showToast('Order cancelled — tickets returned to pool', 'success')
+    } catch (e) { showToast(`Error: ${e.message}`, 'error') }
+  }
+
+  async function deleteOrder(id, orderNum) {
+    if (!confirm(`Permanently delete order ${orderNum}? This cannot be undone.`)) return
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/toc_orders?id=eq.${id}`, { method: 'DELETE', headers: { ...HDR, Prefer: 'return=minimal' } })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      await loadAll(); showToast(`Order ${orderNum} deleted`, 'success')
+    } catch (e) { showToast(`Error: ${e.message}`, 'error') }
+  }
+
+  function viewOrderTickets(orderId) {
+    const tickets = allTickets.filter(t => t.order_id === orderId)
+    const order = allOrders.find(o => o.id === orderId)
+    document.getElementById('ticketsModalTitle').textContent = `${order?.order_number} — Assigned Tickets`
+    document.getElementById('ticketsModalList').innerHTML = tickets.map(t =>
+      `<div style="padding:5px 0;border-bottom:1px solid #1a1a1a">
+        <strong>${t.ticket_code}</strong><br>
+        <span style="color:var(--muted);font-size:11px">Holder: ${t.ticket_holder_name || '—'} · Status: ${t.payment_status} · Generated: ${t.generated ? '✓' : '—'}</span>
+      </div>`
+    ).join('') || '<div style="color:var(--muted)">No tickets assigned yet.</div>'
+    document.getElementById('ticketsModal').classList.add('open')
+  }
+
+  // ── Sale toggle ────────────────────────────────────────────────
+  async function toggleSale() {
+    const open = document.getElementById('saleToggle').checked
+    try {
+      await patch('toc_config', 'id=eq.1', { sale_open: open, updated_at: new Date().toISOString() })
+      document.getElementById('saleStatusText').textContent = open ? 'Sales are OPEN — public can purchase tickets' : 'Sales are CLOSED — new orders blocked'
+      showToast(open ? 'Sales reopened' : 'Sales closed', 'success')
+    } catch (e) { document.getElementById('saleToggle').checked = !open; showToast(`Error: ${e.message}`, 'error') }
+  }
+
+  // ── CSV Exports ────────────────────────────────────────────────
+  function exportScannerCSV() {
+    const cols = ['ticket_code','qr_payload','ticket_type','ticket_group','table_number','seat_number','ticket_holder_name','purchaser_name','purchaser_email','purchaser_phone','price','sold_status','payment_status','ticket_status','delivery_method','checked_in','checked_in_at','checked_in_by','scan_count','generated','print_file']
+    const rows = [cols, ...allTickets.map(t => cols.map(c => {
+      const v = t[c]
+      if (v == null) return ''
+      return typeof v === 'boolean' ? (v ? 'TRUE' : 'FALSE') : String(v)
+    }))]
+    downloadCSV(rows, `AADS-TOC-2026-scanner-${today()}.csv`)
+    showToast('Scanner CSV downloaded', 'success')
+  }
+
+  function exportDoorList() {
+    const cols = ['ticket_code','ticket_type','ticket_group','table_number','seat_number','ticket_holder_name','purchaser_name','payment_status','ticket_status','checked_in','checked_in_at','checked_in_by']
+    const sorted = [...allTickets].sort((a,b) => a.ticket_code.localeCompare(b.ticket_code))
+    const rows = [cols, ...sorted.map(t => cols.map(c => { const v = t[c]; if (v == null) return ''; return typeof v === 'boolean' ? (v ? 'TRUE' : 'FALSE') : String(v) }))]
+    downloadCSV(rows, `AADS-TOC-2026-door-list-${today()}.csv`)
+    showToast('Door list CSV downloaded', 'success')
+  }
+
+  function downloadCSV(rows, filename) {
+    const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a'); a.href = url; a.download = filename
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url)
+  }
+
+  function today() { return new Date().toISOString().slice(0,10) }
+
+  // ── Toast ──────────────────────────────────────────────────────
+  let toastTimer = null
+  function showToast(msg, type = '') {
+    const el = document.getElementById('toast')
+    el.textContent = msg
+    el.className = `toast${type ? ' toast-' + type : ''}`
+    if (toastTimer) clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => el.classList.add('toast-hide'), 3200)
+  }
+
+  // ── Auto-load on open ──────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', loadAll)
+
+  // ── Close modals on backdrop click ─────────────────────────────
+  document.addEventListener('click', e => {
+    if (e.target === document.getElementById('resolveModal')) closeResolveModal()
+    if (e.target === document.getElementById('confirmModal')) closeConfirmModal()
+    if (e.target === document.getElementById('ticketsModal')) closeTicketsModal()
+  })
+
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+</script>
+</body>
+</html>

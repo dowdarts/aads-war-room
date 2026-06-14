@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS TOC 2026 — Staff Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505; --panel: #111; --panel-2: #161616; --line: #2a2a2a;
+      --text: #f5f5f5; --muted: #999; --accent: #ff7a00; --accent-2: #ffb347;
+      --gold: #f5c518; --gold-2: #ffe066;
+      --green: #2da85a; --green-2: #5dd88a;
+      --danger-bg: rgba(180,30,30,0.15); --danger-line: rgba(220,60,60,0.4); --danger-text: #ffb3b3;
+    }
+    body { min-height: 100vh; background: radial-gradient(circle at 50% 0%, rgba(245,197,24,0.07), transparent 45%), var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; }
+    .hidden { display: none !important; }
+
+    /* ── PIN ── */
+    .pin-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .pin-card { padding: 40px; border: 1px solid #2a2a2a; border-radius: 24px; background: var(--panel); box-shadow: 0 28px 80px rgba(0,0,0,0.5); max-width: 400px; width: 100%; }
+    .pin-eyebrow { color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: 0.32em; text-transform: uppercase; margin-bottom: 10px; }
+    .pin-title { font-size: 28px; font-weight: 900; letter-spacing: -0.03em; margin-bottom: 20px; }
+    .pin-input { appearance: none; width: 100%; padding: 15px; border-radius: 13px; border: 1px solid #2a2a2a; background: #0a0a0a; color: var(--text); font-size: 26px; font-weight: 900; letter-spacing: 0.3em; text-align: center; font-family: inherit; outline: none; transition: border-color 120ms; }
+    .pin-input:focus { border-color: var(--gold); }
+    .pin-input.err { border-color: #cc4444; }
+    .pin-error { font-size: 13px; color: var(--danger-text); text-align: center; margin-top: 8px; }
+    .pin-btn { appearance: none; width: 100%; margin-top: 14px; padding: 14px; border-radius: 13px; border: 0; background: linear-gradient(90deg, var(--gold), var(--gold-2)); color: #090909; font-size: 14px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; cursor: pointer; transition: opacity 150ms; }
+    .pin-btn:hover { opacity: 0.88; }
+
+    /* ── DASHBOARD ── */
+    .page { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+    .page-header { text-align: center; margin-bottom: 48px; }
+    .page-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.36em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+    .page-title { font-size: clamp(28px, 5vw, 52px); font-weight: 900; letter-spacing: -0.03em; margin-bottom: 8px; }
+    .page-sub { color: var(--muted); font-size: 14px; }
+
+    /* ── LIVE STATS ── */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 40px; }
+    .stat-pill { border: 1px solid var(--line); border-radius: 16px; background: var(--panel-2); padding: 16px 20px; text-align: center; }
+    .stat-pill-val { font-size: 26px; font-weight: 900; }
+    .stat-pill-val.gold { color: var(--gold); }
+    .stat-pill-val.orange { color: var(--accent); }
+    .stat-pill-val.green { color: var(--green-2); }
+    .stat-pill-label { font-size: 10px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+    /* ── TOOL CARDS ── */
+    .tools-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px; }
+    @media (max-width: 720px) { .tools-grid { grid-template-columns: 1fr; } .stats-row { grid-template-columns: 1fr 1fr 1fr; } }
+    @media (max-width: 480px) { .stats-row { grid-template-columns: 1fr; } }
+
+    .tool-card {
+      border: 1px solid var(--line); border-radius: 22px; background: var(--panel-2);
+      padding: 28px 24px; display: flex; flex-direction: column; gap: 14px;
+      transition: border-color 150ms, transform 120ms, box-shadow 150ms; cursor: pointer; text-decoration: none; color: inherit;
+    }
+    .tool-card:hover { border-color: var(--gold); transform: translateY(-4px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); }
+    .tool-card-icon { font-size: 36px; }
+    .tool-card-name { font-size: 18px; font-weight: 900; }
+    .tool-card-desc { font-size: 13px; color: var(--muted); line-height: 1.6; flex: 1; }
+    .tool-card-open {
+      appearance: none; border: 0; border-radius: 12px; padding: 12px 18px;
+      background: linear-gradient(90deg, var(--gold), var(--gold-2)); color: #090909;
+      font-size: 12px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase;
+      cursor: pointer; transition: opacity 120ms; align-self: flex-start; pointer-events: none;
+    }
+    .tool-card:hover .tool-card-open { opacity: 0.88; }
+
+    /* ── QUICK LINKS ── */
+    .quick-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+    .quick-link {
+      appearance: none; border: 1px solid #333; background: #0d0d0d; color: var(--muted);
+      padding: 10px 18px; border-radius: 11px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: border-color 120ms, color 120ms; text-decoration: none; display: inline-block;
+    }
+    .quick-link:hover { border-color: #555; color: var(--text); }
+
+    /* ── LOADING ── */
+    .loading { color: var(--muted); font-size: 13px; animation: loadPulse 1.2s ease-in-out infinite; }
+    @keyframes loadPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  </style>
+</head>
+<body>
+
+  <!-- PIN gate -->
+  <div id="pinWrap" class="pin-wrap">
+    <div class="pin-card">
+      <div class="pin-eyebrow">AADS Staff Access</div>
+      <h1 class="pin-title">TOC 2026 Staff Dashboard</h1>
+      <input class="pin-input" type="password" id="pinInput" maxlength="10" placeholder="• • • • •"
+        autocomplete="current-password" oninput="clearErr()" onkeydown="if(event.key==='Enter')unlock()" />
+      <div id="pinErr" class="pin-error hidden">Incorrect PIN — try again.</div>
+      <button class="pin-btn" onclick="unlock()">Enter Staff Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dash" class="page hidden">
+    <div class="page-header">
+      <div class="page-eyebrow">Staff Hub · Tournament of Champions 2026</div>
+      <h1 class="page-title">🎛️ Tickets Dashboard</h1>
+      <p class="page-sub">Saturday, July 25, 2026 · Club d'Age d'Or, Scoudouc, NB</p>
+    </div>
+
+    <!-- Live stats -->
+    <div class="stats-row">
+      <div class="stat-pill"><div class="stat-pill-val gold" id="svip">—</div><div class="stat-pill-label">VIP Tables Sold</div></div>
+      <div class="stat-pill"><div class="stat-pill-val orange" id="sga">—</div><div class="stat-pill-label">GA Tickets Sold</div></div>
+      <div class="stat-pill"><div class="stat-pill-val green" id="scheckin">—</div><div class="stat-pill-label">Checked In Today</div></div>
+    </div>
+
+    <!-- Tool cards -->
+    <div class="tools-grid">
+      <div class="tool-card" onclick="openPage('AADSTickets-Admin.html')">
+        <div class="tool-card-icon">📋</div>
+        <div class="tool-card-name">Admin Panel</div>
+        <div class="tool-card-desc">Confirm e-transfer payments, manage player family reservations, assign ticket numbers, export CSVs for the door and scanner.</div>
+        <div class="tool-card-open">Open Admin →</div>
+      </div>
+
+      <div class="tool-card" onclick="openPage('AADSTickets-Scanner.html')">
+        <div class="tool-card-icon">📷</div>
+        <div class="tool-card-name">QR Scanner</div>
+        <div class="tool-card-desc">Camera-based QR ticket scanner for the event door. Shows instant VALID / ALREADY IN / NOT FOUND result. Staff confirms check-in and issues wristband.</div>
+        <div class="tool-card-open">Open Scanner →</div>
+      </div>
+
+      <div class="tool-card" onclick="openPage('AADSTickets-Checkin.html')">
+        <div class="tool-card-icon">✅</div>
+        <div class="tool-card-name">Check-in List</div>
+        <div class="tool-card-desc">Live master list of all 100 tickets and real-time check-in status. Updates automatically as the scanner checks guests in. Manual override available.</div>
+        <div class="tool-card-open">Open List →</div>
+      </div>
+
+      <div class="tool-card" onclick="openPage('AADSTickets-Issued.html')">
+        <div class="tool-card-icon">🖨️</div>
+        <div class="tool-card-name">Issued Tickets</div>
+        <div class="tool-card-desc">View, print, and email all issued tickets. Search by buyer name, attendee, email, or ticket code. Mark pending tickets as paid. Open printable ticket pages for paper copies or email links for virtual delivery.</div>
+        <div class="tool-card-open">Open Tickets →</div>
+      </div>
+    </div>
+
+    <!-- Quick links -->
+    <div class="quick-row">
+      <a class="quick-link" href="AADSTickets.html" target="_blank" rel="noopener">🎟️ Public Ticket Page</a>
+      <button class="quick-link" onclick="loadStats()">↺ Refresh Stats</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const CORRECT_PIN = '40783'
+    const HDR = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+
+    function unlock() {
+      const val = document.getElementById('pinInput').value
+      if (val === CORRECT_PIN) {
+        document.getElementById('pinWrap').classList.add('hidden')
+        document.getElementById('dash').classList.remove('hidden')
+        loadStats()
+      } else {
+        document.getElementById('pinInput').classList.add('err')
+        document.getElementById('pinErr').classList.remove('hidden')
+        document.getElementById('pinInput').value = ''
+        document.getElementById('pinInput').focus()
+      }
+    }
+    function clearErr() {
+      document.getElementById('pinInput').classList.remove('err')
+      document.getElementById('pinErr').classList.add('hidden')
+    }
+
+    async function loadStats() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?select=ticket_type,ticket_group,table_number,payment_status,checked_in`, { headers: HDR })
+        const tickets = await res.json()
+        const vipSold = tickets.filter(t => t.ticket_type === 'VIP' && t.table_number >= 3 && t.payment_status === 'PAID').length / 6
+        const gaSold  = tickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission' && t.payment_status === 'PAID').length
+        const checkedIn = tickets.filter(t => t.checked_in).length
+        document.getElementById('svip').textContent = `${vipSold}/4`
+        document.getElementById('sga').textContent  = `${gaSold}/34`
+        document.getElementById('scheckin').textContent = `${checkedIn}/100`
+      } catch (e) {
+        document.getElementById('svip').textContent = '—'
+        document.getElementById('sga').textContent  = '—'
+        document.getElementById('scheckin').textContent = '—'
+      }
+    }
+
+    function openPage(page) {
+      window.open(page, '_blank', 'noopener,noreferrer')
+    }
+  </script>
+</body>
+</html>

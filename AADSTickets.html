@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Tournament of Champions — Buy Tickets</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --gold: #f5c518;
+      --gold-2: #ffe066;
+      --green: #2da85a;
+      --green-2: #5dd88a;
+      --success-bg: rgba(44,122,66,0.15);
+      --success-line: rgba(93,216,138,0.35);
+      --success-text: #b4f0c2;
+      --danger-bg: rgba(180,30,30,0.15);
+      --danger-line: rgba(220,60,60,0.35);
+      --danger-text: #ffb3b3;
+    }
+    body { min-height: 100vh; background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; }
+    .hidden { display: none !important; }
+
+    /* ── FLASH BANNER ── */
+    .flash-banner {
+      background: linear-gradient(90deg, #1a0a00, #3a1800, #ff7a00, #3a1800, #1a0a00);
+      background-size: 300% 100%;
+      animation: bannerScroll 6s linear infinite;
+      padding: 10px 24px; text-align: center;
+      font-size: 12px; font-weight: 900; letter-spacing: 0.32em;
+      text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden;
+    }
+    @keyframes bannerScroll { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+    .flash-banner span { margin: 0 16px; opacity: 0.5; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(180deg, #0d0800 0%, var(--bg) 100%);
+      border-bottom: 1px solid #1a1a1a; padding: 36px 24px 30px; text-align: center;
+    }
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 900; letter-spacing: 0.38em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 10px;
+    }
+    .hero-title {
+      font-size: clamp(30px, 6vw, 60px); font-weight: 900; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 6px;
+    }
+    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--gold), var(--gold-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-presented { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 16px; }
+    .hero-event-info {
+      display: inline-flex; flex-wrap: wrap; gap: 20px; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .hero-event-chip {
+      padding: 8px 16px; border-radius: 100px;
+      border: 1px solid rgba(245,197,24,0.25); background: rgba(245,197,24,0.06);
+      font-size: 13px; font-weight: 700; color: var(--gold-2);
+    }
+
+    /* ── SOLD OUT banner ── */
+    .sold-out-banner {
+      max-width: 600px; margin: 48px auto; padding: 36px;
+      border: 1px solid var(--danger-line); border-radius: 24px;
+      background: var(--danger-bg); text-align: center;
+    }
+    .sold-out-banner h2 { font-size: 28px; color: var(--danger-text); margin-bottom: 8px; }
+    .sold-out-banner p { color: var(--muted); line-height: 1.7; }
+
+    /* ── STEP PROGRESS ── */
+    .steps-wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 0; }
+    .step-progress { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+    .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 130px; }
+    .step-circle {
+      width: 32px; height: 32px; border-radius: 50%; border: 2px solid #333;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 900; color: #444; background: #0d0d0d; transition: all 200ms;
+    }
+    .step-item.active .step-circle { border-color: var(--gold); color: var(--gold); background: rgba(245,197,24,0.1); }
+    .step-item.done .step-circle { border-color: var(--green); color: #040a08; background: var(--green); }
+    .step-label { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #444; transition: color 200ms; white-space: nowrap; }
+    .step-item.active .step-label { color: var(--gold); }
+    .step-item.done .step-label { color: var(--green-2); }
+    .step-connector { height: 2px; flex: 1; background: #222; margin-bottom: 22px; transition: background 200ms; max-width: 60px; }
+    .step-connector.done { background: var(--green); }
+
+    /* ── PAGE CONTENT ── */
+    .page-content { max-width: 680px; margin: 0 auto; padding: 0 20px 80px; }
+    .section { border: 1px solid var(--line); border-radius: 22px; background: var(--panel-2); padding: 24px; margin-bottom: 16px; }
+    .section-title { font-size: 11px; font-weight: 900; letter-spacing: 0.28em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
+
+    /* ── TICKET CARDS ── */
+    .ticket-cards { display: grid; gap: 14px; }
+    @media (min-width: 540px) { .ticket-cards { grid-template-columns: 1fr 1fr; } }
+
+    .ticket-card {
+      border: 2px solid #222; border-radius: 18px; background: #0d0d0d;
+      padding: 20px; cursor: pointer; transition: border-color 150ms, transform 120ms, box-shadow 150ms;
+      display: flex; flex-direction: column; gap: 12px; position: relative; overflow: hidden;
+    }
+    .ticket-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,0,0,0.5); }
+    .ticket-card.selected-vip { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 12px 40px rgba(245,197,24,0.18); }
+    .ticket-card.selected-ga  { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 12px 40px rgba(255,122,0,0.18); }
+    .ticket-card.sold-out-card { opacity: 0.45; cursor: not-allowed; }
+    .ticket-card.sold-out-card:hover { transform: none; }
+
+    .tc-badge {
+      position: absolute; top: 12px; right: 12px;
+      padding: 3px 10px; border-radius: 999px; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase;
+    }
+    .tc-badge-vip { background: rgba(245,197,24,0.15); color: var(--gold); border: 1px solid rgba(245,197,24,0.3); }
+    .tc-badge-ga  { background: rgba(255,122,0,0.12); color: var(--accent); border: 1px solid rgba(255,122,0,0.3); }
+    .tc-badge-soldout { background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-line); }
+
+    .tc-icon { font-size: 28px; }
+    .tc-name { font-size: 16px; font-weight: 900; letter-spacing: -0.01em; }
+    .tc-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .tc-price { font-size: 24px; font-weight: 900; }
+    .tc-price-vip { color: var(--gold); }
+    .tc-price-ga  { color: var(--accent); }
+    .tc-price-sub { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+    .tc-avail { font-size: 12px; font-weight: 700; }
+    .tc-avail-ok  { color: var(--green-2); }
+    .tc-avail-low { color: var(--gold); }
+    .tc-avail-out { color: var(--danger-text); }
+
+    /* ── QTY STEPPER ── */
+    .qty-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+    .qty-label { font-size: 11px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .qty-stepper { display: flex; align-items: center; gap: 0; border: 1px solid #333; border-radius: 11px; overflow: hidden; }
+    .qty-btn { appearance: none; border: none; background: #1a1a1a; color: var(--text); width: 36px; height: 36px; font-size: 18px; font-weight: 900; cursor: pointer; transition: background 120ms; }
+    .qty-btn:hover:not(:disabled) { background: #2a2a2a; }
+    .qty-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+    .qty-val { min-width: 36px; text-align: center; font-size: 16px; font-weight: 900; padding: 0 8px; }
+
+    /* ── FORM ── */
+    .form-stack { display: grid; gap: 14px; }
+    .name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 480px) { .name-row { grid-template-columns: 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field label { font-size: 11px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+    .field input, .field select {
+      appearance: none; width: 100%; padding: 13px 15px; border-radius: 13px;
+      border: 1px solid #272727; background: #0a0a0a; color: var(--text);
+      font-size: 15px; font-family: inherit; outline: none; transition: border-color 120ms;
+    }
+    .field input:focus, .field select:focus { border-color: var(--gold); }
+    .field input::placeholder { color: #444; }
+
+    /* ── DELIVERY OPTIONS ── */
+    .delivery-opts { display: grid; gap: 10px; }
+    .delivery-opt {
+      display: flex; align-items: flex-start; gap: 13px;
+      padding: 14px 15px; border-radius: 13px; border: 1.5px solid #272727;
+      background: #0a0a0a; cursor: pointer; transition: border-color 120ms;
+    }
+    .delivery-opt:hover { border-color: #333; }
+    .delivery-opt.selected { border-color: var(--gold); background: rgba(245,197,24,0.04); }
+    .delivery-opt input[type="radio"] { accent-color: var(--gold); margin-top: 2px; flex-shrink: 0; width: 17px; height: 17px; }
+    .delivery-opt-body { flex: 1; }
+    .delivery-opt-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .delivery-opt-desc  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ── TERMS BOX ── */
+    .terms-box {
+      padding: 16px 18px; border-radius: 14px;
+      background: rgba(255,122,0,0.06); border: 1px solid rgba(255,122,0,0.2);
+      color: #d98840; font-size: 13px; line-height: 1.7; margin-bottom: 14px;
+    }
+    .terms-box strong { color: var(--accent-2); display: block; margin-bottom: 8px; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+    .terms-check-row {
+      display: flex; align-items: flex-start; gap: 11px; padding: 13px 15px;
+      border-radius: 13px; border: 1.5px solid #272727; background: #0a0a0a; cursor: pointer;
+    }
+    .terms-check-row:hover { border-color: #333; }
+    .terms-check-row.checked { border-color: var(--green); background: rgba(44,168,90,0.05); }
+    .terms-check-row input[type="checkbox"] { width: 17px; height: 17px; flex-shrink: 0; margin-top: 2px; accent-color: var(--green); cursor: pointer; }
+    .terms-check-row label { font-size: 13px; color: var(--muted); cursor: pointer; line-height: 1.55; }
+
+    /* ── REVIEW ITEMS ── */
+    .review-section { border: 1px solid #1e1e1e; border-radius: 16px; overflow: hidden; margin-bottom: 14px; }
+    .review-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 14px 16px; border-bottom: 1px solid #1e1e1e; font-size: 14px;
+    }
+    .review-row:last-child { border-bottom: none; }
+    .review-row-label { color: var(--muted); font-size: 11px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; }
+    .review-row-val { font-weight: 700; text-align: right; }
+
+    /* ── E-TRANSFER PREVIEW ── */
+    .etransfer-box { border: 1px solid #222; border-radius: 20px; overflow: hidden; margin-bottom: 14px; }
+    .etransfer-header { padding: 12px 18px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; font-size: 11px; font-weight: 900; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold); }
+    .etransfer-body { padding: 16px 18px; display: grid; gap: 12px; }
+    .etransfer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .etransfer-info { min-width: 0; }
+    .etransfer-label { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #666; margin-bottom: 4px; }
+    .etransfer-val { font-size: 16px; font-weight: 700; word-break: break-all; }
+    .etransfer-val.big { color: var(--success-text); font-size: 22px; }
+
+    /* ── BUTTONS ── */
+    .btn-primary {
+      appearance: none; width: 100%; padding: 16px; border-radius: 15px; border: 0;
+      background: linear-gradient(90deg, var(--gold), var(--gold-2));
+      color: #0a0800; font-size: 14px; font-weight: 900; letter-spacing: 0.22em;
+      text-transform: uppercase; cursor: pointer; transition: opacity 150ms, transform 120ms;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-primary.green-btn { background: linear-gradient(90deg, var(--green), var(--green-2)); color: #040a08; }
+
+    .step-nav { display: flex; gap: 12px; margin-top: 16px; }
+    .step-back {
+      appearance: none; border: 1px solid #333; background: #0d0d0d; color: var(--muted);
+      padding: 14px 20px; border-radius: 14px; font-size: 13px; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; transition: border-color 120ms, color 120ms; flex-shrink: 0;
+    }
+    .step-back:hover { border-color: #555; color: var(--text); }
+    .step-fwd {
+      appearance: none; border: 0; flex: 1;
+      background: linear-gradient(90deg, var(--gold), var(--gold-2));
+      color: #0a0800; padding: 16px; border-radius: 14px;
+      font-size: 14px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; transition: opacity 150ms, transform 120ms;
+    }
+    .step-fwd:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+    .step-fwd:disabled { opacity: 0.35; cursor: not-allowed; }
+    .step-fwd.green { background: linear-gradient(90deg, var(--green), var(--green-2)); color: #040a08; }
+
+    /* ── ERROR BOX ── */
+    .error-box { padding: 12px 16px; border-radius: 12px; background: var(--danger-bg); border: 1px solid var(--danger-line); color: var(--danger-text); font-size: 13px; line-height: 1.55; margin-top: 10px; }
+
+    /* ── CONFIRMATION ── */
+    .confirm-wrap { max-width: 680px; margin: 32px auto; padding: 0 20px 80px; }
+    .confirm-card { border: 1px solid var(--success-line); border-radius: 28px; background: var(--panel); overflow: hidden; box-shadow: 0 28px 80px rgba(0,0,0,0.5); }
+    .confirm-band { padding: 15px 24px; background: linear-gradient(90deg, #1a7a35, var(--green)); color: #040a08; font-size: 12px; font-weight: 900; letter-spacing: 0.34em; text-transform: uppercase; }
+    .confirm-body { padding: 32px; }
+    .confirm-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.28em; text-transform: uppercase; color: var(--green-2); margin-bottom: 6px; }
+    .confirm-order-num { font-size: clamp(22px, 5vw, 42px); font-weight: 900; letter-spacing: -0.02em; color: var(--success-text); line-height: 1; margin-bottom: 4px; }
+    .confirm-ts { font-size: 12px; color: #555; margin-bottom: 20px; font-weight: 600; }
+    .confirm-summary { margin-bottom: 20px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 14px; overflow: hidden; }
+    .confirm-summary-row { display: flex; justify-content: space-between; padding: 11px 16px; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+    .confirm-summary-row:last-child { border-bottom: none; }
+    .confirm-summary-label { color: var(--muted); }
+    .confirm-summary-val { font-weight: 700; }
+    .confirm-total { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px; border-radius: 14px; background: rgba(245,197,24,0.06); border: 1px solid rgba(245,197,24,0.15); margin-bottom: 20px; }
+    .confirm-total-label { font-size: 12px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .confirm-total-val { font-size: 24px; font-weight: 900; color: var(--gold); }
+    .pay-box { border: 1px solid #222; border-radius: 20px; overflow: hidden; margin-bottom: 16px; }
+    .pay-box-header { padding: 12px 18px; background: #0d0d0d; border-bottom: 1px solid #1e1e1e; font-size: 11px; font-weight: 900; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold); }
+    .pay-box-body { padding: 16px 18px; display: grid; gap: 12px; }
+    .pay-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .pay-info { min-width: 0; }
+    .pay-label { font-size: 10px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #666; margin-bottom: 4px; }
+    .pay-val { font-size: 17px; font-weight: 700; word-break: break-all; }
+    .pay-val.big { color: var(--success-text); font-size: 22px; }
+    .copy-btn { flex-shrink: 0; appearance: none; border: 0; border-radius: 11px; background: var(--gold); color: #0a0800; padding: 9px 14px; font-size: 11px; font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: opacity 120ms; white-space: nowrap; }
+    .copy-btn:hover { opacity: 0.85; }
+    .copy-btn.copied { background: var(--green); color: #fff; }
+    .warning-box { padding: 14px 18px; border-radius: 14px; background: rgba(255,122,0,0.06); border: 1px solid rgba(255,122,0,0.2); color: #d98840; font-size: 13px; line-height: 1.65; margin-bottom: 12px; }
+    .warning-box strong { color: var(--accent-2); }
+    .info-box { padding: 14px 18px; border-radius: 14px; background: var(--success-bg); border: 1px solid var(--success-line); color: #7ed4a0; font-size: 13px; line-height: 1.65; }
+    .countdown-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .countdown-label { font-size: 11px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: #555; }
+    .countdown-val { font-size: 20px; font-weight: 900; color: var(--accent); font-variant-numeric: tabular-nums; }
+    .countdown-val.urgent { color: #ff3b3b; animation: urgentPulse 1s ease-in-out infinite; }
+    @keyframes urgentPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .hero { padding: 24px 16px 22px; }
+      .section { padding: 18px; border-radius: 18px; }
+      .confirm-body { padding: 20px; }
+      .step-back { padding: 12px 16px; font-size: 12px; }
+      .pay-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+      .copy-btn { width: 100%; text-align: center; padding: 11px 14px; }
+      .step-label { display: none; }
+    }
+    @media (max-width: 400px) {
+      .hero-event-info { flex-direction: column; align-items: center; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Flash banner -->
+  <div class="flash-banner">
+    🎯 TOURNAMENT OF CHAMPIONS<span>·</span>JULY 25, 2026<span>·</span>CLUB D'AGE D'OR · SCOUDOUC, NB<span>·</span>PRESENTED BY AMHERST PHARMACHOICE<span>·</span>🎯
+  </div>
+
+  <!-- Sale closed state -->
+  <div id="closedView" class="hidden" style="max-width:680px;margin:0 auto;padding:40px 20px">
+    <div class="sold-out-banner">
+      <h2>Ticket Sales Are Closed</h2>
+      <p>Ticket sales for the AADS Tournament of Champions have ended. Please contact us on social media for more information.</p>
+    </div>
+  </div>
+
+  <!-- Active order view -->
+  <div id="activeView">
+    <div class="hero">
+      <img src="logo-wiki.png" alt="AADS Logo" style="height:72px;width:auto;object-fit:contain;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto;" />
+      <img src="toc-poster.jpg" alt="AADS Tournament of Champions — Tickets On Sale Now" style="width:100%;max-width:520px;border-radius:18px;box-shadow:0 24px 72px rgba(0,0,0,0.7);display:block;margin:0 auto 24px;" />
+      <div class="hero-event-info">
+        <div class="hero-event-chip">📅 Saturday, July 25, 2026</div>
+        <div class="hero-event-chip">📍 Club d'Age d'Or, Scoudouc, NB</div>
+        <div class="hero-event-chip">🚪 Doors Open 8 AM · Play Starts 9 AM</div>
+      </div>
+    </div>
+
+    <!-- Step indicators -->
+    <div class="steps-wrap">
+      <div class="step-progress">
+        <div class="step-item active" id="step-ind-1"><div class="step-circle">1</div><div class="step-label">Tickets</div></div>
+        <div class="step-connector" id="step-conn-1"></div>
+        <div class="step-item" id="step-ind-2"><div class="step-circle">2</div><div class="step-label">Your Info</div></div>
+        <div class="step-connector" id="step-conn-2"></div>
+        <div class="step-item" id="step-ind-3"><div class="step-circle">3</div><div class="step-label">Review</div></div>
+        <div class="step-connector" id="step-conn-3"></div>
+        <div class="step-item" id="step-ind-4"><div class="step-circle">4</div><div class="step-label">Payment</div></div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: Choose Tickets ── -->
+    <div id="step1" class="page-content">
+      <div class="section">
+        <p class="section-title">Choose Your Tickets</p>
+        <div class="ticket-cards">
+
+          <!-- VIP Card -->
+          <div class="ticket-card" id="vipCard" onclick="selectType('vip')">
+            <span class="tc-badge tc-badge-vip" id="vipBadge">VIP</span>
+            <div class="tc-icon">👑</div>
+            <div class="tc-name">VIP Table Package</div>
+            <div class="tc-desc">Front-row premium table · Seats 6 guests · Includes 6 individual seat tickets · Gold wristbands</div>
+            <div class="tc-price tc-price-vip">$110<span style="font-size:14px;font-weight:700;color:var(--muted)"> /table</span></div>
+            <div class="tc-price-sub">6 seats included · $18.33/seat</div>
+            <div class="tc-avail" id="vipAvail">Loading…</div>
+          </div>
+
+          <!-- GA Card -->
+          <div class="ticket-card" id="gaCard" onclick="selectType('ga')">
+            <span class="tc-badge tc-badge-ga" id="gaBadge">GA</span>
+            <div class="tc-icon">🎯</div>
+            <div class="tc-name">General Admission</div>
+            <div class="tc-desc">General standing/seating area · White wristband · Named ticket with unique QR code</div>
+            <div class="tc-price tc-price-ga">$10<span style="font-size:14px;font-weight:700;color:var(--muted)"> each</span></div>
+            <div class="tc-price-sub">Per individual ticket</div>
+            <div class="tc-avail" id="gaAvail">Loading…</div>
+          </div>
+        </div>
+
+        <!-- Qty stepper (shown after selection) -->
+        <div id="qtySection" class="hidden" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">
+          <div class="qty-row">
+            <span class="qty-label" id="qtyLabel">Quantity</span>
+            <div class="qty-stepper">
+              <button class="qty-btn" id="qtyMinus" onclick="changeQty(-1)">−</button>
+              <div class="qty-val" id="qtyDisplay">1</div>
+              <button class="qty-btn" id="qtyPlus" onclick="changeQty(1)">+</button>
+            </div>
+          </div>
+          <div id="qtyHelp" style="font-size:12px;color:var(--muted);margin-top:8px"></div>
+        </div>
+      </div>
+
+      <div id="step1Error" class="error-box hidden"></div>
+      <button class="btn-primary" id="step1Next" onclick="goStep(2)" disabled>Select a ticket type above →</button>
+    </div>
+
+    <!-- ── STEP 2: Your Info ── -->
+    <div id="step2" class="page-content hidden">
+      <div class="section">
+        <p class="section-title">Your Contact Details</p>
+        <div class="form-stack">
+          <div class="name-row">
+            <div class="field">
+              <label for="buyerFirstName">First Name</label>
+              <input type="text" id="buyerFirstName" placeholder="Sarah" autocomplete="given-name" required />
+            </div>
+            <div class="field">
+              <label for="buyerLastName">Last Name</label>
+              <input type="text" id="buyerLastName" placeholder="MacDonald" autocomplete="family-name" required />
+            </div>
+          </div>
+          <div class="field">
+            <label for="buyerPhone">Phone Number</label>
+            <input type="tel" id="buyerPhone" placeholder="e.g. 506-555-0100" autocomplete="tel" required />
+          </div>
+          <div class="field">
+            <label for="buyerEmail">Email Address</label>
+            <input type="email" id="buyerEmail" placeholder="e.g. sarah@example.com" autocomplete="email" required />
+          </div>
+        </div>
+      </div>
+
+      <div id="additionalHoldersSection" class="section hidden">
+        <p class="section-title">Additional Ticket Holders</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Your name will be listed on Ticket 1. Please provide the name of each additional ticket holder below.</p>
+        <div id="additionalHoldersFields" class="form-stack"></div>
+      </div>
+
+      <div class="section">
+        <p class="section-title">Ticket Delivery</p>
+        <div class="delivery-opts">
+          <div class="delivery-opt" id="opt-pickup" onclick="selectDelivery('pickup')">
+            <input type="radio" name="delivery" value="pickup" id="delivPickup" />
+            <div class="delivery-opt-body">
+              <div class="delivery-opt-title">📦 Pick Up at Box Office</div>
+              <div class="delivery-opt-desc">Collect tickets at the venue on July 25. <strong>The purchaser must be present with valid photo ID.</strong> Name on ID must match the name on your order — tickets will not be released to anyone else.</div>
+            </div>
+          </div>
+          <div class="delivery-opt" id="opt-virtual" onclick="selectDelivery('virtual')">
+            <input type="radio" name="delivery" value="virtual" id="delivVirtual" />
+            <div class="delivery-opt-body">
+              <div class="delivery-opt-title">📧 Virtual Ticket by Email</div>
+              <div class="delivery-opt-desc">Your ticket will be emailed to you once payment is confirmed. Show the QR code on your phone at the door.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="step2Error" class="error-box hidden"></div>
+      <div class="step-nav">
+        <button class="step-back" onclick="goStep(1)">← Back</button>
+        <button class="step-fwd" onclick="goStep(3)">Review Order →</button>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: Review & Agree ── -->
+    <div id="step3" class="page-content hidden">
+      <div class="section">
+        <p class="section-title">Order Summary</p>
+        <div class="review-section" id="reviewItems"></div>
+        <div class="confirm-total" style="margin-top:12px;margin-bottom:0">
+          <span class="confirm-total-label">Total Due</span>
+          <span class="confirm-total-val" id="reviewTotal">$0</span>
+        </div>
+      </div>
+
+      <div class="section">
+        <p class="section-title">E-Transfer Preview</p>
+        <div class="etransfer-box">
+          <div class="etransfer-header">You Will Be Sending</div>
+          <div class="etransfer-body">
+            <div class="etransfer-row">
+              <div class="etransfer-info">
+                <div class="etransfer-label">Amount</div>
+                <div class="etransfer-val big" id="previewAmount">—</div>
+              </div>
+            </div>
+            <div class="etransfer-row">
+              <div class="etransfer-info">
+                <div class="etransfer-label">Send To (E-Transfer Email)</div>
+                <div class="etransfer-val">dow1800@gmail.com</div>
+              </div>
+            </div>
+            <div class="etransfer-row">
+              <div class="etransfer-info">
+                <div class="etransfer-label">Message Field — Your Order Number</div>
+                <div class="etransfer-val" id="previewOrderNum" style="color:var(--success-text)">Generated on submit</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <p class="section-title">AADS Event Terms & Conditions</p>
+        <div class="terms-box">
+          <strong>Please Read Before Purchasing</strong>
+          The Atlantic Amateur Darts Series (AADS) reserves the right to revoke any ticket and deny entry to any individual at its sole discretion. Any person removed from an AADS event will be permanently banned from attending and purchasing tickets to all future AADS events. All ticket purchases are <strong style="color:var(--accent-2)">final — no refunds or exchanges</strong> will be issued under any circumstances.
+        </div>
+        <div class="terms-check-row" id="termsRow" onclick="toggleTerms()">
+          <input type="checkbox" id="termsCheck" onclick="event.stopPropagation(); updateTermsStyle()" />
+          <label for="termsCheck">I have read and agree to the AADS Event Terms &amp; Conditions, including the no-refund policy and the right of AADS to revoke my ticket and ban me from future events.</label>
+        </div>
+      </div>
+
+      <div id="step3Error" class="error-box hidden"></div>
+      <div class="step-nav">
+        <button class="step-back" onclick="goStep(2)">← Back</button>
+        <button class="step-fwd green" id="submitBtn" onclick="placeOrder()">Place Order &amp; Get Payment Instructions →</button>
+      </div>
+    </div>
+  </div><!-- end #activeView -->
+
+  <!-- ── CONFIRMATION ── -->
+  <div id="confirmView" class="confirm-wrap hidden">
+    <div class="confirm-card">
+      <div class="confirm-band">✓ Order Placed — Send Your E-Transfer Within 45 Minutes</div>
+      <div class="confirm-body">
+        <div class="confirm-eyebrow">Your Order Number</div>
+        <div class="confirm-order-num" id="cfOrderNum">—</div>
+        <div class="confirm-ts" id="cfTs"></div>
+
+        <div class="confirm-summary" id="cfSummary"></div>
+
+        <div class="confirm-total">
+          <span class="confirm-total-label">Total Due</span>
+          <span class="confirm-total-val" id="cfTotal">—</span>
+        </div>
+
+        <div class="pay-box">
+          <div class="pay-box-header">Send E-Transfer Now</div>
+          <div class="pay-box-body">
+            <div class="pay-row">
+              <div class="pay-info">
+                <div class="pay-label">Amount to Send</div>
+                <div class="pay-val big" id="cfAmount">—</div>
+              </div>
+            </div>
+            <div class="pay-row">
+              <div class="pay-info">
+                <div class="pay-label">Send To (E-Transfer Email)</div>
+                <div class="pay-val" id="cfEmail">dow1800@gmail.com</div>
+              </div>
+              <button class="copy-btn" id="cfEmailCopyBtn" onclick="copyField('cfEmail','cfEmailCopyBtn')">Copy</button>
+            </div>
+            <div class="pay-row">
+              <div class="pay-info">
+                <div class="pay-label">Message Field — Type This Exactly</div>
+                <div class="pay-val" id="cfOrderNumCopy" style="color:var(--success-text)">—</div>
+              </div>
+              <button class="copy-btn" id="cfNumCopyBtn" onclick="copyField('cfOrderNumCopy','cfNumCopyBtn')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="warning-box">
+          ⚠ Your tickets are <strong>NOT confirmed</strong> until your e-transfer is received and matched to your order number. Your reservation holds for <strong>45 minutes</strong> — send your e-transfer immediately.
+          <div class="countdown-row">
+            <span class="countdown-label">Reservation expires in</span>
+            <span class="countdown-val" id="cfCountdown">45:00</span>
+          </div>
+        </div>
+
+        <div class="info-box" id="cfDeliveryNote"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const HDR = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }
+
+    // State
+    let selectedType = null  // 'vip' | 'ga'
+    let selectedQty = 1
+    let deliveryMethod = null  // 'pickup' | 'virtual'
+    let vipTablesAvail = 0
+    let gaPublicAvail = 0
+    let orderExpiresAt = null
+    let countdownTimer = null
+
+    // ── Inventory ────────────────────────────────────────────────
+    async function loadInventory() {
+      try {
+        // Config
+        const cfgRes = await fetch(`${SUPABASE_URL}/rest/v1/toc_config?id=eq.1&select=sale_open`, { headers: HDR })
+        const cfgData = await cfgRes.json()
+        const cfg = Array.isArray(cfgData) ? cfgData[0] : null
+        if (!cfgRes.ok || !cfg?.sale_open) { showClosed(); return }
+
+        // Inventory counts from toc_tickets
+        const invRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/toc_inventory?select=vip_tables_available,ga_public_available`,
+          { headers: HDR }
+        )
+        const invData = await invRes.json()
+        const inv = Array.isArray(invData) ? invData[0] : null
+        vipTablesAvail = Number(inv?.vip_tables_available ?? 0)
+        gaPublicAvail  = Number(inv?.ga_public_available ?? 0)
+
+        updateInventoryDisplay()
+      } catch (e) {
+        console.error('Inventory load failed:', e)
+      }
+    }
+
+    function updateInventoryDisplay() {
+      // VIP
+      const vipCard = document.getElementById('vipCard')
+      const vipAvail = document.getElementById('vipAvail')
+      const vipBadge = document.getElementById('vipBadge')
+      if (vipTablesAvail === 0) {
+        vipCard.classList.add('sold-out-card')
+        vipAvail.textContent = 'SOLD OUT'
+        vipAvail.className = 'tc-avail tc-avail-out'
+        vipBadge.className = 'tc-badge tc-badge-soldout'
+        vipBadge.textContent = 'SOLD OUT'
+      } else {
+        vipCard.classList.remove('sold-out-card')
+        vipAvail.textContent = `${vipTablesAvail} of 4 tables remaining`
+        vipAvail.className = vipTablesAvail <= 1 ? 'tc-avail tc-avail-low' : 'tc-avail tc-avail-ok'
+        if (selectedType === 'vip') updateQtyControls()
+      }
+
+      // GA
+      const gaCard = document.getElementById('gaCard')
+      const gaAvail = document.getElementById('gaAvail')
+      const gaBadge = document.getElementById('gaBadge')
+      if (gaPublicAvail === 0) {
+        gaCard.classList.add('sold-out-card')
+        gaAvail.textContent = 'SOLD OUT'
+        gaAvail.className = 'tc-avail tc-avail-out'
+        gaBadge.className = 'tc-badge tc-badge-soldout'
+        gaBadge.textContent = 'SOLD OUT'
+      } else {
+        gaCard.classList.remove('sold-out-card')
+        gaAvail.textContent = `${gaPublicAvail} tickets available`
+        gaAvail.className = gaPublicAvail <= 5 ? 'tc-avail tc-avail-low' : 'tc-avail tc-avail-ok'
+        if (selectedType === 'ga') updateQtyControls()
+      }
+    }
+
+    function showClosed() {
+      document.getElementById('activeView').classList.add('hidden')
+      document.getElementById('closedView').classList.remove('hidden')
+    }
+
+    // ── Type selection ────────────────────────────────────────────
+    function selectType(type) {
+      if (type === 'vip' && vipTablesAvail === 0) return
+      if (type === 'ga'  && gaPublicAvail  === 0) return
+      selectedType = type
+      selectedQty = 1
+
+      document.getElementById('vipCard').classList.toggle('selected-vip', type === 'vip')
+      document.getElementById('vipCard').classList.toggle('selected-ga', false)
+      document.getElementById('gaCard').classList.toggle('selected-ga', type === 'ga')
+      document.getElementById('gaCard').classList.toggle('selected-vip', false)
+
+      document.getElementById('qtySection').classList.remove('hidden')
+      updateQtyControls()
+
+      const btn = document.getElementById('step1Next')
+      btn.disabled = false
+      btn.textContent = type === 'vip' ? 'Continue — VIP Table Package →' : 'Continue — General Admission →'
+    }
+
+    function updateQtyControls() {
+      if (!selectedType) return
+      const max = selectedType === 'vip' ? Math.min(2, vipTablesAvail) : Math.min(10, gaPublicAvail)
+      if (selectedQty > max) selectedQty = max
+      if (selectedQty < 1) selectedQty = 1
+
+      document.getElementById('qtyDisplay').textContent = selectedQty
+      document.getElementById('qtyMinus').disabled = selectedQty <= 1
+      document.getElementById('qtyPlus').disabled = selectedQty >= max
+
+      if (selectedType === 'vip') {
+        document.getElementById('qtyLabel').textContent = 'Tables'
+        document.getElementById('qtyHelp').textContent = `Max 2 tables per order · $110 each · ${selectedQty * 6} seat${selectedQty * 6 !== 1 ? 's' : ''} total`
+      } else {
+        document.getElementById('qtyLabel').textContent = 'Tickets'
+        document.getElementById('qtyHelp').textContent = `Max 10 per order · $10 each · $${selectedQty * 10} total`
+      }
+    }
+
+    function changeQty(delta) {
+      selectedQty += delta
+      updateQtyControls()
+    }
+
+    // ── Delivery ─────────────────────────────────────────────────
+    function selectDelivery(method) {
+      deliveryMethod = method
+      document.getElementById('opt-pickup').classList.toggle('selected', method === 'pickup')
+      document.getElementById('opt-virtual').classList.toggle('selected', method === 'virtual')
+      document.getElementById('delivPickup').checked = method === 'pickup'
+      document.getElementById('delivVirtual').checked = method === 'virtual'
+    }
+
+    // ── Additional holder fields ──────────────────────────────────
+    function buildAdditionalHolderFields() {
+      const total = selectedType === 'vip' ? selectedQty * 6 : selectedQty
+      const section = document.getElementById('additionalHoldersSection')
+      const container = document.getElementById('additionalHoldersFields')
+      if (total <= 1) { section.classList.add('hidden'); return }
+      section.classList.remove('hidden')
+      container.innerHTML = ''
+      for (let i = 2; i <= total; i++) {
+        const label = selectedType === 'vip'
+          ? `Table ${Math.ceil((i) / 6)} · Seat ${((i - 1) % 6) + 1}`
+          : `Ticket ${i}`
+        container.insertAdjacentHTML('beforeend', `
+          <div style="border:1px solid var(--line);border-radius:14px;padding:14px 16px;">
+            <div style="font-size:11px;font-weight:900;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">${label}</div>
+            <div class="name-row">
+              <div class="field">
+                <label for="holderFirst${i}">First Name</label>
+                <input type="text" id="holderFirst${i}" placeholder="First name" autocomplete="off" />
+              </div>
+              <div class="field">
+                <label for="holderLast${i}">Last Name</label>
+                <input type="text" id="holderLast${i}" placeholder="Last name" autocomplete="off" />
+              </div>
+            </div>
+          </div>`)
+      }
+    }
+
+    function getAdditionalHolderNames() {
+      const total = selectedType === 'vip' ? selectedQty * 6 : selectedQty
+      const names = []
+      for (let i = 2; i <= total; i++) {
+        const first = (document.getElementById(`holderFirst${i}`)?.value || '').trim()
+        const last  = (document.getElementById(`holderLast${i}`)?.value  || '').trim()
+        names.push(first && last ? `${first} ${last}` : (first || last || 'Guest'))
+      }
+      return names
+    }
+
+    // ── Step navigation ───────────────────────────────────────────
+    function goStep(n) {
+      const err2 = document.getElementById('step2Error')
+      if (n === 2) {
+        buildAdditionalHolderFields()
+      }
+      if (n === 3) {
+        const firstName = document.getElementById('buyerFirstName').value.trim()
+        const lastName  = document.getElementById('buyerLastName').value.trim()
+        const phone = document.getElementById('buyerPhone').value.trim()
+        const email = document.getElementById('buyerEmail').value.trim()
+        err2.classList.add('hidden')
+        if (!firstName) { err2.textContent = 'Please enter your first name.'; err2.classList.remove('hidden'); return }
+        if (!lastName)  { err2.textContent = 'Please enter your last name.'; err2.classList.remove('hidden'); return }
+        if (!phone) { err2.textContent = 'Please enter your phone number.'; err2.classList.remove('hidden'); return }
+        if (!email || !email.includes('@')) { err2.textContent = 'Please enter a valid email address.'; err2.classList.remove('hidden'); return }
+        if (!deliveryMethod) { err2.textContent = 'Please select a delivery method.'; err2.classList.remove('hidden'); return }
+        buildReviewPage()
+      }
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`step${i}`).classList.toggle('hidden', i !== n)
+      }
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`step-ind-${i}`).className = 'step-item' + (i < n ? ' done' : i === n ? ' active' : '')
+        if (i < 4) document.getElementById(`step-conn-${i}`).className = 'step-connector' + (i < n ? ' done' : '')
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    function buildReviewPage() {
+      const firstName = document.getElementById('buyerFirstName').value.trim()
+      const lastName  = document.getElementById('buyerLastName').value.trim()
+      const name  = `${firstName} ${lastName}`
+      const phone = document.getElementById('buyerPhone').value.trim()
+      const email = document.getElementById('buyerEmail').value.trim()
+      const total = selectedType === 'vip' ? selectedQty * 110 : selectedQty * 10
+      const typeLabel = selectedType === 'vip' ? `VIP Table Package × ${selectedQty}` : `General Admission × ${selectedQty}`
+      const delivLabel = deliveryMethod === 'pickup' ? 'Pick Up at Box Office' : 'Virtual Ticket by Email'
+
+      const additionalNames = getAdditionalHolderNames()
+      const totalTickets = selectedType === 'vip' ? selectedQty * 6 : selectedQty
+      let holdersHtml = `<div class="review-row"><span class="review-row-label">Ticket 1</span><span class="review-row-val">${esc(name)} <span style="color:var(--muted);font-size:12px">(purchaser)</span></span></div>`
+      additionalNames.forEach((n, idx) => {
+        const label = selectedType === 'vip'
+          ? `T${Math.ceil((idx + 2) / 6)} · S${((idx + 1) % 6) + 1}`
+          : `Ticket ${idx + 2}`
+        holdersHtml += `<div class="review-row"><span class="review-row-label">${label}</span><span class="review-row-val">${esc(n)}</span></div>`
+      })
+
+      document.getElementById('reviewItems').innerHTML = `
+        <div class="review-row"><span class="review-row-label">Tickets</span><span class="review-row-val">${typeLabel}</span></div>
+        ${holdersHtml}
+        <div class="review-row"><span class="review-row-label">Phone</span><span class="review-row-val">${esc(phone)}</span></div>
+        <div class="review-row"><span class="review-row-label">Email</span><span class="review-row-val">${esc(email)}</span></div>
+        <div class="review-row"><span class="review-row-label">Delivery</span><span class="review-row-val">${delivLabel}</span></div>
+      `
+      document.getElementById('reviewTotal').textContent = `$${total}.00`
+      document.getElementById('previewAmount').textContent = `$${total}.00 CAD`
+    }
+
+    // ── Terms checkbox ────────────────────────────────────────────
+    function toggleTerms() {
+      const cb = document.getElementById('termsCheck')
+      cb.checked = !cb.checked
+      updateTermsStyle()
+    }
+    function updateTermsStyle() {
+      const cb = document.getElementById('termsCheck')
+      document.getElementById('termsRow').classList.toggle('checked', cb.checked)
+    }
+
+    // ── Order number ──────────────────────────────────────────────
+    function generateOrderNumber() {
+      const now = new Date()
+      const pad = n => String(n).padStart(2,'0')
+      return `TOC-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`
+    }
+
+    // ── Submit order ──────────────────────────────────────────────
+    async function placeOrder() {
+      const errEl = document.getElementById('step3Error')
+      errEl.classList.add('hidden')
+      const cb = document.getElementById('termsCheck')
+      if (!cb.checked) { errEl.textContent = 'You must agree to the AADS Event Terms & Conditions before placing your order.'; errEl.classList.remove('hidden'); return }
+
+      const btn = document.getElementById('submitBtn')
+      btn.disabled = true
+      btn.textContent = 'Placing Order…'
+
+      const firstName = document.getElementById('buyerFirstName').value.trim()
+      const lastName  = document.getElementById('buyerLastName').value.trim()
+      const name  = `${firstName} ${lastName}`
+      const phone = document.getElementById('buyerPhone').value.trim()
+      const email = document.getElementById('buyerEmail').value.trim()
+      const additionalNames = getAdditionalHolderNames()
+      const orderNum = generateOrderNumber()
+
+      try {
+        // Re-check inventory before submitting
+        await loadInventory()
+        if (selectedType === 'vip' && vipTablesAvail < selectedQty) throw new Error('Sorry — VIP tables just sold out. Please try General Admission.')
+        if (selectedType === 'ga'  && gaPublicAvail < selectedQty) throw new Error('Sorry — not enough GA tickets remaining. Please reduce your quantity.')
+
+        const rpcName = selectedType === 'vip' ? 'toc_reserve_vip' : 'toc_reserve_ga'
+        const payload = selectedType === 'vip'
+          ? { p_purchaser_name: name, p_purchaser_email: email, p_purchaser_phone: phone, p_delivery_method: deliveryMethod, p_order_number: orderNum }
+          : { p_purchaser_name: name, p_purchaser_email: email, p_purchaser_phone: phone, p_attendee_name: name, p_quantity: selectedQty, p_delivery_method: deliveryMethod, p_order_number: orderNum }
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${rpcName}`, {
+          method: 'POST',
+          headers: { ...HDR, Prefer: 'return=representation' },
+          body: JSON.stringify(payload)
+        })
+        const result = await res.json()
+        if (!res.ok || result?.message) throw new Error(result?.message || result?.error || 'Failed to place order.')
+
+        // Patch ticket_holder_name for additional tickets (tickets 2+)
+        if (additionalNames.length > 0 && result.tickets) {
+          const sortedCodes = [...result.tickets]
+            .sort((a, b) => (a.ticket_code || '').localeCompare(b.ticket_code || ''))
+          await Promise.all(additionalNames.map((holderName, idx) => {
+            const code = sortedCodes[idx + 1]?.ticket_code
+            if (!code) return
+            return fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}`, {
+              method: 'PATCH',
+              headers: { ...HDR, Prefer: 'return=minimal' },
+              body: JSON.stringify({ ticket_holder_name: holderName })
+            })
+          }))
+        }
+
+        orderExpiresAt = new Date(result.expires_at)
+        showConfirmation({ orderNum, result, name, email, total: selectedType === 'vip' ? selectedQty * 110 : selectedQty * 10 })
+      } catch (e) {
+        errEl.textContent = e.message || 'Something went wrong. Please try again.'
+        errEl.classList.remove('hidden')
+        btn.disabled = false
+        btn.textContent = 'Place Order & Get Payment Instructions →'
+      }
+    }
+
+    // ── Confirmation screen ───────────────────────────────────────
+    function showConfirmation({ orderNum, result, name, email, total }) {
+      for (let i = 1; i <= 4; i++) {
+        document.getElementById(`step-ind-${i}`).className = 'step-item' + (i < 4 ? ' done' : ' active')
+        if (i < 4) document.getElementById(`step-conn-${i}`).className = 'step-connector done'
+      }
+      document.getElementById('activeView').classList.add('hidden')
+
+      document.getElementById('cfOrderNum').textContent = orderNum
+      document.getElementById('cfOrderNumCopy').textContent = orderNum
+      document.getElementById('cfTotal').textContent = `$${total}.00 CAD`
+      document.getElementById('cfAmount').textContent = `$${total}.00 CAD`
+
+      const ts = new Date()
+      document.getElementById('cfTs').textContent = 'Ordered ' + ts.toLocaleString('en-CA', { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' })
+
+      const typeLabel = selectedType === 'vip' ? `VIP Table Package × ${selectedQty} (${selectedQty * 6} seats)` : `General Admission × ${selectedQty}`
+      const delivLabel = deliveryMethod === 'pickup' ? 'Pick Up at Box Office' : 'Virtual Ticket by Email'
+      document.getElementById('cfSummary').innerHTML = `
+        <div class="confirm-summary-row"><span class="confirm-summary-label">Tickets</span><span class="confirm-summary-val">${typeLabel}</span></div>
+        <div class="confirm-summary-row"><span class="confirm-summary-label">Purchaser</span><span class="confirm-summary-val">${esc(name)}</span></div>
+        <div class="confirm-summary-row"><span class="confirm-summary-label">Delivery</span><span class="confirm-summary-val">${delivLabel}</span></div>
+      `
+      document.getElementById('cfDeliveryNote').innerHTML = deliveryMethod === 'virtual'
+        ? `📧 <strong>Virtual Tickets:</strong> Once your e-transfer is confirmed, your tickets will be emailed to <strong>${esc(email)}</strong>.`
+        : `📦 <strong>Box Office Pickup:</strong> Once your e-transfer is confirmed, your tickets will be held at the door. The purchaser must be present on July 25 with valid photo ID — name must match your order. Tickets will not be released to anyone else.`
+
+      document.getElementById('confirmView').classList.remove('hidden')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      startCountdown()
+    }
+
+    // ── Countdown ─────────────────────────────────────────────────
+    function startCountdown() {
+      if (countdownTimer) clearInterval(countdownTimer)
+      function tick() {
+        const ms = orderExpiresAt - Date.now()
+        const el = document.getElementById('cfCountdown')
+        if (ms <= 0) { el.textContent = 'EXPIRED'; el.classList.add('urgent'); clearInterval(countdownTimer); return }
+        const m = Math.floor(ms / 60000)
+        const s = Math.floor((ms % 60000) / 1000)
+        el.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+        el.classList.toggle('urgent', ms < 5 * 60 * 1000)
+      }
+      tick()
+      countdownTimer = setInterval(tick, 1000)
+    }
+
+    // ── Copy ──────────────────────────────────────────────────────
+    async function copyField(valueId, btnId) {
+      const text = document.getElementById(valueId).textContent.trim()
+      const btn = document.getElementById(btnId)
+      try {
+        await navigator.clipboard.writeText(text)
+        btn.textContent = 'Copied!'; btn.classList.add('copied')
+        setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied') }, 2000)
+      } catch (_) { btn.textContent = 'Failed'; setTimeout(() => { btn.textContent = 'Copy' }, 1800) }
+    }
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+
+    // ── Init ──────────────────────────────────────────────────────
+    loadInventory()
+    setInterval(loadInventory, 60000)
+  </script>
+</body>
+</html>

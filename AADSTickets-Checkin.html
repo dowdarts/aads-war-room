@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS TOC 2026 — Check-in List</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505; --panel: #111; --panel-2: #161616; --line: #1e1e1e;
+      --text: #f5f5f5; --muted: #888; --gold: #f5c518; --gold-2: #ffe066;
+      --green: #16a34a; --green-2: #5dd88a; --green-bg: rgba(5,43,18,0.7);
+      --red: #dc2626; --red-bg: rgba(43,5,5,0.7);
+      --amber: #d97706; --amber-text: #fcd34d;
+    }
+    body { background: var(--bg); color: var(--text); font-family: "Segoe UI", system-ui, sans-serif; min-height: 100vh; }
+    .hidden { display: none !important; }
+
+    /* ── PIN ── */
+    .pin-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+    .pin-card { padding: 36px 32px; border: 1px solid #2a2a2a; border-radius: 22px; background: var(--panel); max-width: 380px; width: 100%; }
+    .pin-eye { color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: 0.32em; text-transform: uppercase; margin-bottom: 10px; }
+    .pin-title { font-size: 24px; font-weight: 900; margin-bottom: 20px; }
+    .pin-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #2a2a2a; background: #0a0a0a; color: var(--text); font-size: 24px; font-weight: 900; letter-spacing: 0.3em; text-align: center; font-family: inherit; outline: none; transition: border-color 120ms; }
+    .pin-input:focus { border-color: var(--gold); }
+    .pin-input.err { border-color: #cc4444; }
+    .pin-error { font-size: 13px; color: #fca5a5; text-align: center; margin-top: 8px; }
+    .pin-btn { width: 100%; margin-top: 14px; padding: 13px; border-radius: 12px; border: 0; background: linear-gradient(90deg, var(--gold), var(--gold-2)); color: #090909; font-size: 14px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; }
+
+    /* ── MAIN UI ── */
+    .page { max-width: 900px; margin: 0 auto; padding: 0 0 80px; }
+
+    /* sticky header */
+    .checkin-header { position: sticky; top: 0; z-index: 50; background: rgba(5,5,5,0.95); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); padding: 14px 20px; }
+    .checkin-header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .header-event { font-size: 10px; color: var(--gold); font-weight: 900; letter-spacing: 0.28em; text-transform: uppercase; }
+    .header-title { font-size: 16px; font-weight: 900; }
+    .live-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 900; letter-spacing: 0.15em; padding: 5px 12px; border-radius: 20px; border: 1px solid; }
+    .live-badge.live { border-color: var(--green); color: var(--green-2); }
+    .live-badge.polling { border-color: var(--amber); color: var(--amber-text); }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 1.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .counts-row { display: flex; gap: 20px; align-items: baseline; flex-wrap: wrap; }
+    .count-big { font-size: 26px; font-weight: 900; color: var(--green-2); }
+    .count-label { font-size: 12px; color: var(--muted); }
+    .count-sep { color: #333; }
+    .count-vip { color: var(--gold); font-weight: 700; }
+    .count-ga { color: #ff7a00; font-weight: 700; }
+
+    .search-row { margin-top: 12px; display: flex; gap: 8px; }
+    .search-input { flex: 1; background: #0e0e0e; border: 1px solid #2a2a2a; border-radius: 10px; color: var(--text); font-family: inherit; font-size: 13px; padding: 8px 12px; outline: none; transition: border-color 120ms; }
+    .search-input:focus { border-color: var(--gold); }
+    .filter-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid #2a2a2a; background: #0e0e0e; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all 120ms; white-space: nowrap; }
+    .filter-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(245,197,24,0.06); }
+    .refresh-btn { padding: 8px 14px; border-radius: 10px; border: 1px solid #2a2a2a; background: #0e0e0e; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .refresh-btn:hover { border-color: #444; color: var(--text); }
+
+    /* ── TABLE ── */
+    .list-wrap { padding: 0 8px; }
+    .list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .list-table thead th { padding: 8px 10px; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 10px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; text-align: left; white-space: nowrap; }
+    .list-table tbody tr { border-bottom: 1px solid var(--line); transition: background 80ms; }
+    .list-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+    .list-table tbody tr.checked-in { background: var(--green-bg); }
+    .list-table tbody tr.voided { background: var(--red-bg); opacity: 0.6; }
+    .list-table tbody td { padding: 10px 10px; vertical-align: middle; }
+    .ticket-code { font-family: monospace; font-size: 12px; color: var(--muted); }
+    .holder-name { font-weight: 700; }
+    .type-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+    .type-badge.vip { background: rgba(245,197,24,0.15); color: var(--gold); border: 1px solid rgba(245,197,24,0.3); }
+    .type-badge.ga { background: rgba(255,122,0,0.12); color: #ff7a00; border: 1px solid rgba(255,122,0,0.25); }
+    .payment-badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .payment-badge.paid { background: rgba(34,197,94,0.12); color: #4ade80; }
+    .payment-badge.comp { background: rgba(139,92,246,0.15); color: #a78bfa; }
+    .payment-badge.pending { background: rgba(217,119,6,0.15); color: var(--amber-text); }
+    .checkin-status { font-size: 12px; white-space: nowrap; }
+    .checkin-status.in { color: var(--green-2); font-weight: 700; }
+    .checkin-status.out { color: #444; }
+    .override-btn { appearance: none; border: 1px solid #2a2a2a; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; border-radius: 7px; padding: 5px 10px; cursor: pointer; transition: all 120ms; white-space: nowrap; }
+    .override-btn:hover { border-color: var(--green); color: var(--green-2); }
+    .override-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .empty-row td { color: var(--muted); text-align: center; padding: 40px; font-size: 14px; }
+
+    /* loading */
+    .loading-wrap { display: flex; align-items: center; justify-content: center; padding: 80px; }
+    .spin { width: 32px; height: 32px; border: 3px solid #222; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* modal */
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .modal { background: var(--panel); border: 1px solid #2a2a2a; border-radius: 20px; padding: 28px; max-width: 400px; width: 100%; }
+    .modal h3 { font-size: 18px; font-weight: 900; margin-bottom: 14px; }
+    .modal p { color: var(--muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+    .modal-staff-input { width: 100%; padding: 11px 13px; border-radius: 10px; border: 1px solid #2a2a2a; background: #0a0a0a; color: var(--text); font-family: inherit; font-size: 14px; outline: none; margin-bottom: 14px; transition: border-color 120ms; }
+    .modal-staff-input:focus { border-color: var(--gold); }
+    .modal-btns { display: flex; gap: 10px; }
+    .modal-confirm-btn { flex: 1; padding: 12px; border: 0; border-radius: 12px; background: var(--green); color: #fff; font-size: 14px; font-weight: 900; cursor: pointer; }
+    .modal-cancel-btn { padding: 12px 18px; border: 1px solid #333; border-radius: 12px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 700; cursor: pointer; }
+
+    @media (max-width: 640px) {
+      .list-table thead th:nth-child(4),
+      .list-table tbody td:nth-child(4) { display: none; }
+      .list-table thead th:nth-child(5),
+      .list-table tbody td:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main UI -->
+  <div id="mainUI">
+    <div class="checkin-header">
+      <div class="checkin-header-top">
+        <div>
+          <div class="header-event">TOC 2026 · Master Check-in List</div>
+          <div class="header-title">✅ Guest Check-in Status</div>
+        </div>
+        <div class="live-badge live" id="liveBadge">
+          <div class="live-dot"></div>
+          LIVE
+        </div>
+      </div>
+      <div class="counts-row">
+        <span class="count-big" id="countIn">—</span>
+        <span class="count-label">/ <span id="countTotal">—</span> checked in</span>
+        <span class="count-sep">·</span>
+        <span class="count-vip" id="countVip">—</span>
+        <span class="count-label">VIP in</span>
+        <span class="count-sep">·</span>
+        <span class="count-ga" id="countGa">—</span>
+        <span class="count-label">GA in</span>
+      </div>
+      <div class="search-row">
+        <input class="search-input" type="search" id="searchInput" placeholder="Search by name or ticket code…" oninput="applyFilter()" />
+        <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">All</button>
+        <button class="filter-btn" id="filterIn" onclick="setFilter('in')">In ✅</button>
+        <button class="filter-btn" id="filterOut" onclick="setFilter('out')">Awaiting ⬜</button>
+        <button class="refresh-btn" onclick="loadTickets()">↺</button>
+      </div>
+    </div>
+
+    <div class="page">
+      <div class="list-wrap">
+        <div id="loadingWrap" class="loading-wrap"><div class="spin"></div></div>
+        <table class="list-table hidden" id="listTable">
+          <thead>
+            <tr>
+              <th>Ticket</th>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Payment</th>
+              <th>Table/Seat</th>
+              <th>Check-in</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="listBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual override modal -->
+  <div id="overrideModal" class="modal-bg hidden">
+    <div class="modal">
+      <h3>Manual Check-in Override</h3>
+      <p id="overrideMsg"></p>
+      <input class="modal-staff-input" type="text" id="overrideStaff" placeholder="Your name (required)" />
+      <div class="modal-btns">
+        <button class="modal-cancel-btn" onclick="closeModal()">Cancel</button>
+        <button class="modal-confirm-btn" onclick="doOverride()">Confirm Manual Check-in</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const HDR = {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json'
+    }
+
+    let allTickets = []
+    let activeFilter = 'all'
+    let overrideTicketCode = null
+    let supabaseClient = null
+    let realtimeFailed = false
+    let pollingInterval = null
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initSupabase()
+      loadTickets()
+    })
+
+    function initSupabase() {
+      try {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        supabaseClient.channel('toc-checkins-live')
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'toc_tickets' },
+            (payload) => {
+              updateTicketInList(payload.new)
+            })
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              setLiveStatus(true)
+              if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null }
+            } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+              fallbackToPolling()
+            }
+          })
+      } catch (e) {
+        fallbackToPolling()
+      }
+    }
+
+    function fallbackToPolling() {
+      setLiveStatus(false)
+      if (!pollingInterval) {
+        pollingInterval = setInterval(loadTickets, 20000)
+      }
+    }
+
+    function setLiveStatus(isLive) {
+      const badge = document.getElementById('liveBadge')
+      badge.className = `live-badge ${isLive ? 'live' : 'polling'}`
+      badge.innerHTML = `<div class="live-dot"></div>${isLive ? 'LIVE' : 'POLLING 20s'}`
+    }
+
+    async function loadTickets() {
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/toc_tickets?select=*&order=ticket_type.desc,table_number.asc.nullslast,seat_number.asc.nullslast,ticket_number.asc`,
+          { headers: HDR }
+        )
+        allTickets = await res.json()
+        renderList()
+      } catch (e) {
+        console.error('Load error:', e)
+      }
+    }
+
+    function updateTicketInList(updated) {
+      const idx = allTickets.findIndex(t => t.ticket_code === updated.ticket_code)
+      if (idx !== -1) {
+        allTickets[idx] = { ...allTickets[idx], ...updated }
+        renderList()
+      }
+    }
+
+    function setFilter(f) {
+      activeFilter = f
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'))
+      document.getElementById(`filter${f.charAt(0).toUpperCase()+f.slice(1)}`).classList.add('active')
+      renderList()
+    }
+
+    function applyFilter() { renderList() }
+
+    function getFiltered() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase()
+      return allTickets.filter(t => {
+        if (activeFilter === 'in' && !t.checked_in) return false
+        if (activeFilter === 'out' && t.checked_in) return false
+        if (q) {
+          const name = (t.ticket_holder_name || '').toLowerCase()
+          const code = (t.ticket_code || '').toLowerCase()
+          const num  = (t.ticket_number || '').toLowerCase()
+          if (!name.includes(q) && !code.includes(q) && !num.includes(q)) return false
+        }
+        return true
+      })
+    }
+
+    function renderList() {
+      const tickets = getFiltered()
+      const checkedIn = allTickets.filter(t => t.checked_in)
+      const vipIn = checkedIn.filter(t => t.ticket_type === 'VIP').length
+      const gaIn  = checkedIn.filter(t => t.ticket_type === 'GA').length
+      document.getElementById('countIn').textContent = checkedIn.length
+      document.getElementById('countTotal').textContent = allTickets.length || 100
+      document.getElementById('countVip').textContent = vipIn
+      document.getElementById('countGa').textContent = gaIn
+
+      document.getElementById('loadingWrap').classList.add('hidden')
+      const table = document.getElementById('listTable')
+      table.classList.remove('hidden')
+      const tbody = document.getElementById('listBody')
+
+      if (tickets.length === 0) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No tickets match your search.</td></tr>'
+        return
+      }
+
+      tbody.innerHTML = tickets.map(t => {
+        const isVIP = t.ticket_type === 'VIP'
+        const isComp = t.payment_status === 'COMP'
+        const isPaid = t.payment_status === 'PAID'
+        const rowClass = t.checked_in ? 'checked-in' : (t.sold_status === 'VOID' ? 'voided' : '')
+
+        const checkinText = t.checked_in
+          ? `✅ ${t.checked_in_at ? new Date(t.checked_in_at).toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' }) : 'checked in'}`
+          : '⬜ Not yet arrived'
+        const checkinClass = t.checked_in ? 'in' : 'out'
+
+        const payBadge = isComp ? 'comp' : (isPaid ? 'paid' : 'pending')
+        const payText  = isComp ? 'COMP'  : (isPaid ? 'PAID' : 'PENDING')
+
+        const typeLabel = isVIP ? 'VIP' : 'GA'
+        const tableSeat = isVIP ? `T${t.table_number} · S${t.seat_number}` : '—'
+
+        const overrideDis = t.checked_in ? 'disabled title="Already checked in"' : ''
+
+        return `<tr class="${rowClass}" data-code="${esc(t.ticket_code)}">
+          <td class="ticket-code">${esc(t.ticket_number || t.ticket_code)}</td>
+          <td class="holder-name">${esc(t.ticket_holder_name || '—')}</td>
+          <td><span class="type-badge ${typeLabel.toLowerCase()}">${typeLabel}</span></td>
+          <td><span class="payment-badge ${payBadge}">${payText}</span></td>
+          <td style="color:var(--muted);font-size:12px">${tableSeat}</td>
+          <td><span class="checkin-status ${checkinClass}">${checkinText}</span>${t.checked_in && t.checked_in_by ? `<br><span style="font-size:11px;color:var(--muted)">by ${esc(t.checked_in_by)}</span>` : ''}</td>
+          <td><button class="override-btn" ${overrideDis} onclick="openOverride('${esc(t.ticket_code)}','${esc(t.ticket_holder_name||'Guest')}')">Manual In</button></td>
+        </tr>`
+      }).join('')
+    }
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;') }
+
+    // ── MANUAL OVERRIDE ──
+    function openOverride(code, name) {
+      overrideTicketCode = code
+      document.getElementById('overrideMsg').textContent = `Manually check in ${name} (${code})?`
+      document.getElementById('overrideStaff').value = ''
+      document.getElementById('overrideModal').classList.remove('hidden')
+      setTimeout(() => document.getElementById('overrideStaff').focus(), 80)
+    }
+    function closeModal() {
+      document.getElementById('overrideModal').classList.add('hidden')
+      overrideTicketCode = null
+    }
+    async function doOverride() {
+      const staffVal = document.getElementById('overrideStaff').value.trim()
+      if (!staffVal) { document.getElementById('overrideStaff').focus(); return }
+      if (!overrideTicketCode) return
+      const now = new Date().toISOString()
+      const btn = document.querySelector('.modal-confirm-btn')
+      btn.disabled = true; btn.textContent = 'Saving…'
+      try {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(overrideTicketCode)}`,
+          {
+            method: 'PATCH',
+            headers: { ...HDR, Prefer: 'return=minimal' },
+            body: JSON.stringify({
+              checked_in: true,
+              checked_in_at: now,
+              checked_in_by: staffVal + ' (manual)',
+              scan_count: 1,
+              last_scanned_at: now
+            })
+          }
+        )
+        // Update in-memory
+        const idx = allTickets.findIndex(t => t.ticket_code === overrideTicketCode)
+        if (idx !== -1) {
+          allTickets[idx] = {
+            ...allTickets[idx],
+            checked_in: true,
+            checked_in_at: now,
+            checked_in_by: staffVal + ' (manual)',
+            scan_count: 1,
+            last_scanned_at: now
+          }
+        }
+        renderList()
+        closeModal()
+      } catch (e) {
+        alert('Error — try again')
+      } finally {
+        btn.disabled = false; btn.textContent = 'Confirm Manual Check-in'
+      }
+    }
+  </script>
+</body>
+</html>
