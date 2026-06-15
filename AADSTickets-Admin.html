@@ -516,11 +516,13 @@
         const email    = document.getElementById('resolveEmail').value.trim() || null
         const delivery = document.getElementById('resolveDelivery').value
 
-        // Confirm the kept tickets
+        // Confirm the kept tickets — ticket 1 = player name, tickets 2+ = player name + Guest
         const keepTickets = activeResolvePlayer.tickets.slice(0, keep)
-        for (const t of keepTickets) {
-          await patch('toc_tickets', `id=eq.${t.id}`, {
+        for (let i = 0; i < keepTickets.length; i++) {
+          const holderName = i === 0 ? activeResolvePlayer.name : `${activeResolvePlayer.name} Guest`
+          await patch('toc_tickets', `id=eq.${keepTickets[i].id}`, {
             payment_status: 'PAID', sold_status: 'SOLD',
+            ticket_holder_name: holderName,
             purchaser_name: activeResolvePlayer.name, purchaser_email: email, purchaser_phone: phone, delivery_method: delivery, updated_at: new Date().toISOString()
           })
         }
