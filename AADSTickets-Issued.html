@@ -82,6 +82,12 @@
     .status-void      { background: rgba(220,38,38,0.12);  border: 1px solid rgba(220,38,38,0.35);  color: #f87171; }
     .status-avail     { background: rgba(80,80,80,0.12);   border: 1px solid #2a2a2a;               color: var(--muted); }
 
+    /* ── ORDERS VIEW ── */
+    .order-buyer { font-weight: 700; font-size: 13px; }
+    .order-email { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .ticket-chip { display: inline-block; background: #161616; border: 1px solid #252525; border-radius: 4px; padding: 2px 7px; font-family: monospace; font-size: 10px; font-weight: 700; margin: 2px 1px; color: #aaa; }
+    .view-chips { border-left: 1px solid #2a2a2a; padding-left: 10px; margin-left: 4px; }
+
     /* Seat / holder */
     .holder-name { font-weight: 600; }
     .holder-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
@@ -166,11 +172,15 @@
       <span class="chip" data-type="VIP"             onclick="setTypeFilter('VIP', this)">VIP</span>
       <span class="chip" data-type="GENERAL ADMISSION" onclick="setTypeFilter('GENERAL ADMISSION', this)">GA</span>
     </div>
+    <div class="filter-chips view-chips" id="viewChips">
+      <span class="chip active" data-view="tickets" onclick="setViewMode('tickets', this)">Tickets</span>
+      <span class="chip" data-view="orders" onclick="setViewMode('orders', this)">Orders</span>
+    </div>
   </div>
 
   <div class="tbl-wrap">
     <table>
-      <thead>
+      <thead id="tblHead">
         <tr>
           <th class="check-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" /></th>
           <th>Ticket #</th>
@@ -251,6 +261,7 @@
     let allTickets = []
     let statusFilter = 'all'
     let typeFilter   = 'all'
+    let viewMode     = 'tickets'
     let selectedCodes = new Set()
     let payTarget = null
 
@@ -309,8 +320,27 @@
       filterTable()
     }
 
+    function setViewMode(val, el) {
+      viewMode = val
+      document.querySelectorAll('#viewChips .chip').forEach(c => c.classList.remove('active'))
+      el.classList.add('active')
+      filterTable()
+    }
+
     function filterTable() {
       const q = document.getElementById('searchBox').value.toLowerCase()
+
+      if (viewMode === 'orders') {
+        const filtered = allTickets.filter(t => {
+          const name  = (t.purchaser_name || t.ticket_holder_name || '').toLowerCase()
+          const email = (t.purchaser_email || '').toLowerCase()
+          if (!name && !email) return false
+          return !q || name.includes(q) || email.includes(q) || (t.ticket_number || '').toLowerCase().includes(q)
+        })
+        renderOrders(filtered)
+        return
+      }
+
       const filtered = allTickets.filter(t => {
         const searchable = [
           t.ticket_number, t.ticket_code, t.ticket_holder_name,
@@ -331,7 +361,14 @@
       renderRows(filtered)
     }
 
+    const TICKETS_THEAD = `<tr>
+      <th class="check-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" /></th>
+      <th>Ticket #</th><th>Ticket Code</th><th>Holder Name</th><th>Type</th>
+      <th>Seat</th><th>Buyer</th><th>Status</th><th>Checked In</th><th>Actions</th>
+    </tr>`
+
     function renderRows(tickets) {
+      document.getElementById('tblHead').innerHTML = TICKETS_THEAD
       if (!tickets.length) {
         document.getElementById('tblBody').innerHTML =
           '<tr><td colspan="10" class="empty">No tickets match your filters.</td></tr>'
@@ -391,11 +428,92 @@
               </a>
               <button class="btn btn-outline btn-sm" onclick="openEditModal('${t.ticket_code}')">✏️</button>
               ${canMarkPaid ? `<button class="btn btn-outline btn-sm" onclick='openPayModal(${JSON.stringify(t)})'>✓ Pay</button>` : ''}
-              ${buyerEmail !== '—' && buyerEmail ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(t.ticket_code)}','${buyerEmail}')">📧</button>` : ''}
+              ${t.payment_status === 'PAID' && buyerEmail && buyerEmail !== '—' ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(t.ticket_code)}','${buyerEmail}','${t.order_id || ''}')">📧 Email</button>` : ''}
             </div>
           </td>
         </tr>`
       }).join('')
+      document.getElementById('tblBody').innerHTML = rows
+    }
+
+    function renderOrders(tickets) {
+      document.getElementById('tblHead').innerHTML = `<tr>
+        <th>Buyer</th><th>Tickets</th><th>Types</th><th>Status</th><th>Value</th><th>Actions</th>
+      </tr>`
+
+      // Group by email (normalised), fall back to name
+      const groups = new Map()
+      tickets.forEach(t => {
+        const email = (t.purchaser_email || '').trim().toLowerCase()
+        const name  = t.purchaser_name || t.ticket_holder_name || ''
+        const key   = email || name.toLowerCase() || '__unknown__'
+        if (!groups.has(key)) groups.set(key, { name, email: t.purchaser_email || '', tickets: [] })
+        // prefer a row with purchaser_name set as the canonical name
+        if (t.purchaser_name && !groups.get(key).name) groups.get(key).name = t.purchaser_name
+        groups.get(key).tickets.push(t)
+      })
+
+      if (!groups.size) {
+        document.getElementById('tblBody').innerHTML = '<tr><td colspan="6" class="empty">No buyer orders found.</td></tr>'
+        return
+      }
+
+      const sorted = [...groups.values()].sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email))
+
+      const rows = sorted.map(g => {
+        const { name, email } = g
+        const gTickets = g.tickets.slice().sort((a, b) => (a.ticket_code || '').localeCompare(b.ticket_code || ''))
+
+        const vipCount  = gTickets.filter(t => t.ticket_type === 'VIP' && t.payment_status !== 'COMP').length
+        const gaCount   = gTickets.filter(t => t.ticket_type === 'GA').length
+        const compCount = gTickets.filter(t => t.payment_status === 'COMP').length
+        const typeStr   = [
+          vipCount  ? `${vipCount} VIP`  : '',
+          gaCount   ? `${gaCount} GA`    : '',
+          compCount ? `${compCount} Comp` : ''
+        ].filter(Boolean).join(' · ') || '—'
+
+        const chips = gTickets.map(t => `<span class="ticket-chip">${t.ticket_number}</span>`).join('')
+
+        const paidN = gTickets.filter(t => t.payment_status === 'PAID').length
+        const pendN = gTickets.filter(t => t.payment_status === 'PENDING_PAYMENT').length
+        const compN = gTickets.filter(t => t.payment_status === 'COMP').length
+        let statusBadge
+        if (paidN === gTickets.length)  statusBadge = '<span class="badge status-paid">PAID</span>'
+        else if (compN === gTickets.length) statusBadge = '<span class="badge status-comp">COMP</span>'
+        else if (pendN === gTickets.length) statusBadge = '<span class="badge status-pending">PENDING</span>'
+        else {
+          statusBadge = [
+            paidN ? `<span class="badge status-paid">${paidN} Paid</span>` : '',
+            pendN ? `<span class="badge status-pending">${pendN} Pending</span>` : '',
+            compN ? `<span class="badge status-comp">${compN} Comp</span>` : ''
+          ].filter(Boolean).join(' ')
+        }
+
+        const total    = gTickets.reduce((s, t) => s + (parseFloat(t.price) || 0), 0)
+        const totalStr = total > 0 ? `$${total.toFixed(2)}` : '—'
+
+        const hasPaid = paidN > 0
+        const emailBtn = (hasPaid && email)
+          ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(gTickets.find(t => t.payment_status === 'PAID').ticket_code)}','${email}','')">📧 Email All</button>`
+          : ''
+
+        return `<tr>
+          <td>
+            <div class="order-buyer">${name || '—'}</div>
+            <div class="order-email">${email || '—'}</div>
+          </td>
+          <td>
+            <div style="line-height:1.8">${chips}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:3px">${gTickets.length} ticket${gTickets.length !== 1 ? 's' : ''}</div>
+          </td>
+          <td style="font-size:12px;color:var(--muted)">${typeStr}</td>
+          <td>${statusBadge}</td>
+          <td style="font-weight:700;font-size:13px">${totalStr}</td>
+          <td><div class="row-actions">${emailBtn}</div></td>
+        </tr>`
+      }).join('')
+
       document.getElementById('tblBody').innerHTML = rows
     }
 
@@ -444,17 +562,34 @@
       })
     }
 
-    function emailTicket(code, email) {
+    function emailTicket(code, email, orderId) {
       const decodedCode = decodeURIComponent(code)
-      const t = allTickets.find(t => t.ticket_code === decodedCode)
-      const imgFile = (t && (t.print_file || (t.ticket_number ? t.ticket_number.replace('-', '_') + '.jpg' : null)))
-      const imgUrl = imgFile
-        ? `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`
-        : `${window.location.href.replace(/\/[^/]*$/, '/')}AADSTickets-View.html?code=${decodedCode}`
-      const holderName = (t && (t.ticket_holder_name || t.purchaser_name)) || ''
-      const ticketNum = (t && t.ticket_number) || decodedCode
-      const subject = encodeURIComponent('Your AADS Tournament of Champions Ticket')
-      const body = encodeURIComponent(`Hi ${holderName},\n\nYour ticket for the AADS Tournament of Champions is ready!\n\nTicket: ${ticketNum}\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\n\nClick the link below to view and download your ticket:\n${imgUrl}\n\nPresent your ticket at the door on July 25.\n\n— AADS`)
+      const baseUrl = 'https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/'
+
+      // Gather ALL PAID tickets for this buyer email across all orders,
+      // so a single email includes every ticket they purchased.
+      const normalizedEmail = email.toLowerCase()
+      let orderTickets = allTickets
+        .filter(t => t.payment_status === 'PAID' && (t.purchaser_email || '').toLowerCase() === normalizedEmail)
+        .sort((a, b) => (a.ticket_code || '').localeCompare(b.ticket_code || ''))
+
+      // Fallback: if email lookup yields nothing, use just this ticket
+      if (!orderTickets.length) {
+        orderTickets = [allTickets.find(t => t.ticket_code === decodedCode)].filter(Boolean)
+      }
+
+      const ticketLinks = orderTickets.map(t => {
+        const imgFile = t.print_file || (t.ticket_number ? t.ticket_number.replace('-', '_') + '.jpg' : null)
+        const holder = t.ticket_holder_name || t.purchaser_name || ''
+        return `${t.ticket_number}${holder ? ' — ' + holder : ''}\n${baseUrl}${imgFile}`
+      }).join('\n\n')
+
+      const buyerName = (orderTickets[0]?.purchaser_name || orderTickets[0]?.ticket_holder_name || '').split(' ')[0] || ''
+      const plural = orderTickets.length > 1
+      const subject = encodeURIComponent(`Your AADS Tournament of Champions Ticket${plural ? 's' : ''}`)
+      const body = encodeURIComponent(
+        `Hi ${buyerName},\n\nYour ticket${plural ? 's' : ''} for the AADS Tournament of Champions ${plural ? 'are' : 'is'} ready!\n\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\nDoors Open: 8 AM · Play Starts: 9 AM\n\nYour Ticket${plural ? 's' : ''}:\n\n${ticketLinks}\n\nPresent your ticket${plural ? 's' : ''} at the door on July 25.\n\n— AADS`
+      )
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
     }
 

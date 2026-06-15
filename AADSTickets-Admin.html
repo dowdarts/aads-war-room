@@ -111,6 +111,10 @@
     .sb-confirmed { background: rgba(93,216,138,0.1); border: 1px solid rgba(93,216,138,0.3); color: var(--confirmed-color); }
     .sb-cancelled { background: rgba(180,30,30,0.1); border: 1px solid rgba(220,60,60,0.3); color: var(--danger-text); }
     .sb-reserved  { background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.25); color: var(--gold); }
+    .sb-pastdue   { background: rgba(220,40,40,0.18); border: 1px solid rgba(220,60,60,0.55); color: #ff6060; font-size: 11px; }
+    tbody tr.row-pastdue { background: rgba(180,30,30,0.07); border-left: 3px solid rgba(220,60,60,0.5); }
+    tbody tr.row-pastdue:hover { background: rgba(180,30,30,0.13); }
+    .stat-sub { font-size: 11px; color: var(--danger-text); margin-top: 4px; }
     .btn-confirm  { background: linear-gradient(90deg, #1a7a35, var(--green)); color: #060606; }
     .btn-cancel   { background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.3); color: #ff7070; }
     .btn-delete   { background: rgba(130,20,20,0.2); border: 1px solid rgba(180,30,30,0.3); color: #cc5555; }
@@ -212,7 +216,7 @@
     <div class="stats-bar">
       <div class="stat-card"><p class="stat-label">Total Tickets</p><div class="stat-value orange" id="statTotal">—</div></div>
       <div class="stat-card"><p class="stat-label">Paid / Comp</p><div class="stat-value green" id="statConfirmed">—</div></div>
-      <div class="stat-card"><p class="stat-label">Reserved (Pending $)</p><div class="stat-value yellow" id="statPending">—</div></div>
+      <div class="stat-card"><p class="stat-label">Pending Payment</p><div class="stat-value yellow" id="statPending">—</div><div class="stat-sub hidden" id="statPastDue"></div></div>
       <div class="stat-card"><p class="stat-label">Available for Sale</p><div class="stat-value blue small" id="statGa">—</div></div>
       <div class="stat-card"><p class="stat-label">Orders (Public)</p><div class="stat-value gold" id="statVip">—</div></div>
     </div>
@@ -222,7 +226,7 @@
         <p class="stat-label">VIP (36 total)</p>
         <div class="inv-detail">
           <span class="inv-comp">COMP</span> <span id="invVipComp">—</span> &nbsp;
-          <span class="inv-res">RESERVED</span> <span id="invVipRes">—</span> &nbsp;
+          <span class="inv-res">PENDING</span> <span id="invVipRes">—</span> &nbsp;
           <span class="inv-paid">PAID</span> <span id="invVipPaid">—</span> &nbsp;
           <span class="inv-avail">AVAIL</span> <span id="invVipAvail">—</span>
         </div>
@@ -230,7 +234,7 @@
       <div class="stat-card inv-card">
         <p class="stat-label">GA (64 total)</p>
         <div class="inv-detail">
-          <span class="inv-res">RESERVED</span> <span id="invGaRes">—</span> &nbsp;
+          <span class="inv-res">PENDING</span> <span id="invGaRes">—</span> &nbsp;
           <span class="inv-paid">PAID</span> <span id="invGaPaid">—</span> &nbsp;
           <span class="inv-avail">AVAIL</span> <span id="invGaAvail">—</span>
         </div>
@@ -244,6 +248,7 @@
         <div class="filter-row">
           <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">All</button>
           <button class="filter-btn" data-filter="pending" onclick="setFilter('pending',this)">Pending</button>
+          <button class="filter-btn" data-filter="pastdue" id="filterPastDue" onclick="setFilter('pastdue',this)">Past Due</button>
           <button class="filter-btn" data-filter="confirmed" onclick="setFilter('confirmed',this)">Confirmed</button>
           <button class="filter-btn" data-filter="cancelled" onclick="setFilter('cancelled',this)">Cancelled</button>
         </div>
@@ -381,14 +386,27 @@
     const gaAvail        = ga.filter(t => t.sold_status === 'AVAILABLE').length
 
     // Top-row cards — VIP counted as tables, GA as tickets
+    const now          = new Date()
     const totalTickets = allTickets.length
     const paidOrComp   = allTickets.filter(t => t.payment_status === 'PAID' || t.payment_status === 'COMP').length
-    const reserved     = allTickets.filter(t => t.sold_status === 'RESERVED' && t.payment_status !== 'COMP').length
+    const pendingCount = allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT').length
+    const pastDueOrders = allOrders.filter(o => o.payment_status === 'PENDING_PAYMENT' && o.expires_at && new Date(o.expires_at) < now)
     document.getElementById('statTotal').textContent     = totalTickets
     document.getElementById('statConfirmed').textContent = paidOrComp
-    document.getElementById('statPending').textContent   = reserved
+    document.getElementById('statPending').textContent   = pendingCount
     document.getElementById('statGa').textContent        = `${vipAvailTables} tables · ${gaAvail} GA`
     document.getElementById('statVip').textContent       = publicOrders.length
+    const pastDueEl = document.getElementById('statPastDue')
+    if (pastDueOrders.length > 0) {
+      pastDueEl.textContent = `⚠ ${pastDueOrders.length} past due`
+      pastDueEl.classList.remove('hidden')
+      document.getElementById('filterPastDue').style.borderColor = '#cc4444'
+      document.getElementById('filterPastDue').style.color = '#ff6060'
+    } else {
+      pastDueEl.classList.add('hidden')
+      document.getElementById('filterPastDue').style.borderColor = ''
+      document.getElementById('filterPastDue').style.color = ''
+    }
 
     // VIP breakdown — available in tables
     document.getElementById('invVipComp').textContent  = vip.filter(t => t.payment_status === 'COMP').length
@@ -397,7 +415,7 @@
     document.getElementById('invVipAvail').textContent = vipAvailTables + ' tables'
 
     // GA breakdown
-    document.getElementById('invGaRes').textContent   = ga.filter(t => t.sold_status === 'RESERVED').length
+    document.getElementById('invGaRes').textContent   = ga.filter(t => t.payment_status === 'PENDING_PAYMENT').length
     document.getElementById('invGaPaid').textContent  = ga.filter(t => t.payment_status === 'PAID').length
     document.getElementById('invGaAvail').textContent = gaAvail
   }
@@ -481,13 +499,20 @@
   }
 
   function renderOrdersTable() {
+    const now = new Date()
+    const isPastDue = o => o.payment_status === 'PENDING_PAYMENT' && o.expires_at && new Date(o.expires_at) < now
     const publicOrders = allOrders.filter(o => o.order_type === 'public')
     let filtered = currentFilter === 'all' ? publicOrders : publicOrders.filter(o => {
       if (currentFilter === 'pending')   return o.payment_status === 'PENDING_PAYMENT'
+      if (currentFilter === 'pastdue')   return isPastDue(o)
       if (currentFilter === 'confirmed') return o.payment_status === 'PAID'
       if (currentFilter === 'cancelled') return o.payment_status === 'CANCELLED'
       return true
     })
+    // In "all" and "pending" views, past-due orders float to the top
+    if (currentFilter === 'all' || currentFilter === 'pending') {
+      filtered = [...filtered.filter(o => isPastDue(o)), ...filtered.filter(o => !isPastDue(o))]
+    }
 
     if (!filtered.length) {
       document.getElementById('ordersTable').innerHTML = `<div class="empty-state">No orders${currentFilter !== 'all' ? ` with status "${currentFilter}"` : ''} yet.</div>`
@@ -499,19 +524,22 @@
       const typeLabel = o.ticket_type === 'VIP_TABLE' ? `VIP Table × 1 (6 seats)` : `GA × ${o.quantity}`
       const delivChip = o.delivery_method === 'virtual' ? '<span class="delivery-chip dc-virtual">Virtual</span>' : '<span class="delivery-chip dc-pickup">Pickup</span>'
       const expiresAt = o.expires_at ? new Date(o.expires_at) : null
-      const isExpired = expiresAt && expiresAt < new Date() && o.payment_status === 'PENDING_PAYMENT'
+      const isExpired = expiresAt && expiresAt < now && o.payment_status === 'PENDING_PAYMENT'
       const expiresStr = expiresAt
-        ? `<div class="${isExpired ? 'expires-red' : 'expires-ok'}">${isExpired ? '⚠ EXPIRED' : 'Holds until'} ${expiresAt.toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit' })}</div>`
+        ? `<div class="${isExpired ? 'expires-red' : 'expires-ok'}">${isExpired ? 'Expired' : 'Holds until'} ${expiresAt.toLocaleTimeString('en-CA', { hour:'2-digit', minute:'2-digit' })} ${isExpired ? expiresAt.toLocaleDateString('en-CA', {month:'short',day:'numeric'}) : ''}</div>`
         : ''
       const date = new Date(o.created_at).toLocaleString('en-CA', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' })
+      const rowClass = isExpired ? ' class="row-pastdue"' : ''
 
       let badge = ''
       let actions = ''
       if (o.payment_status === 'PENDING_PAYMENT') {
-        badge = '<span class="status-badge sb-pending">Pending</span>'
+        badge = isExpired
+          ? '<span class="status-badge sb-pastdue">⚠ PAST DUE</span>'
+          : '<span class="status-badge sb-pending">Pending</span>'
         actions = `
           <button class="action-btn btn-confirm" onclick="openConfirmModal('${o.id}','${esc(o.order_number)}','${o.ticket_type}',${o.quantity})">✓ Mark Paid</button>
-          <button class="action-btn btn-cancel" style="margin-left:6px" onclick="cancelOrder('${o.id}','${esc(o.order_number)}')">✗ Cancel</button>`
+          <button class="action-btn btn-cancel" style="margin-left:6px" onclick="cancelOrder('${o.id}','${esc(o.order_number)}')">✗ Release</button>`
       } else if (o.payment_status === 'PAID') {
         badge = '<span class="status-badge sb-confirmed">Confirmed</span>'
         const assigned = assignedTickets.length > 0
@@ -523,7 +551,7 @@
         actions = `<button class="action-btn btn-delete" onclick="deleteOrder('${o.id}','${esc(o.order_number)}')">Delete</button>`
       }
 
-      return `<tr>
+      return `<tr${rowClass}>
         <td data-label="Order #"><span class="order-num">${o.order_number}</span><br><span style="font-size:11px;color:#555">$${Number(o.total_amount).toFixed(2)}</span></td>
         <td data-label="Name">${esc(o.purchaser_name)}<br><span style="font-size:11px;color:#666">${esc(o.purchaser_email||'')} ${o.purchaser_phone ? '· '+esc(o.purchaser_phone) : ''}</span></td>
         <td data-label="Tickets">${typeLabel}<br>${delivChip}${expiresStr}</td>
