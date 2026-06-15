@@ -112,6 +112,9 @@
     .modal label { font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 6px; }
     .modal input, .modal select { width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 13px; outline: none; margin-bottom: 14px; }
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+    .modal-actions.wrap { flex-wrap: wrap; }
+    .modal label small { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .btn-danger { color: #f87171; border-color: #f87171; }
     .hidden { display: none !important; }
 
     .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 10px 20px; font-size: 13px; z-index: 300; animation: fadeInUp 0.2s ease; }
@@ -207,6 +210,31 @@
       <div class="modal-actions">
         <button class="btn btn-outline" onclick="closePayModal()">Cancel</button>
         <button class="btn btn-green" onclick="confirmMarkPaid()">✓ Confirm Paid</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Ticket Modal -->
+  <div id="editModal" class="overlay hidden">
+    <div class="modal">
+      <h3 id="editModalTitle">Edit Ticket</h3>
+      <label>Holder Name <small>(name on ticket)</small></label>
+      <input type="text" id="editHolder" placeholder="Ticket holder name" />
+      <label>Buyer Name</label>
+      <input type="text" id="editBuyer" placeholder="Purchaser name" />
+      <label>Buyer Email</label>
+      <input type="email" id="editEmail" placeholder="Purchaser email" />
+      <label>Payment Status</label>
+      <select id="editStatus">
+        <option value="PAID">PAID</option>
+        <option value="PENDING_PAYMENT">PENDING PAYMENT</option>
+        <option value="COMP">COMP</option>
+        <option value="UNPAID">UNPAID</option>
+      </select>
+      <div class="modal-actions wrap">
+        <button class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+        <button class="btn btn-outline btn-danger" onclick="unissueTicket()">↩ Unissue</button>
+        <button class="btn btn-green" onclick="saveTicketEdit()">Save</button>
       </div>
     </div>
   </div>
@@ -361,6 +389,7 @@
               <a href="${viewUrl}" target="_blank" rel="noopener noreferrer">
                 <button class="btn btn-gold btn-sm">🖨️ Open</button>
               </a>
+              <button class="btn btn-outline btn-sm" onclick="openEditModal('${t.ticket_code}')">✏️</button>
               ${canMarkPaid ? `<button class="btn btn-outline btn-sm" onclick='openPayModal(${JSON.stringify(t)})'>✓ Pay</button>` : ''}
               ${buyerEmail !== '—' && buyerEmail ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(t.ticket_code)}','${buyerEmail}')">📧</button>` : ''}
             </div>
@@ -427,6 +456,68 @@
       const subject = encodeURIComponent('Your AADS Tournament of Champions Ticket')
       const body = encodeURIComponent(`Hi ${holderName},\n\nYour ticket for the AADS Tournament of Champions is ready!\n\nTicket: ${ticketNum}\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\n\nClick the link below to view and download your ticket:\n${imgUrl}\n\nPresent your ticket at the door on July 25.\n\n— AADS`)
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
+    }
+
+    // ── Edit ticket ──────────────────────────────────────────────
+    let editCode = null
+
+    function openEditModal(code) {
+      const t = allTickets.find(t => t.ticket_code === code)
+      if (!t) return
+      editCode = code
+      document.getElementById('editModalTitle').textContent = `Edit — ${t.ticket_number || code}`
+      document.getElementById('editHolder').value = t.ticket_holder_name || ''
+      document.getElementById('editBuyer').value  = t.purchaser_name || ''
+      document.getElementById('editEmail').value  = t.purchaser_email || ''
+      document.getElementById('editStatus').value = t.payment_status || 'UNPAID'
+      document.getElementById('editModal').classList.remove('hidden')
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').classList.add('hidden')
+      editCode = null
+    }
+
+    async function saveTicketEdit() {
+      if (!editCode) return
+      const body = {
+        ticket_holder_name: document.getElementById('editHolder').value.trim() || null,
+        purchaser_name:     document.getElementById('editBuyer').value.trim()  || null,
+        purchaser_email:    document.getElementById('editEmail').value.trim()  || null,
+        payment_status:     document.getElementById('editStatus').value,
+        updated_at:         new Date().toISOString()
+      }
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(editCode)}`, {
+          method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify(body)
+        })
+        const t = allTickets.find(t => t.ticket_code === editCode)
+        if (t) Object.assign(t, body)
+        closeEditModal()
+        updateStats()
+        filterTable()
+      } catch (e) { alert('Save failed: ' + e.message) }
+    }
+
+    async function unissueTicket() {
+      if (!editCode) return
+      if (!confirm('Return this ticket to the available pool? All buyer info will be cleared.')) return
+      const body = {
+        sold_status: 'AVAILABLE', payment_status: 'UNPAID',
+        ticket_holder_name: null, purchaser_name: null, purchaser_email: null,
+        purchaser_phone: null, order_id: null, delivery_method: null,
+        ticket_group: 'General Admission', updated_at: new Date().toISOString()
+      }
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(editCode)}`, {
+          method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify(body)
+        })
+        const t = allTickets.find(t => t.ticket_code === editCode)
+        if (t) Object.assign(t, body)
+        closeEditModal()
+        updateStats()
+        filterTable()
+      } catch (e) { alert('Unissue failed: ' + e.message) }
     }
 
     function openPayModal(ticket) {
