@@ -63,6 +63,11 @@
     .stat-value.orange { color: var(--accent); } .stat-value.yellow { color: var(--pending-color); }
     .stat-value.green { color: var(--confirmed-color); } .stat-value.blue { color: var(--blue-color); }
     .stat-value.gold { color: var(--gold); }
+    .inv-bar { padding-top: 0; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .inv-card { flex: 1; min-width: 0; }
+    .inv-detail { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.8; }
+    .inv-comp { color: #aaa; } .inv-res { color: var(--gold); }
+    .inv-paid { color: #5dd88a; } .inv-avail { color: #555; }
 
     /* ── PLAYER RESERVES PANEL ── */
     .panel { border: 1px solid var(--line); border-radius: 20px; background: var(--panel-2); overflow: hidden; margin-bottom: 20px; }
@@ -204,11 +209,31 @@
 
     <!-- Stats -->
     <div class="stats-bar">
-      <div class="stat-card"><p class="stat-label">Total Orders</p><div class="stat-value orange" id="statTotal">—</div></div>
-      <div class="stat-card"><p class="stat-label">Pending Payment</p><div class="stat-value yellow" id="statPending">—</div></div>
-      <div class="stat-card"><p class="stat-label">Confirmed (Paid)</p><div class="stat-value green" id="statConfirmed">—</div></div>
-      <div class="stat-card"><p class="stat-label">VIP Tables Sold</p><div class="stat-value gold" id="statVip">—</div></div>
-      <div class="stat-card"><p class="stat-label">GA Available</p><div class="stat-value blue" id="statGa">—</div></div>
+      <div class="stat-card"><p class="stat-label">Total Tickets</p><div class="stat-value orange" id="statTotal">—</div></div>
+      <div class="stat-card"><p class="stat-label">Paid / Comp</p><div class="stat-value green" id="statConfirmed">—</div></div>
+      <div class="stat-card"><p class="stat-label">Reserved (Pending $)</p><div class="stat-value yellow" id="statPending">—</div></div>
+      <div class="stat-card"><p class="stat-label">Available for Sale</p><div class="stat-value blue" id="statGa">—</div></div>
+      <div class="stat-card"><p class="stat-label">Orders (Public)</p><div class="stat-value gold" id="statVip">—</div></div>
+    </div>
+    <!-- Ticket inventory breakdown -->
+    <div class="stats-bar inv-bar">
+      <div class="stat-card inv-card">
+        <p class="stat-label">VIP (36 total)</p>
+        <div class="inv-detail">
+          <span class="inv-comp">COMP</span> <span id="invVipComp">—</span> &nbsp;
+          <span class="inv-res">RESERVED</span> <span id="invVipRes">—</span> &nbsp;
+          <span class="inv-paid">PAID</span> <span id="invVipPaid">—</span> &nbsp;
+          <span class="inv-avail">AVAIL</span> <span id="invVipAvail">—</span>
+        </div>
+      </div>
+      <div class="stat-card inv-card">
+        <p class="stat-label">GA (64 total)</p>
+        <div class="inv-detail">
+          <span class="inv-res">RESERVED</span> <span id="invGaRes">—</span> &nbsp;
+          <span class="inv-paid">PAID</span> <span id="invGaPaid">—</span> &nbsp;
+          <span class="inv-avail">AVAIL</span> <span id="invGaAvail">—</span>
+        </div>
+      </div>
     </div>
 
     <!-- Player reservations panel -->
@@ -369,16 +394,30 @@
   // ── Stats ──────────────────────────────────────────────────────
   function updateStats() {
     const publicOrders = allOrders.filter(o => o.order_type === 'public')
-    const pending   = publicOrders.filter(o => o.payment_status === 'PENDING_PAYMENT').length
-    const confirmed = publicOrders.filter(o => o.payment_status === 'PAID').length
-    const vipSold   = allTickets.filter(t => t.ticket_type === 'VIP' && t.table_number >= 3 && t.payment_status === 'PAID').length / 6
-    const gaAvailable = allTickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission' && t.sold_status === 'AVAILABLE').length
-    const gaTotal     = allTickets.filter(t => t.ticket_type === 'GA' && t.ticket_group === 'General Admission').length
-    document.getElementById('statTotal').textContent     = publicOrders.length
-    document.getElementById('statPending').textContent   = pending
-    document.getElementById('statConfirmed').textContent = confirmed
-    document.getElementById('statVip').textContent       = `${vipSold}/4`
-    document.getElementById('statGa').textContent        = `${gaAvailable}/${gaTotal}`
+
+    // Top-row cards
+    const totalTickets = allTickets.length
+    const paidOrComp   = allTickets.filter(t => t.payment_status === 'PAID' || t.payment_status === 'COMP').length
+    const reserved     = allTickets.filter(t => t.sold_status === 'RESERVED' && t.payment_status !== 'COMP').length
+    const available    = allTickets.filter(t => t.sold_status === 'AVAILABLE').length
+    document.getElementById('statTotal').textContent     = totalTickets
+    document.getElementById('statConfirmed').textContent = paidOrComp
+    document.getElementById('statPending').textContent   = reserved
+    document.getElementById('statGa').textContent        = available
+    document.getElementById('statVip').textContent       = publicOrders.length
+
+    // VIP breakdown
+    const vip = allTickets.filter(t => t.ticket_type === 'VIP')
+    document.getElementById('invVipComp').textContent  = vip.filter(t => t.payment_status === 'COMP').length
+    document.getElementById('invVipRes').textContent   = vip.filter(t => t.sold_status === 'RESERVED' && t.payment_status !== 'COMP').length
+    document.getElementById('invVipPaid').textContent  = vip.filter(t => t.payment_status === 'PAID').length
+    document.getElementById('invVipAvail').textContent = vip.filter(t => t.sold_status === 'AVAILABLE').length
+
+    // GA breakdown
+    const ga = allTickets.filter(t => t.ticket_type === 'GA')
+    document.getElementById('invGaRes').textContent   = ga.filter(t => t.sold_status === 'RESERVED').length
+    document.getElementById('invGaPaid').textContent  = ga.filter(t => t.payment_status === 'PAID').length
+    document.getElementById('invGaAvail').textContent = ga.filter(t => t.sold_status === 'AVAILABLE').length
   }
 
   // ── Player Reserves ────────────────────────────────────────────
