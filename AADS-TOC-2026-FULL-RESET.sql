@@ -1,5 +1,6 @@
 -- ═══════════════════════════════════════════════════════════════════════════
 -- AADS Tournament of Champions 2026 — FULL RESET & REBUILD
+-- ⚠️  WARNING: Drops and recreates all tables. ALL order and ticket data lost.
 -- Paste the entire file into the Supabase SQL Editor and click Run.
 -- ═══════════════════════════════════════════════════════════════════════════
 
@@ -97,40 +98,36 @@ ALTER TABLE public.toc_config  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.toc_orders  ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.toc_tickets ENABLE ROW LEVEL SECURITY;
 
--- toc_config: anon can read and update (sale toggle, etc.)
 CREATE POLICY "anon read config"   ON public.toc_config  FOR SELECT TO anon USING (true);
 CREATE POLICY "anon update config" ON public.toc_config  FOR UPDATE TO anon USING (true);
 
--- toc_tickets: anon can read and update (check-in, scan count, etc.)
 CREATE POLICY "anon read tickets"   ON public.toc_tickets FOR SELECT TO anon USING (true);
 CREATE POLICY "anon update tickets" ON public.toc_tickets FOR UPDATE TO anon USING (true);
 
--- toc_orders: anon can do everything (public purchase flow + admin)
 CREATE POLICY "anon read orders"   ON public.toc_orders FOR SELECT TO anon USING (true);
 CREATE POLICY "anon insert orders" ON public.toc_orders FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY "anon update orders" ON public.toc_orders FOR UPDATE TO anon USING (true);
 CREATE POLICY "anon delete orders" ON public.toc_orders FOR DELETE TO anon USING (true);
 
 -- ── 7. Inventory view ────────────────────────────────────────────────────
+-- All 64 GA tickets are public pool. Player reserve system eliminated.
+-- RESERVED is admin-manual-only; pending orders use sold_status='SOLD'.
 CREATE VIEW public.toc_inventory AS
 SELECT
   COUNT(*) FILTER (WHERE ticket_type='VIP' AND table_number BETWEEN 3 AND 6
-    AND sold_status='AVAILABLE' AND ticket_status='ACTIVE') / 6          AS vip_tables_available,
+    AND sold_status='AVAILABLE' AND ticket_status='ACTIVE') / 6            AS vip_tables_available,
   COUNT(*) FILTER (WHERE ticket_type='VIP' AND table_number BETWEEN 3 AND 6
-    AND sold_status IN ('RESERVED','SOLD') AND ticket_status='ACTIVE') / 6 AS vip_tables_held,
-  COUNT(*) FILTER (WHERE ticket_type='GA'  AND ticket_group='General Admission'
-    AND sold_status='AVAILABLE' AND ticket_status='ACTIVE')              AS ga_public_available,
-  COUNT(*) FILTER (WHERE ticket_type='GA'  AND ticket_group='General Admission'
-    AND sold_status IN ('RESERVED','SOLD') AND ticket_status='ACTIVE')   AS ga_public_held,
-  COUNT(*) FILTER (WHERE ticket_type='GA'  AND ticket_group LIKE 'Player Reserve%'
-    AND sold_status='RESERVED' AND ticket_status='ACTIVE')               AS player_reserve_held,
-  COUNT(*) FILTER (WHERE ticket_type='GA'  AND ticket_group LIKE 'Player Reserve%'
-    AND sold_status='AVAILABLE' AND ticket_status='ACTIVE')              AS player_reserve_released
+    AND sold_status IN ('SOLD','RESERVED') AND ticket_status='ACTIVE') / 6 AS vip_tables_held,
+  COUNT(*) FILTER (WHERE ticket_type='GA' AND ticket_group='General Admission'
+    AND sold_status='AVAILABLE' AND ticket_status='ACTIVE')                AS ga_public_available,
+  COUNT(*) FILTER (WHERE ticket_type='GA' AND ticket_group='General Admission'
+    AND sold_status IN ('SOLD','RESERVED') AND ticket_status='ACTIVE')     AS ga_public_held
 FROM public.toc_tickets;
 
 GRANT SELECT ON public.toc_inventory TO anon;
 
 -- ── 8. RPC: Reserve GA tickets ───────────────────────────────────────────
+-- Sets sold_status='SOLD' for pending orders. RESERVED is never used here.
 CREATE OR REPLACE FUNCTION public.toc_reserve_ga(
   p_purchaser_name  text,
   p_purchaser_email text,
@@ -183,7 +180,7 @@ BEGIN
   RETURNING id INTO v_order_id;
 
   UPDATE public.toc_tickets SET
-    sold_status        = 'RESERVED',
+    sold_status        = 'SOLD',
     payment_status     = 'PENDING_PAYMENT',
     order_id           = v_order_id,
     purchaser_name     = p_purchaser_name,
@@ -213,6 +210,7 @@ $$;
 GRANT EXECUTE ON FUNCTION public.toc_reserve_ga TO anon;
 
 -- ── 9. RPC: Reserve VIP table ────────────────────────────────────────────
+-- Sets sold_status='SOLD' for pending orders. RESERVED is never used here.
 CREATE OR REPLACE FUNCTION public.toc_reserve_vip(
   p_purchaser_name  text,
   p_purchaser_email text,
@@ -274,7 +272,7 @@ BEGIN
   RETURNING id INTO v_order_id;
 
   UPDATE public.toc_tickets SET
-    sold_status        = 'RESERVED',
+    sold_status        = 'SOLD',
     payment_status     = 'PENDING_PAYMENT',
     order_id           = v_order_id,
     purchaser_name     = p_purchaser_name,
@@ -387,12 +385,12 @@ INSERT INTO public.toc_tickets
    table_number, seat_number, price, sold_status, payment_status,
    ticket_holder_name, purchaser_name, print_file, generated)
 VALUES
-  ('AADS-TOC-20260725-VIP-T01-S01-001','VIP-001','AADS-TOC-20260725-VIP-T01-S01-001','VIP','VIP Table 1 - PharmaChoice',1,1,0.00,'RESERVED','COMP','Corey O''Brien',        'Amherst PharmaChoice','VIP_001.jpg',true),
-  ('AADS-TOC-20260725-VIP-T01-S02-002','VIP-002','AADS-TOC-20260725-VIP-T01-S02-002','VIP','VIP Table 1 - PharmaChoice',1,2,0.00,'RESERVED','COMP','Jennifer O''Brien',     'Amherst PharmaChoice','VIP_002.jpg',true),
-  ('AADS-TOC-20260725-VIP-T01-S03-003','VIP-003','AADS-TOC-20260725-VIP-T01-S03-003','VIP','VIP Table 1 - PharmaChoice',1,3,0.00,'RESERVED','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_003.jpg',true),
-  ('AADS-TOC-20260725-VIP-T01-S04-004','VIP-004','AADS-TOC-20260725-VIP-T01-S04-004','VIP','VIP Table 1 - PharmaChoice',1,4,0.00,'RESERVED','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_004.jpg',true),
-  ('AADS-TOC-20260725-VIP-T01-S05-005','VIP-005','AADS-TOC-20260725-VIP-T01-S05-005','VIP','VIP Table 1 - PharmaChoice',1,5,0.00,'RESERVED','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_005.jpg',true),
-  ('AADS-TOC-20260725-VIP-T01-S06-006','VIP-006','AADS-TOC-20260725-VIP-T01-S06-006','VIP','VIP Table 1 - PharmaChoice',1,6,0.00,'RESERVED','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_006.jpg',true);
+  ('AADS-TOC-20260725-VIP-T01-S01-001','VIP-001','AADS-TOC-20260725-VIP-T01-S01-001','VIP','VIP Table 1 - PharmaChoice',1,1,0.00,'SOLD','COMP','Corey O''Brien',       'Amherst PharmaChoice','VIP_001.jpg',true),
+  ('AADS-TOC-20260725-VIP-T01-S02-002','VIP-002','AADS-TOC-20260725-VIP-T01-S02-002','VIP','VIP Table 1 - PharmaChoice',1,2,0.00,'SOLD','COMP','Jennifer O''Brien',    'Amherst PharmaChoice','VIP_002.jpg',true),
+  ('AADS-TOC-20260725-VIP-T01-S03-003','VIP-003','AADS-TOC-20260725-VIP-T01-S03-003','VIP','VIP Table 1 - PharmaChoice',1,3,0.00,'SOLD','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_003.jpg',true),
+  ('AADS-TOC-20260725-VIP-T01-S04-004','VIP-004','AADS-TOC-20260725-VIP-T01-S04-004','VIP','VIP Table 1 - PharmaChoice',1,4,0.00,'SOLD','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_004.jpg',true),
+  ('AADS-TOC-20260725-VIP-T01-S05-005','VIP-005','AADS-TOC-20260725-VIP-T01-S05-005','VIP','VIP Table 1 - PharmaChoice',1,5,0.00,'SOLD','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_005.jpg',true),
+  ('AADS-TOC-20260725-VIP-T01-S06-006','VIP-006','AADS-TOC-20260725-VIP-T01-S06-006','VIP','VIP Table 1 - PharmaChoice',1,6,0.00,'SOLD','COMP','PharmaChoice Partner', 'Amherst PharmaChoice','VIP_006.jpg',true);
 
 -- ── 12. Seed: VIP Table 2 — CGC Darts COMP ──────────────────────────────
 INSERT INTO public.toc_tickets
@@ -400,31 +398,24 @@ INSERT INTO public.toc_tickets
    table_number, seat_number, price, sold_status, payment_status,
    ticket_holder_name, purchaser_name, print_file, generated)
 VALUES
-  ('AADS-TOC-20260725-VIP-T02-S01-007','VIP-007','AADS-TOC-20260725-VIP-T02-S01-007','VIP','VIP Table 2 - CGC Darts',2,1,0.00,'RESERVED','COMP','Cecil Dow',      'CGC Darts','VIP_007.jpg',true),
-  ('AADS-TOC-20260725-VIP-T02-S02-008','VIP-008','AADS-TOC-20260725-VIP-T02-S02-008','VIP','VIP Table 2 - CGC Darts',2,2,0.00,'RESERVED','COMP','Connie Dow',     'CGC Darts','VIP_008.jpg',true),
-  ('AADS-TOC-20260725-VIP-T02-S03-009','VIP-009','AADS-TOC-20260725-VIP-T02-S03-009','VIP','VIP Table 2 - CGC Darts',2,3,0.00,'RESERVED','COMP','CGC Darts Guest','CGC Darts','VIP_009.jpg',true),
-  ('AADS-TOC-20260725-VIP-T02-S04-010','VIP-010','AADS-TOC-20260725-VIP-T02-S04-010','VIP','VIP Table 2 - CGC Darts',2,4,0.00,'RESERVED','COMP','CGC Darts Guest','CGC Darts','VIP_010.jpg',true),
-  ('AADS-TOC-20260725-VIP-T02-S05-011','VIP-011','AADS-TOC-20260725-VIP-T02-S05-011','VIP','VIP Table 2 - CGC Darts',2,5,0.00,'RESERVED','COMP','CGC Darts Guest','CGC Darts','VIP_011.jpg',true),
-  ('AADS-TOC-20260725-VIP-T02-S06-012','VIP-012','AADS-TOC-20260725-VIP-T02-S06-012','VIP','VIP Table 2 - CGC Darts',2,6,0.00,'RESERVED','COMP','CGC Darts Guest','CGC Darts','VIP_012.jpg',true);
+  ('AADS-TOC-20260725-VIP-T02-S01-007','VIP-007','AADS-TOC-20260725-VIP-T02-S01-007','VIP','VIP Table 2 - CGC Darts',2,1,0.00,'SOLD','COMP','Cecil Dow',      'CGC Darts','VIP_007.jpg',true),
+  ('AADS-TOC-20260725-VIP-T02-S02-008','VIP-008','AADS-TOC-20260725-VIP-T02-S02-008','VIP','VIP Table 2 - CGC Darts',2,2,0.00,'SOLD','COMP','Connie Dow',     'CGC Darts','VIP_008.jpg',true),
+  ('AADS-TOC-20260725-VIP-T02-S03-009','VIP-009','AADS-TOC-20260725-VIP-T02-S03-009','VIP','VIP Table 2 - CGC Darts',2,3,0.00,'SOLD','COMP','CGC Darts Guest','CGC Darts','VIP_009.jpg',true),
+  ('AADS-TOC-20260725-VIP-T02-S04-010','VIP-010','AADS-TOC-20260725-VIP-T02-S04-010','VIP','VIP Table 2 - CGC Darts',2,4,0.00,'SOLD','COMP','CGC Darts Guest','CGC Darts','VIP_010.jpg',true),
+  ('AADS-TOC-20260725-VIP-T02-S05-011','VIP-011','AADS-TOC-20260725-VIP-T02-S05-011','VIP','VIP Table 2 - CGC Darts',2,5,0.00,'SOLD','COMP','CGC Darts Guest','CGC Darts','VIP_011.jpg',true),
+  ('AADS-TOC-20260725-VIP-T02-S06-012','VIP-012','AADS-TOC-20260725-VIP-T02-S06-012','VIP','VIP Table 2 - CGC Darts',2,6,0.00,'SOLD','COMP','CGC Darts Guest','CGC Darts','VIP_012.jpg',true);
 
--- ── 13. Seed: VIP Table 3 — Tyler Cyr player reserve ────────────────────
-INSERT INTO public.toc_tickets
-  (ticket_code, ticket_number, qr_payload, ticket_type, ticket_group,
-   table_number, seat_number, price, sold_status, payment_status,
-   ticket_holder_name, purchaser_name, print_file, generated)
-VALUES
-  ('AADS-TOC-20260725-VIP-T03-S01-013','VIP-013','AADS-TOC-20260725-VIP-T03-S01-013','VIP','VIP Table 3 - Tyler Cyr',3,1,18.33,'RESERVED','PENDING_PAYMENT','Tyler Cyr',       'Tyler Cyr','VIP_013.jpg',true),
-  ('AADS-TOC-20260725-VIP-T03-S02-014','VIP-014','AADS-TOC-20260725-VIP-T03-S02-014','VIP','VIP Table 3 - Tyler Cyr',3,2,18.33,'RESERVED','PENDING_PAYMENT','Tyler Cyr Guest', 'Tyler Cyr','VIP_014.jpg',true),
-  ('AADS-TOC-20260725-VIP-T03-S03-015','VIP-015','AADS-TOC-20260725-VIP-T03-S03-015','VIP','VIP Table 3 - Tyler Cyr',3,3,18.33,'RESERVED','PENDING_PAYMENT','Tyler Cyr Guest', 'Tyler Cyr','VIP_015.jpg',true),
-  ('AADS-TOC-20260725-VIP-T03-S04-016','VIP-016','AADS-TOC-20260725-VIP-T03-S04-016','VIP','VIP Table 3 - Tyler Cyr',3,4,18.33,'RESERVED','PENDING_PAYMENT','Tyler Cyr Guest', 'Tyler Cyr','VIP_016.jpg',true),
-  ('AADS-TOC-20260725-VIP-T03-S05-017','VIP-017','AADS-TOC-20260725-VIP-T03-S05-017','VIP','VIP Table 3 - Tyler Cyr',3,5,18.33,'RESERVED','PENDING_PAYMENT','Tyler Cyr Guest', 'Tyler Cyr','VIP_017.jpg',true),
-  ('AADS-TOC-20260725-VIP-T03-S06-018','VIP-018','AADS-TOC-20260725-VIP-T03-S06-018','VIP','VIP Table 3 - Tyler Cyr',3,6,18.33,'RESERVED','PENDING_PAYMENT','Tyler Cyr Guest', 'Tyler Cyr','VIP_018.jpg',true);
-
--- ── 14. Seed: VIP Tables 4–6 — Available for sale ($110/table) ──────────
+-- ── 13. Seed: VIP Tables 3–6 — Available for sale ($110/table) ──────────
 INSERT INTO public.toc_tickets
   (ticket_code, ticket_number, qr_payload, ticket_type, ticket_group,
    table_number, seat_number, price, sold_status, payment_status, print_file)
 VALUES
+  ('AADS-TOC-20260725-VIP-T03-S01-013','VIP-013','AADS-TOC-20260725-VIP-T03-S01-013','VIP','VIP Table 3',3,1,18.33,'AVAILABLE','UNPAID','VIP_013.jpg'),
+  ('AADS-TOC-20260725-VIP-T03-S02-014','VIP-014','AADS-TOC-20260725-VIP-T03-S02-014','VIP','VIP Table 3',3,2,18.33,'AVAILABLE','UNPAID','VIP_014.jpg'),
+  ('AADS-TOC-20260725-VIP-T03-S03-015','VIP-015','AADS-TOC-20260725-VIP-T03-S03-015','VIP','VIP Table 3',3,3,18.33,'AVAILABLE','UNPAID','VIP_015.jpg'),
+  ('AADS-TOC-20260725-VIP-T03-S04-016','VIP-016','AADS-TOC-20260725-VIP-T03-S04-016','VIP','VIP Table 3',3,4,18.33,'AVAILABLE','UNPAID','VIP_016.jpg'),
+  ('AADS-TOC-20260725-VIP-T03-S05-017','VIP-017','AADS-TOC-20260725-VIP-T03-S03-017','VIP','VIP Table 3',3,5,18.33,'AVAILABLE','UNPAID','VIP_017.jpg'),
+  ('AADS-TOC-20260725-VIP-T03-S06-018','VIP-018','AADS-TOC-20260725-VIP-T03-S06-018','VIP','VIP Table 3',3,6,18.33,'AVAILABLE','UNPAID','VIP_018.jpg'),
   ('AADS-TOC-20260725-VIP-T04-S01-019','VIP-019','AADS-TOC-20260725-VIP-T04-S01-019','VIP','VIP Table 4',4,1,18.33,'AVAILABLE','UNPAID','VIP_019.jpg'),
   ('AADS-TOC-20260725-VIP-T04-S02-020','VIP-020','AADS-TOC-20260725-VIP-T04-S02-020','VIP','VIP Table 4',4,2,18.33,'AVAILABLE','UNPAID','VIP_020.jpg'),
   ('AADS-TOC-20260725-VIP-T04-S03-021','VIP-021','AADS-TOC-20260725-VIP-T04-S03-021','VIP','VIP Table 4',4,3,18.33,'AVAILABLE','UNPAID','VIP_021.jpg'),
@@ -444,57 +435,43 @@ VALUES
   ('AADS-TOC-20260725-VIP-T06-S05-035','VIP-035','AADS-TOC-20260725-VIP-T06-S05-035','VIP','VIP Table 6',6,5,18.33,'AVAILABLE','UNPAID','VIP_035.jpg'),
   ('AADS-TOC-20260725-VIP-T06-S06-036','VIP-036','AADS-TOC-20260725-VIP-T06-S06-036','VIP','VIP Table 6',6,6,18.33,'AVAILABLE','UNPAID','VIP_036.jpg');
 
--- ── 14. Seed: GA-001–005 Tom Holden player reserve ───────────────────────
-INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status,print_file) VALUES
-  ('AADS-TOC-20260725-GA-001','GA-001','AADS-TOC-20260725-GA-001','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID','GA_001.jpg'),
-  ('AADS-TOC-20260725-GA-002','GA-002','AADS-TOC-20260725-GA-002','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID','GA_002.jpg'),
-  ('AADS-TOC-20260725-GA-003','GA-003','AADS-TOC-20260725-GA-003','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID','GA_003.jpg'),
-  ('AADS-TOC-20260725-GA-004','GA-004','AADS-TOC-20260725-GA-004','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID','GA_004.jpg'),
-  ('AADS-TOC-20260725-GA-005','GA-005','AADS-TOC-20260725-GA-005','GA','Player Reserve - Tom Holden',10.00,'RESERVED','UNPAID','GA_005.jpg');
-
--- ── 15. Seed: GA-006–008 Kyle Gray player reserve (3 tickets) ───────────
-INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status,print_file) VALUES
-  ('AADS-TOC-20260725-GA-006','GA-006','AADS-TOC-20260725-GA-006','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID','GA_006.jpg'),
-  ('AADS-TOC-20260725-GA-007','GA-007','AADS-TOC-20260725-GA-007','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID','GA_007.jpg'),
-  ('AADS-TOC-20260725-GA-008','GA-008','AADS-TOC-20260725-GA-008','GA','Player Reserve - Kyle Gray',10.00,'RESERVED','UNPAID','GA_008.jpg');
-
--- ── 16. Seed: GA-009–015 returned to public pool (Tyler Cyr upgraded to VIP) ──
-INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status,print_file) VALUES
+-- ── 14. Seed: GA-001–064 — Full public General Admission pool ────────────
+-- Player reserve system eliminated. All 64 GA tickets are public pool.
+INSERT INTO public.toc_tickets
+  (ticket_code, ticket_number, qr_payload, ticket_type, ticket_group,
+   price, sold_status, payment_status, print_file)
+VALUES
+  ('AADS-TOC-20260725-GA-001','GA-001','AADS-TOC-20260725-GA-001','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_001.jpg'),
+  ('AADS-TOC-20260725-GA-002','GA-002','AADS-TOC-20260725-GA-002','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_002.jpg'),
+  ('AADS-TOC-20260725-GA-003','GA-003','AADS-TOC-20260725-GA-003','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_003.jpg'),
+  ('AADS-TOC-20260725-GA-004','GA-004','AADS-TOC-20260725-GA-004','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_004.jpg'),
+  ('AADS-TOC-20260725-GA-005','GA-005','AADS-TOC-20260725-GA-005','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_005.jpg'),
+  ('AADS-TOC-20260725-GA-006','GA-006','AADS-TOC-20260725-GA-006','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_006.jpg'),
+  ('AADS-TOC-20260725-GA-007','GA-007','AADS-TOC-20260725-GA-007','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_007.jpg'),
+  ('AADS-TOC-20260725-GA-008','GA-008','AADS-TOC-20260725-GA-008','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_008.jpg'),
   ('AADS-TOC-20260725-GA-009','GA-009','AADS-TOC-20260725-GA-009','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_009.jpg'),
   ('AADS-TOC-20260725-GA-010','GA-010','AADS-TOC-20260725-GA-010','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_010.jpg'),
   ('AADS-TOC-20260725-GA-011','GA-011','AADS-TOC-20260725-GA-011','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_011.jpg'),
   ('AADS-TOC-20260725-GA-012','GA-012','AADS-TOC-20260725-GA-012','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_012.jpg'),
   ('AADS-TOC-20260725-GA-013','GA-013','AADS-TOC-20260725-GA-013','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_013.jpg'),
   ('AADS-TOC-20260725-GA-014','GA-014','AADS-TOC-20260725-GA-014','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_014.jpg'),
-  ('AADS-TOC-20260725-GA-015','GA-015','AADS-TOC-20260725-GA-015','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_015.jpg');
-
--- ── 17. Seed: GA-016–020 Drake Berry player reserve ──────────────────────
-INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status,print_file) VALUES
-  ('AADS-TOC-20260725-GA-016','GA-016','AADS-TOC-20260725-GA-016','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID','GA_016.jpg'),
-  ('AADS-TOC-20260725-GA-017','GA-017','AADS-TOC-20260725-GA-017','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID','GA_017.jpg'),
-  ('AADS-TOC-20260725-GA-018','GA-018','AADS-TOC-20260725-GA-018','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID','GA_018.jpg'),
-  ('AADS-TOC-20260725-GA-019','GA-019','AADS-TOC-20260725-GA-019','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID','GA_019.jpg'),
-  ('AADS-TOC-20260725-GA-020','GA-020','AADS-TOC-20260725-GA-020','GA','Player Reserve - Drake Berry',10.00,'RESERVED','UNPAID','GA_020.jpg');
-
--- ── 18. Seed: GA-021–025 Dee Cormier player reserve ─────────────────────
-INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status,print_file) VALUES
-  ('AADS-TOC-20260725-GA-021','GA-021','AADS-TOC-20260725-GA-021','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID','GA_021.jpg'),
-  ('AADS-TOC-20260725-GA-022','GA-022','AADS-TOC-20260725-GA-022','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID','GA_022.jpg'),
-  ('AADS-TOC-20260725-GA-023','GA-023','AADS-TOC-20260725-GA-023','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID','GA_023.jpg'),
-  ('AADS-TOC-20260725-GA-024','GA-024','AADS-TOC-20260725-GA-024','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID','GA_024.jpg'),
-  ('AADS-TOC-20260725-GA-025','GA-025','AADS-TOC-20260725-GA-025','GA','Player Reserve - Dee Cormier',10.00,'RESERVED','UNPAID','GA_025.jpg');
-
--- ── 19. Seed: GA-026–031 Rob Sibbick player reserve (6 tickets) ─────────
-INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status,print_file) VALUES
-  ('AADS-TOC-20260725-GA-026','GA-026','AADS-TOC-20260725-GA-026','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID','GA_026.jpg'),
-  ('AADS-TOC-20260725-GA-027','GA-027','AADS-TOC-20260725-GA-027','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID','GA_027.jpg'),
-  ('AADS-TOC-20260725-GA-028','GA-028','AADS-TOC-20260725-GA-028','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID','GA_028.jpg'),
-  ('AADS-TOC-20260725-GA-029','GA-029','AADS-TOC-20260725-GA-029','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID','GA_029.jpg'),
-  ('AADS-TOC-20260725-GA-030','GA-030','AADS-TOC-20260725-GA-030','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID','GA_030.jpg'),
-  ('AADS-TOC-20260725-GA-031','GA-031','AADS-TOC-20260725-GA-031','GA','Player Reserve - Rob Sibbick',10.00,'RESERVED','UNPAID','GA_031.jpg');
-
--- ── 20. Seed: GA-032–064 Public GA pool (33 tickets available) ──────────
-INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type,ticket_group,price,sold_status,payment_status,print_file) VALUES
+  ('AADS-TOC-20260725-GA-015','GA-015','AADS-TOC-20260725-GA-015','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_015.jpg'),
+  ('AADS-TOC-20260725-GA-016','GA-016','AADS-TOC-20260725-GA-016','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_016.jpg'),
+  ('AADS-TOC-20260725-GA-017','GA-017','AADS-TOC-20260725-GA-017','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_017.jpg'),
+  ('AADS-TOC-20260725-GA-018','GA-018','AADS-TOC-20260725-GA-018','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_018.jpg'),
+  ('AADS-TOC-20260725-GA-019','GA-019','AADS-TOC-20260725-GA-019','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_019.jpg'),
+  ('AADS-TOC-20260725-GA-020','GA-020','AADS-TOC-20260725-GA-020','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_020.jpg'),
+  ('AADS-TOC-20260725-GA-021','GA-021','AADS-TOC-20260725-GA-021','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_021.jpg'),
+  ('AADS-TOC-20260725-GA-022','GA-022','AADS-TOC-20260725-GA-022','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_022.jpg'),
+  ('AADS-TOC-20260725-GA-023','GA-023','AADS-TOC-20260725-GA-023','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_023.jpg'),
+  ('AADS-TOC-20260725-GA-024','GA-024','AADS-TOC-20260725-GA-024','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_024.jpg'),
+  ('AADS-TOC-20260725-GA-025','GA-025','AADS-TOC-20260725-GA-025','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_025.jpg'),
+  ('AADS-TOC-20260725-GA-026','GA-026','AADS-TOC-20260725-GA-026','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_026.jpg'),
+  ('AADS-TOC-20260725-GA-027','GA-027','AADS-TOC-20260725-GA-027','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_027.jpg'),
+  ('AADS-TOC-20260725-GA-028','GA-028','AADS-TOC-20260725-GA-028','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_028.jpg'),
+  ('AADS-TOC-20260725-GA-029','GA-029','AADS-TOC-20260725-GA-029','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_029.jpg'),
+  ('AADS-TOC-20260725-GA-030','GA-030','AADS-TOC-20260725-GA-030','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_030.jpg'),
+  ('AADS-TOC-20260725-GA-031','GA-031','AADS-TOC-20260725-GA-031','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_031.jpg'),
   ('AADS-TOC-20260725-GA-032','GA-032','AADS-TOC-20260725-GA-032','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_032.jpg'),
   ('AADS-TOC-20260725-GA-033','GA-033','AADS-TOC-20260725-GA-033','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_033.jpg'),
   ('AADS-TOC-20260725-GA-034','GA-034','AADS-TOC-20260725-GA-034','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_034.jpg'),
@@ -530,15 +507,12 @@ INSERT INTO public.toc_tickets (ticket_code,ticket_number,qr_payload,ticket_type
   ('AADS-TOC-20260725-GA-064','GA-064','AADS-TOC-20260725-GA-064','GA','General Admission',10.00,'AVAILABLE','UNPAID','GA_064.jpg');
 
 -- ── Done ─────────────────────────────────────────────────────────────────
--- Inventory after seed:
---   VIP Tables 1-2  : 12 tickets  COMP / RESERVED (sponsor tables)
---   VIP Table 3     :  6 tickets  RESERVED — Tyler Cyr (PENDING_PAYMENT, $110/table)
---   VIP Tables 4-6  : 18 tickets  AVAILABLE for sale  ($110/table, 3 tables)
---   GA Player Reserve: 18 tickets RESERVED  Tom Holden×5, Kyle Gray×3, Drake Berry×5, Dee Cormier×5
---   GA Player Reserve:  6 tickets RESERVED  Rob Sibbick×6 (GA-026–031)
---   GA Public pool  : 40 tickets  AVAILABLE (GA-009–015 returned + GA-032–064)
---   TOTAL           : 100 tickets
+-- Inventory after fresh seed:
+--   VIP Table 1 (PharmaChoice COMP) : 6 tickets  SOLD / COMP
+--   VIP Table 2 (CGC Darts COMP)    : 6 tickets  SOLD / COMP
+--   VIP Tables 3–6 (for sale)       : 24 tickets AVAILABLE / UNPAID  (4 tables × $110)
+--   GA public pool                  : 64 tickets AVAILABLE / UNPAID  ($10 each)
+--   TOTAL                           : 100 tickets
 --
--- print_file values (e.g. VIP_001.jpg) are loaded from Supabase Storage
--- bucket "toc-tickets" by AADSTickets-View.html
+-- print_file values (e.g. VIP_001.jpg) map to Supabase Storage bucket "toc-tickets"
 -- ─────────────────────────────────────────────────────────────────────────
