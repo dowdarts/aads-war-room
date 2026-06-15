@@ -62,6 +62,10 @@ function StatusBadge({ event }) {
   )
 }
 
+function eventDate(event) {
+  return event.metadata.event_date ?? event.metadata.date ?? 'Date TBA'
+}
+
 // ─── View 1: Events List ────────────────────────────────────────────────────
 
 function EventsList({ allEvents, onSelect }) {
@@ -70,7 +74,8 @@ function EventsList({ allEvents, onSelect }) {
 
   const EventCard = ({ event }) => {
     const isUpcoming = event.metadata.status === 'upcoming' || !event.metadata.champion
-    const playerCount = event.player_event_stats?.length ?? event.players_invited?.length ?? 0
+    const statCount = event.player_event_stats?.length ?? 0
+    const playerCount = statCount > 0 ? statCount : (event.players_invited?.length ?? 0)
     return (
       <button
         onClick={() => onSelect(event)}
@@ -84,7 +89,7 @@ function EventsList({ allEvents, onSelect }) {
           <StatusBadge event={event} />
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-500">
-          <span>📅 {event.metadata.date}</span>
+          <span>📅 {eventDate(event)}</span>
           <span>👤 {playerCount} player{playerCount !== 1 ? 's' : ''}</span>
           {event.metadata.champion && (
             <span className="text-orange font-semibold">🏆 {jsonNameToDisplay(event.metadata.champion)}</span>
@@ -184,7 +189,7 @@ function EventDetail({ event, players, onBack, onSelectPlayer }) {
               </div>
               <h1 className="text-2xl font-black text-white">{event.metadata.event_name}</h1>
               <div className="flex items-center gap-3 mt-2 flex-wrap">
-                <span className="text-gray-400 text-sm">📅 {event.metadata.date}</span>
+                <span className="text-gray-400 text-sm">📅 {eventDate(event)}</span>
                 <StatusBadge event={event} />
                 {event.metadata.champion && (
                   <span className="text-orange font-bold text-sm">
@@ -294,6 +299,17 @@ function PlayersSection({ event, players, isUpcoming, onSelectPlayer }) {
 
   // Completed event — players from player_event_stats
   const stats = event.player_event_stats ?? []
+  if (!stats.length) {
+    return (
+      <div className="bg-[#0f0f0f] border border-[#1f1f1f] rounded-xl px-5 py-4">
+        <div className="text-white text-sm font-semibold mb-1">Player stats pending</div>
+        <p className="text-gray-500 text-xs">
+          {event.metadata.event_name} is listed, but detailed player event stats have not been added yet.
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div>
       <div className="text-[10px] text-orange uppercase tracking-widest font-bold mb-3">
@@ -307,7 +323,7 @@ function PlayersSection({ event, players, isUpcoming, onSelectPlayer }) {
             <button
               key={s.name}
               onClick={() => onSelectPlayer(displayName, s)}
-              className="flex items-center gap-3 bg-[#0f0f0f] border border-[#1f1f1f] rounded-xl px-5 py-3
+              className="grid grid-cols-[auto_auto_minmax(0,1fr)] md:grid-cols-[auto_auto_minmax(0,1fr)_auto_auto] items-center gap-3 bg-[#0f0f0f] border border-[#1f1f1f] rounded-xl px-5 py-3
                          hover:border-orange/40 transition-colors text-left w-full"
             >
               <span className="text-gray-600 text-xs w-4 shrink-0">{i + 1}</span>
@@ -324,6 +340,20 @@ function PlayersSection({ event, players, isUpcoming, onSelectPlayer }) {
               <div className="flex-1 min-w-0">
                 <div className="text-white text-sm font-semibold">{displayName}</div>
                 {profile?.nickname && <div className="text-orange text-xs">"{profile.nickname}"</div>}
+                <div className="grid grid-cols-3 sm:grid-cols-6 gap-x-3 gap-y-1 mt-2 text-[10px]">
+                  {[
+                    ['MP', s.total_matches],
+                    ['180s', s.scores_180],
+                    ['140+', s.scores_140plus],
+                    ['100+', s.scores_100plus],
+                    ['CO', s.co_completed != null ? `${s.co_completed}/${s.co_opportunities}` : null],
+                    ['HF', s.high_finish || null],
+                  ].map(([label, value]) => (
+                    <span key={label} className="text-gray-500 whitespace-nowrap">
+                      <span className="text-gray-300 font-semibold">{value ?? '—'}</span> {label}
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="text-right shrink-0">
                 <div className="text-orange font-bold text-sm">{s.final_event_3da?.toFixed(2)}</div>
