@@ -835,19 +835,22 @@
         const result = await res.json()
         if (!res.ok || result?.message) throw new Error(result?.message || result?.error || 'Failed to place order.')
 
-        // Patch ticket_holder_name for additional tickets (tickets 2+)
-        if (additionalNames.length > 0 && result.tickets) {
+        // Ticket 1 = buyer name; tickets 2+ = additional holder names from form
+        if (result.tickets) {
           const sortedCodes = [...result.tickets]
             .sort((a, b) => (a.ticket_code || '').localeCompare(b.ticket_code || ''))
-          await Promise.all(additionalNames.map((holderName, idx) => {
+          const patches = [{ code: sortedCodes[0]?.ticket_code, holderName: name }]
+          additionalNames.forEach((holderName, idx) => {
             const code = sortedCodes[idx + 1]?.ticket_code
-            if (!code) return
-            return fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}`, {
+            if (code) patches.push({ code, holderName })
+          })
+          await Promise.all(patches.filter(p => p.code).map(({ code, holderName }) =>
+            fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}`, {
               method: 'PATCH',
               headers: { ...HDR, Prefer: 'return=minimal' },
               body: JSON.stringify({ ticket_holder_name: holderName })
             })
-          }))
+          ))
         }
 
         orderExpiresAt = new Date(result.expires_at)
