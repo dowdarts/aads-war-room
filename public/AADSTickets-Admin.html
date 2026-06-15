@@ -409,7 +409,7 @@
     // VIP breakdown
     const vip = allTickets.filter(t => t.ticket_type === 'VIP')
     document.getElementById('invVipComp').textContent  = vip.filter(t => t.payment_status === 'COMP').length
-    document.getElementById('invVipRes').textContent   = vip.filter(t => t.sold_status === 'RESERVED' && t.payment_status !== 'COMP').length
+    document.getElementById('invVipRes').textContent   = vip.filter(t => t.payment_status === 'PENDING_PAYMENT').length
     document.getElementById('invVipPaid').textContent  = vip.filter(t => t.payment_status === 'PAID').length
     document.getElementById('invVipAvail').textContent = vip.filter(t => t.sold_status === 'AVAILABLE').length
 
