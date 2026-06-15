@@ -54,6 +54,10 @@ function AppShell() {
       window.open('AADSTickets-Dashboard.html', '_blank', 'noopener,noreferrer')
       return
     }
+    if (id === 'scanner') {
+      window.open('AADSTickets-Scanner.html', '_blank', 'noopener,noreferrer')
+      return
+    }
     if (LOCKED_TABS.includes(id) && !unlockedTabs.has(id)) {
       setPendingTab(id)
       return
