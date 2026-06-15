@@ -114,10 +114,10 @@
     <div class="pin-card">
       <div class="pin-eye">AADS Door Scanner</div>
       <h1 class="pin-title">TOC 2026 · QR Scanner</h1>
-      <div class="staff-label">Your Name</div>
-      <input class="staff-input" type="text" id="staffName" placeholder="Staff member name"
-        onkeydown="if(event.key==='Enter')unlock()" />
-      <div id="pinErr" class="pin-error hidden">Please enter your name before starting.</div>
+      <input class="pin-input" type="password" inputmode="numeric" maxlength="4"
+        id="staffCode" placeholder="••••" autocomplete="off"
+        onkeydown="if(event.key==='Enter')unlock()" oninput="clearErr()" />
+      <div id="pinErr" class="pin-error hidden">Invalid staff code.</div>
       <button class="pin-btn" onclick="unlock()">Start Scanning</button>
     </div>
   </div>
@@ -174,16 +174,28 @@
       'Content-Type': 'application/json'
     }
 
+    const STAFF_CODES = {
+      '0010': 'Matthew',
+      '0011': 'Kayla',
+      '0012': 'Tanya',
+      '0013': 'Aubrey',
+      '0014': 'Connie',
+      '0015': 'Jayme',
+      '0016': 'Jason'
+    }
+
     let staffName = ''
     let currentTicket = null
     let html5QrCode = null
     let scannerRunning = false
 
     function unlock() {
-      const name = document.getElementById('staffName').value.trim()
+      const code = document.getElementById('staffCode').value.trim()
+      const name = STAFF_CODES[code]
       if (!name) {
+        document.getElementById('staffCode').classList.add('err')
         document.getElementById('pinErr').classList.remove('hidden')
-        document.getElementById('staffName').focus()
+        document.getElementById('staffCode').focus()
         return
       }
       staffName = name
@@ -195,7 +207,7 @@
     }
 
     function clearErr() {
-      document.getElementById('pinInput').classList.remove('err')
+      document.getElementById('staffCode').classList.remove('err')
       document.getElementById('pinErr').classList.add('hidden')
     }
 
@@ -203,9 +215,9 @@
       stopScanner()
       document.getElementById('scannerUI').classList.add('hidden')
       document.getElementById('pinWrap').classList.remove('hidden')
-      document.getElementById('staffName').value = ''
+      document.getElementById('staffCode').value = ''
       document.getElementById('pinErr').classList.add('hidden')
-      document.getElementById('staffName').focus()
+      document.getElementById('staffCode').focus()
     }
 
     // ── SCANNER ──
