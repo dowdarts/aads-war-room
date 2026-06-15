@@ -48,9 +48,13 @@
     .stats-row { display: flex; gap: 10px; padding: 12px 20px; flex-wrap: wrap; border-bottom: 1px solid #1a1a1a; }
     .stat-pill { background: #111; border: 1px solid #222; border-radius: 10px; padding: 7px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
     .stat-pill .sv { font-weight: 800; color: var(--gold); }
-    .stat-pill.green .sv { color: var(--green-2); }
-    .stat-pill.red   .sv { color: #f87171; }
-    .stat-pill.muted .sv { color: var(--muted); }
+    .stat-pill.green    .sv { color: var(--green-2); }
+    .stat-pill.red      .sv { color: #f87171; }
+    .stat-pill.muted    .sv { color: var(--muted); }
+    .stat-pill.gold     .sv { color: var(--gold); }
+    .stat-pill.dim      .sv { color: #aaa; }
+    .stat-pill.dimmer   .sv { color: #555; }
+    .stat-pill.cyan     .sv { color: #5dd88a; }
 
     /* ── TABLE ── */
     .tbl-wrap { overflow-x: auto; }
@@ -130,10 +134,14 @@
 
   <div class="stats-row" id="statsRow">
     <div class="stat-pill muted"><span class="sv" id="statTotal">—</span> total</div>
+    <div class="stat-pill dim"><span class="sv" id="statVip">—</span> VIP</div>
+    <div class="stat-pill dim"><span class="sv" id="statGa">—</span> GA</div>
     <div class="stat-pill green"><span class="sv" id="statPaid">—</span> paid</div>
-    <div class="stat-pill"><span class="sv" id="statComp">—</span> comp</div>
+    <div class="stat-pill gold"><span class="sv" id="statReserved">—</span> reserved</div>
     <div class="stat-pill red"><span class="sv" id="statPending">—</span> pending</div>
-    <div class="stat-pill"><span class="sv" id="statCheckedIn">—</span> checked in</div>
+    <div class="stat-pill dim"><span class="sv" id="statComp">—</span> comp</div>
+    <div class="stat-pill dimmer"><span class="sv" id="statAvail">—</span> available</div>
+    <div class="stat-pill cyan"><span class="sv" id="statCheckedIn">—</span> checked in</div>
   </div>
 
   <div class="filter-bar">
@@ -142,11 +150,13 @@
       <input id="searchBox" type="text" placeholder="Search name, email, ticket code, table…" oninput="filterTable()" />
     </div>
     <div class="filter-chips" id="statusChips">
-      <span class="chip active" data-status="all" onclick="setStatusFilter('all', this)">All</span>
-      <span class="chip" data-status="PAID"     onclick="setStatusFilter('PAID', this)">Paid</span>
-      <span class="chip" data-status="COMP"     onclick="setStatusFilter('COMP', this)">Comp</span>
-      <span class="chip" data-status="PENDING"  onclick="setStatusFilter('PENDING', this)">Pending</span>
-      <span class="chip" data-status="checkedin" onclick="setStatusFilter('checkedin', this)">Checked In</span>
+      <span class="chip active" data-status="all"       onclick="setStatusFilter('all', this)">All</span>
+      <span class="chip" data-status="PAID"             onclick="setStatusFilter('PAID', this)">Paid</span>
+      <span class="chip" data-status="RESERVED"         onclick="setStatusFilter('RESERVED', this)">Reserved</span>
+      <span class="chip" data-status="PENDING"          onclick="setStatusFilter('PENDING', this)">Pending</span>
+      <span class="chip" data-status="COMP"             onclick="setStatusFilter('COMP', this)">Comp</span>
+      <span class="chip" data-status="AVAILABLE"        onclick="setStatusFilter('AVAILABLE', this)">Available</span>
+      <span class="chip" data-status="checkedin"        onclick="setStatusFilter('checkedin', this)">Checked In</span>
     </div>
     <div class="filter-chips">
       <span class="chip active" data-type="all" onclick="setTypeFilter('all', this)">All Types</span>
@@ -227,7 +237,7 @@
         const data = await res.json()
         if (!Array.isArray(data)) throw new Error('Bad response')
         // Show COMP tickets and any ticket that has been reserved or sold (has an order)
-        allTickets = data.filter(t => t.payment_status === 'COMP' || t.sold_status === 'SOLD' || t.sold_status === 'RESERVED')
+        allTickets = data
         updateStats()
         filterTable()
       } catch (e) {
@@ -237,15 +247,23 @@
     }
 
     function updateStats() {
-      const all   = allTickets.length
-      const paid  = allTickets.filter(t => t.payment_status === 'PAID').length
-      const comp  = allTickets.filter(t => t.payment_status === 'COMP').length
-      const pend  = allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT').length
-      const ci    = allTickets.filter(t => t.checked_in).length
+      const all      = allTickets.length
+      const vip      = allTickets.filter(t => t.ticket_type === 'VIP').length
+      const ga       = allTickets.filter(t => t.ticket_type === 'GA').length
+      const paid     = allTickets.filter(t => t.payment_status === 'PAID').length
+      const reserved = allTickets.filter(t => t.sold_status === 'RESERVED' && t.payment_status !== 'COMP').length
+      const pending  = allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT').length
+      const comp     = allTickets.filter(t => t.payment_status === 'COMP').length
+      const avail    = allTickets.filter(t => t.sold_status === 'AVAILABLE').length
+      const ci       = allTickets.filter(t => t.checked_in).length
       document.getElementById('statTotal').textContent     = all
+      document.getElementById('statVip').textContent       = vip
+      document.getElementById('statGa').textContent        = ga
       document.getElementById('statPaid').textContent      = paid
+      document.getElementById('statReserved').textContent  = reserved
+      document.getElementById('statPending').textContent   = pending
       document.getElementById('statComp').textContent      = comp
-      document.getElementById('statPending').textContent   = pend
+      document.getElementById('statAvail').textContent     = avail
       document.getElementById('statCheckedIn').textContent = ci
     }
 
@@ -271,13 +289,14 @@
           t.purchaser_name, t.purchaser_email, t.table_number
         ].filter(Boolean).join(' ').toLowerCase()
         const matchQ = !q || searchable.includes(q)
-        const matchS = statusFilter === 'all'
-          ? true
-          : statusFilter === 'checkedin'
-            ? t.checked_in === true
-            : statusFilter === 'PENDING'
-              ? t.payment_status === 'PENDING_PAYMENT'
-              : t.payment_status === statusFilter
+        const matchS = statusFilter === 'all'       ? true
+          : statusFilter === 'checkedin'             ? t.checked_in === true
+          : statusFilter === 'PENDING'               ? t.payment_status === 'PENDING_PAYMENT'
+          : statusFilter === 'RESERVED'              ? (t.sold_status === 'RESERVED' && t.payment_status !== 'COMP')
+          : statusFilter === 'AVAILABLE'             ? t.sold_status === 'AVAILABLE'
+          : statusFilter === 'PAID'                  ? t.payment_status === 'PAID'
+          : statusFilter === 'COMP'                  ? t.payment_status === 'COMP'
+          : t.payment_status === statusFilter
         const matchT = typeFilter === 'all' || t.ticket_type === typeFilter
         return matchQ && matchS && matchT
       })
