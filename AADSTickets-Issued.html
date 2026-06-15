@@ -221,13 +221,13 @@
         '<tr><td colspan="10" class="empty"><span class="spin"></span>Loading…</td></tr>'
       try {
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/toc_tickets?select=*,toc_orders(purchaser_first_name,purchaser_last_name,purchaser_email,purchaser_phone)&order=ticket_number.asc`,
+          `${SUPABASE_URL}/rest/v1/toc_tickets?select=*&order=ticket_number.asc`,
           { headers: HDR }
         )
         const data = await res.json()
         if (!Array.isArray(data)) throw new Error('Bad response')
-        // Only show tickets that are reserved/sold (have an order or are COMP)
-        allTickets = data.filter(t => t.payment_status === 'COMP' || t.sold_status === 'SOLD' || t.sold_status === 'HELD')
+        // Show COMP tickets and any ticket that has been reserved or sold (has an order)
+        allTickets = data.filter(t => t.payment_status === 'COMP' || t.sold_status === 'SOLD' || t.sold_status === 'RESERVED')
         updateStats()
         filterTable()
       } catch (e) {
@@ -240,7 +240,7 @@
       const all   = allTickets.length
       const paid  = allTickets.filter(t => t.payment_status === 'PAID').length
       const comp  = allTickets.filter(t => t.payment_status === 'COMP').length
-      const pend  = allTickets.filter(t => t.payment_status === 'PENDING').length
+      const pend  = allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT').length
       const ci    = allTickets.filter(t => t.checked_in).length
       document.getElementById('statTotal').textContent     = all
       document.getElementById('statPaid').textContent      = paid
@@ -266,18 +266,19 @@
     function filterTable() {
       const q = document.getElementById('searchBox').value.toLowerCase()
       const filtered = allTickets.filter(t => {
-        const buyerName = [t.toc_orders?.purchaser_first_name, t.toc_orders?.purchaser_last_name].filter(Boolean).join(' ')
         const searchable = [
           t.ticket_number, t.ticket_code, t.ticket_holder_name,
-          buyerName, t.toc_orders?.purchaser_email, t.table_number
+          t.purchaser_name, t.purchaser_email, t.table_number
         ].filter(Boolean).join(' ').toLowerCase()
         const matchQ = !q || searchable.includes(q)
         const matchS = statusFilter === 'all'
           ? true
           : statusFilter === 'checkedin'
             ? t.checked_in === true
-            : t.payment_status === statusFilter
-        const matchT = typeFilter === 'all' || t.ticket_type === typeFilter || t.ticket_category === typeFilter
+            : statusFilter === 'PENDING'
+              ? t.payment_status === 'PENDING_PAYMENT'
+              : t.payment_status === statusFilter
+        const matchT = typeFilter === 'all' || t.ticket_type === typeFilter
         return matchQ && matchS && matchT
       })
       renderRows(filtered)
@@ -290,24 +291,22 @@
         return
       }
       const rows = tickets.map(t => {
-        const isVIP  = t.ticket_type === 'VIP' || t.ticket_category === 'VIP'
+        const isVIP  = t.ticket_type === 'VIP'
         const isComp = t.payment_status === 'COMP'
         const isSel  = selectedCodes.has(t.ticket_code)
-        const buyerFirst = t.toc_orders?.purchaser_first_name || ''
-        const buyerLast  = t.toc_orders?.purchaser_last_name  || ''
-        const buyerName  = [buyerFirst, buyerLast].filter(Boolean).join(' ') || t.purchaser_name || '—'
-        const buyerEmail = t.toc_orders?.purchaser_email || '—'
+        const buyerName  = t.purchaser_name || t.ticket_holder_name || '—'
+        const buyerEmail = t.purchaser_email || '—'
 
         const typeBadgeClass = isComp ? 'badge-comp' : isVIP ? 'badge-vip' : 'badge-ga'
         const typeBadgeText  = isComp ? '👑 Comp' : isVIP ? '👑 VIP' : '🎟️ GA'
 
         let statusBadgeClass, statusBadgeText
-        if (t.checked_in)                         { statusBadgeClass = 'status-checkedin'; statusBadgeText = '✅ In' }
-        else if (t.payment_status === 'COMP')      { statusBadgeClass = 'status-comp';      statusBadgeText = 'COMP' }
-        else if (t.payment_status === 'PAID')      { statusBadgeClass = 'status-paid';      statusBadgeText = 'PAID' }
-        else if (t.payment_status === 'PENDING')   { statusBadgeClass = 'status-pending';   statusBadgeText = 'PENDING' }
-        else if (t.sold_status === 'VOID')         { statusBadgeClass = 'status-void';      statusBadgeText = 'VOID' }
-        else                                       { statusBadgeClass = 'status-avail';     statusBadgeText = t.payment_status || '—' }
+        if (t.checked_in)                                  { statusBadgeClass = 'status-checkedin'; statusBadgeText = '✅ In' }
+        else if (t.payment_status === 'COMP')             { statusBadgeClass = 'status-comp';      statusBadgeText = 'COMP' }
+        else if (t.payment_status === 'PAID')             { statusBadgeClass = 'status-paid';      statusBadgeText = 'PAID' }
+        else if (t.payment_status === 'PENDING_PAYMENT')  { statusBadgeClass = 'status-pending';   statusBadgeText = 'PENDING' }
+        else if (t.ticket_status === 'VOID')              { statusBadgeClass = 'status-void';      statusBadgeText = 'VOID' }
+        else                                              { statusBadgeClass = 'status-avail';     statusBadgeText = t.payment_status || '—' }
 
         const seatText = isVIP
           ? `T${t.table_number || '?'} S${t.seat_number || '?'}`
@@ -317,8 +316,9 @@
           ? `<span style="color:var(--green-2);font-size:11px">✅ ${t.checked_in_by ? t.checked_in_by + '<br>' : ''}${t.checked_in_at ? new Date(t.checked_in_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : ''}</span>`
           : '<span style="color:var(--muted2);font-size:11px">—</span>'
 
-        const canMarkPaid = t.payment_status === 'PENDING' && !t.checked_in
-        const viewUrl = `AADSTickets-View.html?code=${encodeURIComponent(t.ticket_code)}`
+        const canMarkPaid = t.payment_status === 'PENDING_PAYMENT' && !t.checked_in
+        const imgFile = t.print_file || (t.ticket_number.replace('-', '_') + '.jpg')
+        const viewUrl = `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`
 
         return `<tr class="${isSel ? 'sel' : ''}" data-code="${t.ticket_code}">
           <td class="check-col center">
@@ -388,17 +388,25 @@
 
     function openSelected() {
       if (!selectedCodes.size) { showToast('Select at least one ticket first'); return }
-      const baseUrl = window.location.href.replace(/\/[^/]*$/, '/')
       selectedCodes.forEach(code => {
-        window.open(`${baseUrl}AADSTickets-View.html?code=${encodeURIComponent(code)}`, '_blank', 'noopener,noreferrer')
+        const t = allTickets.find(t => t.ticket_code === code)
+        if (!t) return
+        const imgFile = t.print_file || (t.ticket_number.replace('-', '_') + '.jpg')
+        window.open(`https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`, '_blank', 'noopener,noreferrer')
       })
     }
 
     function emailTicket(code, email) {
-      const baseUrl = window.location.href.replace(/\/[^/]*$/, '/')
-      const ticketUrl = `${baseUrl}AADSTickets-View.html?code=${decodeURIComponent(code)}`
+      const decodedCode = decodeURIComponent(code)
+      const t = allTickets.find(t => t.ticket_code === decodedCode)
+      const imgFile = (t && (t.print_file || (t.ticket_number ? t.ticket_number.replace('-', '_') + '.jpg' : null)))
+      const imgUrl = imgFile
+        ? `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`
+        : `${window.location.href.replace(/\/[^/]*$/, '/')}AADSTickets-View.html?code=${decodedCode}`
+      const holderName = (t && (t.ticket_holder_name || t.purchaser_name)) || ''
+      const ticketNum = (t && t.ticket_number) || decodedCode
       const subject = encodeURIComponent('Your AADS Tournament of Champions Ticket')
-      const body = encodeURIComponent(`Hi,\n\nYour ticket is ready! Click the link below to view, print, or save your ticket:\n\n${ticketUrl}\n\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\n\n— AADS`)
+      const body = encodeURIComponent(`Hi ${holderName},\n\nYour ticket for the AADS Tournament of Champions is ready!\n\nTicket: ${ticketNum}\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\n\nClick the link below to view and download your ticket:\n${imgUrl}\n\nPresent your ticket at the door on July 25.\n\n— AADS`)
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
     }
 

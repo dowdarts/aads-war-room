@@ -266,12 +266,12 @@
         return
       }
 
-      if (ticket.sold_status === 'VOID') {
+      if (ticket.ticket_status === 'VOID') {
         showOverlay('state-void', '🚫', 'Ticket Void', 'This ticket has been cancelled.', 'Do not allow entry. Contact admin immediately.', '', '')
         return
       }
 
-      if (ticket.payment_status === 'PENDING' || ticket.payment_status === 'UNPAID') {
+      if (ticket.payment_status === 'PENDING_PAYMENT' || ticket.payment_status === 'UNPAID') {
         showOverlay('state-unpaid', '⚠️', 'Payment Pending', `${ticket.ticket_holder_name || 'Guest'}`, 'E-transfer not yet confirmed. Contact admin.', '', '')
         return
       }

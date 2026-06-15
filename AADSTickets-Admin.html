@@ -716,6 +716,11 @@
     } catch (e) { showToast(`Error: ${e.message}`, 'error') }
   }
 
+  function ticketImgUrl(t) {
+    const file = t.print_file || (t.ticket_number.replace('-', '_') + '.jpg')
+    return `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${file}`
+  }
+
   function ticketRow(t) {
     const holderLine = t.ticket_holder_name ? `${esc(t.ticket_holder_name)} · ` : ''
     const typeIcon = t.ticket_type === 'VIP' ? '👑' : '🎟️'
@@ -724,7 +729,7 @@
         <div class="ticket-row-code">${typeIcon} ${esc(t.ticket_code)}</div>
         <div class="ticket-row-meta">${holderLine}${t.payment_status} · ${t.sold_status}</div>
       </div>
-      <a class="ticket-view-link" href="AADSTickets-View.html?code=${encodeURIComponent(t.ticket_code)}" target="_blank" rel="noopener">🖨️ View &amp; Print</a>
+      <a class="ticket-view-link" href="${ticketImgUrl(t)}" target="_blank" rel="noopener">🖨️ View &amp; Print</a>
     </div>`
   }
 
@@ -741,7 +746,10 @@
   }
 
   function printAllTickets() {
-    _printAllCodes.forEach(code => window.open(`AADSTickets-View.html?code=${encodeURIComponent(code)}`, '_blank', 'noopener,noreferrer'))
+    _printAllCodes.forEach(code => {
+      const t = allTickets.find(t => t.ticket_code === code)
+      if (t) window.open(ticketImgUrl(t), '_blank', 'noopener,noreferrer')
+    })
   }
 
   // ── Sale toggle ────────────────────────────────────────────────

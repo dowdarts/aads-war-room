@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AADS TOC 2026 — Ticket</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -140,9 +139,24 @@
       .ticket-footer { background: #fffbf0 !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
     }
 
+    .hidden { display: none !important; }
+
     .loading { text-align: center; padding: 80px 24px; color: var(--muted); font-size: 14px; }
     .spin { display: inline-block; width: 28px; height: 28px; border: 3px solid #222; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 10px; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TICKET IMAGE (pre-generated JPG) ── */
+    .ticket-image-wrap {
+      display: flex; justify-content: center; padding: 32px 20px 80px;
+    }
+    .ticket-image-wrap img {
+      max-width: 700px; width: 100%; border-radius: 18px;
+      box-shadow: 0 0 0 1px rgba(245,197,24,0.15), 0 32px 96px rgba(0,0,0,0.7), 0 0 48px rgba(245,197,24,0.1);
+    }
+    @media print {
+      .ticket-image-wrap { padding: 0; }
+      .ticket-image-wrap img { max-width: 100%; border-radius: 0; box-shadow: none; }
+    }
   </style>
 </head>
 <body>
@@ -158,6 +172,11 @@
   <div id="notFound" class="not-found hidden">
     <h2>Ticket Not Found</h2>
     <p>No ticket matches that code. Check the URL and try again.</p>
+  </div>
+
+  <!-- Pre-generated ticket image (shown when print_file is set) -->
+  <div id="ticketImageWrap" class="ticket-image-wrap hidden">
+    <img id="ticketImage" src="" alt="Ticket" />
   </div>
 
   <div id="ticketWrap" class="ticket-wrap hidden">
@@ -249,75 +268,14 @@
     }
 
     function renderTicket(t) {
-      const isVIP  = t.ticket_type === 'VIP'
-      const isComp = t.payment_status === 'COMP'
-
-      // Band
-      document.getElementById('bandNum').textContent = t.ticket_number || t.ticket_code
-
-      // Type badge
-      const badge = document.getElementById('typeBadge')
-      if (isComp) {
-        badge.className = 'ticket-type-badge comp'
-        badge.textContent = '👑 Complimentary VIP'
-      } else if (isVIP) {
-        badge.className = 'ticket-type-badge vip'
-        badge.textContent = '👑 VIP Table Package'
+      const imgFile = t.print_file || (t.ticket_number ? t.ticket_number.replace('-', '_') + '.jpg' : null)
+      if (imgFile) {
+        window.location.replace(
+          `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`
+        )
       } else {
-        badge.className = 'ticket-type-badge ga'
-        badge.textContent = '🎟️ General Admission'
+        showNotFound()
       }
-
-      // Holder
-      document.getElementById('holderName').textContent = t.ticket_holder_name || t.purchaser_name || 'Guest'
-
-      // Seat (VIP only)
-      if (isVIP && t.table_number) {
-        const sb = document.getElementById('seatBadge')
-        sb.textContent = `🪑 Table ${t.table_number} · Seat ${t.seat_number}`
-        sb.classList.remove('hidden')
-      }
-
-      // Footer
-      document.getElementById('footerNum').textContent = t.ticket_number || '—'
-      document.getElementById('footerPayment').textContent = t.payment_status || '—'
-
-      const braceletEl = document.getElementById('braceletBadge')
-      if (isVIP) {
-        braceletEl.textContent = '🟠 VIP Orange'
-        braceletEl.className = 'bracelet-badge bracelet-vip'
-      } else {
-        braceletEl.textContent = '⚪ GA White'
-        braceletEl.className = 'bracelet-badge bracelet-ga'
-      }
-
-      // QR code
-      QRCode.toCanvas(document.getElementById('qrCanvas'), t.ticket_code || t.qr_payload, {
-        width: 140, margin: 2, color: { dark: '#000000', light: '#ffffff' }
-      })
-      document.getElementById('ticketCodeSmall').textContent = t.ticket_code
-
-      // Screen label
-      document.getElementById('screenLabel').textContent =
-        `${t.ticket_number || t.ticket_code} · ${t.payment_status}`
-
-      // Email button
-      const email = t.purchaser_email
-      if (email) {
-        const ticketUrl = location.href
-        const emailBtn = document.getElementById('emailBtn')
-        emailBtn.style.display = ''
-        emailBtn.onclick = () => {
-          const subject = encodeURIComponent('Your AADS Tournament of Champions Ticket')
-          const body = encodeURIComponent(
-            `Hi ${t.ticket_holder_name || ''},\n\nYour ticket for the AADS Tournament of Champions is ready!\n\nTicket: ${t.ticket_number || t.ticket_code}\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\n\nView / print your ticket here:\n${ticketUrl}\n\nPresent this link (or the QR code on screen) at the door.\n\n— AADS`
-          )
-          window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
-        }
-      }
-
-      document.getElementById('loadingState').classList.add('hidden')
-      document.getElementById('ticketWrap').classList.remove('hidden')
     }
 
     function showNotFound() {
