@@ -390,12 +390,12 @@
             </div>
           </div>
           <div class="field">
-            <label for="buyerPhone">Phone Number</label>
-            <input type="tel" id="buyerPhone" placeholder="e.g. 506-555-0100" autocomplete="tel" required />
-          </div>
-          <div class="field">
             <label for="buyerEmail">Email Address</label>
             <input type="email" id="buyerEmail" placeholder="e.g. sarah@example.com" autocomplete="email" required />
+          </div>
+          <div class="field">
+            <label for="buyerEmailConfirm">Confirm Email Address</label>
+            <input type="email" id="buyerEmailConfirm" placeholder="Re-enter your email" autocomplete="off" required />
           </div>
         </div>
       </div>
@@ -404,26 +404,6 @@
         <p class="section-title">Additional Ticket Holders</p>
         <p style="font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6;">Your name will be listed on Ticket 1. Please provide the name of each additional ticket holder below.</p>
         <div id="additionalHoldersFields" class="form-stack"></div>
-      </div>
-
-      <div class="section">
-        <p class="section-title">Ticket Delivery</p>
-        <div class="delivery-opts">
-          <div class="delivery-opt" id="opt-pickup" onclick="selectDelivery('pickup')">
-            <input type="radio" name="delivery" value="pickup" id="delivPickup" />
-            <div class="delivery-opt-body">
-              <div class="delivery-opt-title">📦 Pick Up at Box Office</div>
-              <div class="delivery-opt-desc">Collect tickets at the venue on July 25. <strong>The purchaser must be present with valid photo ID.</strong> Name on ID must match the name on your order — tickets will not be released to anyone else.</div>
-            </div>
-          </div>
-          <div class="delivery-opt" id="opt-virtual" onclick="selectDelivery('virtual')">
-            <input type="radio" name="delivery" value="virtual" id="delivVirtual" />
-            <div class="delivery-opt-body">
-              <div class="delivery-opt-title">📧 Virtual Ticket by Email</div>
-              <div class="delivery-opt-desc">Your ticket will be emailed to you once payment is confirmed. Show the QR code on your phone at the door.</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div id="step2Error" class="error-box hidden"></div>
@@ -554,7 +534,7 @@
     // State
     let selectedType = null  // 'vip' | 'ga'
     let selectedQty = 1
-    let deliveryMethod = null  // 'pickup' | 'virtual'
+    let deliveryMethod = 'virtual'
     let vipTablesAvail = 0
     let gaPublicAvail = 0
     let orderExpiresAt = null
@@ -670,15 +650,6 @@
       updateQtyControls()
     }
 
-    // ── Delivery ─────────────────────────────────────────────────
-    function selectDelivery(method) {
-      deliveryMethod = method
-      document.getElementById('opt-pickup').classList.toggle('selected', method === 'pickup')
-      document.getElementById('opt-virtual').classList.toggle('selected', method === 'virtual')
-      document.getElementById('delivPickup').checked = method === 'pickup'
-      document.getElementById('delivVirtual').checked = method === 'virtual'
-    }
-
     // ── Additional holder fields ──────────────────────────────────
     function buildAdditionalHolderFields() {
       const total = selectedType === 'vip' ? selectedQty * 6 : selectedQty
@@ -728,14 +699,14 @@
       if (n === 3) {
         const firstName = document.getElementById('buyerFirstName').value.trim()
         const lastName  = document.getElementById('buyerLastName').value.trim()
-        const phone = document.getElementById('buyerPhone').value.trim()
         const email = document.getElementById('buyerEmail').value.trim()
+        const emailConfirm = document.getElementById('buyerEmailConfirm').value.trim()
         err2.classList.add('hidden')
         if (!firstName) { err2.textContent = 'Please enter your first name.'; err2.classList.remove('hidden'); return }
         if (!lastName)  { err2.textContent = 'Please enter your last name.'; err2.classList.remove('hidden'); return }
-        if (!phone) { err2.textContent = 'Please enter your phone number.'; err2.classList.remove('hidden'); return }
         if (!email || !email.includes('@')) { err2.textContent = 'Please enter a valid email address.'; err2.classList.remove('hidden'); return }
-        if (!deliveryMethod) { err2.textContent = 'Please select a delivery method.'; err2.classList.remove('hidden'); return }
+        if (!emailConfirm) { err2.textContent = 'Please confirm your email address.'; err2.classList.remove('hidden'); return }
+        if (email.toLowerCase() !== emailConfirm.toLowerCase()) { err2.textContent = 'Email addresses do not match. Please check and try again.'; err2.classList.remove('hidden'); return }
         buildReviewPage()
       }
       for (let i = 1; i <= 3; i++) {
@@ -752,11 +723,10 @@
       const firstName = document.getElementById('buyerFirstName').value.trim()
       const lastName  = document.getElementById('buyerLastName').value.trim()
       const name  = `${firstName} ${lastName}`
-      const phone = document.getElementById('buyerPhone').value.trim()
       const email = document.getElementById('buyerEmail').value.trim()
       const total = selectedType === 'vip' ? selectedQty * 110 : selectedQty * 10
       const typeLabel = selectedType === 'vip' ? `VIP Table Package × ${selectedQty}` : `General Admission × ${selectedQty}`
-      const delivLabel = deliveryMethod === 'pickup' ? 'Pick Up at Box Office' : 'Virtual Ticket by Email'
+      const delivLabel = 'Virtual Ticket by Email'
 
       const additionalNames = getAdditionalHolderNames()
       const totalTickets = selectedType === 'vip' ? selectedQty * 6 : selectedQty
@@ -771,7 +741,6 @@
       document.getElementById('reviewItems').innerHTML = `
         <div class="review-row"><span class="review-row-label">Tickets</span><span class="review-row-val">${typeLabel}</span></div>
         ${holdersHtml}
-        <div class="review-row"><span class="review-row-label">Phone</span><span class="review-row-val">${esc(phone)}</span></div>
         <div class="review-row"><span class="review-row-label">Email</span><span class="review-row-val">${esc(email)}</span></div>
         <div class="review-row"><span class="review-row-label">Delivery</span><span class="review-row-val">${delivLabel}</span></div>
       `
@@ -811,7 +780,6 @@
       const firstName = document.getElementById('buyerFirstName').value.trim()
       const lastName  = document.getElementById('buyerLastName').value.trim()
       const name  = `${firstName} ${lastName}`
-      const phone = document.getElementById('buyerPhone').value.trim()
       const email = document.getElementById('buyerEmail').value.trim()
       const additionalNames = getAdditionalHolderNames()
       const orderNum = generateOrderNumber()
@@ -824,8 +792,8 @@
 
         const rpcName = selectedType === 'vip' ? 'toc_reserve_vip' : 'toc_reserve_ga'
         const payload = selectedType === 'vip'
-          ? { p_purchaser_name: name, p_purchaser_email: email, p_purchaser_phone: phone, p_delivery_method: deliveryMethod, p_order_number: orderNum }
-          : { p_purchaser_name: name, p_purchaser_email: email, p_purchaser_phone: phone, p_attendee_name: name, p_quantity: selectedQty, p_delivery_method: deliveryMethod, p_order_number: orderNum }
+          ? { p_purchaser_name: name, p_purchaser_email: email, p_purchaser_phone: null, p_delivery_method: deliveryMethod, p_order_number: orderNum }
+          : { p_purchaser_name: name, p_purchaser_email: email, p_purchaser_phone: null, p_attendee_name: name, p_quantity: selectedQty, p_delivery_method: deliveryMethod, p_order_number: orderNum }
 
         const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${rpcName}`, {
           method: 'POST',

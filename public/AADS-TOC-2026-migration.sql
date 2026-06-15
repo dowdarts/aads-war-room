@@ -112,6 +112,8 @@ CREATE POLICY "anon delete orders"  ON public.toc_orders  FOR DELETE TO anon USI
 -- "Held" = sold_status IN ('SOLD','RESERVED') — SOLD covers both pending and paid;
 -- RESERVED is retained in the held count since a manual admin hold should
 -- also prevent the ticket from appearing as available.
+-- DROP first because CREATE OR REPLACE VIEW cannot remove columns from an existing view.
+DROP VIEW IF EXISTS public.toc_inventory;
 CREATE OR REPLACE VIEW public.toc_inventory AS
 SELECT
   COUNT(*) FILTER (WHERE ticket_type='VIP' AND table_number BETWEEN 3 AND 6 AND sold_status='AVAILABLE' AND ticket_status='ACTIVE') / 6 AS vip_tables_available,
