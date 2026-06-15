@@ -75,6 +75,18 @@
     .sold-out-banner p { color: var(--muted); line-height: 1.7; }
 
     /* ── STEP PROGRESS ── */
+    /* ── PRE-SALE COUNTDOWN ── */
+    .presale-wrap { max-width: 560px; margin: 48px auto; padding: 40px 24px; text-align: center; }
+    .presale-label { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+    .presale-date { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 12px; }
+    .countdown-row { font-size: clamp(40px, 10vw, 76px); font-weight: 900; font-family: monospace; letter-spacing: 0.05em; color: var(--gold-2); }
+    .countdown-label-row { display: flex; justify-content: center; font-size: 10px; color: var(--muted); letter-spacing: 0.15em; margin-bottom: 28px; }
+    .countdown-label-row span { width: 3.8ch; text-align: center; }
+    .presale-divider { color: var(--muted2); font-size: 22px; margin: 24px 0; letter-spacing: 0.6em; }
+    .presale-sub { color: var(--muted); font-size: 14px; line-height: 1.7; max-width: 400px; margin: 24px auto; }
+    .btn-subscribe { background: #1877f2; color: #fff; border: none; border-radius: 12px; padding: 14px 32px; font-size: 14px; font-weight: 800; letter-spacing: 0.06em; cursor: pointer; transition: opacity 120ms; }
+    .btn-subscribe:hover { opacity: 0.87; }
+
     .steps-wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 0; }
     .step-progress { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
     .step-item { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; max-width: 130px; }
@@ -299,6 +311,27 @@
     <div class="sold-out-banner">
       <h2>Ticket Sales Are Closed</h2>
       <p>Ticket sales for the AADS Tournament of Champions have ended. Please contact us on social media for more information.</p>
+    </div>
+  </div>
+
+  <!-- Pre-sale countdown view -->
+  <div id="presaleView" class="hidden">
+    <div class="presale-wrap">
+      <div id="subCountdownBlock">
+        <div class="presale-label">🔒 Subscriber Early Access</div>
+        <div class="presale-date">June 20, 2026</div>
+        <div class="countdown-row" id="subCountdown">--:--:--:--</div>
+        <div class="countdown-label-row"><span>DAYS</span><span>HRS</span><span>MIN</span><span>SEC</span></div>
+      </div>
+      <div class="presale-divider" id="presaleDivider">· · ·</div>
+      <div class="presale-label">Public Tickets Drop</div>
+      <div class="presale-date">June 25, 2026</div>
+      <div class="countdown-row" id="pubCountdown">--:--:--:--</div>
+      <div class="countdown-label-row"><span>DAYS</span><span>HRS</span><span>MIN</span><span>SEC</span></div>
+      <p class="presale-sub" id="presaleSub"></p>
+      <a href="https://www.facebook.com/dow1800/subscribe/" target="_blank" rel="noopener noreferrer">
+        <button class="btn-subscribe">Subscribe on Facebook →</button>
+      </a>
     </div>
   </div>
 
@@ -542,6 +575,17 @@
     // ── Inventory ────────────────────────────────────────────────
     async function loadInventory() {
       try {
+        // Date gate — pre-sale countdown until June 25; subscriber early access from June 20
+        const SUB_CODE    = 'TOC2026EARLY'
+        const SUB_DATE    = new Date('2026-06-20T00:00:00')
+        const PUBLIC_DATE = new Date('2026-06-25T00:00:00')
+        const now         = new Date()
+        const hasSubAccess = new URLSearchParams(location.search).get('sub') === SUB_CODE
+        if (now < PUBLIC_DATE && !(now >= SUB_DATE && hasSubAccess)) {
+          showPresale(now, SUB_DATE, PUBLIC_DATE)
+          return
+        }
+
         // Config
         const cfgRes = await fetch(`${SUPABASE_URL}/rest/v1/toc_config?id=eq.1&select=sale_open`, { headers: HDR })
         const cfgData = await cfgRes.json()
@@ -598,6 +642,34 @@
         gaAvail.className = gaPublicAvail <= 5 ? 'tc-avail tc-avail-low' : 'tc-avail tc-avail-ok'
         if (selectedType === 'ga') updateQtyControls()
       }
+    }
+
+    function showPresale(now, subDate, publicDate) {
+      document.getElementById('activeView').classList.add('hidden')
+      document.getElementById('presaleView').classList.remove('hidden')
+      const beforeSubDate = now < subDate
+      document.getElementById('subCountdownBlock').classList.toggle('hidden', !beforeSubDate)
+      document.getElementById('presaleDivider').classList.toggle('hidden', !beforeSubDate)
+      document.getElementById('presaleSub').textContent = beforeSubDate
+        ? "Follow Matthew Dow on Facebook — you'll receive your exclusive early access link on June 20."
+        : "Already subscribed? Check Matthew's Facebook page for your exclusive early access link!"
+
+      function fmt(ms) {
+        if (ms <= 0) return '00:00:00:00'
+        const d = Math.floor(ms / 86400000)
+        const h = Math.floor((ms % 86400000) / 3600000)
+        const m = Math.floor((ms % 3600000) / 60000)
+        const s = Math.floor((ms % 60000) / 1000)
+        return [d, h, m, s].map(n => String(n).padStart(2, '0')).join(':')
+      }
+      function tick() {
+        const t = new Date()
+        if (beforeSubDate) document.getElementById('subCountdown').textContent = fmt(subDate - t)
+        document.getElementById('pubCountdown').textContent = fmt(publicDate - t)
+        if (t >= publicDate) { clearInterval(ticker); location.reload() }
+      }
+      tick()
+      const ticker = setInterval(tick, 1000)
     }
 
     function showClosed() {
