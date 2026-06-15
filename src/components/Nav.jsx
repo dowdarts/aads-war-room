@@ -24,7 +24,7 @@ export default function Nav({ active, onSelect }) {
       {/* Header bar */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-[#1a1a1a]">
         <img
-          src={getBaseUrl() + 'aads-ticket-pass-logo.png'}
+          src="https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/aads-ticket-pass-logo.png"
           alt="AADS Ticket Pass"
           className="h-20 w-auto object-contain"
         />
