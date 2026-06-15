@@ -569,7 +569,7 @@
   async function unconfirmOrder(id) {
     try {
       await patch('toc_orders', `id=eq.${id}`, { payment_status: 'PENDING_PAYMENT', confirmed_at: null, updated_at: new Date().toISOString() })
-      await patch('toc_tickets', `order_id=eq.${id}`, { payment_status: 'PENDING_PAYMENT', sold_status: 'RESERVED', updated_at: new Date().toISOString() })
+      await patch('toc_tickets', `order_id=eq.${id}`, { payment_status: 'PENDING_PAYMENT', sold_status: 'SOLD', updated_at: new Date().toISOString() })
       await loadAll(); showToast('Order moved back to pending', 'success')
     } catch (e) { showToast(`Error: ${e.message}`, 'error') }
   }
