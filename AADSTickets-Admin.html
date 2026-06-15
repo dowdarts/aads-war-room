@@ -63,6 +63,7 @@
     .stat-value.orange { color: var(--accent); } .stat-value.yellow { color: var(--pending-color); }
     .stat-value.green { color: var(--confirmed-color); } .stat-value.blue { color: var(--blue-color); }
     .stat-value.gold { color: var(--gold); }
+    .stat-value.blue.small { font-size: 18px; padding-top: 6px; }
     .inv-bar { padding-top: 0; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .inv-card { flex: 1; min-width: 0; }
     .inv-detail { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.8; }
@@ -212,7 +213,7 @@
       <div class="stat-card"><p class="stat-label">Total Tickets</p><div class="stat-value orange" id="statTotal">—</div></div>
       <div class="stat-card"><p class="stat-label">Paid / Comp</p><div class="stat-value green" id="statConfirmed">—</div></div>
       <div class="stat-card"><p class="stat-label">Reserved (Pending $)</p><div class="stat-value yellow" id="statPending">—</div></div>
-      <div class="stat-card"><p class="stat-label">Available for Sale</p><div class="stat-value blue" id="statGa">—</div></div>
+      <div class="stat-card"><p class="stat-label">Available for Sale</p><div class="stat-value blue small" id="statGa">—</div></div>
       <div class="stat-card"><p class="stat-label">Orders (Public)</p><div class="stat-value gold" id="statVip">—</div></div>
     </div>
     <!-- Ticket inventory breakdown -->
@@ -338,29 +339,34 @@
   function updateStats() {
     const publicOrders = allOrders.filter(o => o.order_type === 'public')
 
-    // Top-row cards
+    // VIP & GA breakdowns
+    const vip = allTickets.filter(t => t.ticket_type === 'VIP')
+    const ga  = allTickets.filter(t => t.ticket_type === 'GA')
+
+    const vipAvailSeats  = vip.filter(t => t.sold_status === 'AVAILABLE').length
+    const vipAvailTables = Math.floor(vipAvailSeats / 6)
+    const gaAvail        = ga.filter(t => t.sold_status === 'AVAILABLE').length
+
+    // Top-row cards — VIP counted as tables, GA as tickets
     const totalTickets = allTickets.length
     const paidOrComp   = allTickets.filter(t => t.payment_status === 'PAID' || t.payment_status === 'COMP').length
     const reserved     = allTickets.filter(t => t.sold_status === 'RESERVED' && t.payment_status !== 'COMP').length
-    const available    = allTickets.filter(t => t.sold_status === 'AVAILABLE').length
     document.getElementById('statTotal').textContent     = totalTickets
     document.getElementById('statConfirmed').textContent = paidOrComp
     document.getElementById('statPending').textContent   = reserved
-    document.getElementById('statGa').textContent        = available
+    document.getElementById('statGa').textContent        = `${vipAvailTables} tables · ${gaAvail} GA`
     document.getElementById('statVip').textContent       = publicOrders.length
 
-    // VIP breakdown
-    const vip = allTickets.filter(t => t.ticket_type === 'VIP')
+    // VIP breakdown — available in tables
     document.getElementById('invVipComp').textContent  = vip.filter(t => t.payment_status === 'COMP').length
     document.getElementById('invVipRes').textContent   = vip.filter(t => t.payment_status === 'PENDING_PAYMENT').length
-    document.getElementById('invVipPaid').textContent  = vip.filter(t => t.payment_status === 'PAID').length
-    document.getElementById('invVipAvail').textContent = vip.filter(t => t.sold_status === 'AVAILABLE').length
+    document.getElementById('invVipPaid').textContent  = Math.floor(vip.filter(t => t.payment_status === 'PAID').length / 6) + ' tables'
+    document.getElementById('invVipAvail').textContent = vipAvailTables + ' tables'
 
     // GA breakdown
-    const ga = allTickets.filter(t => t.ticket_type === 'GA')
     document.getElementById('invGaRes').textContent   = ga.filter(t => t.sold_status === 'RESERVED').length
     document.getElementById('invGaPaid').textContent  = ga.filter(t => t.payment_status === 'PAID').length
-    document.getElementById('invGaAvail').textContent = ga.filter(t => t.sold_status === 'AVAILABLE').length
+    document.getElementById('invGaAvail').textContent = gaAvail
   }
 
   let _printAllCodes = []
