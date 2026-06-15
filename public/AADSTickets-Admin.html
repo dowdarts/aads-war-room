@@ -236,17 +236,6 @@
       </div>
     </div>
 
-    <!-- Player reservations panel -->
-    <div class="panel">
-      <div class="panel-header">
-        <p class="panel-title">Player Family Reservations</p>
-        <span style="font-size:12px;color:var(--muted)" id="playerReserveCount">Loading…</span>
-      </div>
-      <div class="player-grid" id="playerGrid">
-        <div class="loading-state">Loading player reserves…</div>
-      </div>
-    </div>
-
     <!-- Public orders table -->
     <div class="panel">
       <div class="panel-header">
@@ -266,48 +255,6 @@
 
 <!-- Toast -->
 <div id="toast" class="toast toast-hide"></div>
-
-<!-- ── RESOLVE PLAYER RESERVATION MODAL ── -->
-<div id="resolveModal" class="modal-overlay">
-  <div class="modal-content">
-    <h2 class="modal-title" id="resolveModalTitle">Resolve Player Reservation</h2>
-    <p id="resolveModalDesc" style="font-size:13px;color:var(--muted);margin-bottom:16px"></p>
-
-    <div class="modal-field">
-      <label class="modal-label" for="resolveQty">How many tickets does this player want?</label>
-      <input type="number" id="resolveQty" class="modal-input" min="0" max="5" value="5" oninput="updateResolveSplit()" />
-    </div>
-
-    <div class="resolve-split-display" id="resolveSplitDisplay">
-      <div class="resolve-split-row"><span class="resolve-split-label">Confirmed for player:</span><span class="resolve-split-val-green" id="splitForPlayer">5 tickets · $50.00</span></div>
-      <div class="resolve-split-row"><span class="resolve-split-label">Released back to GA pool:</span><span class="resolve-split-val-red" id="splitReleased">0 tickets</span></div>
-    </div>
-
-    <div id="resolveContactFields">
-      <div class="modal-field">
-        <label class="modal-label" for="resolvePhone">Player Phone</label>
-        <input type="tel" id="resolvePhone" class="modal-input" placeholder="506-555-0100" />
-      </div>
-      <div class="modal-field">
-        <label class="modal-label" for="resolveEmail">Player Email</label>
-        <input type="email" id="resolveEmail" class="modal-input" placeholder="player@example.com" />
-      </div>
-      <div class="modal-field">
-        <label class="modal-label" for="resolveDelivery">Delivery Method</label>
-        <select id="resolveDelivery" class="modal-select">
-          <option value="pickup">Pick Up at Box Office</option>
-          <option value="virtual">Virtual Ticket by Email</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="modal-btns">
-      <button class="modal-btn modal-btn-cancel" onclick="closeResolveModal()">Cancel</button>
-      <button class="modal-btn modal-btn-danger" onclick="resolvePlayer(0)">Release All to Public</button>
-      <button class="modal-btn modal-btn-green" id="resolveConfirmBtn" onclick="resolvePlayer()">Confirm Reservation</button>
-    </div>
-  </div>
-</div>
 
 <!-- ── CONFIRM PAYMENT MODAL ── -->
 <div id="confirmModal" class="modal-overlay">
@@ -348,10 +295,7 @@
   let allOrders = []
   let allTickets = []
   let currentFilter = 'all'
-  let activeResolvePlayer = null  // { group, tickets[], reservedCount }
   let activeConfirmOrderId = null
-
-  const PLAYERS = ['Tom Holden','Kyle Gray','Tyler Cyr','Drake Berry','Dee Cormier','Rob Sibbick']
 
   // ── API helpers ────────────────────────────────────────────────
   async function api(path, opts = {}) {
@@ -384,7 +328,6 @@
       document.getElementById('saleToggle').checked = saleOpen
       document.getElementById('saleStatusText').textContent = saleOpen ? 'Sales are OPEN — public can purchase tickets' : 'Sales are CLOSED — new orders blocked'
       updateStats()
-      renderPlayerReserves()
       renderOrdersTable()
     } catch (e) {
       showToast(`Load error: ${e.message}`, 'error')
@@ -420,220 +363,7 @@
     document.getElementById('invGaAvail').textContent = ga.filter(t => t.sold_status === 'AVAILABLE').length
   }
 
-  // ── Player Reserves ────────────────────────────────────────────
-  function renderPlayerReserves() {
-    const grid = document.getElementById('playerGrid')
-    let resolved = 0
-
-    const cards = PLAYERS.map(player => {
-      const playerTickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${player}`)
-      const held = playerTickets.filter(t => t.sold_status === 'RESERVED').length
-      const confirmed = playerTickets.filter(t => t.payment_status === 'PAID').length
-      const total = playerTickets.length
-
-      let statusClass = 'ps-reserved', statusLabel = `${held} tickets held`
-      if (confirmed > 0) { statusClass = 'ps-confirmed'; statusLabel = `${confirmed} confirmed`; resolved++ }
-      else if (held === 0) { statusClass = 'ps-released'; statusLabel = 'All released to public'; resolved++ }
-
-      // Pull existing contact info from the first ticket row if saved previously
-      const existingEmail = playerTickets[0]?.purchaser_email || ''
-      const existingPhone = playerTickets[0]?.purchaser_phone || ''
-      const safeId = player.replace(/\s+/g, '_')
-      const canResolve = held > 0 && confirmed === 0
-
-      return `
-        <div class="player-card">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
-            <div class="player-card-name">${esc(player)}</div>
-            <span class="player-status-badge ${statusClass}">${statusLabel}</span>
-          </div>
-          <div class="player-fields">
-            <div class="player-field-row">
-              <div class="player-field">
-                <label for="pe_email_${safeId}">Email</label>
-                <input type="email" id="pe_email_${safeId}" placeholder="player@example.com" value="${esc(existingEmail)}" />
-              </div>
-              <div class="player-field">
-                <label for="pe_phone_${safeId}">Phone</label>
-                <input type="tel" id="pe_phone_${safeId}" placeholder="506-555-0100" value="${esc(existingPhone)}" />
-              </div>
-            </div>
-            <div class="player-field-row">
-              <div class="player-field">
-                <label for="pe_qty_${safeId}">Tickets Requested</label>
-                <input type="number" id="pe_qty_${safeId}" min="0" value="${held}" />
-              </div>
-              <div class="player-field" style="display:flex;align-items:flex-end">
-                <button class="action-btn btn-confirm" style="width:100%;margin:0" onclick="savePlayerInfo('${esc(player)}')">Save</button>
-              </div>
-            </div>
-          </div>
-          <div class="player-actions">
-            ${canResolve ? `<button class="action-btn btn-resolve" onclick="openResolveModal('${esc(player)}')">Resolve Reservation</button>` : ''}
-            <button class="action-btn btn-view" onclick="viewPlayerTickets('${esc(player)}')">View Tickets</button>
-          </div>
-        </div>`
-    }).join('')
-
-    grid.innerHTML = cards
-    document.getElementById('playerReserveCount').textContent = `${resolved}/6 resolved`
-  }
-
-  function openResolveModal(playerName) {
-    const playerTickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${playerName}`)
-    activeResolvePlayer = { name: playerName, tickets: playerTickets }
-    document.getElementById('resolveModalTitle').textContent = `Resolve: ${playerName}`
-    document.getElementById('resolveModalDesc').textContent  = `${playerTickets.length} GA tickets are currently reserved for ${playerName}'s family.`
-    document.getElementById('resolveQty').value = playerTickets.length
-    document.getElementById('resolveQty').max = playerTickets.length
-    // Pre-fill contact info if already saved on the tickets
-    document.getElementById('resolvePhone').value = playerTickets[0]?.purchaser_phone || ''
-    document.getElementById('resolveEmail').value = playerTickets[0]?.purchaser_email || ''
-    updateResolveSplit()
-    document.getElementById('resolveModal').classList.add('open')
-  }
-  function closeResolveModal() { document.getElementById('resolveModal').classList.remove('open'); activeResolvePlayer = null }
-
-  function updateResolveSplit() {
-    const total = activeResolvePlayer?.tickets?.length ?? 5
-    const keep  = Math.max(0, Math.min(total, parseInt(document.getElementById('resolveQty').value) || 0))
-    const release = total - keep
-    document.getElementById('splitForPlayer').textContent = `${keep} ticket${keep !== 1 ? 's' : ''} · $${(keep * 10).toFixed(2)}`
-    document.getElementById('splitReleased').textContent  = `${release} ticket${release !== 1 ? 's' : ''}`
-    document.getElementById('resolveContactFields').style.display = keep > 0 ? '' : 'none'
-    document.getElementById('resolveConfirmBtn').textContent = keep > 0 ? `Confirm ${keep} Ticket${keep !== 1 ? 's' : ''} for Player` : 'Release All to Public'
-  }
-
-  async function resolvePlayer(forceZero) {
-    if (!activeResolvePlayer) return
-    const total = activeResolvePlayer.tickets.length
-    const keep  = forceZero === 0 ? 0 : Math.max(0, Math.min(total, parseInt(document.getElementById('resolveQty').value) || 0))
-    const release = total - keep
-
-    try {
-      if (keep > 0) {
-        const phone    = document.getElementById('resolvePhone').value.trim() || null
-        const email    = document.getElementById('resolveEmail').value.trim() || null
-        const delivery = document.getElementById('resolveDelivery').value
-
-        // Confirm the kept tickets — ticket 1 = player name, tickets 2+ = player name + Guest
-        const keepTickets = activeResolvePlayer.tickets.slice(0, keep)
-        for (let i = 0; i < keepTickets.length; i++) {
-          const holderName = i === 0 ? activeResolvePlayer.name : `${activeResolvePlayer.name} Guest`
-          await patch('toc_tickets', `id=eq.${keepTickets[i].id}`, {
-            payment_status: 'PAID', sold_status: 'SOLD',
-            ticket_holder_name: holderName,
-            purchaser_name: activeResolvePlayer.name, purchaser_email: email, purchaser_phone: phone, delivery_method: delivery, updated_at: new Date().toISOString()
-          })
-        }
-        // Release the rest
-        const releaseTickets = activeResolvePlayer.tickets.slice(keep)
-        for (const t of releaseTickets) {
-          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', purchaser_name: null, purchaser_email: null, purchaser_phone: null, updated_at: new Date().toISOString() })
-        }
-        showToast(`✓ ${keep} ticket${keep !== 1 ? 's' : ''} confirmed for ${activeResolvePlayer.name}${release > 0 ? `, ${release} released` : ''}`, 'success')
-      } else {
-        // Release all
-        for (const t of activeResolvePlayer.tickets) {
-          await patch('toc_tickets', `id=eq.${t.id}`, { ticket_group: 'General Admission', sold_status: 'AVAILABLE', purchaser_name: null, purchaser_email: null, purchaser_phone: null, updated_at: new Date().toISOString() })
-        }
-        showToast(`All ${total} tickets released back to GA pool`, 'success')
-      }
-
-      const confirmedPlayerName = keep > 0 ? activeResolvePlayer.name : null
-      closeResolveModal()
-      await loadAll()
-      if (confirmedPlayerName) viewPlayerTickets(confirmedPlayerName)
-    } catch (e) {
-      showToast(`Error: ${e.message}`, 'error')
-    }
-  }
-
-  async function savePlayerInfo(playerName) {
-    const safeId = playerName.replace(/\s+/g, '_')
-    const email  = document.getElementById(`pe_email_${safeId}`)?.value.trim()
-    const phone  = document.getElementById(`pe_phone_${safeId}`)?.value.trim()
-    const newQty = parseInt(document.getElementById(`pe_qty_${safeId}`)?.value) || 0
-
-    const playerTickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${playerName}`)
-    const heldTickets   = playerTickets.filter(t => t.sold_status === 'RESERVED')
-    const currentHeld   = heldTickets.length
-    const diff = newQty - currentHeld
-
-    try {
-      if (diff > 0) {
-        // Pull additional tickets from the GA public pool
-        const gaPool = allTickets.filter(t =>
-          t.ticket_type === 'GA' &&
-          t.ticket_group === 'General Admission' &&
-          t.sold_status === 'AVAILABLE' &&
-          t.ticket_status === 'ACTIVE'
-        ).slice(0, diff)
-
-        if (gaPool.length < diff) {
-          showToast(`Only ${gaPool.length} GA tickets available in the public pool — can't reserve ${diff} more.`, 'error')
-          return
-        }
-        for (const t of gaPool) {
-          await patch('toc_tickets', `id=eq.${t.id}`, {
-            ticket_group: `Player Reserve - ${playerName}`,
-            sold_status: 'RESERVED',
-            purchaser_name: playerName,
-            purchaser_email: email || null,
-            purchaser_phone: phone || null,
-            updated_at: new Date().toISOString()
-          })
-        }
-      }
-
-      // Save contact info to all held tickets (including any just added)
-      for (const t of heldTickets) {
-        await patch('toc_tickets', `id=eq.${t.id}`, {
-          purchaser_name: playerName,
-          purchaser_email: email || null,
-          purchaser_phone: phone || null,
-          updated_at: new Date().toISOString()
-        })
-      }
-
-      // Release excess tickets if qty was reduced
-      if (diff < 0) {
-        const toRelease = heldTickets.slice(newQty)
-        for (const t of toRelease) {
-          await patch('toc_tickets', `id=eq.${t.id}`, {
-            ticket_group: 'General Admission',
-            sold_status: 'AVAILABLE',
-            purchaser_name: null,
-            purchaser_email: null,
-            purchaser_phone: null,
-            updated_at: new Date().toISOString()
-          })
-        }
-        showToast(`✓ Saved — ${newQty} tickets for ${playerName}, ${Math.abs(diff)} released to GA pool`, 'success')
-      } else if (diff > 0) {
-        showToast(`✓ Saved — ${diff} more ticket${diff !== 1 ? 's' : ''} pulled from GA pool for ${playerName} (${newQty} total)`, 'success')
-      } else {
-        showToast(`✓ Info saved for ${playerName}`, 'success')
-      }
-
-      await loadAll()
-    } catch (e) {
-      showToast(`Error: ${e.message}`, 'error')
-    }
-  }
-
   let _printAllCodes = []
-
-  function viewPlayerTickets(playerName) {
-    const tickets = allTickets.filter(t => t.ticket_group === `Player Reserve - ${playerName}`)
-    _printAllCodes = tickets.map(t => t.ticket_code)
-    document.getElementById('ticketsModalTitle').textContent = `${playerName} — Reserved Tickets`
-    document.getElementById('ticketsModalList').innerHTML = tickets.length
-      ? tickets.map(t => ticketRow(t)).join('')
-      : '<div style="padding:12px 0;color:var(--muted)">No tickets found.</div>'
-    document.getElementById('printAllBtn').classList.toggle('hidden', tickets.length === 0)
-    document.getElementById('ticketsModal').classList.add('open')
-  }
   function closeTicketsModal() { document.getElementById('ticketsModal').classList.remove('open') }
 
   // ── Orders table ───────────────────────────────────────────────
@@ -724,7 +454,6 @@
       allTickets.filter(t => t.order_id === orderId).forEach(t => { t.payment_status = payStatus; t.sold_status = 'SOLD' })
       closeConfirmModal()
       updateStats()
-      renderPlayerReserves()
       renderOrdersTable()
       showToast(`✓ Payment confirmed — open tickets below to print`, 'success')
       viewOrderTickets(orderId)
@@ -848,7 +577,6 @@
 
   // ── Close modals on backdrop click ─────────────────────────────
   document.addEventListener('click', e => {
-    if (e.target === document.getElementById('resolveModal')) closeResolveModal()
     if (e.target === document.getElementById('confirmModal')) closeConfirmModal()
     if (e.target === document.getElementById('ticketsModal')) closeTicketsModal()
   })
