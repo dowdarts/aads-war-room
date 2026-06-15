@@ -276,6 +276,39 @@
   </div>
 </div>
 
+<!-- ── EDIT TICKET MODAL ── -->
+<div id="editTicketModal" class="modal-overlay">
+  <div class="modal-content">
+    <h2 class="modal-title" id="editTicketTitle">Edit Ticket</h2>
+    <div class="modal-field">
+      <label class="modal-label" for="editHolderName">Ticket Holder Name</label>
+      <input type="text" id="editHolderName" class="modal-input" placeholder="Name on ticket" />
+    </div>
+    <div class="modal-field">
+      <label class="modal-label" for="editBuyerName">Buyer Name</label>
+      <input type="text" id="editBuyerName" class="modal-input" placeholder="Purchaser name" />
+    </div>
+    <div class="modal-field">
+      <label class="modal-label" for="editBuyerEmail">Buyer Email</label>
+      <input type="email" id="editBuyerEmail" class="modal-input" placeholder="Purchaser email" />
+    </div>
+    <div class="modal-field">
+      <label class="modal-label" for="editPayStatus">Payment Status</label>
+      <select id="editPayStatus" class="modal-select">
+        <option value="PAID">PAID</option>
+        <option value="PENDING_PAYMENT">PENDING PAYMENT</option>
+        <option value="COMP">COMP</option>
+        <option value="UNPAID">UNPAID</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeEditTicketModal()">Cancel</button>
+      <button class="modal-btn modal-btn-danger" onclick="unissueTicket()">↩ Unissue</button>
+      <button class="modal-btn modal-btn-green" onclick="saveTicketEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── ASSIGNED TICKETS VIEW MODAL ── -->
 <div id="ticketsModal" class="modal-overlay">
   <div class="modal-content modal-content-wide">
@@ -371,6 +404,73 @@
 
   let _printAllCodes = []
   function closeTicketsModal() { document.getElementById('ticketsModal').classList.remove('open') }
+
+  // ── Edit ticket ────────────────────────────────────────────────
+  let activeEditCode = null
+
+  function openEditTicket(code) {
+    const t = allTickets.find(t => t.ticket_code === code)
+    if (!t) return
+    activeEditCode = code
+    document.getElementById('editTicketTitle').textContent = `Edit — ${t.ticket_number || t.ticket_code}`
+    document.getElementById('editHolderName').value  = t.ticket_holder_name || ''
+    document.getElementById('editBuyerName').value   = t.purchaser_name || ''
+    document.getElementById('editBuyerEmail').value  = t.purchaser_email || ''
+    document.getElementById('editPayStatus').value   = t.payment_status || 'UNPAID'
+    document.getElementById('editTicketModal').classList.add('open')
+  }
+
+  function closeEditTicketModal() {
+    document.getElementById('editTicketModal').classList.remove('open')
+    activeEditCode = null
+  }
+
+  async function saveTicketEdit() {
+    if (!activeEditCode) return
+    const holder = document.getElementById('editHolderName').value.trim()
+    const buyer  = document.getElementById('editBuyerName').value.trim()
+    const email  = document.getElementById('editBuyerEmail').value.trim()
+    const status = document.getElementById('editPayStatus').value
+    try {
+      await patch('toc_tickets', `ticket_code=eq.${encodeURIComponent(activeEditCode)}`, {
+        ticket_holder_name: holder || null,
+        purchaser_name:     buyer  || null,
+        purchaser_email:    email  || null,
+        payment_status:     status,
+        updated_at:         new Date().toISOString()
+      })
+      const t = allTickets.find(t => t.ticket_code === activeEditCode)
+      if (t) { t.ticket_holder_name = holder || null; t.purchaser_name = buyer || null; t.purchaser_email = email || null; t.payment_status = status }
+      showToast('✓ Ticket updated', 'success')
+      closeEditTicketModal()
+      updateStats()
+    } catch (e) { showToast(`Error: ${e.message}`, 'error') }
+  }
+
+  async function unissueTicket() {
+    if (!activeEditCode) return
+    if (!confirm('Unissue this ticket? It will be returned to the available pool and all buyer info cleared.')) return
+    try {
+      await patch('toc_tickets', `ticket_code=eq.${encodeURIComponent(activeEditCode)}`, {
+        sold_status:        'AVAILABLE',
+        payment_status:     'UNPAID',
+        ticket_holder_name: null,
+        purchaser_name:     null,
+        purchaser_email:    null,
+        purchaser_phone:    null,
+        order_id:           null,
+        delivery_method:    null,
+        ticket_group:       'General Admission',
+        updated_at:         new Date().toISOString()
+      })
+      const t = allTickets.find(t => t.ticket_code === activeEditCode)
+      if (t) { t.sold_status = 'AVAILABLE'; t.payment_status = 'UNPAID'; t.ticket_holder_name = null; t.purchaser_name = null; t.purchaser_email = null; t.purchaser_phone = null; t.order_id = null; t.delivery_method = null }
+      showToast('↩ Ticket unissued and returned to pool', 'success')
+      closeEditTicketModal()
+      updateStats()
+      renderOrdersTable()
+    } catch (e) { showToast(`Error: ${e.message}`, 'error') }
+  }
 
   // ── Orders table ───────────────────────────────────────────────
   function setFilter(f, btn) {
@@ -499,13 +599,17 @@
 
   function ticketRow(t) {
     const holderLine = t.ticket_holder_name ? `${esc(t.ticket_holder_name)} · ` : ''
+    const buyerLine  = t.purchaser_name ? `<span style="color:var(--muted);font-size:11px">${esc(t.purchaser_name)}</span> · ` : ''
     const typeIcon = t.ticket_type === 'VIP' ? '👑' : '🎟️'
     return `<div class="ticket-row-item">
-      <div>
-        <div class="ticket-row-code">${typeIcon} ${esc(t.ticket_code)}</div>
-        <div class="ticket-row-meta">${holderLine}${t.payment_status} · ${t.sold_status}</div>
+      <div style="flex:1;min-width:0">
+        <div class="ticket-row-code">${typeIcon} ${esc(t.ticket_number || t.ticket_code)}</div>
+        <div class="ticket-row-meta">${holderLine}${buyerLine}${t.payment_status} · ${t.sold_status}</div>
       </div>
-      <a class="ticket-view-link" href="${ticketImgUrl(t)}" target="_blank" rel="noopener">🖨️ View &amp; Print</a>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="action-btn btn-resolve" onclick="openEditTicket('${esc(t.ticket_code)}')">✏️ Edit</button>
+        <a class="ticket-view-link" href="${ticketImgUrl(t)}" target="_blank" rel="noopener">🖨️ Print</a>
+      </div>
     </div>`
   }
 
@@ -583,8 +687,9 @@
 
   // ── Close modals on backdrop click ─────────────────────────────
   document.addEventListener('click', e => {
-    if (e.target === document.getElementById('confirmModal')) closeConfirmModal()
-    if (e.target === document.getElementById('ticketsModal')) closeTicketsModal()
+    if (e.target === document.getElementById('confirmModal'))    closeConfirmModal()
+    if (e.target === document.getElementById('ticketsModal'))    closeTicketsModal()
+    if (e.target === document.getElementById('editTicketModal')) closeEditTicketModal()
   })
 
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
