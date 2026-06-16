@@ -189,6 +189,21 @@
     let html5QrCode = null
     let scannerRunning = false
 
+    function tryAutoLogin() {
+      try {
+        const session = JSON.parse(localStorage.getItem('aads_staff_session'))
+        if (session?.name) {
+          staffName = session.name
+          document.getElementById('pinWrap').classList.add('hidden')
+          document.getElementById('scannerUI').classList.remove('hidden')
+          document.getElementById('staffChip').textContent = `👤 ${staffName}`
+          startScanner()
+          return true
+        }
+      } catch {}
+      return false
+    }
+
     function unlock() {
       const code = document.getElementById('staffCode').value.trim()
       const name = STAFF_CODES[code]
@@ -387,10 +402,11 @@
       await startScanner()
     }
 
-    // Enter key on manual input
     document.addEventListener('DOMContentLoaded', () => {
-      const restored = sessionStorage.getItem('toc_staff')
-      if (restored) document.getElementById('staffName').value = restored
+      if (!tryAutoLogin()) {
+        const restored = sessionStorage.getItem('toc_staff')
+        if (restored) document.getElementById('staffCode').value = restored
+      }
       document.getElementById('manualInput').addEventListener('keydown', e => {
         if (e.key === 'Enter') submitManual()
       })

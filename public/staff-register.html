@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Staff — Create Account</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #fff;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 40px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .hero {
+      text-align: center;
+    }
+    .hero-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .hero h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.02em;
+    }
+    .hero p {
+      font-size: 0.8rem;
+      color: #666;
+      margin-top: 4px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #777;
+    }
+    .field input {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: #f97316; }
+    .pin-row {
+      display: flex;
+      gap: 10px;
+    }
+    .pin-row input {
+      flex: 1;
+      text-align: center;
+      letter-spacing: 0.4em;
+      font-size: 1.1rem;
+    }
+    .btn-submit {
+      background: #ea580c;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-submit:hover { background: #f97316; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .message {
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .message.error { background: #3b1010; color: #f87171; }
+    .message.success { background: #0d2f1c; color: #4ade80; }
+    .back-link {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #555;
+    }
+    .back-link a { color: #f97316; text-decoration: none; }
+    .back-link a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="hero">
+      <div class="hero-icon">🛠️</div>
+      <h1>Create Staff Account</h1>
+      <p>AADS War Room</p>
+    </div>
+
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="nameInput" placeholder="Your name" autocomplete="name" />
+    </div>
+
+    <div class="field">
+      <label>Choose a 4-Digit PIN</label>
+      <div class="pin-row">
+        <input type="password" inputmode="numeric" maxlength="6" id="pinInput" placeholder="••••" />
+        <input type="password" inputmode="numeric" maxlength="6" id="pinConfirm" placeholder="••••" />
+      </div>
+      <span style="font-size:0.7rem;color:#555;">Enter PIN · Confirm PIN</span>
+    </div>
+
+    <div id="message" class="message" style="display:none"></div>
+
+    <button type="button" class="btn-submit" id="submitBtn" onclick="register()">Create Account</button>
+
+    <p class="back-link">Already have an account? <a href="/">Go to Staff Login</a></p>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+
+    function showMsg(text, type) {
+      const el = document.getElementById('message')
+      el.textContent = text
+      el.className = 'message ' + type
+      el.style.display = 'block'
+    }
+
+    async function register() {
+      const name = document.getElementById('nameInput').value.trim()
+      const pin = document.getElementById('pinInput').value.trim()
+      const confirm = document.getElementById('pinConfirm').value.trim()
+
+      if (!name) { showMsg('Please enter your full name.', 'error'); return }
+      if (!/^\d{4}$/.test(pin)) { showMsg('PIN must be exactly 4 digits.', 'error'); return }
+      if (pin !== confirm) { showMsg('PINs do not match. Try again.', 'error'); return }
+
+      const btn = document.getElementById('submitBtn')
+      btn.disabled = true
+      btn.textContent = 'Creating account…'
+
+      try {
+        // Check if name already exists
+        const checkRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&select=id`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+        )
+        const existing = await checkRes.json()
+        if (existing.length) {
+          showMsg('An account with that name already exists. Contact Matthew if you need a reset.', 'error')
+          btn.disabled = false
+          btn.textContent = 'Create Account'
+          return
+        }
+
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts`, {
+          method: 'POST',
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({ name, pin }),
+        })
+
+        if (!res.ok) throw new Error('Server error')
+
+        showMsg(`Account created for ${name}! You can now sign in from the Staff tab.`, 'success')
+        document.getElementById('nameInput').value = ''
+        document.getElementById('pinInput').value = ''
+        document.getElementById('pinConfirm').value = ''
+        btn.textContent = 'Create Another'
+        btn.disabled = false
+      } catch {
+        showMsg('Connection error. Try again.', 'error')
+        btn.disabled = false
+        btn.textContent = 'Create Account'
+      }
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') register() })
+  </script>
+</body>
+</html>

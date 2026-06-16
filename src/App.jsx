@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { StatsProvider } from './context/StatsContext.jsx'
 import PinGate from './components/PinGate.jsx'
-import CommentatorGate from './components/CommentatorGate.jsx'
 import Nav from './components/Nav.jsx'
 import ProvinceLeaderboards from './components/ProvinceLeaderboards.jsx'
 import ProvinceWeightedStandings from './components/ProvinceWeightedStandings.jsx'
@@ -10,7 +9,7 @@ import PlayerStandings from './components/PlayerStandings.jsx'
 import H2HComparison from './components/H2HComparison.jsx'
 import PolicyDocs from './components/PolicyDocs.jsx'
 import DataManager from './components/DataManager.jsx'
-import QuickLinks from './components/QuickLinks.jsx'
+import StaffDashboard from './components/StaffDashboard.jsx'
 import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
 import LocalChat from './components/LocalChat.jsx'
 import PaymentLanding from './components/PaymentLanding.jsx'
@@ -21,7 +20,7 @@ function AppShell() {
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
   const wakeLockRef = useRef(null)
-  const LOCKED_TABS = ['links', 'data', 'policy', 'commentator']
+  const LOCKED_TABS = ['data', 'policy']
   const [unlockedTabs, setUnlockedTabs] = useState(new Set())
   const [pendingTab, setPendingTab] = useState(null)
 
@@ -50,14 +49,7 @@ function AppShell() {
       window.open('merch.html', '_blank', 'noopener,noreferrer')
       return
     }
-    if (id === 'tickets-dash') {
-      window.open('AADSTickets-Dashboard.html', '_blank', 'noopener,noreferrer')
-      return
-    }
-    if (id === 'scanner') {
-      window.open('AADSTickets-Scanner.html', '_blank', 'noopener,noreferrer')
-      return
-    }
+
     if (LOCKED_TABS.includes(id) && !unlockedTabs.has(id)) {
       setPendingTab(id)
       return
@@ -82,14 +74,8 @@ function AppShell() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-white">
-      {pendingTab && pendingTab !== 'commentator' && (
+      {pendingTab && (
         <PinGate
-          onUnlock={handleUnlock}
-          onCancel={() => setPendingTab(null)}
-        />
-      )}
-      {pendingTab === 'commentator' && (
-        <CommentatorGate
           onUnlock={handleUnlock}
           onCancel={() => setPendingTab(null)}
         />
@@ -102,7 +88,7 @@ function AppShell() {
         {tab === 'standings' && <PlayerStandings />}
         {tab === 'h2h' && <H2HComparison />}
         {tab === 'payment' && <PaymentLanding />}
-        {tab === 'links' && <QuickLinks />}
+        {tab === 'staff' && <StaffDashboard onSelect={handleTabSelect} />}
         {tab === 'policy' && <PolicyDocs uploadedPolicies={uploadedPolicies} onUpload={addPolicy} />}
         {tab === 'data' && <DataManager />}
         {tab === 'ack' && <AcknowledgementLauncher />}

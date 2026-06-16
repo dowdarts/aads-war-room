@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AADS TOC 2026 — Ticket</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <style>
+    /* ── Page layout ── */
+    .ticket-page { padding: 20px 0 60px; }
+
+    .ticket-actions {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .ticket-actions button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 22px;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 130ms;
+    }
+    .ticket-actions button:hover { opacity: 0.85; }
+
+    #printTicket {
+      background: linear-gradient(90deg, #8a6c00, #e5b44c);
+      color: #090909;
+    }
+
+    #emailTicket {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #f5f5f5;
+    }
+
+    /* ── Ticket card wrapper ── */
+    #ticketCard {
+      display: flex;
+      max-width: 760px;
+      background: #0a0800;
+      border: 2px solid #e5b44c;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(229,180,76,0.15),
+        0 32px 80px rgba(0,0,0,0.6),
+        0 0 48px rgba(229,180,76,0.06);
+    }
+
+    /* ── Left gold ribbon ── */
+    .ticket-left {
+      width: 52px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, #8a6c00, #e5b44c 35%, #ffe066 55%, #8a6c00);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 20px 0;
+    }
+
+    .ticket-ribbon {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #090909;
+      white-space: nowrap;
+    }
+
+    .toc-mark {
+      font-size: 13px;
+      font-weight: 900;
+      color: #090909;
+      letter-spacing: 0.08em;
+    }
+
+    .toc-sub {
+      font-size: 6px;
+      font-weight: 700;
+      color: #3a2a00;
+      text-align: center;
+      line-height: 1.4;
+      padding: 0 4px;
+    }
+
+    .series-mark {
+      writing-mode: vertical-rl;
+      font-size: 6px;
+      font-weight: 700;
+      color: #5a4000;
+      letter-spacing: 0.08em;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .series-mark span { font-weight: 900; }
+
+    /* ── Main content ── */
+    .ticket-main {
+      flex: 1;
+      padding: 24px 28px;
+      border-right: 2px dashed #2a2000;
+    }
+
+    .ticket-eyebrow {
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.32em;
+      text-transform: uppercase;
+      color: #e5b44c;
+      margin-bottom: 4px;
+    }
+
+    .ticket-title {
+      font-size: clamp(20px, 3.5vw, 30px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
+
+    .info-panel { margin-bottom: 18px; }
+
+    .info-label {
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #777;
+      margin-bottom: 3px;
+    }
+
+    .ticket-holder {
+      font-size: clamp(18px, 3vw, 24px);
+      font-weight: 900;
+      margin-bottom: 12px;
+      color: #f5f5f5;
+    }
+
+    .ticket-detail-line {
+      font-size: 13px;
+      color: rgba(245,245,245,0.8);
+    }
+
+    .event-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .event-box {
+      font-size: 11px;
+      line-height: 1.55;
+      color: #bbb;
+    }
+    .event-box .info-label { display: block; margin-bottom: 2px; }
+    .event-box strong { color: #f5f5f5; }
+
+    /* ── Stub (right column) ── */
+    .ticket-stub {
+      width: 168px;
+      flex-shrink: 0;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,0,0,0.25);
+    }
+
+    .stub-number {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #e5b44c;
+      text-align: center;
+    }
+
+    .stub-type {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #f5f5f5;
+      text-align: center;
+    }
+
+    .stub-sponsor {
+      font-size: 9px;
+      font-weight: 700;
+      color: #777;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .stub-main {
+      font-size: 20px;
+      font-weight: 900;
+      color: #f5f5f5;
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    .stub-seat {
+      font-size: 9px;
+      font-weight: 700;
+      color: #bbb;
+      text-align: center;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .qr-wrap canvas {
+      border-radius: 8px;
+      display: block;
+    }
+
+    .ticket-code {
+      font-family: monospace;
+      font-size: 7px;
+      color: #555;
+      text-align: center;
+      word-break: break-all;
+    }
+
+    .payment-warning {
+      font-size: 8px;
+      font-weight: 900;
+      color: #ff7a00;
+      text-align: center;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border: 1px solid rgba(255,122,0,0.45);
+      border-radius: 6px;
+      padding: 4px 8px;
+    }
+
+    /* ── Error / loading states ── */
+    #ticketCard:empty::before {
+      content: "Loading ticket…";
+      display: block;
+      padding: 60px 32px;
+      color: #777;
+      font-size: 14px;
+    }
+
+    /* ── Print ── */
+    @media print {
+      body { background: #fff !important; }
+      .ticket-actions { display: none !important; }
+      #ticketCard {
+        border-color: #8a6c00;
+        box-shadow: none;
+        border-radius: 0;
+        max-width: 100%;
+      }
+      .ticket-left {
+        background: #c8a800 !important;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+      .ticket-main { border-right-color: #c8a800; }
+      .ticket-eyebrow { color: #8a6c00 !important; }
+      .ticket-title, .ticket-holder, .stub-main { color: #000 !important; }
+      .ticket-detail-line, .event-box { color: #444 !important; }
+      .stub-number { color: #8a6c00 !important; }
+      .stub-type, .stub-seat { color: #222 !important; }
+      .stub-sponsor { color: #666 !important; }
+    }
+
+    @media (max-width: 600px) {
+      #ticketCard { flex-direction: column; }
+      .ticket-left {
+        width: 100%;
+        height: 40px;
+        flex-direction: row;
+        justify-content: center;
+        gap: 16px;
+        padding: 0 16px;
+      }
+      .ticket-ribbon, .series-mark { writing-mode: horizontal-tb; transform: none; }
+      .toc-sub { display: none; }
+      .ticket-stub { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: center; }
+      .ticket-main { border-right: none; border-bottom: 2px dashed #2a2000; }
+      .event-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell ticket-page">
+
+    <div class="ticket-actions">
+      <button id="printTicket">🖨️ Print / Save PDF</button>
+      <button id="emailTicket">📧 Email Ticket</button>
+    </div>
+
+    <div id="ticketCard"></div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/ticket-view.js"></script>
+</body>
+</html>

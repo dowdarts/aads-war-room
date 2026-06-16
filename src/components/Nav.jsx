@@ -7,15 +7,12 @@ const TABS = [
   { id: 'standings', label: 'Player Standings' },
   { id: 'h2h', label: 'H2H Match-Up' },
   { id: 'payment', label: '💰 Support AADS' },
-  { id: 'links', label: '🔗 Quick Links' },
+  { id: 'staff', label: '🛠️ Staff' },
   { id: 'policy', label: 'Policy Docs' },
   { id: 'ack', label: '📋 Acknowledgements' },
   { id: 'form', label: '📝 Competition Form' },
   { id: 'merch', label: '👕 Merch Store' },
-  { id: 'tickets-dash', label: '🎟️ Ticket Sales' },
-  { id: 'scanner', label: '📷 QR Scanner' },
   { id: 'data', label: 'Data Manager' },
-  { id: 'commentator', label: '🎙️ Commentator' },
 ]
 
 export default function Nav({ active, onSelect }) {

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AADS Ticket Admin</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="card">
+      <h1>Ticket Admin</h1>
+      <p>Use Supabase Auth for admin access. This page shows recent orders and ticket counts.</p>
+
+      <div class="grid two">
+        <input id="email" type="email" placeholder="Admin email" />
+        <button id="sendMagicLink" class="primary">Send Login Link</button>
+      </div>
+
+      <button id="loadAdmin" class="primary">Load Dashboard</button>
+      <div id="adminResult" class="result"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

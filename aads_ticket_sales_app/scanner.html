@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AADS Ticket Scanner</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="card">
+      <h1>Door Check-In Scanner</h1>
+      <p>Scan each QR code. Valid paid tickets can only be checked in once.</p>
+
+      <div class="grid two">
+        <label>
+          Door Staff Name
+          <input id="staffName" placeholder="Example: Jayme" />
+        </label>
+        <button id="startScanner" class="primary" type="button">Start Scanner</button>
+      </div>
+
+      <div id="reader"></div>
+      <div id="scanResult" class="result"></div>
+
+      <h2>Manual Lookup</h2>
+      <div class="grid two">
+        <input id="manualCode" placeholder="Paste ticket code" />
+        <button id="manualCheckin" class="primary" type="button">Check In</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <script src="js/config.js"></script>
+  <script src="js/scanner.js"></script>
+</body>
+</html>

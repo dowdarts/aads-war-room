@@ -81,6 +81,8 @@
     .override-btn { appearance: none; border: 1px solid #2a2a2a; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; border-radius: 7px; padding: 5px 10px; cursor: pointer; transition: all 120ms; white-space: nowrap; }
     .override-btn:hover { border-color: var(--green); color: var(--green-2); }
     .override-btn:disabled { opacity: 0.3; cursor: default; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .staff-badge { display: none; font-size: 11px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 20px; padding: 5px 12px; color: var(--muted); }
 
     .empty-row td { color: var(--muted); text-align: center; padding: 40px; font-size: 14px; }
 
@@ -118,9 +120,12 @@
           <div class="header-event">TOC 2026 · Master Check-in List</div>
           <div class="header-title">✅ Guest Check-in Status</div>
         </div>
-        <div class="live-badge live" id="liveBadge">
-          <div class="live-dot"></div>
-          LIVE
+        <div class="header-right">
+          <span id="staffBadge" class="staff-badge"></span>
+          <div class="live-badge live" id="liveBadge">
+            <div class="live-dot"></div>
+            LIVE
+          </div>
         </div>
       </div>
       <div class="counts-row">
@@ -191,8 +196,17 @@
     let supabaseClient = null
     let realtimeFailed = false
     let pollingInterval = null
+    let loggedInStaff = ''
 
     document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const session = JSON.parse(localStorage.getItem('aads_staff_session'))
+        if (session?.name) {
+          loggedInStaff = session.name
+          const badge = document.getElementById('staffBadge')
+          if (badge) { badge.textContent = `👤 ${loggedInStaff}`; badge.style.display = 'inline-block' }
+        }
+      } catch {}
       initSupabase()
       loadTickets()
     })
@@ -333,9 +347,12 @@
     function openOverride(code, name) {
       overrideTicketCode = code
       document.getElementById('overrideMsg').textContent = `Manually check in ${name} (${code})?`
-      document.getElementById('overrideStaff').value = ''
+      document.getElementById('overrideStaff').value = loggedInStaff
       document.getElementById('overrideModal').classList.remove('hidden')
-      setTimeout(() => document.getElementById('overrideStaff').focus(), 80)
+      setTimeout(() => {
+        const input = document.getElementById('overrideStaff')
+        if (!loggedInStaff) input.focus()
+      }, 80)
     }
     function closeModal() {
       document.getElementById('overrideModal').classList.add('hidden')
