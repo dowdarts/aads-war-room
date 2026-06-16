@@ -811,6 +811,11 @@
           <option value="4XL">4XL — 4X Large</option>
           <option value="5XL">5XL — 5X Large</option>
         </select>
+        <select id="catalogPreviewPoloStyle" class="catalog-preview-size">
+          <option value="">— Select polo style —</option>
+          <option value="Button Collar">Button Collar</option>
+          <option value="Zipper Collar">Zipper Collar</option>
+        </select>
         <div class="catalog-name-fields" id="catalogNameFields" style="display:none">
           <input type="text" id="catalogFirstName" class="catalog-name-input" placeholder="First name" maxlength="15">
           <input type="text" id="catalogLastName" class="catalog-name-input" placeholder="Last name" maxlength="15">
@@ -843,6 +848,7 @@
     const COLOR_SVG_BG = { red:'#1a0404', blue:'#040a1a', green:'#041209', purple:'#0e0417', orange:'#160800' }
 
     const CATALOG_SHIRTS = [
+      { name: 'Score Keeper & Official Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT16062026-MC-PL1-KH_dba2ec25-b8f6-443c-b954-1cc77c55b745.jpg?v=1781599813&width=1946', isPlayerReplica: false, allowCustomName: true },
       { name: 'CGC Blue Female Camo', img: 'https://maxcorners.us/cdn/shop/files/LM26102024-DT-PL10-KH_3.jpg?v=1733741818', isPlayerReplica: false, allowCustomName: true },
       { name: 'Rhyder Event 5 Finalist Player Shirt', img: 'https://maxcorners.us/cdn/shop/files/LM25062024MC-PL77-CYAN-KH_1.jpg?v=1776324369&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Rhyder Oliver' },
       { name: 'Tammy Walsh CGC Shirt', img: 'https://maxcorners.us/cdn/shop/files/MT18072025MC-DS-PL3-Pink-KH.jpg?v=1776314848&width=713', isPlayerReplica: true, allowCustomName: false, lockedName: 'Tammy Walsh' },
@@ -983,6 +989,7 @@
       catFooter.style.display = 'flex'
       document.getElementById('catalogPreviewTitle').textContent = shirt.name
       document.getElementById('catalogPreviewSize').value = ''
+      document.getElementById('catalogPreviewPoloStyle').value = ''
 
       // Show/hide name fields based on product type
       const nameFields = document.getElementById('catalogNameFields')
@@ -1004,12 +1011,20 @@
 
     function addCatalogFromPreview() {
       const sizeEl = document.getElementById('catalogPreviewSize')
+      const poloStyleEl = document.getElementById('catalogPreviewPoloStyle')
       const shirt = CATALOG_SHIRTS[pendingCatalogIndex]
 
       // Validate size
       if (!sizeEl.value) {
         sizeEl.style.borderColor = '#e63b3b'
         setTimeout(() => { sizeEl.style.borderColor = '' }, 1500)
+        return
+      }
+
+      // Validate polo style
+      if (!poloStyleEl.value) {
+        poloStyleEl.style.borderColor = '#e63b3b'
+        setTimeout(() => { poloStyleEl.style.borderColor = '' }, 1500)
         return
       }
 
@@ -1037,7 +1052,7 @@
         allowCustomName: shirt.allowCustomName,
         shirtName: shirtName,
         color:     null,
-        poloStyle: null,
+        poloStyle: poloStyleEl.value,
         pocket:    false,
         noName:    false,
       })
@@ -1115,7 +1130,7 @@
             <img src="${item.img}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;">
             <div class="cart-item-info">
               <div class="cart-item-main">${item.product}</div>
-              <div class="cart-item-sub">${item.shirtName || '—'} · ${item.size}</div>
+              <div class="cart-item-sub">${item.shirtName || '—'} · ${item.size}${item.poloStyle ? ' · ' + item.poloStyle : ''}</div>
             </div>
             <span class="cart-item-price">$43.48</span>
             <button type="button" class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
@@ -1155,7 +1170,7 @@
         if (item.type === 'catalog') {
           return `<div class="review-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
-            <span class="review-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}</span>
+            <span class="review-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}${item.poloStyle ? ' · ' + item.poloStyle : ''}</span>
             <span class="review-item-price">$43.48</span>
           </div>`
         }
@@ -1216,7 +1231,7 @@
             shirt_name:    firstItem.shirtName || null,
             no_name:       firstItem.noName,
             items:         cart.map(item => item.type === 'catalog'
-              ? { type: 'catalog', product: item.product, size: item.size, shirt_name: item.shirtName }
+              ? { type: 'catalog', product: item.product, size: item.size, polo_style: item.poloStyle, shirt_name: item.shirtName }
               : { type: 'polo', color: item.color, size: item.size, polo_style: item.poloStyle, pocket: item.pocket, shirt_name: item.shirtName || null, no_name: item.noName }),
             total_amount:  totalAmount,
           }),
@@ -1263,7 +1278,7 @@
         if (item.type === 'catalog') {
           return `<div class="confirm-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
-            <span class="confirm-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}</span>
+            <span class="confirm-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}${item.poloStyle ? ' · ' + item.poloStyle : ''}</span>
             <span class="confirm-item-price">$43.48</span>
           </div>`
         }
