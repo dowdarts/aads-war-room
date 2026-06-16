@@ -272,6 +272,37 @@
       border-left: 3px solid var(--accent);
     }
 
+    /* ══ STORE LAYOUT (two-column) ══ */
+    .store-layout {
+      max-width: 1060px; margin: 0 auto; padding: 0 20px 80px;
+      display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start;
+    }
+    .store-main { min-width: 0; }
+    .cart-sidebar {
+      position: sticky; top: 16px;
+      border: 1px solid var(--line); border-radius: 22px;
+      background: var(--panel-2); overflow: hidden;
+    }
+    .cart-sidebar-head {
+      padding: 14px 18px; border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cart-sidebar-title { font-size: 11px; font-weight: 900; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); }
+    .cart-sidebar-badge {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--accent); color: #0a0a0a;
+      font-size: 12px; font-weight: 900;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cart-sidebar-body { padding: 10px; max-height: 480px; overflow-y: auto; }
+    .cart-sidebar-empty { color: #555; font-size: 13px; line-height: 1.65; text-align: center; padding: 28px 8px; margin: 0; }
+    .cart-sidebar-footer { padding: 14px 16px; border-top: 1px solid var(--line); }
+    .cart-sidebar-total-row {
+      display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;
+    }
+    .cart-sidebar-total-label { font-size: 11px; font-weight: 900; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .cart-sidebar-total-val { font-size: 16px; font-weight: 900; color: var(--text); }
+
     /* ══ STEP PROGRESS ══ */
     .steps-wrap { max-width: 680px; margin: 0 auto; padding: 24px 20px 0; }
     .step-progress { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
@@ -434,6 +465,8 @@
 
     /* ══ RESPONSIVE ══ */
     @media (max-width: 780px) {
+      .store-layout { grid-template-columns: 1fr; padding: 0 16px 60px; }
+      .cart-sidebar { position: static; }
       .page-content { padding: 0 16px 80px; }
       .hero { padding: 26px 18px 22px; }
       .hero-eyebrow { font-size: 10px; letter-spacing: 0.28em; }
@@ -515,28 +548,24 @@
       <div class="step-progress">
         <div class="step-item active" id="step-ind-1">
           <div class="step-circle">1</div>
-          <div class="step-label">Store</div>
+          <div class="step-label">Shop</div>
         </div>
         <div class="step-connector" id="step-conn-1"></div>
         <div class="step-item" id="step-ind-2">
           <div class="step-circle">2</div>
-          <div class="step-label">Cart</div>
+          <div class="step-label">Checkout</div>
         </div>
         <div class="step-connector" id="step-conn-2"></div>
         <div class="step-item" id="step-ind-3">
           <div class="step-circle">3</div>
-          <div class="step-label">Checkout</div>
-        </div>
-        <div class="step-connector" id="step-conn-3"></div>
-        <div class="step-item" id="step-ind-4">
-          <div class="step-circle">4</div>
           <div class="step-label">Payment</div>
         </div>
       </div>
     </div>
 
-    <!-- ── Step 1: Store ────────────────────────────────── -->
-    <div id="stepStore" class="page-content">
+    <!-- ── Store + Cart sidebar ── -->
+    <div id="storeLayout" class="store-layout">
+    <div class="store-main">
       <div class="section">
         <p class="section-title">Step 1 · Choose Colour</p>
         <div class="color-grid">
@@ -658,35 +687,27 @@
         <div class="catalog-grid" id="catalogGrid"></div>
       </div>
 
-      <!-- Cart summary bar — appears after first item added -->
-      <div id="cartSummaryBar" class="cart-summary-bar hidden">
-        <div class="cart-summary-info">
-          <div class="cart-summary-count" id="cartSummaryCount">0</div>
-          <div>
-            <div class="cart-summary-text" id="cartSummaryText">0 items in cart</div>
-            <div class="cart-summary-total" id="cartSummaryTotal">$0 CAD</div>
-          </div>
+    </div><!-- end store-main -->
+
+    <!-- Cart sidebar -->
+    <div class="cart-sidebar">
+      <div class="cart-sidebar-head">
+        <span class="cart-sidebar-title">Your Cart</span>
+        <span class="cart-sidebar-badge hidden" id="sidebarBadge">0</span>
+      </div>
+      <div class="cart-sidebar-body" id="sidebarItems">
+        <p class="cart-sidebar-empty">Your cart is empty.<br>Add a shirt to get started.</p>
+      </div>
+      <div class="cart-sidebar-footer hidden" id="sidebarFooter">
+        <div class="cart-sidebar-total-row">
+          <span class="cart-sidebar-total-label">Total</span>
+          <span class="cart-sidebar-total-val" id="sidebarTotal"></span>
         </div>
-        <button class="view-cart-btn" onclick="goToStep(2)">View Cart →</button>
+        <button type="button" class="step-nav-fwd" onclick="goToStep(2)">Checkout →</button>
       </div>
     </div>
 
-    <!-- ── Step 2: Cart ─────────────────────────────────── -->
-    <div id="stepCart" class="page-content hidden">
-      <div class="section">
-        <p class="section-title">Your Cart</p>
-        <div id="cartItemsList"></div>
-        <p id="cartEmptyMsg" class="cart-empty hidden">Your cart is empty. Go back and add some shirts!</p>
-      </div>
-      <div class="cart-total-row" id="cartTotalRow">
-        <span class="cart-total-label">Total</span>
-        <span class="cart-total-amount" id="cartTotal">$0 <em>CAD</em></span>
-      </div>
-      <div class="step-nav">
-        <button class="step-nav-back" onclick="goToStep(1)">← Add More</button>
-        <button class="step-nav-fwd" id="cartCheckoutBtn" onclick="goToStep(3)">Proceed to Checkout →</button>
-      </div>
-    </div>
+    </div><!-- end storeLayout -->
 
     <!-- ── Step 3: Checkout ─────────────────────────────── -->
     <div id="stepCheckout" class="page-content hidden">
@@ -705,7 +726,7 @@
         <div id="checkoutError" class="error-box hidden"></div>
       </div>
       <div class="step-nav">
-        <button class="step-nav-back" onclick="goToStep(2)">← Back to Cart</button>
+        <button class="step-nav-back" onclick="goToStep(1)">← Back to Shop</button>
         <button class="step-nav-fwd accent" id="placeOrderBtn" onclick="placeOrder()">Place Order →</button>
       </div>
     </div>
@@ -880,18 +901,15 @@
     // ── Step navigation ───────────────────────────────────
     function goToStep(n) {
       if (n === 2 && cart.length === 0) return
-      if (n === 3 && cart.length === 0) return
       currentStep = n
-      document.getElementById('stepStore').classList.toggle('hidden', n !== 1)
-      document.getElementById('stepCart').classList.toggle('hidden', n !== 2)
-      document.getElementById('stepCheckout').classList.toggle('hidden', n !== 3)
-      for (let i = 1; i <= 4; i++) {
+      document.getElementById('storeLayout').classList.toggle('hidden', n !== 1)
+      document.getElementById('stepCheckout').classList.toggle('hidden', n !== 2)
+      for (let i = 1; i <= 3; i++) {
         const ind = document.getElementById(`step-ind-${i}`)
         ind.className = 'step-item' + (i < n ? ' done' : (i === n ? ' active' : ''))
-        if (i < 4) document.getElementById(`step-conn-${i}`).className = 'step-connector' + (i < n ? ' done' : '')
+        if (i < 3) document.getElementById(`step-conn-${i}`).className = 'step-connector' + (i < n ? ' done' : '')
       }
-      if (n === 2) renderCartPage()
-      if (n === 3) renderCheckoutPage()
+      if (n === 2) renderCheckoutPage()
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
@@ -1024,7 +1042,7 @@
         noName:    false,
       })
       closePreview()
-      updateCartSummaryBar()
+      renderCartSidebar()
     }
 
     // ── Pocket toggle ─────────────────────────────────────
@@ -1059,7 +1077,7 @@
       if (!shirtName && !noName) { errorEl.textContent = 'Enter a name to print on the shirt, or check "No name on shirt".'; errorEl.classList.remove('hidden'); return }
 
       cart.push({ id: Math.random().toString(36).slice(2,10), color: selectedColor, size, poloStyle, pocket, shirtName, noName })
-      updateCartSummaryBar()
+      renderCartSidebar()
 
       const btn = document.getElementById('addBtn')
       btn.textContent = '✓ Added to Cart!'
@@ -1074,66 +1092,60 @@
       document.getElementById('shirtNameInput').disabled = false
     }
 
-    function updateCartSummaryBar() {
-      const bar = document.getElementById('cartSummaryBar')
-      if (cart.length === 0) { bar.classList.add('hidden'); return }
-      bar.classList.remove('hidden')
-      const total = cart.length * 43.48
-      document.getElementById('cartSummaryCount').textContent = cart.length
-      document.getElementById('cartSummaryText').textContent = `${cart.length} item${cart.length > 1 ? 's' : ''} in cart`
-      document.getElementById('cartSummaryTotal').textContent = `$${total} CAD`
-    }
+    // ── Cart sidebar ──────────────────────────────────────
+    function renderCartSidebar() {
+      const itemsEl  = document.getElementById('sidebarItems')
+      const footerEl = document.getElementById('sidebarFooter')
+      const badgeEl  = document.getElementById('sidebarBadge')
+      const totalEl  = document.getElementById('sidebarTotal')
 
-    // ── Cart page ─────────────────────────────────────────
-    function renderCartPage() {
-      const listEl     = document.getElementById('cartItemsList')
-      const emptyEl    = document.getElementById('cartEmptyMsg')
-      const totalEl    = document.getElementById('cartTotal')
-      const checkoutBtn = document.getElementById('cartCheckoutBtn')
       if (cart.length === 0) {
-        listEl.innerHTML = ''
-        emptyEl.classList.remove('hidden')
-        checkoutBtn.disabled = true
-      } else {
-        emptyEl.classList.add('hidden')
-        checkoutBtn.disabled = false
-        listEl.innerHTML = cart.map(item => {
-          if (item.type === 'catalog') {
-            return `<div class="cart-item">
-              <img src="${item.img}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;">
-              <div class="cart-item-info">
-                <div class="cart-item-main">${item.product}</div>
-                <div class="cart-item-sub">${item.shirtName || '—'} · ${item.size}</div>
-              </div>
-              <span class="cart-item-price">$43.48</span>
-              <button class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
-            </div>`
-          }
-          const hex = COLOR_HEX[item.color] || '#888'
-          const nameLabel = item.noName ? '<em style="color:#555">No name</em>' : (item.shirtName || '—')
-          const extras = [item.poloStyle, item.pocket ? 'Pocket' : null].filter(Boolean).join(' · ')
+        badgeEl.classList.add('hidden')
+        itemsEl.innerHTML = '<p class="cart-sidebar-empty">Your cart is empty.<br>Add a shirt to get started.</p>'
+        footerEl.classList.add('hidden')
+        return
+      }
+
+      badgeEl.classList.remove('hidden')
+      badgeEl.textContent = cart.length
+
+      itemsEl.innerHTML = cart.map(item => {
+        if (item.type === 'catalog') {
           return `<div class="cart-item">
-            <span class="cart-item-dot" style="background:${hex}"></span>
+            <img src="${item.img}" alt="" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;">
             <div class="cart-item-info">
-              <div class="cart-item-main">${item.color} · ${item.size} · ${extras}</div>
-              <div class="cart-item-sub">${nameLabel}</div>
+              <div class="cart-item-main">${item.product}</div>
+              <div class="cart-item-sub">${item.shirtName || '—'} · ${item.size}</div>
             </div>
             <span class="cart-item-price">$43.48</span>
-            <button class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
+            <button type="button" class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
           </div>`
-        }).join('')
-      }
+        }
+        const hex = COLOR_HEX[item.color] || '#888'
+        const nameLabel = item.noName ? '<em style="color:#555">No name</em>' : (item.shirtName || '—')
+        const extras = [item.poloStyle, item.pocket ? 'Pocket' : null].filter(Boolean).join(' · ')
+        return `<div class="cart-item">
+          <span class="cart-item-dot" style="background:${hex}"></span>
+          <div class="cart-item-info">
+            <div class="cart-item-main">${item.color} · ${item.size} · ${extras}</div>
+            <div class="cart-item-sub">${nameLabel}</div>
+          </div>
+          <span class="cart-item-price">$43.48</span>
+          <button type="button" class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
+        </div>`
+      }).join('')
+
       const subtotal = cart.length * 43.48
       const tax = subtotal * 0.15
       const total = subtotal + tax
-      totalEl.innerHTML = `$${subtotal.toFixed(2)} + $${tax.toFixed(2)} tax = $${total.toFixed(2)} <em>CAD</em>`
+      totalEl.textContent = `$${total.toFixed(2)} CAD`
+      footerEl.classList.remove('hidden')
     }
 
     function removeFromCart(id) {
       cart = cart.filter(i => i.id !== id)
-      updateCartSummaryBar()
-      renderCartPage()
-      if (cart.length === 0) goToStep(1)
+      renderCartSidebar()
+      if (cart.length === 0 && currentStep === 2) goToStep(1)
     }
 
     // ── Checkout page ─────────────────────────────────────
@@ -1223,12 +1235,11 @@
       }
     }
 
-    // ── Show confirmation (step 4) ────────────────────────
+    // ── Show confirmation (step 3) ────────────────────────
     function showConfirmation({ orderNumber, totalAmount }) {
-      // Mark all steps done, step 4 active
-      for (let i = 1; i <= 4; i++) {
-        document.getElementById(`step-ind-${i}`).className = 'step-item' + (i < 4 ? ' done' : ' active')
-        if (i < 4) document.getElementById(`step-conn-${i}`).className = 'step-connector done'
+      for (let i = 1; i <= 3; i++) {
+        document.getElementById(`step-ind-${i}`).className = 'step-item' + (i < 3 ? ' done' : ' active')
+        if (i < 3) document.getElementById(`step-conn-${i}`).className = 'step-connector done'
       }
 
       document.getElementById('activeView').classList.add('hidden')
