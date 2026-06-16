@@ -12,6 +12,7 @@ const TABS = [
   { id: 'ack', label: '📋 Acknowledgements' },
   { id: 'form', label: '📝 Competition Form' },
   { id: 'merch', label: '👕 Merch Store' },
+  { id: 'shirts', label: '🧾 Shirt Order' },
   { id: 'data', label: 'Data Manager' },
 ]
 
