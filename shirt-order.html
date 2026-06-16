@@ -135,6 +135,16 @@
     .check-row:hover { border-color: #333; }
     .check-row input[type="checkbox"] { width: 17px; height: 17px; flex-shrink: 0; accent-color: var(--accent); cursor: pointer; }
     .check-row label { font-size: 14px; color: var(--text); cursor: pointer; letter-spacing: normal; text-transform: none; font-weight: normal; flex: 1; }
+    .toggle-pair { display: flex; border-radius: 13px; border: 1px solid #272727; overflow: hidden; }
+    .toggle-opt {
+      flex: 1; appearance: none; border: 0; padding: 13px;
+      font-size: 15px; font-weight: 900; font-family: inherit; cursor: pointer;
+      transition: background 150ms, color 150ms;
+      background: #0a0a0a; color: #444; letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .toggle-opt + .toggle-opt { border-left: 1px solid #272727; }
+    .toggle-opt.active-no  { background: #141414; color: var(--muted); }
+    .toggle-opt.active-yes { background: rgba(255,122,0,0.12); color: var(--accent); }
     .field-hint { font-size: 11px; color: #555; }
     .selected-color-display {
       display: flex; align-items: center; gap: 10px; padding: 10px 15px;
@@ -615,9 +625,10 @@
           </div>
 
           <div class="field">
-            <div class="check-row">
-              <input type="checkbox" id="pocketCheck">
-              <label for="pocketCheck">Add a chest pocket to the shirt</label>
+            <label>Chest Pocket</label>
+            <div class="toggle-pair">
+              <button type="button" class="toggle-opt active-no" id="pocketNo"  onclick="setPocket(false)">No</button>
+              <button type="button" class="toggle-opt"           id="pocketYes" onclick="setPocket(true)">Yes</button>
             </div>
           </div>
 
@@ -1016,6 +1027,14 @@
       updateCartSummaryBar()
     }
 
+    // ── Pocket toggle ─────────────────────────────────────
+    let pocketSelected = false
+    function setPocket(val) {
+      pocketSelected = val
+      document.getElementById('pocketNo').className  = 'toggle-opt' + (val ? '' : ' active-no')
+      document.getElementById('pocketYes').className = 'toggle-opt' + (val ? ' active-yes' : '')
+    }
+
     // ── No-name toggle ────────────────────────────────────
     function toggleNoName() {
       const checked = document.getElementById('noNameCheck').checked
@@ -1030,7 +1049,7 @@
       errorEl.classList.add('hidden')
       const size       = document.getElementById('sizeSelect').value
       const poloStyle  = document.getElementById('poloStyleSelect').value
-      const pocket     = document.getElementById('pocketCheck').checked
+      const pocket     = pocketSelected
       const shirtName  = document.getElementById('shirtNameInput').value.trim()
       const noName     = document.getElementById('noNameCheck').checked
 
@@ -1049,7 +1068,7 @@
 
       document.getElementById('sizeSelect').value = ''
       document.getElementById('poloStyleSelect').value = ''
-      document.getElementById('pocketCheck').checked = false
+      setPocket(false)
       document.getElementById('shirtNameInput').value = ''
       document.getElementById('noNameCheck').checked = false
       document.getElementById('shirtNameInput').disabled = false
