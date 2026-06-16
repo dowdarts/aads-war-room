@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Interview — Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #fff;
+      min-height: 100dvh;
+      padding: 0 0 60px;
+    }
+    .hero {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 24px 20px;
+      text-align: center;
+    }
+    .hero h1 { font-size: 1.3rem; font-weight: 800; letter-spacing: 0.03em; }
+    .hero p { font-size: 0.78rem; color: #666; margin-top: 4px; }
+
+    .pin-wrap {
+      max-width: 340px;
+      margin: 60px auto 0;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 18px;
+      padding: 36px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+    .pin-wrap h2 { font-size: 1.1rem; font-weight: 700; }
+    .pin-wrap p { font-size: 0.8rem; color: #666; }
+    .pin-input {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 12px;
+      color: #fff;
+      font-size: 1.4rem;
+      letter-spacing: 0.5em;
+      text-align: center;
+      outline: none;
+      width: 100%;
+    }
+    .pin-input:focus { border-color: #f97316; }
+    .btn { border: none; border-radius: 10px; padding: 12px 20px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: background 0.15s; width: 100%; }
+    .btn-orange { background: #ea580c; color: #fff; }
+    .btn-orange:hover { background: #f97316; }
+    .btn-orange:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-gray { background: #1e1e1e; color: #aaa; border: 1px solid #333; }
+    .btn-gray:hover { background: #252525; color: #fff; }
+    .btn-sm { padding: 7px 14px; font-size: 0.78rem; width: auto; }
+    .btn-danger { background: #3b0f0f; color: #f87171; border: 1px solid #5a1a1a; }
+    .btn-danger:hover { background: #4a1313; }
+    .btn-muted { background: #1a1a1a; color: #888; border: 1px solid #2a2a2a; }
+    .btn-muted:hover { color: #fff; border-color: #555; }
+    .pin-error { color: #f87171; font-size: 0.82rem; }
+    .admin-tools-hidden { display: none; }
+    .admin-tools-body { display: flex; flex-direction: column; gap: 10px; padding: 16px; }
+
+    #dashboard { display: none; }
+
+    .container { max-width: 760px; margin: 0 auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 24px; }
+
+    .section {
+      background: #0d0d0d;
+      border: 1px solid #1e1e1e;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid #1e1e1e;
+    }
+    .section-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; }
+    .section-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+
+    .player-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .player-row input {
+      flex: 1;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 9px 12px;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    .player-row input:focus { border-color: #f97316; }
+    .player-row input.province { max-width: 72px; text-align: center; text-transform: uppercase; }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #555;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 6px;
+      border-radius: 6px;
+      transition: color 0.12s;
+    }
+    .remove-btn:hover { color: #f87171; }
+
+    .match-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .match-row select {
+      flex: 1;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: #fff;
+      font-size: 0.82rem;
+      outline: none;
+      appearance: none;
+    }
+    .match-row select:focus { border-color: #f97316; }
+    .match-row .vs { color: #555; font-size: 0.75rem; font-weight: 700; flex-shrink: 0; }
+
+    .current-match-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-top: 1px solid #1e1e1e;
+      background: #0a0a0a;
+    }
+    .current-match-label { font-size: 0.78rem; color: #666; flex: 1; }
+    .current-match-val { font-size: 0.9rem; font-weight: 700; color: #f97316; min-width: 80px; text-align: center; }
+    .stepper { display: flex; gap: 6px; }
+    .stepper button {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #aaa;
+      border-radius: 7px;
+      padding: 6px 12px;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .stepper button:hover:not(:disabled) { background: #252525; color: #fff; border-color: #555; }
+    .stepper button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #fff;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 12px 24px;
+      border-radius: 10px;
+      opacity: 0;
+      transition: all 0.25s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.ok { border-color: #166534; color: #4ade80; }
+    .toast.err { border-color: #7f1d1d; color: #f87171; }
+
+    .save-bar {
+      position: sticky;
+      bottom: 0;
+      background: #0a0a0a;
+      border-top: 1px solid #1e1e1e;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .save-bar .btn { max-width: 160px; }
+
+    .empty-hint { color: #555; font-size: 0.82rem; text-align: center; padding: 12px 0; }
+
+    .csv-hint { font-size: 0.75rem; color: #555; line-height: 1.5; }
+    .csv-hint code { background: #1a1a1a; border-radius: 4px; padding: 1px 6px; color: #aaa; font-family: monospace; font-size: 0.78rem; }
+    .csv-area {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #e0e0e0;
+      font-family: monospace;
+      font-size: 0.8rem;
+      resize: vertical;
+      min-height: 110px;
+      outline: none;
+      line-height: 1.6;
+    }
+    .csv-area:focus { border-color: #f97316; }
+    .csv-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .csv-preview {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 0.8rem;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .csv-preview.visible { display: flex; }
+    .csv-preview-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #888; }
+    .csv-preview-row { color: #ccc; padding: 3px 0; border-bottom: 1px solid #1a1a1a; }
+    .csv-preview-row:last-child { border-bottom: none; }
+    .csv-preview-ok { color: #4ade80; font-size: 0.75rem; }
+    .csv-preview-err { color: #f87171; font-size: 0.75rem; }
+    .csv-file-label { cursor: pointer; }
+    .csv-file-input { display: none; }
+    .csv-confirm-row { margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>AADS Interview — Admin</h1>
+  <p>Manage event players and match schedule for Denis</p>
+</div>
+
+<!-- PIN gate -->
+<div class="pin-wrap" id="pinView">
+  <h2>🔐 Admin Access</h2>
+  <p>Enter the admin PIN to continue</p>
+  <input type="password" inputmode="numeric" maxlength="6" class="pin-input" id="pinInput"
+    placeholder="••••" onkeydown="if(event.key==='Enter')checkPin()" />
+  <p class="pin-error" id="pinError" style="display:none">Incorrect PIN</p>
+  <button type="button" class="btn btn-orange" onclick="checkPin()">Unlock</button>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="container">
+
+    <!-- CSV Import -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Import from CSV</span>
+        <label class="btn btn-gray btn-sm csv-file-label">
+          Upload File
+          <input type="file" id="csvFileInput" accept=".csv,.txt" class="csv-file-input" onchange="handleFileUpload(event)" />
+        </label>
+      </div>
+      <div class="section-body">
+        <p class="csv-hint">One match per row: <code>Player A, Province, Player B, Province</code></p>
+        <p class="csv-hint">Example: <code>Matt Dow, NS, John Smith, NB</code> — header row is optional and will be skipped.</p>
+        <textarea class="csv-area" id="csvInput" placeholder="Paste your schedule CSV here, or upload a file above…"></textarea>
+        <div class="csv-btn-row">
+          <button type="button" class="btn btn-gray btn-sm" onclick="previewCSV()">Preview Import</button>
+          <button type="button" class="btn btn-gray btn-sm" onclick="document.getElementById('csvInput').value='';document.getElementById('csvPreview').className='csv-preview'">Clear</button>
+        </div>
+        <div class="csv-preview" id="csvPreview">
+          <span class="csv-preview-title" id="csvPreviewTitle"></span>
+          <div id="csvPreviewBody"></div>
+          <div class="csv-btn-row csv-confirm-row">
+            <button type="button" class="btn btn-orange btn-sm" id="csvConfirmBtn" onclick="confirmImport()">✓ Load into Schedule</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Players -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Players</span>
+        <button type="button" class="btn btn-gray btn-sm" onclick="addPlayer()">+ Add Player</button>
+      </div>
+      <div class="section-body" id="playersList">
+        <p class="empty-hint" id="playersEmpty">No players yet. Click + Add Player.</p>
+      </div>
+    </div>
+
+    <!-- Schedule -->
+    <div class="section">
+      <div class="section-head">
+        <span class="section-title">Match Schedule</span>
+        <button type="button" class="btn btn-gray btn-sm" onclick="addMatch()">+ Add Match</button>
+      </div>
+      <div class="section-body" id="matchList">
+        <p class="empty-hint" id="matchEmpty">No matches yet. Add players first, then add matches.</p>
+      </div>
+      <div class="current-match-bar">
+        <span class="current-match-label">Current Match (Denis's view)</span>
+        <span class="current-match-val" id="currentMatchLabel">— / —</span>
+        <div class="stepper">
+          <button type="button" id="prevBtn" onclick="stepMatch(-1)" disabled>←</button>
+          <button type="button" id="nextBtn" onclick="stepMatch(1)" disabled>→</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="save-bar">
+    <button type="button" class="btn btn-orange" id="saveBtn" onclick="saveAll()">Save All Changes</button>
+  </div>
+
+  <div class="section-card admin-tools-hidden" id="adminTools">
+    <div class="section-head">
+      <span class="section-title">⚠️ Event Management</span>
+    </div>
+    <div class="admin-tools-body">
+      <button type="button" class="btn btn-muted" onclick="adminClearDraft()">Clear Active Match Draft</button>
+      <button type="button" class="btn btn-muted" onclick="adminClearCompleted()">Clear All Completed Match Results</button>
+      <button type="button" class="btn btn-muted" onclick="adminResetEvent()">Reset Entire Event (clears results + draft + current match)</button>
+      <button type="button" class="btn btn-muted" onclick="adminExportData()">Export Completed Match Data (.json)</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+  const HDRS = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }
+  const CORRECT_PIN = '40783'
+
+  let players = []   // [{ id, name, province }]
+  let schedule = []  // [{ id, playerA, playerB }]
+  let currentMatch = 0
+  let nextId = 1
+
+  function uid() { return 'id' + (nextId++) }
+
+  // ── PIN ──────────────────────────────────────────────────────────
+  function checkPin() {
+    const val = document.getElementById('pinInput').value.trim()
+    if (val === CORRECT_PIN) {
+      document.getElementById('pinView').style.display = 'none'
+      document.getElementById('dashboard').style.display = 'block'
+      document.getElementById('adminTools').classList.remove('admin-tools-hidden')
+      loadData()
+    } else {
+      document.getElementById('pinError').style.display = 'block'
+    }
+  }
+
+  // ── Load from Supabase ───────────────────────────────────────────
+  async function loadData() {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/app_settings?key=eq.interview_event&select=value`,
+        { headers: HDRS }
+      )
+      const rows = await res.json()
+      if (!rows.length) return
+      const data = JSON.parse(rows[0].value)
+      players = data.players || []
+      schedule = data.schedule || []
+      currentMatch = data.current_match || 0
+      if (players.length) nextId = Math.max(...players.map(p => parseInt(p.id.replace('id',''))||0), ...schedule.map(m => parseInt(m.id.replace('id',''))||0)) + 1
+    } catch {}
+    renderPlayers()
+    renderSchedule()
+    renderCurrentMatch()
+  }
+
+  // ── Players ──────────────────────────────────────────────────────
+  function addPlayer() {
+    players.push({ id: uid(), name: '', province: '' })
+    renderPlayers()
+  }
+
+  function removePlayer(id) {
+    players = players.filter(p => p.id !== id)
+    schedule = schedule.filter(m => m.playerA !== id && m.playerB !== id)
+    renderPlayers()
+    renderSchedule()
+    renderCurrentMatch()
+  }
+
+  function renderPlayers() {
+    const list = document.getElementById('playersList')
+    document.getElementById('playersEmpty').style.display = players.length ? 'none' : 'block'
+    const rows = list.querySelectorAll('.player-row')
+    rows.forEach(r => r.remove())
+    players.forEach(p => {
+      const row = document.createElement('div')
+      row.className = 'player-row'
+      row.innerHTML = `
+        <input type="text" placeholder="Player name" value="${esc(p.name)}"
+          oninput="updatePlayer('${p.id}','name',this.value)" />
+        <input type="text" class="province" placeholder="NS" maxlength="3" value="${esc(p.province)}"
+          oninput="updatePlayer('${p.id}','province',this.value.toUpperCase())" />
+        <button type="button" class="remove-btn" onclick="removePlayer('${p.id}')">✕</button>
+      `
+      list.appendChild(row)
+    })
+    renderSchedule()
+  }
+
+  function updatePlayer(id, field, val) {
+    const p = players.find(p => p.id === id)
+    if (p) p[field] = field === 'province' ? val.toUpperCase() : val
+    if (field === 'name') renderSchedule()
+  }
+
+  // ── Schedule ─────────────────────────────────────────────────────
+  function addMatch() {
+    if (players.length < 2) { showToast('Add at least 2 players first.', 'err'); return }
+    schedule.push({ id: uid(), playerA: players[0].id, playerB: players[1].id })
+    renderSchedule()
+    renderCurrentMatch()
+  }
+
+  function removeMatch(id) {
+    const idx = schedule.findIndex(m => m.id === id)
+    schedule = schedule.filter(m => m.id !== id)
+    if (currentMatch >= schedule.length && currentMatch > 0) currentMatch = schedule.length - 1
+    renderSchedule()
+    renderCurrentMatch()
+  }
+
+  function renderSchedule() {
+    const list = document.getElementById('matchList')
+    document.getElementById('matchEmpty').style.display = schedule.length ? 'none' : 'block'
+    const rows = list.querySelectorAll('.match-row')
+    rows.forEach(r => r.remove())
+    schedule.forEach((m, i) => {
+      const row = document.createElement('div')
+      row.className = 'match-row'
+      const opts = players.map(p => `<option value="${p.id}" ${p.id===m.playerA?'selected':''}>${p.name||'(unnamed)'}</option>`).join('')
+      const opts2 = players.map(p => `<option value="${p.id}" ${p.id===m.playerB?'selected':''}>${p.name||'(unnamed)'}</option>`).join('')
+      row.innerHTML = `
+        <span style="font-size:0.7rem;color:#555;min-width:22px;text-align:right">${i+1}.</span>
+        <select onchange="updateMatch('${m.id}','playerA',this.value)">${opts}</select>
+        <span class="vs">vs</span>
+        <select onchange="updateMatch('${m.id}','playerB',this.value)">${opts2}</select>
+        <button type="button" class="remove-btn" onclick="removeMatch('${m.id}')">✕</button>
+      `
+      list.appendChild(row)
+    })
+    renderCurrentMatch()
+  }
+
+  function updateMatch(id, field, val) {
+    const m = schedule.find(m => m.id === id)
+    if (m) m[field] = val
+  }
+
+  // ── Current match stepper ─────────────────────────────────────────
+  function renderCurrentMatch() {
+    const label = document.getElementById('currentMatchLabel')
+    const prev = document.getElementById('prevBtn')
+    const next = document.getElementById('nextBtn')
+    if (!schedule.length) {
+      label.textContent = '— / —'
+      prev.disabled = true
+      next.disabled = true
+      return
+    }
+    if (currentMatch >= schedule.length) currentMatch = schedule.length - 1
+    const m = schedule[currentMatch]
+    const pA = players.find(p => p.id === m?.playerA)
+    const pB = players.find(p => p.id === m?.playerB)
+    label.textContent = `Match ${currentMatch + 1} of ${schedule.length}`
+    prev.disabled = currentMatch <= 0
+    next.disabled = currentMatch >= schedule.length - 1
+  }
+
+  function stepMatch(dir) {
+    currentMatch = Math.max(0, Math.min(schedule.length - 1, currentMatch + dir))
+    renderCurrentMatch()
+  }
+
+  // ── Save ──────────────────────────────────────────────────────────
+  async function saveAll() {
+    const btn = document.getElementById('saveBtn')
+    btn.disabled = true
+    btn.textContent = 'Saving…'
+    const payload = JSON.stringify({ players, schedule, current_match: currentMatch })
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/app_settings?key=eq.interview_event`,
+        {
+          method: 'PATCH',
+          headers: { ...HDRS, Prefer: 'return=minimal' },
+          body: JSON.stringify({ value: payload }),
+        }
+      )
+      if (!res.ok) throw new Error()
+      showToast('Saved!', 'ok')
+    } catch {
+      showToast('Save failed. Check connection.', 'err')
+    }
+    btn.disabled = false
+    btn.textContent = 'Save All Changes'
+  }
+
+  // ── CSV Import ────────────────────────────────────────────────────
+  let csvParsed = null  // { players, schedule } from last preview
+
+  function handleFileUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => {
+      document.getElementById('csvInput').value = ev.target.result
+      previewCSV()
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
+  function parseCSVText(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0)
+    const parsedPlayers = {}  // key: "name|province" → id
+    const parsedSchedule = []
+    const errors = []
+    let tempId = 1
+    const makeId = () => 'csv' + (tempId++)
+
+    function getOrAddPlayer(name, province) {
+      const key = name.toLowerCase() + '|' + province.toLowerCase()
+      if (!parsedPlayers[key]) parsedPlayers[key] = { id: makeId(), name, province: province.toUpperCase() }
+      return parsedPlayers[key].id
+    }
+
+    lines.forEach((line, i) => {
+      const cols = line.split(',').map(c => c.trim())
+      if (cols.length < 2) { errors.push(`Row ${i + 1}: not enough columns — skipped`); return }
+
+      let nameA, provA, nameB, provB
+
+      if (cols.length >= 4) {
+        // Format: Name A, Province A, Name B, Province B
+        nameA = cols[0]; provA = cols[1]; nameB = cols[2]; provB = cols[3]
+      } else if (cols.length === 3) {
+        // Format: Name A, Province A, Name B  (province B unknown)
+        nameA = cols[0]; provA = cols[1]; nameB = cols[2]; provB = ''
+      } else {
+        // Format: Name A, Name B  (no provinces)
+        nameA = cols[0]; provA = ''; nameB = cols[1]; provB = ''
+      }
+
+      // Skip header-like rows
+      if (!nameA || !nameB) { errors.push(`Row ${i + 1}: missing name — skipped`); return }
+      const lowerA = nameA.toLowerCase(), lowerB = nameB.toLowerCase()
+      if (lowerA === 'player a' || lowerA === 'player' || lowerA === 'name' || lowerA === 'home') return
+
+      const idA = getOrAddPlayer(nameA, provA)
+      const idB = getOrAddPlayer(nameB, provB)
+      parsedSchedule.push({ id: makeId(), playerA: idA, playerB: idB })
+    })
+
+    return { players: Object.values(parsedPlayers), schedule: parsedSchedule, errors }
+  }
+
+  function previewCSV() {
+    const text = document.getElementById('csvInput').value.trim()
+    const preview = document.getElementById('csvPreview')
+    const title = document.getElementById('csvPreviewTitle')
+    const body = document.getElementById('csvPreviewBody')
+
+    if (!text) { preview.className = 'csv-preview'; return }
+
+    const result = parseCSVText(text)
+    csvParsed = result
+
+    title.textContent = `Found ${result.players.length} player${result.players.length !== 1 ? 's' : ''}, ${result.schedule.length} match${result.schedule.length !== 1 ? 'es' : ''}`
+
+    let html = result.schedule.map((m, i) => {
+      const pA = result.players.find(p => p.id === m.playerA)
+      const pB = result.players.find(p => p.id === m.playerB)
+      return `<div class="csv-preview-row">${i + 1}. ${pA?.name || '?'}${pA?.province ? ' (' + pA.province + ')' : ''} vs ${pB?.name || '?'}${pB?.province ? ' (' + pB.province + ')' : ''}</div>`
+    }).join('')
+
+    if (result.errors.length) {
+      html += result.errors.map(e => `<div class="csv-preview-err">⚠ ${e}</div>`).join('')
+    }
+
+    if (result.schedule.length > 0) {
+      html += `<div class="csv-preview-ok">✓ Ready to import — this will replace current players and schedule.</div>`
+    }
+
+    body.innerHTML = html
+    preview.className = 'csv-preview visible'
+    document.getElementById('csvConfirmBtn').style.display = result.schedule.length ? '' : 'none'
+  }
+
+  function confirmImport() {
+    if (!csvParsed || !csvParsed.schedule.length) return
+    players = csvParsed.players
+    schedule = csvParsed.schedule
+    currentMatch = 0
+    nextId = players.length + schedule.length + 1
+    csvParsed = null
+    document.getElementById('csvInput').value = ''
+    document.getElementById('csvPreview').className = 'csv-preview'
+    renderPlayers()
+    renderSchedule()
+    renderCurrentMatch()
+    showToast(`Imported ${players.length} players, ${schedule.length} matches. Save to confirm.`, 'ok')
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────
+  function esc(str) {
+    return (str || '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  }
+
+  let toastTimer
+  function showToast(msg, type) {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.className = 'toast show ' + (type || '')
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => { t.className = 'toast' }, 2800)
+  }
+
+  // ── Admin event management ─────────────────────────────────────────
+  async function getFullState() {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/app_settings?key=eq.interview_event&select=value`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    )
+    const rows = await res.json()
+    return rows.length ? JSON.parse(rows[0].value) : {}
+  }
+
+  async function patchFullState(state) {
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/app_settings?key=eq.interview_event`,
+      {
+        method: 'PATCH',
+        headers: { ...HDRS, Prefer: 'return=minimal' },
+        body: JSON.stringify({ value: JSON.stringify(state) }),
+      }
+    )
+  }
+
+  async function adminClearDraft() {
+    if (!confirm('Clear the active match draft? Denis will lose any in-progress match.')) return
+    const state = await getFullState()
+    state.active_match_draft = null
+    await patchFullState(state)
+    showToast('Active draft cleared.', 'ok')
+  }
+
+  async function adminClearCompleted() {
+    if (!confirm('Clear ALL completed match results? This cannot be undone.')) return
+    const state = await getFullState()
+    state.completed_matches = []
+    await patchFullState(state)
+    showToast('Completed match results cleared.', 'ok')
+  }
+
+  async function adminResetEvent() {
+    if (!confirm('Reset entire event? This clears all results, the draft, and resets the current match to 0. Cannot be undone.')) return
+    const state = await getFullState()
+    state.completed_matches = []
+    state.active_match_draft = null
+    state.current_match = 0
+    currentMatch = 0
+    renderCurrentMatch()
+    await patchFullState(state)
+    showToast('Event fully reset.', 'ok')
+  }
+
+  async function adminExportData() {
+    const state = await getFullState()
+    const data = state.completed_matches || []
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `aads-toc-match-results-${new Date().toISOString().slice(0,10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+</script>
+</body>
+</html>

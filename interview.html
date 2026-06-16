@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Interview Assistant</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #fff;
+      min-height: 100dvh;
+    }
+
+    /* ── Screen switching ── */
+    .screen { display: none; padding-bottom: 48px; }
+    .screen.active { display: block; }
+    .hidden { display: none !important; }
+
+    /* ── Shared header ── */
+    .hero {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hero-title { font-size: 1rem; font-weight: 800; }
+    .hero-sub { font-size: 0.72rem; color: #666; margin-top: 2px; }
+    .hero-btn {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      color: #888;
+      border-radius: 7px;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .hero-btn:hover { color: #fff; border-color: #444; }
+
+    /* ── Container ── */
+    .container { max-width: 540px; margin: 0 auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Cards ── */
+    .card { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; overflow: hidden; }
+    .card-head { display: flex; align-items: center; justify-content: space-between; padding: 11px 14px; border-bottom: 1px solid #1a1a1a; }
+    .card-head-divider { border-top: 1px solid #1a1a1a; border-bottom: none; margin-top: 4px; }
+    .card-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #666; }
+    .card-body { padding: 14px; }
+    .card-body-short { padding-bottom: 10px; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: #ea580c; color: #fff; font-size: 0.95rem; font-weight: 700;
+      border: none; border-radius: 12px; padding: 15px; cursor: pointer; width: 100%;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover { background: #f97316; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-secondary {
+      background: #1a1a1a; color: #aaa; font-size: 0.82rem; font-weight: 600;
+      border: 1px solid #2a2a2a; border-radius: 10px; padding: 10px; cursor: pointer; width: 100%;
+      transition: all 0.12s;
+    }
+    .btn-secondary:hover { color: #fff; border-color: #444; }
+    .btn-danger {
+      background: #1a0505; color: #f87171; font-size: 0.82rem; font-weight: 600;
+      border: 1px solid #3f1111; border-radius: 10px; padding: 10px; cursor: pointer; width: 100%;
+    }
+    .btn-danger:hover { background: #2a0808; }
+
+    /* ── Resume banner ── */
+    .resume-banner {
+      background: #1a1200; border: 1px solid #713f12; border-radius: 12px; padding: 14px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .resume-banner-text { font-size: 0.82rem; color: #fbbf24; }
+    .resume-banner-title { font-weight: 700; font-size: 0.88rem; margin-bottom: 2px; }
+    .resume-btns { display: flex; gap: 8px; flex-shrink: 0; }
+    .resume-btn {
+      border: 1px solid #2a2a2a; border-radius: 8px; padding: 7px 12px;
+      font-size: 0.75rem; font-weight: 700; cursor: pointer; background: #1a1a1a; color: #ccc;
+    }
+    .resume-btn.primary { background: #f97316; color: #fff; border-color: #f97316; }
+    .resume-btn:hover:not(.primary) { border-color: #555; }
+
+    /* ── Match list (select screen) ── */
+    .section-label {
+      font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #555; padding: 4px 0 6px;
+    }
+    .match-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 12px; border-radius: 10px; cursor: pointer;
+      border: 1.5px solid transparent; transition: all 0.12s;
+      background: #0f0f0f; margin-bottom: 6px;
+    }
+    .match-item:hover { border-color: #2a2a2a; }
+    .match-item.selected { border-color: #f97316; background: #1a0c00; }
+    .match-item.done { opacity: 0.6; cursor: default; border-color: transparent; }
+    .match-num { font-size: 0.65rem; color: #555; font-weight: 700; min-width: 28px; }
+    .match-players { flex: 1; font-size: 0.85rem; font-weight: 600; }
+    .match-players-sub { font-size: 0.68rem; color: #666; margin-top: 2px; }
+    .match-check { color: #4ade80; font-size: 0.9rem; }
+    .match-result-badge {
+      font-size: 0.68rem; color: #4ade80; font-weight: 700;
+      background: #052010; border: 1px solid #166534; border-radius: 6px; padding: 3px 7px;
+    }
+
+    /* ── Standings overlay ── */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100;
+      display: flex; align-items: flex-end; justify-content: center;
+    }
+    .overlay-sheet {
+      background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 20px 20px 0 0;
+      width: 100%; max-width: 540px; max-height: 80dvh; overflow-y: auto; padding: 20px 16px 40px;
+    }
+    .overlay-title {
+      font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.08em; margin-bottom: 14px; color: #f97316;
+    }
+    .standings-row {
+      display: flex; align-items: center; gap: 8px; padding: 9px 0;
+      border-bottom: 1px solid #111; font-size: 0.82rem;
+    }
+    .standings-row:last-child { border-bottom: none; }
+    .st-pos { color: #555; font-weight: 700; min-width: 20px; font-size: 0.7rem; }
+    .st-name { flex: 1; font-weight: 600; }
+    .st-pv { font-size: 0.65rem; color: #555; }
+    .st-pts { font-weight: 800; color: #f97316; min-width: 28px; text-align: right; font-size: 0.9rem; }
+    .st-rec { font-size: 0.68rem; color: #666; min-width: 40px; text-align: right; }
+
+    /* ── Scoreboard (logger) ── */
+    .matchup-row { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 0 6px; }
+    .player-block { flex: 1; text-align: center; }
+    .player-nm { font-size: 1rem; font-weight: 700; }
+    .player-pv { font-size: 0.65rem; color: #666; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+    .vs-sep { color: #333; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
+    .score-row { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 8px 0 4px; }
+    .score-num { font-size: 2.4rem; font-weight: 900; line-height: 1; min-width: 48px; text-align: center; }
+    .score-num.leading { color: #f97316; }
+    .score-sep { color: #333; font-weight: 900; font-size: 1.2rem; }
+    .score-target { font-size: 0.7rem; color: #555; text-align: center; margin-top: 2px; }
+    .leg-badge { text-align: center; font-size: 0.72rem; font-weight: 700; color: #f97316; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 0 2px; }
+    .format-label { text-align: center; font-size: 0.68rem; color: #444; padding-bottom: 4px; }
+
+    /* ── Event logger ── */
+    .player-pick-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .player-pick-btn {
+      flex: 1; background: #1a1a1a; border: 1.5px solid #2a2a2a; border-radius: 9px;
+      padding: 9px; color: #888; font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      transition: all 0.12s; text-align: center;
+    }
+    .player-pick-btn:hover { border-color: #555; color: #ccc; }
+    .player-pick-btn.sel { background: #1f1208; border-color: #f97316; color: #f97316; }
+    .actions-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .action-btn {
+      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 18px;
+      padding: 6px 12px; font-size: 0.73rem; font-weight: 600; color: #888; cursor: pointer;
+      transition: all 0.12s;
+    }
+    .action-btn:hover { border-color: #555; color: #ccc; }
+
+    /* ── Prompt input ── */
+    .checkout-input-area {
+      background: #131313; border: 1.5px solid #f97316; border-radius: 10px;
+      padding: 10px 12px; margin-bottom: 10px;
+    }
+    .checkout-label { font-size: 0.72rem; font-weight: 700; color: #f97316; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .checkout-row { display: flex; gap: 8px; align-items: center; }
+    .checkout-num-input {
+      flex: 1; background: #1a1a1a; border: 1px solid #333; border-radius: 8px;
+      color: #fff; font-size: 1.1rem; font-weight: 700; padding: 8px 12px; text-align: center;
+      -moz-appearance: textfield; appearance: textfield;
+    }
+    .checkout-num-input::-webkit-inner-spin-button, .checkout-num-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+    .checkout-num-input:focus { outline: none; border-color: #f97316; }
+    .checkout-confirm-btn { background: #ea580c; color: #fff; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700; padding: 8px 16px; cursor: pointer; }
+    .checkout-confirm-btn:hover { background: #f97316; }
+    .checkout-cancel-btn { background: none; border: 1px solid #333; border-radius: 8px; color: #555; font-size: 0.8rem; padding: 8px 10px; cursor: pointer; }
+    .checkout-cancel-btn:hover { color: #f87171; border-color: #f87171; }
+
+    /* ── Event log ── */
+    .event-log-list { display: flex; flex-direction: column; gap: 4px; min-height: 28px; }
+    .event-log-entry { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: #bbb; padding: 4px 0; border-bottom: 1px solid #111; }
+    .event-log-entry:last-child { border-bottom: none; }
+    .event-del { background: none; border: none; color: #444; cursor: pointer; font-size: 0.8rem; padding: 2px 4px; }
+    .event-del:hover { color: #f87171; }
+    .event-log-empty { color: #444; font-size: 0.75rem; }
+
+    /* ── Leg winner ── */
+    .winner-row { display: flex; gap: 8px; }
+    .winner-btn {
+      flex: 1; background: #1a1a1a; border: 1.5px solid #2a2a2a; border-radius: 9px;
+      padding: 11px 8px; color: #aaa; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; transition: all 0.12s; text-align: center;
+    }
+    .winner-btn:hover { border-color: #4ade80; color: #4ade80; }
+
+    /* ── Logger util row ── */
+    .logger-utils { display: flex; gap: 8px; }
+    .logger-utils .btn-secondary { font-size: 0.75rem; padding: 8px; }
+
+    /* ── Leg history ── */
+    .leg-history-item { padding: 8px 0; border-bottom: 1px solid #111; font-size: 0.78rem; }
+    .leg-history-item:last-child { border-bottom: none; }
+    .leg-history-title { font-weight: 700; color: #ccc; margin-bottom: 3px; }
+    .leg-history-events { color: #666; font-size: 0.72rem; }
+    .leg-history-win { color: #4ade80; font-weight: 700; }
+
+    /* ── Winner screen ── */
+    .winner-screen-card {
+      background: linear-gradient(160deg, #0a1f0d 0%, #050505 60%);
+      border: 1px solid #166534; border-radius: 18px; padding: 32px 20px; text-align: center;
+    }
+    .winner-trophy { font-size: 3rem; margin-bottom: 12px; }
+    .winner-label { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; color: #4ade80; margin-bottom: 8px; }
+    .winner-name { font-size: 1.8rem; font-weight: 900; color: #fff; margin-bottom: 6px; }
+    .winner-score-line { font-size: 0.9rem; color: #5a9e6e; }
+
+    /* ── Questions + timer ── */
+    .timer-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; background: #0a0a0a; border-bottom: 1px solid #1a1a1a;
+    }
+    .timer-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #555; }
+    .timer-display { font-size: 1.6rem; font-weight: 900; font-variant-numeric: tabular-nums; color: #fff; }
+    .timer-display.urgent { color: #f87171; }
+    .wrap-up-msg {
+      background: #b00000; color: #fff; text-align: center; font-weight: 900;
+      font-size: 1.1rem; letter-spacing: 0.1em; padding: 14px;
+      animation: wrapPulse 0.6s infinite;
+    }
+    @keyframes wrapPulse { 0%, 100% { background: #b00000; } 50% { background: #7f0000; } }
+    .wrap-up-warning { animation: flashRed 0.8s infinite; }
+    @keyframes flashRed { 0%, 100% { background: #160000; } 50% { background: #300000; } }
+
+    .q-card { background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 14px; overflow: hidden; }
+    .q-row { display: flex; align-items: flex-start; gap: 10px; padding: 13px 14px; border-bottom: 1px solid #111; }
+    .q-row:last-child { border-bottom: none; }
+    .q-num { font-size: 0.65rem; font-weight: 700; color: #555; min-width: 18px; padding-top: 3px; }
+    .q-text { flex: 1; font-size: 0.88rem; color: #e0e0e0; line-height: 1.45; }
+    .q-swap { background: none; border: 1px solid #2a2a2a; border-radius: 6px; color: #555; font-size: 0.72rem; padding: 4px 8px; cursor: pointer; flex-shrink: 0; transition: all 0.12s; margin-top: 1px; }
+    .q-swap:hover { border-color: #555; color: #ccc; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 10px;
+      padding: 10px 18px; font-size: 0.8rem; color: #ccc;
+      transition: opacity 0.3s; z-index: 200;
+    }
+    .toast.hidden { opacity: 0; pointer-events: none; }
+
+    /* ── Loading / no-event ── */
+    .loading-card { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 40px 20px; text-align: center; color: #555; font-size: 0.9rem; }
+    .no-event { text-align: center; padding: 60px 20px; color: #555; }
+    .no-event h2 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: #888; }
+
+    /* ── Save indicator ── */
+    .save-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #555;
+      transition: background 0.4s; flex-shrink: 0;
+    }
+    .save-dot.saving { background: #f97316; }
+    .save-dot.saved { background: #4ade80; }
+
+    .no-completed-msg { color: #444; font-size: 0.78rem; padding: 4px 0 10px; }
+    .section-label-upcoming { margin-top: 8px; }
+    .start-btn-gap { margin-top: 4px; }
+    .hero-right { display: flex; align-items: center; gap: 10px; }
+    .overlay-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+<!-- ══ SCREEN 1 — Match Select ══════════════════════════════════════════ -->
+<section id="screen-select" class="screen">
+  <div class="hero">
+    <div>
+      <div class="hero-title">🎙️ Interview Assistant</div>
+      <div class="hero-sub">Tournament of Champions</div>
+    </div>
+    <button type="button" class="hero-btn" onclick="showStandings()">Standings</button>
+  </div>
+
+  <div class="container">
+    <div class="loading-card" id="selectLoading">Loading event data…</div>
+
+    <div id="resumeBanner" class="resume-banner hidden">
+      <div class="resume-banner-text">
+        <div class="resume-banner-title">Match in progress</div>
+        <div id="resumeBannerSub">Draft found from a previous session</div>
+      </div>
+      <div class="resume-btns">
+        <button type="button" class="resume-btn" onclick="discardDraft()">Discard</button>
+        <button type="button" class="resume-btn primary" onclick="resumeDraft()">Resume</button>
+      </div>
+    </div>
+
+    <div id="matchListWrap" class="hidden">
+      <div class="section-label">Completed</div>
+      <div id="completedList"></div>
+      <div id="noCompleted" class="hidden no-completed-msg">No matches completed yet.</div>
+
+      <div class="section-label section-label-upcoming">Upcoming</div>
+      <div id="upcomingList"></div>
+
+      <button type="button" class="btn-primary start-btn-gap" id="startBtn" onclick="startSelectedMatch()">Start Selected Match</button>
+    </div>
+
+    <div class="no-event hidden" id="noEventMsg">
+      <h2>No Event Configured</h2>
+      <p>Ask the admin to set up players and the match schedule first.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCREEN 2 — Live Logger ════════════════════════════════════════════ -->
+<section id="screen-logger" class="screen">
+  <div class="hero">
+    <div>
+      <div class="hero-title" id="loggerHeroTitle">Match</div>
+      <div class="hero-sub" id="loggerHeroSub"></div>
+    </div>
+    <div class="hero-right">
+      <div class="save-dot" id="saveDot" title="Auto-save status"></div>
+      <button type="button" class="hero-btn" onclick="backToSelectFromLogger()">← List</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Scoreboard -->
+    <div class="card">
+      <div class="card-body card-body-short">
+        <div class="matchup-row">
+          <div class="player-block"><div class="player-nm" id="lPAName">—</div><div class="player-pv" id="lPAProv"></div></div>
+          <div class="vs-sep">VS</div>
+          <div class="player-block"><div class="player-nm" id="lPBName">—</div><div class="player-pv" id="lPBProv"></div></div>
+        </div>
+        <div class="score-row">
+          <div class="score-num" id="lScoreA">0</div>
+          <div class="score-sep">—</div>
+          <div class="score-num" id="lScoreB">0</div>
+        </div>
+        <div class="score-target" id="lScoreTarget">First to 4 legs wins</div>
+        <div class="format-label" id="lFormatLabel"></div>
+        <div class="leg-badge" id="lLegBadge">Leg 1</div>
+      </div>
+    </div>
+
+    <!-- Event logger -->
+    <div class="card" id="loggerCard">
+      <div class="card-head">
+        <span class="card-label" id="loggerLegLabel">Leg 1 — Log Events</span>
+      </div>
+      <div class="card-body">
+        <div class="player-pick-row">
+          <button type="button" class="player-pick-btn" id="pickA" onclick="pickPlayer('A')">—</button>
+          <button type="button" class="player-pick-btn" id="pickB" onclick="pickPlayer('B')">—</button>
+        </div>
+        <div class="actions-grid" id="actionsGrid"></div>
+        <div class="checkout-input-area hidden" id="promptPanel">
+          <div class="checkout-label" id="promptLabel"></div>
+          <div class="checkout-row">
+            <input id="promptInput" class="checkout-num-input" placeholder="" />
+            <button type="button" class="checkout-confirm-btn" onclick="confirmPrompt()">Enter</button>
+            <button type="button" class="checkout-cancel-btn" onclick="cancelPrompt()">✕</button>
+          </div>
+        </div>
+        <div class="event-log-list" id="eventLogList">
+          <span class="event-log-empty">No events logged yet this leg.</span>
+        </div>
+      </div>
+      <div class="card-head card-head-divider">
+        <span class="card-label">Who won this leg?</span>
+      </div>
+      <div class="card-body">
+        <div class="winner-row">
+          <button type="button" class="winner-btn" id="winLegA" onclick="winLeg('A')">—</button>
+          <button type="button" class="winner-btn" id="winLegB" onclick="winLeg('B')">—</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Undo / save utils -->
+    <div class="logger-utils">
+      <button type="button" class="btn-secondary" onclick="undoLastEvent()">↩ Undo Event</button>
+      <button type="button" class="btn-secondary" onclick="undoLastLeg()">↩ Undo Leg</button>
+      <button type="button" class="btn-secondary" onclick="saveDraftManual()">💾 Save</button>
+    </div>
+
+    <!-- Leg history -->
+    <div class="card hidden" id="historyCard">
+      <div class="card-head"><span class="card-label">Leg History</span></div>
+      <div class="card-body" id="historyBody"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCREEN 3 — Winner ════════════════════════════════════════════════ -->
+<section id="screen-winner" class="screen">
+  <div class="hero">
+    <div><div class="hero-title">🎙️ Interview Assistant</div><div class="hero-sub">Match Complete</div></div>
+  </div>
+  <div class="container">
+    <div class="winner-screen-card">
+      <div class="winner-trophy">🏆</div>
+      <div class="winner-label">Winner</div>
+      <div class="winner-name" id="winnerName">—</div>
+      <div class="winner-score-line" id="winnerScoreLine"></div>
+    </div>
+    <button type="button" class="btn-primary" id="genQuestionsBtn" onclick="showQuestionsScreen()">Generate Interview Questions</button>
+    <button type="button" class="btn-secondary" onclick="editResult()">Edit Result (go back to logger)</button>
+    <button type="button" class="btn-secondary" onclick="showScreen('screen-select');renderMatchSelect()">Back to Match List (no interview)</button>
+  </div>
+</section>
+
+<!-- ══ SCREEN 4 — Questions + Timer ═════════════════════════════════════ -->
+<section id="screen-questions" class="screen">
+  <div class="hero">
+    <div><div class="hero-title">📋 Post-Match Interview</div><div class="hero-sub" id="qHeroSub"></div></div>
+  </div>
+  <div class="wrap-up-msg hidden" id="wrapUpMsg">WRAP UP INTERVIEW</div>
+  <div class="container">
+    <div class="card">
+      <div class="timer-row">
+        <span class="timer-label">Interview Timer</span>
+        <span class="timer-display" id="timerDisplay">3:00</span>
+      </div>
+    </div>
+    <div class="q-card" id="questionsCard"></div>
+    <button type="button" class="btn-primary" onclick="finishInterview()">Done — End Interview</button>
+  </div>
+</section>
+
+<!-- ══ Standings overlay ═══════════════════════════════════════════════ -->
+<div id="standingsOverlay" class="overlay hidden" onclick="hideStandings(event)">
+  <div class="overlay-sheet">
+    <div class="overlay-header">
+      <div class="overlay-title">Round Robin Standings</div>
+      <button type="button" class="hero-btn" onclick="hideStandings()">Close</button>
+    </div>
+    <div id="standingsBody"></div>
+  </div>
+</div>
+
+<!-- ══ Toast ══════════════════════════════════════════════════════════ -->
+<div class="toast hidden" id="toast"></div>
+
+<script>
+/* ── Constants ───────────────────────────────────────────────────────── */
+const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+const HDRS = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+const ACTIONS = ['180','High Finish','Big Finish','Bullseye Out','Low Dart Leg','Missed Doubles','Max Response','Comeback','Clutch Shot','Bad Visit']
+const PROMPT_CONFIG = {
+  'Big Finish':   { type:'number', label:'Big Finish — enter checkout:', placeholder:'e.g. 146', build: v => `Big Finish ${v}` },
+  'Low Dart Leg': { type:'number', label:'Low Dart Leg — how many darts?', placeholder:'e.g. 15', build: v => `${v}-Dart Leg` },
+  'Clutch Shot':  { type:'text',   label:'Clutch Shot — describe the shot:', placeholder:'e.g. Double 16 to hold', build: v => `Clutch Shot — ${v}` },
+}
+
+/* ── State ───────────────────────────────────────────────────────────── */
+let eventState = null        // full object from Supabase
+let players = []
+let schedule = []
+
+let selectedMatchIndex = 0   // match select screen selection
+let currentMatchIndex = 0    // active match being logged
+
+let scoreA = 0, scoreB = 0
+let legs = []
+let matchComplete = false
+let matchWinner = null
+let currentEvents = []
+let selectedPlayer = null
+let pendingPromptAction = null
+let currentMatchResult = null
+
+let generatedQuestions = []
+let interviewTimer = null
+let interviewSecondsRemaining = 180
+
+let isSaving = false
+
+/* ── Screen navigation ───────────────────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────── */
+let toastTimer = null
+function showToast(msg, ms = 2000) {
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.classList.remove('hidden')
+  clearTimeout(toastTimer)
+  toastTimer = setTimeout(() => el.classList.add('hidden'), ms)
+}
+
+/* ── Save dot ────────────────────────────────────────────────────────── */
+function setSaveDot(state) {
+  const d = document.getElementById('saveDot')
+  d.className = `save-dot${state ? ' ' + state : ''}`
+}
+
+/* ── Supabase I/O ────────────────────────────────────────────────────── */
+async function loadEventState() {
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/app_settings?key=eq.interview_event&select=value`,
+    { headers: HDRS }
+  )
+  const rows = await res.json()
+  if (!rows.length) throw new Error('no row')
+  const raw = JSON.parse(rows[0].value)
+  return {
+    players: raw.players || [],
+    schedule: raw.schedule || [],
+    current_match: raw.current_match || 0,
+    completed_matches: raw.completed_matches || [],
+    active_match_draft: raw.active_match_draft || null,
+  }
+}
+
+async function saveEventState(state) {
+  setSaveDot('saving')
+  isSaving = true
+  try {
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/app_settings?key=eq.interview_event`,
+      {
+        method: 'PATCH',
+        headers: { ...HDRS, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ value: JSON.stringify(state) }),
+      }
+    )
+    setSaveDot('saved')
+    setTimeout(() => setSaveDot(''), 2000)
+  } catch {
+    setSaveDot('')
+    showToast('⚠️ Save failed — check connection')
+  }
+  isSaving = false
+}
+
+async function saveActiveMatchDraft() {
+  if (!eventState) return
+  const draft = {
+    matchId: schedule[currentMatchIndex]?.id,
+    matchIndex: currentMatchIndex,
+    scoreA, scoreB,
+    currentLegEvents: currentEvents,
+    legs,
+    lastUpdated: new Date().toISOString(),
+  }
+  eventState.active_match_draft = draft
+  await saveEventState(eventState)
+}
+
+async function clearActiveMatchDraft() {
+  if (!eventState) return
+  eventState.active_match_draft = null
+  await saveEventState(eventState)
+}
+
+async function saveCompletedMatchToState(result) {
+  if (!eventState) return
+  const existing = eventState.completed_matches.findIndex(m => m.matchId === result.matchId)
+  if (existing >= 0) eventState.completed_matches[existing] = result
+  else eventState.completed_matches.push(result)
+  await saveEventState(eventState)
+}
+
+async function updateCompletedMatchInState(matchId, updates) {
+  if (!eventState) return
+  const idx = eventState.completed_matches.findIndex(m => m.matchId === matchId)
+  if (idx >= 0) Object.assign(eventState.completed_matches[idx], updates)
+  await saveEventState(eventState)
+}
+
+/* ── Match format ────────────────────────────────────────────────────── */
+function getMatchFormat(idx) {
+  const n = idx + 1
+  if (n <= 15) return { stage:'round_robin', label:'Round Robin',        formatLabel:'Best of 7 — First to 4',   targetLegs:4 }
+  if (n === 16) return { stage:'tiebreak',   label:'4th Place Tiebreak', formatLabel:'Best of 3 — First to 2',   targetLegs:2 }
+  if (n <= 18)  return { stage:'semifinal',  label:'Semifinal',           formatLabel:'Best of 11 — First to 6',  targetLegs:6 }
+  return                { stage:'final',     label:'Championship Final',  formatLabel:'Best of 17 — First to 9',  targetLegs:9 }
+}
+
+/* ── Init ────────────────────────────────────────────────────────────── */
+async function init() {
+  showScreen('screen-select')
+  try {
+    eventState = await loadEventState()
+    players = eventState.players
+    schedule = eventState.schedule
+  } catch {
+    document.getElementById('selectLoading').classList.add('hidden')
+    document.getElementById('noEventMsg').classList.remove('hidden')
+    return
+  }
+  if (!players.length || !schedule.length) {
+    document.getElementById('selectLoading').classList.add('hidden')
+    document.getElementById('noEventMsg').classList.remove('hidden')
+    return
+  }
+  document.getElementById('selectLoading').classList.add('hidden')
+  document.getElementById('matchListWrap').classList.remove('hidden')
+
+  document.getElementById('promptInput').addEventListener('keydown', e => { if (e.key === 'Enter') confirmPrompt() })
+  buildActionsGrid()
+  renderMatchSelect()
+}
+
+/* ══ SCREEN 1 — Match Select ══════════════════════════════════════════ */
+function getCompletedMatchIds() {
+  return new Set((eventState.completed_matches || []).map(m => m.matchId))
+}
+
+function getPlayerById(id) {
+  return players.find(p => p.id === id) || { id, name: id, province: '' }
+}
+
+function renderMatchSelect() {
+  if (!eventState) return
+  const completedIds = getCompletedMatchIds()
+  const completedList = document.getElementById('completedList')
+  const upcomingList = document.getElementById('upcomingList')
+  const noCompleted = document.getElementById('noCompleted')
+
+  const completedMatches = (eventState.completed_matches || []).slice().sort((a,b) => a.matchIndex - b.matchIndex)
+  const completedMatchIds = new Set(completedMatches.map(m => m.matchId))
+
+  completedList.innerHTML = ''
+  if (!completedMatches.length) {
+    noCompleted.classList.remove('hidden')
+  } else {
+    noCompleted.classList.add('hidden')
+    completedMatches.forEach(cm => {
+      const div = document.createElement('div')
+      div.className = 'match-item done'
+      div.innerHTML = `
+        <span class="match-num">#${cm.matchNumber}</span>
+        <div class="match-players">
+          ${cm.playerAName} vs ${cm.playerBName}
+          <div class="match-players-sub">${cm.formatLabel}</div>
+        </div>
+        <span class="match-result-badge">✓ ${cm.winnerName} ${cm.finalScore}</span>`
+      completedList.appendChild(div)
+    })
+  }
+
+  upcomingList.innerHTML = ''
+  let firstUncompleted = -1
+  schedule.forEach((m, idx) => {
+    if (completedMatchIds.has(m.id)) return
+    const pA = getPlayerById(m.playerA)
+    const pB = getPlayerById(m.playerB)
+    const fmt = getMatchFormat(idx)
+    if (firstUncompleted === -1) firstUncompleted = idx
+    const div = document.createElement('div')
+    div.className = 'match-item' + (idx === selectedMatchIndex ? ' selected' : '')
+    div.dataset.idx = idx
+    div.onclick = () => { selectedMatchIndex = idx; renderMatchSelect() }
+    div.innerHTML = `
+      <span class="match-num">#${idx+1}</span>
+      <div class="match-players">
+        ${pA.name} vs ${pB.name}
+        <div class="match-players-sub">${fmt.formatLabel}</div>
+      </div>`
+    upcomingList.appendChild(div)
+  })
+
+  if (firstUncompleted >= 0 && !completedMatchIds.has(schedule[selectedMatchIndex]?.id)) {
+    // keep current selection if valid
+  } else if (firstUncompleted >= 0) {
+    selectedMatchIndex = firstUncompleted
+    renderMatchSelect()
+    return
+  }
+
+  document.getElementById('startBtn').disabled = upcomingList.children.length === 0
+
+  // Resume banner
+  const draft = eventState.active_match_draft
+  if (draft) {
+    const m = schedule[draft.matchIndex]
+    const pA = getPlayerById(m?.playerA)
+    const pB = getPlayerById(m?.playerB)
+    document.getElementById('resumeBannerSub').textContent = `Match ${draft.matchIndex+1}: ${pA.name} vs ${pB.name} (${draft.scoreA}–${draft.scoreB})`
+    document.getElementById('resumeBanner').classList.remove('hidden')
+  } else {
+    document.getElementById('resumeBanner').classList.add('hidden')
+  }
+}
+
+function startSelectedMatch() {
+  currentMatchIndex = selectedMatchIndex
+  resetMatchState()
+  enterLogger()
+}
+
+function resumeDraft() {
+  const draft = eventState.active_match_draft
+  if (!draft) return
+  currentMatchIndex = draft.matchIndex
+  scoreA = draft.scoreA
+  scoreB = draft.scoreB
+  legs = draft.legs || []
+  currentEvents = draft.currentLegEvents || []
+  selectedPlayer = null
+  matchComplete = false
+  matchWinner = null
+  enterLogger()
+}
+
+function discardDraft() {
+  clearActiveMatchDraft()
+  eventState.active_match_draft = null
+  document.getElementById('resumeBanner').classList.add('hidden')
+  renderMatchSelect()
+}
+
+function enterLogger() {
+  const m = schedule[currentMatchIndex]
+  const pA = getPlayerById(m.playerA)
+  const pB = getPlayerById(m.playerB)
+  const fmt = getMatchFormat(currentMatchIndex)
+
+  document.getElementById('loggerHeroTitle').textContent = `Match ${currentMatchIndex+1} — ${fmt.label}`
+  document.getElementById('loggerHeroSub').textContent = `${pA.name} vs ${pB.name}`
+  document.getElementById('lPAName').textContent = pA.name
+  document.getElementById('lPAProv').textContent = pA.province
+  document.getElementById('lPBName').textContent = pB.name
+  document.getElementById('lPBProv').textContent = pB.province
+  document.getElementById('pickA').textContent = pA.name
+  document.getElementById('pickB').textContent = pB.name
+  document.getElementById('winLegA').textContent = pA.name
+  document.getElementById('winLegB').textContent = pB.name
+  document.getElementById('lScoreTarget').textContent = `First to ${fmt.targetLegs} legs wins`
+  document.getElementById('lFormatLabel').textContent = fmt.formatLabel
+
+  loggerCard_show()
+  renderScoreAndLeg()
+  renderEventLog()
+  renderHistory()
+  showScreen('screen-logger')
+}
+
+function resetMatchState() {
+  scoreA = 0; scoreB = 0
+  legs = []; currentEvents = []
+  selectedPlayer = null; matchComplete = false; matchWinner = null
+  currentMatchResult = null
+}
+
+/* ══ SCREEN 2 — Logger ════════════════════════════════════════════════ */
+function loggerCard_show() {
+  document.getElementById('loggerCard').classList.remove('hidden')
+}
+
+function renderScoreAndLeg() {
+  const sA = document.getElementById('lScoreA')
+  const sB = document.getElementById('lScoreB')
+  sA.textContent = scoreA
+  sB.textContent = scoreB
+  sA.className = 'score-num' + (scoreA > scoreB ? ' leading' : '')
+  sB.className = 'score-num' + (scoreB > scoreA ? ' leading' : '')
+  const legNum = legs.length + 1
+  document.getElementById('lLegBadge').textContent = matchComplete ? 'Match Over' : `Leg ${legNum}`
+  document.getElementById('loggerLegLabel').textContent = `Leg ${legNum} — Log Events`
+}
+
+function pickPlayer(side) {
+  selectedPlayer = side
+  document.getElementById('pickA').className = 'player-pick-btn' + (side === 'A' ? ' sel' : '')
+  document.getElementById('pickB').className = 'player-pick-btn' + (side === 'B' ? ' sel' : '')
+}
+
+function buildActionsGrid() {
+  const grid = document.getElementById('actionsGrid')
+  grid.innerHTML = ''
+  ACTIONS.forEach(a => {
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'action-btn'
+    btn.textContent = a
+    btn.onclick = () => logAction(a)
+    grid.appendChild(btn)
+  })
+}
+
+function logAction(action) {
+  if (!selectedPlayer) {
+    const pA = document.getElementById('pickA')
+    const pB = document.getElementById('pickB')
+    pA.style.borderColor = '#f97316'
+    pB.style.borderColor = '#f97316'
+    setTimeout(() => { pA.style.borderColor = ''; pB.style.borderColor = '' }, 600)
+    return
+  }
+  const cfg = PROMPT_CONFIG[action]
+  if (cfg) {
+    pendingPromptAction = action
+    const m = schedule[currentMatchIndex]
+    const pA = getPlayerById(m.playerA)
+    const pB = getPlayerById(m.playerB)
+    const playerName = selectedPlayer === 'A' ? pA.name : pB.name
+    document.getElementById('promptLabel').textContent = `${playerName} — ${cfg.label}`
+    const inp = document.getElementById('promptInput')
+    inp.type = cfg.type
+    inp.placeholder = cfg.placeholder
+    inp.value = ''
+    document.getElementById('promptPanel').classList.remove('hidden')
+    inp.focus()
+    return
+  }
+  pushEvent(action)
+}
+
+function pushEvent(action) {
+  const m = schedule[currentMatchIndex]
+  const pA = getPlayerById(m.playerA)
+  const pB = getPlayerById(m.playerB)
+  const playerName = selectedPlayer === 'A' ? pA.name : pB.name
+  const legNumber = legs.length + 1
+  currentEvents.push({ player: selectedPlayer, playerName, action, legNumber })
+  renderEventLog()
+  saveActiveMatchDraft()
+}
+
+function confirmPrompt() {
+  const val = document.getElementById('promptInput').value.trim()
+  if (!val || !pendingPromptAction) return
+  const cfg = PROMPT_CONFIG[pendingPromptAction]
+  pushEvent(cfg.build(val))
+  cancelPrompt()
+}
+
+function cancelPrompt() {
+  document.getElementById('promptPanel').classList.add('hidden')
+  document.getElementById('promptInput').value = ''
+  pendingPromptAction = null
+}
+
+function removeEvent(idx) {
+  currentEvents.splice(idx, 1)
+  renderEventLog()
+  saveActiveMatchDraft()
+}
+
+function renderEventLog() {
+  const list = document.getElementById('eventLogList')
+  if (!currentEvents.length) {
+    list.innerHTML = '<span class="event-log-empty">No events logged yet this leg.</span>'
+    return
+  }
+  list.innerHTML = currentEvents.map((e, i) =>
+    `<div class="event-log-entry">
+      <span>${e.playerName} — ${e.action}</span>
+      <button type="button" class="event-del" onclick="removeEvent(${i})">✕</button>
+    </div>`
+  ).join('')
+}
+
+function winLeg(side) {
+  const legNumber = legs.length + 1
+  legs.push({ legNumber, events: [...currentEvents], winner: side })
+  currentEvents = []
+  selectedPlayer = null
+  document.getElementById('pickA').className = 'player-pick-btn'
+  document.getElementById('pickB').className = 'player-pick-btn'
+  cancelPrompt()
+
+  if (side === 'A') scoreA++; else scoreB++
+
+  const fmt = getMatchFormat(currentMatchIndex)
+  if (scoreA >= fmt.targetLegs || scoreB >= fmt.targetLegs) {
+    matchWinner = scoreA >= fmt.targetLegs ? 'A' : 'B'
+    matchComplete = true
+    document.getElementById('loggerCard').classList.add('hidden')
+    renderScoreAndLeg()
+    renderHistory()
+    transitionToWinnerScreen()
+    return
+  }
+
+  renderScoreAndLeg()
+  renderEventLog()
+  renderHistory()
+  saveActiveMatchDraft()
+}
+
+function undoLastEvent() {
+  if (!currentEvents.length) { showToast('No events to undo'); return }
+  currentEvents.pop()
+  renderEventLog()
+  saveActiveMatchDraft()
+}
+
+function undoLastLeg() {
+  if (!legs.length) { showToast('No legs to undo'); return }
+  const last = legs.pop()
+  if (last.winner === 'A') scoreA--; else scoreB--
+  currentEvents = [...last.events]
+  matchComplete = false
+  matchWinner = null
+  loggerCard_show()
+  renderScoreAndLeg()
+  renderEventLog()
+  renderHistory()
+  saveActiveMatchDraft()
+}
+
+function saveDraftManual() {
+  saveActiveMatchDraft()
+  showToast('Draft saved')
+}
+
+function renderHistory() {
+  const card = document.getElementById('historyCard')
+  if (!legs.length) { card.classList.add('hidden'); return }
+  card.classList.remove('hidden')
+  const m = schedule[currentMatchIndex]
+  const pA = getPlayerById(m.playerA)
+  const pB = getPlayerById(m.playerB)
+  document.getElementById('historyBody').innerHTML = legs.map(leg => {
+    const winName = leg.winner === 'A' ? pA.name : pB.name
+    const evStr = leg.events.length ? leg.events.map(e => `${e.playerName}: ${e.action}`).join(' · ') : 'No events logged'
+    return `<div class="leg-history-item">
+      <div class="leg-history-title">Leg ${leg.legNumber} — <span class="leg-history-win">${winName} ✓</span></div>
+      <div class="leg-history-events">${evStr}</div>
+    </div>`
+  }).join('')
+}
+
+function backToSelectFromLogger() {
+  if (legs.length || currentEvents.length) {
+    if (!confirm('Go back to match list? Current match progress will be saved as a draft.')) return
+    saveActiveMatchDraft()
+  }
+  showScreen('screen-select')
+  renderMatchSelect()
+}
+
+/* ══ SCREEN 3 — Winner ════════════════════════════════════════════════ */
+function transitionToWinnerScreen() {
+  currentMatchResult = buildCompletedMatchResult()
+  saveCompletedMatchToState(currentMatchResult)
+  clearActiveMatchDraft()
+
+  const m = schedule[currentMatchIndex]
+  const pA = getPlayerById(m.playerA)
+  const pB = getPlayerById(m.playerB)
+  const winner = matchWinner === 'A' ? pA : pB
+  const wScore = matchWinner === 'A' ? scoreA : scoreB
+  const lScore = matchWinner === 'A' ? scoreB : scoreA
+  const loser = matchWinner === 'A' ? pB : pA
+
+  document.getElementById('winnerName').textContent = winner.name
+  document.getElementById('winnerScoreLine').textContent = `${winner.name} wins ${wScore}–${lScore} over ${loser.name}`
+  showScreen('screen-winner')
+}
+
+function buildCompletedMatchResult() {
+  const m = schedule[currentMatchIndex]
+  const pA = getPlayerById(m.playerA)
+  const pB = getPlayerById(m.playerB)
+  const fmt = getMatchFormat(currentMatchIndex)
+  const wSide = matchWinner
+  const lSide = wSide === 'A' ? 'B' : 'A'
+  const winner = wSide === 'A' ? pA : pB
+  const loser  = wSide === 'A' ? pB : pA
+  const wScore = wSide === 'A' ? scoreA : scoreB
+  const lScore = wSide === 'A' ? scoreB : scoreA
+  return {
+    matchId: m.id,
+    matchIndex: currentMatchIndex,
+    matchNumber: currentMatchIndex + 1,
+    stage: fmt.stage,
+    formatLabel: fmt.formatLabel,
+    playerAId: pA.id, playerAName: pA.name,
+    playerBId: pB.id, playerBName: pB.name,
+    winnerId: winner.id, winnerName: winner.name,
+    loserId: loser.id,  loserName: loser.name,
+    scoreA, scoreB,
+    finalScore: `${wScore}-${lScore}`,
+    legs,
+    keyMoments: analyzeMatchMoments(legs, wSide, lSide),
+    generatedQuestions: [],
+    interviewStartedAt: null,
+    interviewCompletedAt: null,
+    interviewDurationSeconds: null,
+    status: 'awaiting_interview',
+    completedAt: new Date().toISOString(),
+  }
+}
+
+function editResult() {
+  matchComplete = false
+  matchWinner = null
+  loggerCard_show()
+  renderScoreAndLeg()
+  showScreen('screen-logger')
+}
+
+/* ── Match analysis ──────────────────────────────────────────────────── */
+function extractNumber(text) { return (/\d+/.exec(String(text)) || [])[0] || null }
+
+function analyzeMatchMoments(legsArr, wSide, lSide) {
+  const allW = legsArr.flatMap(l => l.events.filter(e => e.player === wSide))
+  const allL = legsArr.flatMap(l => l.events.filter(e => e.player === lSide))
+  const maxes = allW.filter(e => e.action === '180')
+  const highFin = allW.filter(e => e.action.includes('Big Finish') || e.action.includes('High Finish') || e.action === 'Bullseye Out')
+    .map(e => ({ action: e.action, value: extractNumber(e.action), legNumber: e.legNumber }))
+  const lowDart = allW.filter(e => e.action.includes('Dart Leg'))
+    .map(e => ({ action: e.action, value: extractNumber(e.action), legNumber: e.legNumber }))
+  const clutch = allW.filter(e => e.action.includes('Clutch Shot'))
+    .map(e => ({ action: e.action, description: e.action.replace('Clutch Shot —', '').trim(), legNumber: e.legNumber }))
+  const oppMissed = allL.filter(e => e.action === 'Missed Doubles').map(e => e.legNumber)
+  const legWinners = legsArr.map(l => l.winner)
+  return {
+    maxCount: maxes.length,
+    maxLegs: maxes.map(e => e.legNumber),
+    highFinishes: highFin,
+    lowDartLegs: lowDart,
+    clutchShots: clutch,
+    opponentMissedDoubles: oppMissed,
+    wonLastLegDecider: detectLastLegDecider(legsArr, wSide),
+    comebackWin: detectComebackWin(legWinners, wSide),
+    biggestWinningStreak: getBiggestStreak(legWinners, wSide),
+    lostLead: detectLostLead(legWinners, wSide),
+  }
+}
+
+function detectLastLegDecider(legsArr, wSide) {
+  if (!legsArr.length) return false
+  const last = legsArr[legsArr.length - 1]
+  const wWins = legsArr.filter(l => l.winner === wSide).length
+  const lWins = legsArr.length - wWins
+  return last.winner === wSide && Math.abs(wWins - lWins) === 1
+}
+
+function detectComebackWin(legWinners, wSide) {
+  let w = 0, l = 0
+  for (const winner of legWinners) {
+    if (winner === wSide) w++; else l++
+    if (l - w >= 2) return true
+  }
+  return false
+}
+
+function getBiggestStreak(legWinners, side) {
+  let best = 0, cur = 0
+  for (const w of legWinners) { if (w === side) { cur++; best = Math.max(best, cur) } else cur = 0 }
+  return best
+}
+
+function detectLostLead(legWinners, wSide) {
+  let w = 0, l = 0, hadLead = false
+  for (const winner of legWinners) {
+    if (winner === wSide) w++; else l++
+    if (w - l >= 2) hadLead = true
+    if (hadLead && l === w) return true
+  }
+  return false
+}
+
+/* ══ SCREEN 4 — Questions + Timer ════════════════════════════════════ */
+function showQuestionsScreen() {
+  if (!currentMatchResult) return
+  const ctx = buildQuestionContext(currentMatchResult)
+  generatedQuestions = generateSmartQuestions(ctx)
+
+  updateCompletedMatchInState(currentMatchResult.matchId, {
+    generatedQuestions,
+    interviewStartedAt: new Date().toISOString(),
+    status: 'interview_in_progress',
+  })
+
+  const pA = getPlayerById(schedule[currentMatchIndex].playerA)
+  const pB = getPlayerById(schedule[currentMatchIndex].playerB)
+  document.getElementById('qHeroSub').textContent = `${currentMatchResult.winnerName} def. ${currentMatchResult.loserName} ${currentMatchResult.finalScore}`
+
+  renderQuestions()
+  showScreen('screen-questions')
+  startInterviewTimer()
+}
+
+function buildQuestionContext(result) {
+  const completed = eventState.completed_matches || []
+  const winnerId = result.winnerId
+  const prevWinnerMatches = completed
+    .filter(m => m.status === 'complete' && m.matchId !== result.matchId && (m.playerAId === winnerId || m.playerBId === winnerId))
+    .sort((a,b) => a.matchIndex - b.matchIndex)
+  const prevMatch = prevWinnerMatches.length ? prevWinnerMatches[prevWinnerMatches.length - 1] : null
+  const prevOpponentName = prevMatch ? (prevMatch.playerAId === winnerId ? prevMatch.playerBName : prevMatch.playerAName) : null
+  const completedIds = new Set(completed.map(m => m.matchId))
+  let nextMatch = null, nextOpponent = null
+  for (let i = result.matchIndex + 1; i < schedule.length; i++) {
+    const m = schedule[i]
+    if (completedIds.has(m.id)) continue
+    if (m.playerA === winnerId || m.playerB === winnerId) {
+      const oppId = m.playerA === winnerId ? m.playerB : m.playerA
+      nextMatch = { match: m, matchIndex: i, matchNumber: i+1 }
+      nextOpponent = getPlayerById(oppId)
+      break
+    }
+  }
+  const allForStandings = [...completed.filter(m => m.matchId !== result.matchId), result]
+  const standings = calculateStandings(allForStandings)
+  const winnerStanding = standings.find(r => r.playerId === winnerId)
+  return { current: result, prevMatch, prevOpponentName, nextMatch, nextOpponent, standings, winnerStanding }
+}
+
+function generateSmartQuestions(ctx) {
+  const c = ctx.current
+  const k = c.keyMoments || {}
+  const wName = c.winnerName
+  const lName = c.loserName
+  const score = c.finalScore
+  const questions = []
+
+  const push = (type, priority, text, v1, v2) => questions.push({ type, priority, text, variants: v2 ? [v1, v2] : [v1], activeVariantIndex: 0 })
+
+  // Opener
+  if (k.wonLastLegDecider)
+    push('last_leg_decider', 100,
+      `${wName}, that one went right to the wire at ${score}. What were you telling yourself going into that final leg?`,
+      `At the business end there, everything came down to one leg. How did you keep yourself composed?`,
+      `That was a last-leg decider. What was the biggest thing you focused on to get across the finish line?`)
+  else if (k.comebackWin)
+    push('comeback_win', 98,
+      `${wName}, you had to battle back in that one. What changed once you started turning the match around?`,
+      `You were under pressure at one point, but you found a way back. What did you tell yourself?`,
+      `What was the turning point where you felt the match coming back your way?`)
+  else if (score.endsWith('-0') || score.split('-')[1] === '1')
+    push('dominant_win', 95,
+      `${wName}, that was a dominant ${score} performance. What was working so well for you?`,
+      `You were in control throughout that one. Was there a moment early on where you felt you had it?`,
+      `${score} — you did not give ${lName} many openings. Was that the game plan coming in?`)
+  else
+    push('standard_opener', 80,
+      `${wName}, you get the win there over ${lName}. What was the biggest key to that result?`,
+      `How did that match feel from your side of the oche?`,
+      `When you look back at that match, what moment stands out most to you?`)
+
+  // Previous match comparison
+  if (ctx.prevMatch && ctx.prevOpponentName)
+    push('previous_match_comparison', 94,
+      `${wName}, earlier you had a ${ctx.prevMatch.finalScore} match against ${ctx.prevOpponentName}, and now this one finishes ${score} against ${lName}. What felt different this time?`,
+      `Compared to your last match against ${ctx.prevOpponentName}, did you feel sharper here or did you have to grind more?`,
+      `After your result against ${ctx.prevOpponentName}, what did you want to carry into this match?`)
+
+  // Big / high finish
+  if (k.highFinishes && k.highFinishes.length) {
+    const f = k.highFinishes[0]
+    const label = f.value ? `that ${f.value} finish` : 'that high finish'
+    push('big_finish', 92,
+      `${label.charAt(0).toUpperCase() + label.slice(1)} in leg ${f.legNumber} was a massive moment. How big was that for your confidence?`,
+      `When you took out ${f.value || 'that big finish'}, did you feel the momentum shift?`,
+      `Was ${label} the turning point in your mind?`)
+  }
+
+  // Clutch shot
+  if (k.clutchShots && k.clutchShots.length) {
+    const s = k.clutchShots[0]
+    const desc = s.description || s.action
+    push('clutch_shot', 91,
+      `That clutch shot in leg ${s.legNumber} — ${desc} — was a big moment. How did you settle yourself before throwing it?`,
+      `When the match is tight and you need one big dart, what is your process?`,
+      `Was that clutch shot one of the biggest darts of the whole match for you?`)
+  }
+
+  // 180s
+  if (k.maxCount >= 2)
+    push('multiple_180s', 88,
+      `You fired in ${k.maxCount} maximums in that match. Did you feel like your scoring power gave you control?`,
+      `${k.maxCount} 180s — when the treble 20 starts working like that, how much easier does the rest of the leg feel?`,
+      `Your scoring looked heavy out there. Was that the part of your game you trusted most?`)
+  else if (k.maxCount === 1)
+    push('single_180', 82,
+      `You hit a 180 in leg ${k.maxLegs[0]}. Did that give you a lift at that point in the match?`,
+      `When you hit a maximum on this stage, how much energy do you take from the crowd?`,
+      `Was that 180 in leg ${k.maxLegs[0]} a turning point in the match for you?`)
+
+  // Low dart leg
+  if (k.lowDartLegs && k.lowDartLegs.length) {
+    const l = k.lowDartLegs[0]
+    push('low_dart_leg', 86,
+      `You had that ${l.action} in leg ${l.legNumber}. When you put together a leg like that, how much confidence does it give you?`,
+      `That was one of your cleanest legs of the match. What clicked there?`,
+      `How close was that leg to the standard you want to play all day?`)
+  }
+
+  // Winning streak
+  if (k.biggestWinningStreak >= 3)
+    push('winning_streak', 84,
+      `You put together a run of ${k.biggestWinningStreak} straight legs. What helped you build that momentum?`,
+      `Once you got rolling, it looked like you found another gear. Did it feel that way?`,
+      `That run of ${k.biggestWinningStreak} legs in a row put real pressure on ${lName}. Did you sense that?`)
+
+  // Opponent missed doubles
+  if (k.opponentMissedDoubles && k.opponentMissedDoubles.length)
+    push('opponent_missed_doubles', 78,
+      `${lName} had some doubles trouble at times. How important is it to stay ready when the door opens like that?`,
+      `When you see your opponent struggling on the doubles, how does that affect your own game plan?`,
+      `Was the key today taking your chances when they came?`)
+
+  // Standings
+  if (ctx.winnerStanding && c.stage === 'round_robin')
+    push('standings', 76,
+      `That moves you to ${ctx.winnerStanding.wins}-${ctx.winnerStanding.losses} in the round robin. What does this win do for your confidence heading into the rest of the day?`,
+      `Every match matters in this format. How important was getting those two points?`,
+      `Does this result change how you look at the rest of your round robin matches?`)
+
+  // Next opponent
+  if (ctx.nextOpponent)
+    push('next_opponent', 74,
+      `You have ${ctx.nextOpponent.name} coming up next. Hopefully we'll see you back for another interview after that one — good luck.`,
+      `Before we let you go — ${ctx.nextOpponent.name} is next on the schedule. What do you need to carry forward into that one?`,
+      `Your next match is against ${ctx.nextOpponent.name}. How do you reset quickly between matches?`)
+  else if (c.stage === 'round_robin')
+    push('round_robin_closer', 60,
+      `We'll see how the rest of the round robin shakes out. Great match and good luck the rest of the way.`,
+      `Any final words for the AADS fans watching today?`)
+
+  // Fallbacks (always present, low priority)
+  push('fallback_gameplan', 40,
+    `What was your main game plan coming into that match, and how well do you feel you executed it?`,
+    `Were there any adjustments you made during the match to get the result?`)
+  push('fallback_fans', 30,
+    `Any final message for the AADS fans watching today?`,
+    `Before we let you go — any shoutouts you want to make?`)
+
+  return questions.sort((a, b) => b.priority - a.priority).slice(0, 4)
+}
+
+function renderQuestions() {
+  const card = document.getElementById('questionsCard')
+  card.innerHTML = generatedQuestions.map((q, i) => {
+    const text = q.variants[q.activeVariantIndex] || q.text
+    return `<div class="q-row">
+      <div class="q-num">Q${i+1}</div>
+      <div class="q-text" id="qtext${i}">${text}</div>
+      ${q.variants.length > 1 ? `<button type="button" class="q-swap" onclick="swapQ(${i})">↻</button>` : ''}
+    </div>`
+  }).join('')
+}
+
+function swapQ(i) {
+  const q = generatedQuestions[i]
+  if (!q || q.variants.length <= 1) return
+  q.activeVariantIndex = (q.activeVariantIndex + 1) % q.variants.length
+  document.getElementById('qtext' + i).textContent = q.variants[q.activeVariantIndex]
+}
+
+function startInterviewTimer() {
+  interviewSecondsRemaining = 180
+  updateTimerDisplay()
+  interviewTimer = setInterval(() => {
+    interviewSecondsRemaining--
+    updateTimerDisplay()
+    if (interviewSecondsRemaining <= 0) {
+      clearInterval(interviewTimer)
+      triggerWrapUpWarning()
+    }
+  }, 1000)
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(interviewSecondsRemaining / 60)
+  const s = interviewSecondsRemaining % 60
+  const el = document.getElementById('timerDisplay')
+  el.textContent = `${m}:${s.toString().padStart(2, '0')}`
+  el.className = 'timer-display' + (interviewSecondsRemaining <= 30 ? ' urgent' : '')
+}
+
+function triggerWrapUpWarning() {
+  document.body.classList.add('wrap-up-warning')
+  document.getElementById('wrapUpMsg').classList.remove('hidden')
+}
+
+function finishInterview() {
+  if (interviewTimer) { clearInterval(interviewTimer); interviewTimer = null }
+  document.body.classList.remove('wrap-up-warning')
+  document.getElementById('wrapUpMsg').classList.add('hidden')
+
+  if (currentMatchResult) {
+    const completedAt = new Date()
+    const startedAt = eventState.completed_matches.find(m => m.matchId === currentMatchResult.matchId)?.interviewStartedAt
+    const duration = startedAt ? Math.round((completedAt - new Date(startedAt)) / 1000) : null
+    updateCompletedMatchInState(currentMatchResult.matchId, {
+      interviewCompletedAt: completedAt.toISOString(),
+      interviewDurationSeconds: duration,
+      status: 'complete',
+    })
+  }
+
+  currentMatchResult = null
+  resetMatchState()
+  showScreen('screen-select')
+  renderMatchSelect()
+}
+
+/* ══ Standings ════════════════════════════════════════════════════════ */
+function calculateStandings(completedMatches) {
+  const map = {}
+  players.forEach(p => {
+    map[p.id] = { playerId: p.id, name: p.name, province: p.province || '', played:0, wins:0, losses:0, points:0, legsWon:0, legsLost:0 }
+  })
+  completedMatches.filter(m => m.stage === 'round_robin').forEach(m => {
+    const a = map[m.playerAId], b = map[m.playerBId]
+    if (!a || !b) return
+    a.played++; b.played++
+    a.legsWon += m.scoreA; a.legsLost += m.scoreB
+    b.legsWon += m.scoreB; b.legsLost += m.scoreA
+    if (m.winnerId === m.playerAId) { a.wins++; a.points += 2; b.losses++ }
+    else { b.wins++; b.points += 2; a.losses++ }
+  })
+  return Object.values(map).filter(r => r.played > 0 || players.length <= 6)
+    .sort((a,b) => b.points - a.points || b.wins - a.wins || (b.legsWon - b.legsLost) - (a.legsWon - a.legsLost))
+}
+
+function showStandings() {
+  const all = eventState?.completed_matches || []
+  const standings = calculateStandings(all)
+  const body = document.getElementById('standingsBody')
+  if (!standings.length) {
+    body.innerHTML = '<p style="color:#555;font-size:0.82rem">No round robin results yet.</p>'
+  } else {
+    body.innerHTML = standings.map((r, i) =>
+      `<div class="standings-row">
+        <span class="st-pos">${i+1}</span>
+        <div class="st-name">${r.name} <span class="st-pv">${r.province}</span></div>
+        <span class="st-rec">${r.wins}–${r.losses}</span>
+        <span class="st-pts">${r.points}pts</span>
+      </div>`
+    ).join('')
+  }
+  document.getElementById('standingsOverlay').classList.remove('hidden')
+}
+
+function hideStandings(e) {
+  if (!e || e.target === document.getElementById('standingsOverlay'))
+    document.getElementById('standingsOverlay').classList.add('hidden')
+}
+
+/* ── Boot ────────────────────────────────────────────────────────────── */
+init()
+</script>
+</body>
+</html>
