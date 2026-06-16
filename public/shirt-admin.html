@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CGC Shirt Orders — Admin</title>
+  <title>AADS Shirt Catalog — Admin</title>
   <!--
     ══════════════════════════════════════════════════
     SUPABASE TABLE SETUP — run in SQL Editor once:
@@ -528,6 +528,52 @@
       color: var(--muted);
     }
 
+    /* ── Catalog status card ── */
+    .status-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel-2);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .status-card-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 4px;
+    }
+    .status-card-value {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+    }
+    .status-card-value.open  { color: var(--confirmed-color); }
+    .status-card-value.closed { color: var(--muted); }
+    .toggle-btn {
+      appearance: none;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 22px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 150ms, transform 120ms;
+      white-space: nowrap;
+    }
+    .toggle-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+    .toggle-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .toggle-btn.open  { background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.4); color: #ff7070; }
+    .toggle-btn.closed { background: linear-gradient(90deg, #1a7a35, #2da85a); color: #060606; }
+
     @media (max-width: 900px) {
       .stats-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -557,7 +603,7 @@
     <div id="pinGate">
       <div class="pin-card">
         <p class="eyebrow">Admin Access</p>
-        <h1 class="pin-title">CGC Shirt Orders</h1>
+        <h1 class="pin-title">AADS Shirt Catalog</h1>
         <input
           class="pin-input"
           type="password"
@@ -577,11 +623,11 @@
     <div id="dashboard" class="hidden">
 
       <div class="hero">
-        <div class="hero-band">CGC Members · Dart Shirt Order Admin</div>
+        <div class="hero-band">AADS Shirt Catalog — Admin</div>
         <div class="hero-body">
           <div>
             <h1 class="hero-title">Order Dashboard</h1>
-            <p class="hero-sub">Confirm payments · Finalize for Monday · Order closes Sunday June 7 @ 9 PM ADT</p>
+            <p class="hero-sub">Manage catalog status · Confirm payments · Finalize orders</p>
           </div>
           <div class="btn-row">
             <button class="export-btn" onclick="exportCSV()">Export CSV</button>
@@ -589,6 +635,15 @@
             <button class="refresh-btn" onclick="loadOrders()">↺ Refresh</button>
           </div>
         </div>
+      </div>
+
+      <!-- Catalog status toggle -->
+      <div class="status-card" id="catalogStatusCard">
+        <div>
+          <p class="status-card-label">Catalog Status</p>
+          <div class="status-card-value" id="catalogStatusValue">Loading…</div>
+        </div>
+        <button type="button" class="toggle-btn" id="catalogToggleBtn" onclick="toggleCatalogStatus()" disabled>…</button>
       </div>
 
       <!-- Stats bar -->
@@ -715,6 +770,7 @@
         document.getElementById('pinGate').classList.add('hidden')
         document.getElementById('dashboard').classList.remove('hidden')
         loadOrders()
+        loadCatalogStatus()
       } else {
         const input = document.getElementById('pinInput')
         input.classList.add('pin-error')
@@ -734,6 +790,67 @@
       apikey: SUPABASE_ANON_KEY,
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
       'Content-Type': 'application/json',
+    }
+
+    // ── Catalog status toggle ────────────────────────────
+    let catalogIsOpen = null
+
+    async function fetchCatalogStatus() {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/app_settings?key=eq.shirt_orders_open&select=value`,
+        { headers }
+      )
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const rows = await res.json()
+      return rows.length > 0 ? rows[0].value === 'true' : false
+    }
+
+    async function setCatalogStatus(isOpen) {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/app_settings?key=eq.shirt_orders_open`,
+        {
+          method: 'PATCH',
+          headers: { ...headers, Prefer: 'return=minimal' },
+          body: JSON.stringify({ value: isOpen ? 'true' : 'false' }),
+        }
+      )
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    }
+
+    function renderCatalogStatusUI(isOpen) {
+      const val = document.getElementById('catalogStatusValue')
+      const btn = document.getElementById('catalogToggleBtn')
+      val.textContent = isOpen ? 'Open — Accepting Orders' : 'Closed — Not Accepting Orders'
+      val.className = 'status-card-value ' + (isOpen ? 'open' : 'closed')
+      btn.textContent = isOpen ? 'Close Catalog' : 'Open Catalog'
+      btn.className = 'toggle-btn ' + (isOpen ? 'open' : 'closed')
+      btn.disabled = false
+    }
+
+    async function loadCatalogStatus() {
+      try {
+        catalogIsOpen = await fetchCatalogStatus()
+        renderCatalogStatusUI(catalogIsOpen)
+      } catch (err) {
+        document.getElementById('catalogStatusValue').textContent = 'Failed to load'
+        showToast('Could not load catalog status', 'error')
+      }
+    }
+
+    async function toggleCatalogStatus() {
+      const btn = document.getElementById('catalogToggleBtn')
+      btn.disabled = true
+      btn.textContent = 'Updating…'
+      const newState = !catalogIsOpen
+      try {
+        await setCatalogStatus(newState)
+        catalogIsOpen = newState
+        renderCatalogStatusUI(newState)
+        showToast(newState ? 'Catalog opened — orders now accepted' : 'Catalog closed — orders paused', 'success')
+      } catch (err) {
+        showToast(`Failed to update: ${err.message}`, 'error')
+        renderCatalogStatusUI(catalogIsOpen)
+      }
     }
 
     async function fetchOrders() {
