@@ -43,7 +43,7 @@ export default function StaffDashboard({ onSelect }) {
   useEffect(() => {
     fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&is_active=eq.true&order=name.asc`, { headers: hdrs })
       .then(r => r.json())
-      .then(rows => setStaffList(rows.map(r => r.name)))
+      .then(rows => setStaffList(Array.isArray(rows) ? rows.map(r => r.name) : []))
       .catch(() => {})
   }, [])
 
@@ -65,7 +65,8 @@ export default function StaffDashboard({ onSelect }) {
         `${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,is_master,is_active,tool_permissions&order=name.asc`,
         { headers: hdrs }
       )
-      setAllStaff(await r.json())
+      const rows = await r.json()
+      setAllStaff(Array.isArray(rows) ? rows : [])
     } catch {}
   }
 
@@ -97,7 +98,7 @@ export default function StaffDashboard({ onSelect }) {
         body: JSON.stringify({ name, pin: newStaffPin, is_master: false, is_active: true, tool_permissions: [] }),
       })
       const rows = await r.json()
-      if (!r.ok) { setAddStaffError(rows?.message || 'Could not add staff member.'); return }
+      if (!r.ok || !Array.isArray(rows) || !rows.length) { setAddStaffError(rows?.message || 'Could not add staff member.'); return }
       setAllStaff(prev => [...prev, rows[0]].sort((a, b) => a.name.localeCompare(b.name)))
       setStaffList(prev => [...prev, name].sort())
       setNewStaffName('')
@@ -168,7 +169,8 @@ export default function StaffDashboard({ onSelect }) {
         `${SUPABASE_URL}/rest/v1/staff_activity_log?select=staff_name,tool_name,logged_at&order=logged_at.desc&limit=100`,
         { headers: hdrs }
       )
-      setActivityLog(await r.json())
+      const rows = await r.json()
+      setActivityLog(Array.isArray(rows) ? rows : [])
     } catch {}
     setLogLoading(false)
   }
@@ -184,6 +186,7 @@ export default function StaffDashboard({ onSelect }) {
         { headers: hdrs }
       )
       const rows = await r.json()
+      if (!Array.isArray(rows)) { setError('Connection error. Try again.'); setLoggingIn(false); return }
       if (!rows.length) { setError('Incorrect PIN. Try again.'); setLoggingIn(false); return }
       if (rows[0].is_active === false) { setError('This account is paused. Contact Matthew.'); setLoggingIn(false); return }
       const s = { id: rows[0].id, name: rows[0].name, isMaster: rows[0].is_master, loginAt: Date.now() }
