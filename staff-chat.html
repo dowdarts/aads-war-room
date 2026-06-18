@@ -47,12 +47,18 @@
     .pane-header { padding: 14px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border-bottom: 1px solid var(--line); }
     .me-label { color: var(--accent); margin-left: 6px; text-transform: none; letter-spacing: 0; }
     .contact-list { flex: 1; overflow-y: auto; }
-    .contact-row { display: block; width: 100%; text-align: left; padding: 12px 16px; border: none; border-bottom: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; }
+    .contact-row { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 12px 16px; border: none; border-bottom: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; }
     .contact-row:hover, .contact-row.active { background: var(--panel-2); }
+    .contact-row-text { flex: 1; min-width: 0; }
     .contact-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
     .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; flex-shrink: 0; }
     .contact-preview { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .empty-note { color: var(--muted); font-size: 13px; text-align: center; padding: 30px 16px; }
+    .delete-conv-btn { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; padding: 4px; flex-shrink: 0; }
+    .delete-conv-btn:hover { color: #ff6b6b; }
+    .msg-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+    .delete-msg-btn { background: none; border: none; color: #444; font-size: 10px; cursor: pointer; padding: 0; }
+    .delete-msg-btn:hover { color: #ff6b6b; }
 
     .thread-pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
     .thread-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 13px; text-align: center; padding: 0 20px; }
@@ -67,7 +73,7 @@
     .msg-bubble { padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.4; word-break: break-word; }
     .msg-row.mine .msg-bubble { background: var(--accent); color: #1a0a00; border-bottom-right-radius: 4px; }
     .msg-row.theirs .msg-bubble { background: var(--panel-2); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
-    .msg-time { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .msg-time { font-size: 10px; color: var(--muted); }
     .thread-input-row { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--line); }
     .thread-input-row input { flex: 1; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 13px; }
     .thread-input-row input:focus { outline: none; border-color: var(--accent); }
@@ -127,6 +133,7 @@
     var SESSION_KEY = 'aads_staff_session'
     var LASTREAD_PREFIX = 'aads_chat_lastread_'
     var POLL_MS = 2000
+    var HEARTBEAT_MS = 30000
 
     /* ══ STATE ══ */
     var me = null
@@ -213,15 +220,57 @@
         var conv = conversationWith(c.id)
         var preview = conv.length ? conv[conv.length - 1].body : 'No messages yet'
         var unread = isUnread(c.id)
-        var row = document.createElement('button')
-        row.type = 'button'
+        var row = document.createElement('div')
         row.className = 'contact-row' + (c.id === activeContactId ? ' active' : '')
-        row.innerHTML =
+        var textHtml =
+          '<div class="contact-row-text">' +
           '<div class="contact-name">' + escapeHtml(c.name) + (unread ? '<span class="unread-dot"></span>' : '') + '</div>' +
-          '<div class="contact-preview">' + escapeHtml(preview.length > 44 ? preview.slice(0, 44) + '…' : preview) + '</div>'
+          '<div class="contact-preview">' + escapeHtml(preview.length > 44 ? preview.slice(0, 44) + '…' : preview) + '</div>' +
+          '</div>'
+        row.innerHTML = conv.length
+          ? textHtml + '<button type="button" class="delete-conv-btn" title="Delete conversation with ' + escapeHtml(c.name) + '">🗑</button>'
+          : textHtml
         row.addEventListener('click', function () { selectContact(c.id) })
+        if (conv.length) {
+          row.querySelector('.delete-conv-btn').addEventListener('click', function (e) {
+            e.stopPropagation()
+            deleteConversation(c.id)
+          })
+        }
         wrap.appendChild(row)
       })
+    }
+
+    function deleteMessage(id) {
+      if (typeof id !== 'string' || id.indexOf('temp_') === 0) return
+      allMessages = allMessages.filter(function (m) { return m.id !== id })
+      lastMessagesJSON = JSON.stringify(allMessages)
+      renderContacts()
+      renderThread()
+      fetch(SUPABASE_URL + '/rest/v1/staff_messages?id=eq.' + id, {
+        method: 'DELETE',
+        headers: hdrs
+      }).catch(function () {})
+    }
+
+    function deleteConversation(otherId) {
+      var contact = contacts.find(function (c) { return c.id === otherId })
+      if (!window.confirm('Delete this entire conversation with ' + (contact ? contact.name : 'this person') + '? This can\'t be undone.')) return
+      allMessages = allMessages.filter(function (m) {
+        return !((m.sender_id === otherId && m.recipient_id === me.id) || (m.sender_id === me.id && m.recipient_id === otherId))
+      })
+      lastMessagesJSON = JSON.stringify(allMessages)
+      if (activeContactId === otherId) {
+        activeContactId = null
+        backToContacts()
+      }
+      renderContacts()
+      renderThread()
+      var filterExpr = 'or=(and(sender_id.eq.' + me.id + ',recipient_id.eq.' + otherId + '),and(sender_id.eq.' + otherId + ',recipient_id.eq.' + me.id + '))'
+      fetch(SUPABASE_URL + '/rest/v1/staff_messages?' + filterExpr, {
+        method: 'DELETE',
+        headers: hdrs
+      }).catch(function () {})
     }
 
     function selectContact(id) {
@@ -259,12 +308,25 @@
           var mine = m.sender_id === me.id
           var row = document.createElement('div')
           row.className = 'msg-row ' + (mine ? 'mine' : 'theirs')
-          row.innerHTML = '<div class="msg-bubble">' + escapeHtml(m.body) + '</div><div class="msg-time">' + formatTime(m.created_at) + '</div>'
+          row.innerHTML =
+            '<div class="msg-bubble">' + escapeHtml(m.body) + '</div>' +
+            '<div class="msg-meta"><span class="msg-time">' + formatTime(m.created_at) + '</span>' +
+            '<button type="button" class="delete-msg-btn" title="Delete message">🗑</button></div>'
+          row.querySelector('.delete-msg-btn').addEventListener('click', function () { deleteMessage(m.id) })
           pane.appendChild(row)
         })
       }
       pane.scrollTop = pane.scrollHeight
       markRead(activeContactId)
+    }
+
+    /* ══ PRESENCE ══ */
+    function heartbeat() {
+      fetch(SUPABASE_URL + '/rest/v1/staff_accounts?id=eq.' + me.id, {
+        method: 'PATCH',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+        body: JSON.stringify({ last_seen_at: new Date().toISOString() })
+      }).catch(function () {})
     }
 
     /* ══ ACTIONS ══ */
@@ -319,6 +381,8 @@
       loadContacts()
       tick()
       setInterval(tick, POLL_MS)
+      heartbeat()
+      setInterval(heartbeat, HEARTBEAT_MS)
     })
   </script>
 </body>
