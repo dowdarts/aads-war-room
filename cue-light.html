@@ -248,7 +248,7 @@ on conflict (key) do nothing;</pre>
     }
 
     function matchesFromCSV(text) {
-      var rows = parseCSV(text)
+      var rows = parseCSV(text.replace(/^﻿/, ''))
       if (!rows.length) return []
       var header = rows[0].map(function (h) { return h.trim().toLowerCase() })
       function idx(name) { return header.indexOf(name) }
