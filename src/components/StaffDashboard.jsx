@@ -14,6 +14,8 @@ const ALL_TOOLS = [
   { id: 'ticket-sales', label: 'Ticket Sales', icon: '🎟️', path: 'AADSTickets-Dashboard.html' },
   { id: 'shirt-admin', label: 'Shirt Admin', icon: '👕', path: 'shirt-admin.html' },
   { id: 'shirt-order', label: 'Shirt Order', icon: '🧾', path: 'shirt-order.html' },
+  { id: 'cue-light', label: 'Cue Light & Schedule', icon: '🚦', path: 'cue-light.html' },
+  { id: 'staff-chat', label: 'Staff Chat', icon: '💬', path: 'staff-chat.html' },
 ]
 
 const hdrs = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AADS Staff Chat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+    }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .hidden { display: none !important; }
+
+    /* ══ HERO ══ */
+    .hero {
+      background: linear-gradient(180deg, #0e0805 0%, #050505 100%);
+      border-bottom: 1px solid #1a1a1a;
+      padding: 22px 24px 18px;
+      text-align: center;
+    }
+    .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+    .hero-title { font-size: clamp(24px, 4vw, 36px); font-weight: 900; letter-spacing: -0.03em; }
+    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* ══ SIGN-IN NEEDED ══ */
+    .sign-in-needed { max-width: 480px; margin: 60px auto; padding: 28px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
+    .sign-in-needed p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    /* ══ CHAT LAYOUT ══ */
+    .chat-app { max-width: 1100px; margin: 0 auto; padding: 20px; height: calc(100vh - 95px); }
+    .chat-layout { display: grid; grid-template-columns: 280px 1fr; height: 100%; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--panel); }
+
+    .contact-pane { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+    .pane-header { padding: 14px 16px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); border-bottom: 1px solid var(--line); }
+    .me-label { color: var(--accent); margin-left: 6px; text-transform: none; letter-spacing: 0; }
+    .contact-list { flex: 1; overflow-y: auto; }
+    .contact-row { display: block; width: 100%; text-align: left; padding: 12px 16px; border: none; border-bottom: 1px solid var(--line); background: transparent; color: var(--text); cursor: pointer; }
+    .contact-row:hover, .contact-row.active { background: var(--panel-2); }
+    .contact-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; flex-shrink: 0; }
+    .contact-preview { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty-note { color: var(--muted); font-size: 13px; text-align: center; padding: 30px 16px; }
+
+    .thread-pane { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .thread-empty { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 13px; text-align: center; padding: 0 20px; }
+    .thread-active-inner { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+    .thread-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .back-btn { display: none; background: none; border: none; color: var(--text); font-size: 18px; cursor: pointer; padding: 0 4px; }
+    .thread-contact-name { font-size: 14px; font-weight: 800; }
+    .thread-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+    .msg-row { display: flex; flex-direction: column; max-width: 70%; }
+    .msg-row.mine { align-self: flex-end; align-items: flex-end; }
+    .msg-row.theirs { align-self: flex-start; align-items: flex-start; }
+    .msg-bubble { padding: 9px 13px; border-radius: 14px; font-size: 13px; line-height: 1.4; word-break: break-word; }
+    .msg-row.mine .msg-bubble { background: var(--accent); color: #1a0a00; border-bottom-right-radius: 4px; }
+    .msg-row.theirs .msg-bubble { background: var(--panel-2); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+    .msg-time { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .thread-input-row { display: flex; gap: 10px; padding: 14px 16px; border-top: 1px solid var(--line); }
+    .thread-input-row input { flex: 1; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; color: var(--text); font-size: 13px; }
+    .thread-input-row input:focus { outline: none; border-color: var(--accent); }
+    .thread-input-row button { background: var(--accent); color: #1a0a00; border: none; border-radius: 10px; padding: 10px 18px; font-weight: 800; font-size: 13px; cursor: pointer; }
+
+    @media (max-width: 720px) {
+      .chat-app { padding: 0; height: calc(100vh - 85px); }
+      .chat-layout { grid-template-columns: 1fr; border-radius: 0; border: none; }
+      .thread-pane { display: none; }
+      .chat-layout.thread-active .contact-pane { display: none; }
+      .chat-layout.thread-active .thread-pane { display: flex; }
+      .back-btn { display: inline-block; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-eyebrow">AADS War Room</div>
+    <h1 class="hero-title">Staff <em>Chat</em></h1>
+  </div>
+
+  <div id="signInNeeded" class="sign-in-needed hidden">
+    <p>Please sign in via the Staff tab first, then come back to this page.</p>
+  </div>
+
+  <div id="chatApp" class="chat-app hidden">
+    <div class="chat-layout" id="chatLayout">
+      <div class="contact-pane">
+        <div class="pane-header">Staff<span id="meLabel" class="me-label"></span></div>
+        <div class="contact-list" id="contactList"></div>
+      </div>
+      <div class="thread-pane">
+        <div id="threadEmpty" class="thread-empty">
+          <p>Select a staff member to start chatting.</p>
+        </div>
+        <div id="threadActive" class="thread-active-inner hidden">
+          <div class="thread-header">
+            <button type="button" id="backToContactsBtn" class="back-btn">&larr;</button>
+            <span id="threadContactName" class="thread-contact-name"></span>
+          </div>
+          <div class="thread-messages" id="threadMessages"></div>
+          <div class="thread-input-row">
+            <input type="text" id="msgInput" placeholder="Type a message…" />
+            <button type="button" id="sendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ══ CONSTANTS ══ */
+    var SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    var hdrs = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    var SESSION_KEY = 'aads_staff_session'
+    var LASTREAD_PREFIX = 'aads_chat_lastread_'
+    var POLL_MS = 2000
+
+    /* ══ STATE ══ */
+    var me = null
+    var contacts = []
+    var allMessages = []
+    var activeContactId = null
+    var lastMessagesJSON = ''
+
+    /* ══ SESSION ══ */
+    function loadSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)) } catch (e) { return null }
+    }
+
+    /* ══ DATA ══ */
+    function loadContacts() {
+      var url = SUPABASE_URL + '/rest/v1/staff_accounts?select=id,name&is_active=eq.true&order=name.asc'
+      fetch(url, { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          contacts = (Array.isArray(rows) ? rows : []).filter(function (c) { return c.id !== me.id })
+          renderContacts()
+        })
+        .catch(function () {})
+    }
+
+    function fetchMessages() {
+      var url = SUPABASE_URL + '/rest/v1/staff_messages?or=(sender_id.eq.' + me.id + ',recipient_id.eq.' + me.id + ')&order=created_at.asc'
+      return fetch(url, { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) { return Array.isArray(rows) ? rows : [] })
+        .catch(function () { return [] })
+    }
+
+    function tick() {
+      fetchMessages().then(function (rows) {
+        var json = JSON.stringify(rows)
+        if (json !== lastMessagesJSON) {
+          lastMessagesJSON = json
+          allMessages = rows
+          renderContacts()
+          renderThread()
+        }
+      })
+    }
+
+    function conversationWith(otherId) {
+      return allMessages.filter(function (m) {
+        return (m.sender_id === otherId && m.recipient_id === me.id) || (m.sender_id === me.id && m.recipient_id === otherId)
+      })
+    }
+
+    function isUnread(otherId) {
+      var conv = conversationWith(otherId)
+      if (!conv.length) return false
+      var lastMsg = conv[conv.length - 1]
+      if (lastMsg.sender_id === me.id) return false
+      var lastRead = localStorage.getItem(LASTREAD_PREFIX + otherId)
+      if (!lastRead) return true
+      return new Date(lastMsg.created_at) > new Date(lastRead)
+    }
+
+    function markRead(otherId) {
+      var conv = conversationWith(otherId)
+      var lastTime = conv.length ? conv[conv.length - 1].created_at : new Date().toISOString()
+      localStorage.setItem(LASTREAD_PREFIX + otherId, lastTime)
+    }
+
+    /* ══ RENDERING ══ */
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      })
+    }
+
+    function formatTime(iso) {
+      try { return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) } catch (e) { return '' }
+    }
+
+    function renderContacts() {
+      var wrap = document.getElementById('contactList')
+      wrap.innerHTML = ''
+      if (!contacts.length) { wrap.innerHTML = '<p class="empty-note">No other staff yet.</p>'; return }
+      contacts.forEach(function (c) {
+        var conv = conversationWith(c.id)
+        var preview = conv.length ? conv[conv.length - 1].body : 'No messages yet'
+        var unread = isUnread(c.id)
+        var row = document.createElement('button')
+        row.type = 'button'
+        row.className = 'contact-row' + (c.id === activeContactId ? ' active' : '')
+        row.innerHTML =
+          '<div class="contact-name">' + escapeHtml(c.name) + (unread ? '<span class="unread-dot"></span>' : '') + '</div>' +
+          '<div class="contact-preview">' + escapeHtml(preview.length > 44 ? preview.slice(0, 44) + '…' : preview) + '</div>'
+        row.addEventListener('click', function () { selectContact(c.id) })
+        wrap.appendChild(row)
+      })
+    }
+
+    function selectContact(id) {
+      activeContactId = id
+      markRead(id)
+      document.getElementById('chatLayout').classList.add('thread-active')
+      renderContacts()
+      renderThread()
+      document.getElementById('msgInput').focus()
+    }
+
+    function backToContacts() {
+      document.getElementById('chatLayout').classList.remove('thread-active')
+    }
+
+    function renderThread() {
+      if (!activeContactId) {
+        document.getElementById('threadEmpty').classList.remove('hidden')
+        document.getElementById('threadActive').classList.add('hidden')
+        return
+      }
+      document.getElementById('threadEmpty').classList.add('hidden')
+      document.getElementById('threadActive').classList.remove('hidden')
+
+      var contact = contacts.find(function (c) { return c.id === activeContactId })
+      document.getElementById('threadContactName').textContent = contact ? contact.name : '…'
+
+      var pane = document.getElementById('threadMessages')
+      var conv = conversationWith(activeContactId)
+      pane.innerHTML = ''
+      if (!conv.length) {
+        pane.innerHTML = '<p class="empty-note">Say hello — no messages yet.</p>'
+      } else {
+        conv.forEach(function (m) {
+          var mine = m.sender_id === me.id
+          var row = document.createElement('div')
+          row.className = 'msg-row ' + (mine ? 'mine' : 'theirs')
+          row.innerHTML = '<div class="msg-bubble">' + escapeHtml(m.body) + '</div><div class="msg-time">' + formatTime(m.created_at) + '</div>'
+          pane.appendChild(row)
+        })
+      }
+      pane.scrollTop = pane.scrollHeight
+      markRead(activeContactId)
+    }
+
+    /* ══ ACTIONS ══ */
+    function sendMessage() {
+      var input = document.getElementById('msgInput')
+      var body = input.value.trim()
+      if (!body || !activeContactId) return
+      var contact = contacts.find(function (c) { return c.id === activeContactId })
+      if (!contact) return
+      input.value = ''
+
+      var optimistic = {
+        id: 'temp_' + Date.now(),
+        sender_id: me.id, sender_name: me.name,
+        recipient_id: contact.id, recipient_name: contact.name,
+        body: body, created_at: new Date().toISOString()
+      }
+      allMessages.push(optimistic)
+      lastMessagesJSON = JSON.stringify(allMessages)
+      renderThread()
+      renderContacts()
+
+      fetch(SUPABASE_URL + '/rest/v1/staff_messages', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+        body: JSON.stringify({
+          sender_id: me.id, sender_name: me.name,
+          recipient_id: contact.id, recipient_name: contact.name,
+          body: body
+        })
+      }).catch(function () {})
+    }
+
+    function wireUI() {
+      document.getElementById('sendBtn').addEventListener('click', sendMessage)
+      document.getElementById('msgInput').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
+      })
+      document.getElementById('backToContactsBtn').addEventListener('click', backToContacts)
+    }
+
+    /* ══ INIT ══ */
+    document.addEventListener('DOMContentLoaded', function () {
+      me = loadSession()
+      if (!me || !me.id) {
+        document.getElementById('signInNeeded').classList.remove('hidden')
+        return
+      }
+      document.getElementById('chatApp').classList.remove('hidden')
+      document.getElementById('meLabel').textContent = me.name
+      wireUI()
+      loadContacts()
+      tick()
+      setInterval(tick, POLL_MS)
+    })
+  </script>
+</body>
+</html>
