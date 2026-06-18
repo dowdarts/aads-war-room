@@ -38,6 +38,12 @@ export default function StaffDashboard({ onSelect }) {
   const [newStaffName, setNewStaffName] = useState('')
   const [newStaffPin, setNewStaffPin] = useState('')
   const [addStaffError, setAddStaffError] = useState('')
+  const [editingStaff, setEditingStaff] = useState(null)
+  const [draftName, setDraftName] = useState('')
+  const [draftPin, setDraftPin] = useState('')
+  const [draftActive, setDraftActive] = useState(true)
+  const [draftTools, setDraftTools] = useState([])
+  const [editError, setEditError] = useState('')
   const base = getBaseUrl()
 
   useEffect(() => {
@@ -70,17 +76,62 @@ export default function StaffDashboard({ onSelect }) {
     } catch {}
   }
 
-  function toggleStaffTool(staffId, toolId) {
-    const staff = allStaff.find(s => s.id === staffId)
-    if (!staff) return
-    const current = staff.tool_permissions || []
-    const next = current.includes(toolId) ? current.filter(t => t !== toolId) : [...current, toolId]
-    setAllStaff(prev => prev.map(s => (s.id === staffId ? { ...s, tool_permissions: next } : s)))
-    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${staffId}`, {
+  function openEditStaff(staff) {
+    setEditingStaff(staff)
+    setDraftName(staff.name)
+    setDraftPin('')
+    setDraftActive(staff.is_active !== false)
+    setDraftTools(staff.tool_permissions || [])
+    setEditError('')
+  }
+
+  function closeEditStaff() {
+    setEditingStaff(null)
+  }
+
+  function toggleDraftTool(toolId) {
+    setDraftTools(prev => (prev.includes(toolId) ? prev.filter(t => t !== toolId) : [...prev, toolId]))
+  }
+
+  function handleSaveEditStaff() {
+    const trimmed = draftName.trim()
+    if (!trimmed) { setEditError('Enter a name.'); return }
+    if (allStaff.some(s => s.id !== editingStaff.id && s.name.toLowerCase() === trimmed.toLowerCase())) {
+      setEditError('Another staff member already has that name.'); return
+    }
+    if (draftPin && draftPin.length < 4) { setEditError('PIN must be at least 4 digits.'); return }
+    if (!draftActive && editingStaff.is_master) {
+      const otherActiveMasters = allStaff.filter(s => s.is_master && s.id !== editingStaff.id && s.is_active !== false)
+      if (otherActiveMasters.length === 0) { setEditError("Can't pause the last active Master account."); return }
+    }
+
+    const payload = { name: trimmed, is_active: draftActive, tool_permissions: draftTools }
+    if (draftPin) payload.pin = draftPin
+
+    setAllStaff(prev => prev.map(s => (s.id === editingStaff.id ? { ...s, ...payload } : s)))
+    setStaffList(prev => [...prev.filter(n => n !== editingStaff.name), trimmed].sort())
+    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${editingStaff.id}`, {
       method: 'PATCH',
       headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ tool_permissions: next }),
+      body: JSON.stringify(payload),
     }).catch(() => {})
+    setEditingStaff(null)
+  }
+
+  function handleRemoveEditingStaff() {
+    if (!editingStaff) return
+    if (editingStaff.is_master) {
+      const otherMasters = allStaff.filter(s => s.is_master && s.id !== editingStaff.id)
+      if (otherMasters.length === 0) { setEditError("Can't remove the last Master account."); return }
+    }
+    if (!window.confirm(`Remove ${editingStaff.name}? This cannot be undone.`)) return
+    setAllStaff(prev => prev.filter(s => s.id !== editingStaff.id))
+    setStaffList(prev => prev.filter(n => n !== editingStaff.name))
+    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${editingStaff.id}`, {
+      method: 'DELETE',
+      headers: hdrs,
+    }).catch(() => {})
+    setEditingStaff(null)
   }
 
   async function handleAddStaff() {
@@ -106,60 +157,6 @@ export default function StaffDashboard({ onSelect }) {
     } catch {
       setAddStaffError('Connection error. Try again.')
     }
-  }
-
-  function handleRenameStaff(staffId, newName) {
-    const trimmed = newName.trim()
-    const staff = allStaff.find(s => s.id === staffId)
-    if (!staff || !trimmed || trimmed === staff.name) return
-    if (allStaff.some(s => s.id !== staffId && s.name.toLowerCase() === trimmed.toLowerCase())) {
-      alert('Another staff member already has that name.')
-      return
-    }
-    setAllStaff(prev => prev.map(s => (s.id === staffId ? { ...s, name: trimmed } : s)))
-    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${staffId}`, {
-      method: 'PATCH',
-      headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ name: trimmed }),
-    }).catch(() => {})
-  }
-
-  function handleResetPin(staffId, newPin) {
-    if (!newPin) return
-    if (newPin.length < 4) { alert('PIN must be at least 4 digits.'); return }
-    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${staffId}`, {
-      method: 'PATCH',
-      headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ pin: newPin }),
-    }).catch(() => {})
-  }
-
-  function handleTogglePause(staff) {
-    const nextActive = staff.is_active === false
-    if (!nextActive && staff.is_master) {
-      const otherActiveMasters = allStaff.filter(s => s.is_master && s.id !== staff.id && s.is_active !== false)
-      if (otherActiveMasters.length === 0) { alert("Can't pause the last active Master account."); return }
-    }
-    setAllStaff(prev => prev.map(s => (s.id === staff.id ? { ...s, is_active: nextActive } : s)))
-    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${staff.id}`, {
-      method: 'PATCH',
-      headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ is_active: nextActive }),
-    }).catch(() => {})
-  }
-
-  function handleRemoveStaff(staff) {
-    if (staff.is_master) {
-      const otherMasters = allStaff.filter(s => s.is_master && s.id !== staff.id)
-      if (otherMasters.length === 0) { alert("Can't remove the last Master account."); return }
-    }
-    if (!window.confirm(`Remove ${staff.name}? This cannot be undone.`)) return
-    setAllStaff(prev => prev.filter(s => s.id !== staff.id))
-    setStaffList(prev => prev.filter(n => n !== staff.name))
-    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${staff.id}`, {
-      method: 'DELETE',
-      headers: hdrs,
-    }).catch(() => {})
   }
 
   async function fetchLog() {
@@ -358,9 +355,9 @@ export default function StaffDashboard({ onSelect }) {
           {/* Manage staff */}
           <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-5">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">Manage Staff</h3>
-            <p className="text-xs text-gray-500 mb-4">Rename accounts, reset PINs, pause or remove staff, and choose which tools each one sees.</p>
+            <p className="text-xs text-gray-500 mb-4">Select a staff member to edit their name, PIN, status, and tool access.</p>
 
-            <div className="flex items-end gap-2 mb-2 flex-wrap">
+            <div className="flex items-end gap-2 mb-4 flex-wrap">
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</label>
                 <input
@@ -395,76 +392,34 @@ export default function StaffDashboard({ onSelect }) {
             {allStaff.length === 0 ? (
               <p className="text-gray-600 text-sm text-center py-6">No staff accounts found.</p>
             ) : (
-              <div className="flex flex-col gap-4 mt-4">
+              <div className="flex flex-col gap-2">
                 {allStaff.map(staff => (
-                  <div key={staff.id} className={`border border-[#1e1e1e] rounded-xl p-4 ${staff.is_active === false ? 'opacity-50' : ''}`}>
-                    <div className="flex items-center justify-between gap-3 mb-3 flex-wrap">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <input
-                          type="text"
-                          defaultValue={staff.name}
-                          onBlur={e => handleRenameStaff(staff.id, e.target.value)}
-                          className="bg-[#1a1a1a] border border-[#333] rounded-lg px-2.5 py-1.5 text-white text-sm font-semibold w-40 focus:outline-none focus:border-orange-500"
-                        />
-                        {staff.is_master && (
-                          <span className="text-xs font-bold uppercase tracking-widest text-orange-400 bg-orange-950 border border-orange-800/60 px-2 py-0.5 rounded-full">
-                            Master
-                          </span>
-                        )}
-                        {staff.is_active === false && (
-                          <span className="text-xs font-bold uppercase tracking-widest text-gray-400 bg-[#1a1a1a] border border-[#333] px-2 py-0.5 rounded-full">
-                            Paused
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          defaultValue=""
-                          placeholder="Reset PIN"
-                          onBlur={e => { handleResetPin(staff.id, e.target.value); e.target.value = '' }}
-                          className="bg-[#1a1a1a] border border-[#333] rounded-lg px-2.5 py-1.5 text-white text-xs w-24 text-center tracking-widest focus:outline-none focus:border-orange-500 placeholder:tracking-normal placeholder:text-gray-600"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleTogglePause(staff)}
-                          className="text-xs font-semibold border border-[#333] hover:border-orange-600/40 rounded-lg px-3 py-1.5 text-gray-300 hover:text-white transition-colors"
-                        >
-                          {staff.is_active === false ? 'Resume' : 'Pause'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveStaff(staff)}
-                          className="text-xs font-semibold border border-red-900/60 hover:border-red-600 rounded-lg px-3 py-1.5 text-red-400 hover:text-red-300 transition-colors"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                  <button
+                    key={staff.id}
+                    type="button"
+                    onClick={() => openEditStaff(staff)}
+                    className={`flex items-center justify-between gap-3 border border-[#1e1e1e] hover:border-orange-600/40 bg-[#0a0a0a] hover:bg-[#141414] rounded-xl px-4 py-3 text-left transition-colors ${staff.is_active === false ? 'opacity-50' : ''}`}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-semibold text-white">{staff.name}</span>
+                      {staff.is_master && (
+                        <span className="text-xs font-bold uppercase tracking-widest text-orange-400 bg-orange-950 border border-orange-800/60 px-2 py-0.5 rounded-full">
+                          Master
+                        </span>
+                      )}
+                      {staff.is_active === false && (
+                        <span className="text-xs font-bold uppercase tracking-widest text-gray-400 bg-[#1a1a1a] border border-[#333] px-2 py-0.5 rounded-full">
+                          Paused
+                        </span>
+                      )}
+                      {!staff.is_master && (
+                        <span className="text-xs text-gray-500">
+                          {(staff.tool_permissions || []).length} tool{(staff.tool_permissions || []).length === 1 ? '' : 's'}
+                        </span>
+                      )}
                     </div>
-                    {!staff.is_master && (
-                      <div className="flex flex-wrap gap-2">
-                        {ALL_TOOLS.map(tool => {
-                          const granted = (staff.tool_permissions || []).includes(tool.id)
-                          return (
-                            <button
-                              key={tool.id}
-                              type="button"
-                              onClick={() => toggleStaffTool(staff.id, tool.id)}
-                              className={
-                                granted
-                                  ? 'flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
-                                  : 'flex items-center gap-1.5 bg-[#1a1a1a] hover:bg-[#222] text-gray-400 hover:text-gray-200 border border-[#333] text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
-                              }
-                            >
-                              <span>{tool.icon}</span>
-                              <span>{tool.label}</span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
+                    <span className="text-gray-500 text-sm">&rsaquo;</span>
+                  </button>
                 ))}
               </div>
             )}
@@ -508,6 +463,112 @@ export default function StaffDashboard({ onSelect }) {
             )}
           </div>
 
+        </div>
+      )}
+
+      {editingStaff && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm px-4">
+          <div className="bg-[#111] border border-[#2a2a2a] rounded-2xl p-6 w-full max-w-md shadow-2xl max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-white font-bold text-lg">Edit Staff</h3>
+              <button type="button" onClick={closeEditStaff} className="text-gray-500 hover:text-gray-300 text-sm">✕</button>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</label>
+                <input
+                  type="text"
+                  value={draftName}
+                  onChange={e => setDraftName(e.target.value)}
+                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Reset PIN</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={draftPin}
+                  onChange={e => setDraftPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Leave blank to keep current PIN"
+                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500 placeholder:text-gray-600"
+                />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Account Status</span>
+                <button
+                  type="button"
+                  onClick={() => setDraftActive(a => !a)}
+                  className={
+                    draftActive
+                      ? 'text-xs font-bold uppercase tracking-wider bg-green-950 border border-green-800/60 text-green-400 px-3 py-1.5 rounded-full'
+                      : 'text-xs font-bold uppercase tracking-wider bg-[#1a1a1a] border border-[#333] text-gray-400 px-3 py-1.5 rounded-full'
+                  }
+                >
+                  {draftActive ? 'Active' : 'Paused'}
+                </button>
+              </div>
+
+              {editingStaff.is_master ? (
+                <p className="text-xs text-orange-400/70">Master accounts always have access to every tool.</p>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Tools</span>
+                  <div className="flex flex-wrap gap-2">
+                    {ALL_TOOLS.map(tool => {
+                      const granted = draftTools.includes(tool.id)
+                      return (
+                        <button
+                          key={tool.id}
+                          type="button"
+                          onClick={() => toggleDraftTool(tool.id)}
+                          className={
+                            granted
+                              ? 'flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
+                              : 'flex items-center gap-1.5 bg-[#1a1a1a] hover:bg-[#222] text-gray-400 hover:text-gray-200 border border-[#333] text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
+                          }
+                        >
+                          <span>{tool.icon}</span>
+                          <span>{tool.label}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {editError && <p className="text-red-400 text-xs">{editError}</p>}
+
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleRemoveEditingStaff}
+                  className="text-xs font-semibold border border-red-900/60 hover:border-red-600 rounded-lg px-3 py-2 text-red-400 hover:text-red-300 transition-colors"
+                >
+                  Remove Account
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={closeEditStaff}
+                    className="text-xs font-semibold border border-[#333] hover:border-[#555] rounded-lg px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveEditStaff}
+                    className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2 transition-colors"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
