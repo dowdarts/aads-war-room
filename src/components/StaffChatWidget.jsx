@@ -8,6 +8,34 @@ const LASTREAD_PREFIX = 'aads_chat_lastread_'
 const MESSAGE_POLL_MS = 2000
 const ELIGIBILITY_POLL_MS = 4000
 const HEARTBEAT_MS = 30000
+const IMAGE_BUCKET = 'staff-chat-images'
+const IMAGE_MAX_DIM = 1600
+const IMAGE_QUALITY = 0.8
+
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const reader = new FileReader()
+    reader.onload = () => {
+      img.onload = () => {
+        let { width, height } = img
+        if (width > IMAGE_MAX_DIM || height > IMAGE_MAX_DIM) {
+          if (width > height) { height = Math.round(height * IMAGE_MAX_DIM / width); width = IMAGE_MAX_DIM }
+          else { width = Math.round(width * IMAGE_MAX_DIM / height); height = IMAGE_MAX_DIM }
+        }
+        const canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+        canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('compress failed'))), 'image/jpeg', IMAGE_QUALITY)
+      }
+      img.onerror = reject
+      img.src = reader.result
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
 
 function loadSession() {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY)) } catch { return null }
@@ -25,8 +53,10 @@ export default function StaffChatWidget() {
   const [messages, setMessages] = useState([])
   const [activeContactId, setActiveContactId] = useState(null)
   const [input, setInput] = useState('')
+  const [uploading, setUploading] = useState(false)
   const bottomRef = useRef(null)
   const inputRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   // Re-check session + tool permission periodically — covers sign in/out and
   // permission changes Matthew makes while this tab stays open.
@@ -159,6 +189,54 @@ export default function StaffChatWidget() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
   }
 
+  function pickImage() {
+    fileInputRef.current?.click()
+  }
+
+  async function handleFileSelected(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !activeContactId || !session) return
+    const contact = contacts.find(c => c.id === activeContactId)
+    if (!contact) return
+    setUploading(true)
+    const tempId = `temp_${Date.now()}`
+    try {
+      const blob = await compressImage(file)
+      const filename = `${session.id}_${Date.now()}.jpg`
+      const localUrl = URL.createObjectURL(blob)
+      const optimistic = {
+        id: tempId,
+        sender_id: session.id, sender_name: session.name,
+        recipient_id: contact.id, recipient_name: contact.name,
+        body: '', image_url: localUrl, created_at: new Date().toISOString(),
+      }
+      setMessages(prev => [...prev, optimistic])
+
+      const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/${IMAGE_BUCKET}/${filename}`, {
+        method: 'POST',
+        headers: { ...hdrs, 'Content-Type': 'image/jpeg' },
+        body: blob,
+      })
+      if (!uploadRes.ok) throw new Error('upload failed')
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/${IMAGE_BUCKET}/${filename}`
+
+      await fetch(`${SUPABASE_URL}/rest/v1/staff_messages`, {
+        method: 'POST',
+        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({
+          sender_id: session.id, sender_name: session.name,
+          recipient_id: contact.id, recipient_name: contact.name,
+          body: '', image_url: imageUrl,
+        }),
+      })
+    } catch {
+      setMessages(prev => prev.filter(m => m.id !== tempId))
+      window.alert('Could not send image. Try again.')
+    }
+    setUploading(false)
+  }
+
   function deleteMessage(id) {
     if (typeof id !== 'string' || id.startsWith('temp_')) return
     setMessages(prev => prev.filter(m => m.id !== id))
@@ -239,7 +317,8 @@ export default function StaffChatWidget() {
               ) : (
                 contacts.map(c => {
                   const conv = conversationWith(c.id)
-                  const preview = conv.length ? conv[conv.length - 1].body : 'No messages yet'
+                  const lastMsg = conv.length ? conv[conv.length - 1] : null
+                  const preview = lastMsg ? (lastMsg.image_url ? '📷 Photo' : lastMsg.body) : 'No messages yet'
                   const unread = isUnread(c.id)
                   return (
                     <div
@@ -276,15 +355,25 @@ export default function StaffChatWidget() {
                 ) : (
                   thread.map((m, i) => (
                     <div key={m.id || i} className={`flex flex-col ${m.sender_id === session.id ? 'items-end' : 'items-start'}`}>
-                      <div
-                        className={`max-w-[88%] px-3 py-2 rounded-xl text-sm
-                          ${m.sender_id === session.id
-                            ? 'bg-orange text-black font-medium rounded-br-sm'
-                            : 'bg-[#1a1a1a] text-gray-200 rounded-bl-sm'
-                          }`}
-                      >
-                        {m.body}
-                      </div>
+                      {m.image_url ? (
+                        <a href={m.image_url} target="_blank" rel="noopener noreferrer">
+                          <img
+                            src={m.image_url}
+                            alt="Shared"
+                            className="max-w-[180px] max-h-[180px] rounded-xl object-cover border border-[#2a2a2a]"
+                          />
+                        </a>
+                      ) : (
+                        <div
+                          className={`max-w-[88%] px-3 py-2 rounded-xl text-sm
+                            ${m.sender_id === session.id
+                              ? 'bg-orange text-black font-medium rounded-br-sm'
+                              : 'bg-[#1a1a1a] text-gray-200 rounded-bl-sm'
+                            }`}
+                        >
+                          {m.body}
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] text-gray-600">{formatTime(m.created_at)}</span>
                         <button
@@ -302,6 +391,24 @@ export default function StaffChatWidget() {
               </div>
 
               <div className="px-3 pb-3 pt-2 border-t border-[#1a1a1a] shrink-0 flex gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleFileSelected}
+                  className="hidden"
+                />
+                <button
+                  onClick={pickImage}
+                  disabled={uploading}
+                  title="Send a photo"
+                  className="w-9 h-9 rounded-xl bg-[#141414] border border-[#2a2a2a] text-gray-300
+                             disabled:opacity-40 hover:border-orange/50 transition-colors
+                             flex items-center justify-center shrink-0 text-base"
+                >
+                  {uploading ? '…' : '📷'}
+                </button>
                 <input
                   ref={inputRef}
                   value={input}
