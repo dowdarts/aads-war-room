@@ -8,9 +8,16 @@ const LASTREAD_PREFIX = 'aads_chat_lastread_'
 const MESSAGE_POLL_MS = 2000
 const ELIGIBILITY_POLL_MS = 4000
 const HEARTBEAT_MS = 30000
+const CONTACTS_POLL_MS = 15000
+const ONLINE_THRESHOLD_MS = 90000
 const IMAGE_BUCKET = 'staff-chat-images'
 const IMAGE_MAX_DIM = 1600
 const IMAGE_QUALITY = 0.8
+
+function isOnline(c) {
+  if (!c.last_seen_at) return false
+  return Date.now() - new Date(c.last_seen_at).getTime() < ONLINE_THRESHOLD_MS
+}
 
 function compressImage(file) {
   return new Promise((resolve, reject) => {
@@ -95,10 +102,15 @@ export default function StaffChatWidget() {
 
   useEffect(() => {
     if (!eligible || !session) { setContacts([]); return }
-    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name&is_active=eq.true&order=name.asc`, { headers: hdrs })
-      .then(r => r.json())
-      .then(rows => setContacts(Array.isArray(rows) ? rows.filter(c => c.id !== session.id) : []))
-      .catch(() => {})
+    function loadContacts() {
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,last_seen_at&is_active=eq.true&order=name.asc`, { headers: hdrs })
+        .then(r => r.json())
+        .then(rows => setContacts(Array.isArray(rows) ? rows.filter(c => c.id !== session.id) : []))
+        .catch(() => {})
+    }
+    loadContacts()
+    const t = setInterval(loadContacts, CONTACTS_POLL_MS)
+    return () => clearInterval(t)
   }, [eligible, session])
 
   useEffect(() => {
@@ -298,8 +310,11 @@ export default function StaffChatWidget() {
               💬
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-bold text-white truncate">
+              <div className="text-sm font-bold text-white truncate flex items-center gap-1.5">
                 {activeContact ? activeContact.name : 'Staff Chat'}
+                {activeContact && isOnline(activeContact) && (
+                  <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Online now" />
+                )}
               </div>
               <div className="text-[10px] text-gray-500 font-medium tracking-wide truncate">
                 Signed in as {session?.name}
@@ -328,6 +343,7 @@ export default function StaffChatWidget() {
                     >
                       <div className="flex-1 min-w-0 flex flex-col">
                         <div className="flex items-center gap-1.5">
+                          {isOnline(c) && <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Online now" />}
                           <span className="text-sm font-bold text-white">{c.name}</span>
                           {unread && <span className="w-2 h-2 rounded-full bg-orange shrink-0" />}
                         </div>
