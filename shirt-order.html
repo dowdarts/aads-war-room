@@ -534,7 +534,7 @@
       <div class="hero-eyebrow">AADS Members</div>
       <h1 class="hero-title">AADS Shirt <em>Catalog</em></h1>
       <div class="price-block">
-        <div class="price-amount">$43.48</div>
+        <div class="price-amount">$65.21</div>
         <div class="price-right">
           <div class="price-currency">CAD</div>
           <div class="price-per">per shirt</div>
@@ -683,7 +683,7 @@
       <!-- Catalog shirts section -->
       <div class="section catalog-section">
         <p class="section-title" style="color:var(--accent)">AADS &amp; CGC Darts Catalog</p>
-        <p class="catalog-desc">Pre-designed CGC &amp; AADS shirts — $43.48 each (plus 15% tax), same batch order. Click any shirt to preview and add to cart.</p>
+        <p class="catalog-desc">Pre-designed CGC &amp; AADS shirts — $65.21 each (plus 15% tax), same batch order. Click any shirt to preview and add to cart.</p>
         <div class="catalog-grid" id="catalogGrid"></div>
       </div>
 
@@ -1132,7 +1132,7 @@
               <div class="cart-item-main">${item.product}</div>
               <div class="cart-item-sub">${item.shirtName || '—'} · ${item.size}${item.poloStyle ? ' · ' + item.poloStyle : ''}</div>
             </div>
-            <span class="cart-item-price">$43.48</span>
+            <span class="cart-item-price">$65.21</span>
             <button type="button" class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
           </div>`
         }
@@ -1145,12 +1145,12 @@
             <div class="cart-item-main">${item.color} · ${item.size} · ${extras}</div>
             <div class="cart-item-sub">${nameLabel}</div>
           </div>
-          <span class="cart-item-price">$43.48</span>
+          <span class="cart-item-price">$65.21</span>
           <button type="button" class="cart-remove" onclick="removeFromCart('${item.id}')" title="Remove">&times;</button>
         </div>`
       }).join('')
 
-      const subtotal = cart.length * 43.48
+      const subtotal = cart.length * 65.21
       const tax = subtotal * 0.15
       const total = subtotal + tax
       totalEl.textContent = `$${total.toFixed(2)} CAD`
@@ -1171,7 +1171,7 @@
           return `<div class="review-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
             <span class="review-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}${item.poloStyle ? ' · ' + item.poloStyle : ''}</span>
-            <span class="review-item-price">$43.48</span>
+            <span class="review-item-price">$65.21</span>
           </div>`
         }
         const hex = COLOR_HEX[item.color] || '#888'
@@ -1180,10 +1180,10 @@
         return `<div class="review-item">
           <span class="review-item-dot" style="background:${hex}"></span>
           <span class="review-item-desc">${item.color} · ${item.size} · ${extras} · ${nameLabel}</span>
-          <span class="review-item-price">$43.48</span>
+          <span class="review-item-price">$65.21</span>
         </div>`
       }).join('')
-      const subtotal = cart.length * 43.48
+      const subtotal = cart.length * 65.21
       const tax = subtotal * 0.15
       const total = subtotal + tax
       document.getElementById('checkoutTotal').innerHTML = `$${subtotal.toFixed(2)} + $${tax.toFixed(2)} tax = $${total.toFixed(2)} <em>CAD</em>`
@@ -1209,7 +1209,7 @@
 
       try {
         const orderNumber = generateOrderNumber()
-        const subtotal = cart.length * 43.48
+        const subtotal = cart.length * 65.21
         const totalAmount = subtotal * 1.15  // Add 15% tax
         const firstItem   = cart[0]
 
@@ -1279,7 +1279,7 @@
           return `<div class="confirm-item">
             <img src="${item.img}" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:5px;flex-shrink:0;">
             <span class="confirm-item-desc">${item.product} · ${item.shirtName || '—'} · ${item.size}${item.poloStyle ? ' · ' + item.poloStyle : ''}</span>
-            <span class="confirm-item-price">$43.48</span>
+            <span class="confirm-item-price">$65.21</span>
           </div>`
         }
         const hex = COLOR_HEX[item.color] || '#888'
@@ -1288,7 +1288,7 @@
         return `<div class="confirm-item">
           <span class="confirm-item-dot" style="background:${hex}"></span>
           <span class="confirm-item-desc">${item.color} · ${item.size} · ${extras} · ${nameLabel}</span>
-          <span class="confirm-item-price">$43.48</span>
+          <span class="confirm-item-price">$65.21</span>
         </div>`
       }).join('')
 
@@ -1341,7 +1341,7 @@
           `<img class="catalog-card-img" src="${shirt.img}" alt="${shirt.name.replace(/"/g, '&quot;')}" loading="lazy">` +
           `<div class="catalog-card-name">${shirt.name}</div>` +
           `<div class="catalog-card-prices">` +
-            `<div class="catalog-card-price">$43.48</div>` +
+            `<div class="catalog-card-price">$65.21</div>` +
             `<div class="catalog-card-price-tax">+ tax</div>` +
           `</div>`
         grid.appendChild(card)
