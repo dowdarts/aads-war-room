@@ -52,6 +52,7 @@
     .contact-row-text { flex: 1; min-width: 0; }
     .contact-name { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
     .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; flex-shrink: 0; }
+    .online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; flex-shrink: 0; }
     .contact-preview { font-size: 11px; color: var(--muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .empty-note { color: var(--muted); font-size: 13px; text-align: center; padding: 30px 16px; }
     .delete-conv-btn { background: none; border: none; color: #555; font-size: 13px; cursor: pointer; padding: 4px; flex-shrink: 0; }
@@ -139,9 +140,16 @@
     var LASTREAD_PREFIX = 'aads_chat_lastread_'
     var POLL_MS = 2000
     var HEARTBEAT_MS = 30000
+    var CONTACTS_POLL_MS = 15000
+    var ONLINE_THRESHOLD_MS = 90000
     var IMAGE_BUCKET = 'staff-chat-images'
     var IMAGE_MAX_DIM = 1600
     var IMAGE_QUALITY = 0.8
+
+    function isOnline(c) {
+      if (!c.last_seen_at) return false
+      return Date.now() - new Date(c.last_seen_at).getTime() < ONLINE_THRESHOLD_MS
+    }
 
     /* ══ STATE ══ */
     var me = null
@@ -157,12 +165,13 @@
 
     /* ══ DATA ══ */
     function loadContacts() {
-      var url = SUPABASE_URL + '/rest/v1/staff_accounts?select=id,name&is_active=eq.true&order=name.asc'
+      var url = SUPABASE_URL + '/rest/v1/staff_accounts?select=id,name,last_seen_at&is_active=eq.true&order=name.asc'
       fetch(url, { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
           contacts = (Array.isArray(rows) ? rows : []).filter(function (c) { return c.id !== me.id })
           renderContacts()
+          renderThread()
         })
         .catch(function () {})
     }
@@ -233,7 +242,8 @@
         row.className = 'contact-row' + (c.id === activeContactId ? ' active' : '')
         var textHtml =
           '<div class="contact-row-text">' +
-          '<div class="contact-name">' + escapeHtml(c.name) + (unread ? '<span class="unread-dot"></span>' : '') + '</div>' +
+          '<div class="contact-name">' + (isOnline(c) ? '<span class="online-dot" title="Online now"></span>' : '') +
+          escapeHtml(c.name) + (unread ? '<span class="unread-dot"></span>' : '') + '</div>' +
           '<div class="contact-preview">' + escapeHtml(preview.length > 44 ? preview.slice(0, 44) + '…' : preview) + '</div>' +
           '</div>'
         row.innerHTML = conv.length
@@ -305,7 +315,9 @@
       document.getElementById('threadActive').classList.remove('hidden')
 
       var contact = contacts.find(function (c) { return c.id === activeContactId })
-      document.getElementById('threadContactName').textContent = contact ? contact.name : '…'
+      document.getElementById('threadContactName').innerHTML = contact
+        ? escapeHtml(contact.name) + (isOnline(contact) ? ' <span class="online-dot" title="Online now"></span>' : '')
+        : '…'
 
       var pane = document.getElementById('threadMessages')
       var conv = conversationWith(activeContactId)
@@ -475,6 +487,7 @@
       document.getElementById('meLabel').textContent = me.name
       wireUI()
       loadContacts()
+      setInterval(loadContacts, CONTACTS_POLL_MS)
       tick()
       setInterval(tick, POLL_MS)
       heartbeat()
