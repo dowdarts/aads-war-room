@@ -5,18 +5,15 @@ const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
 const SESSION_KEY = 'aads_staff_session'
 
-const STAFF_TOOLS = [
-  { label: 'Denis Interview Assistant', icon: '🎙️', path: 'interview.html' },
-  { label: 'Commentator', icon: '🎤', tabId: 'commentator' },
-  { label: 'QR Scanner', icon: '📷', path: 'AADSTickets-Scanner.html' },
-  { label: 'Ticket Check-in', icon: '✅', path: 'AADSTickets-Checkin.html' },
-]
-
-const MASTER_TOOLS = [
-  ...STAFF_TOOLS,
-  { label: 'Interview Admin', icon: '📋', path: 'interview-admin.html' },
-  { label: 'Ticket Sales', icon: '🎟️', path: 'AADSTickets-Dashboard.html' },
-  { label: 'Shirt Admin', icon: '👕', path: 'shirt-admin.html' },
+const ALL_TOOLS = [
+  { id: 'interview', label: 'Denis Interview Assistant', icon: '🎙️', path: 'interview.html' },
+  { id: 'commentator', label: 'Commentator', icon: '🎤', tabId: 'commentator' },
+  { id: 'scanner', label: 'QR Scanner', icon: '📷', path: 'AADSTickets-Scanner.html' },
+  { id: 'checkin', label: 'Ticket Check-in', icon: '✅', path: 'AADSTickets-Checkin.html' },
+  { id: 'interview-admin', label: 'Interview Admin', icon: '📋', path: 'interview-admin.html' },
+  { id: 'ticket-sales', label: 'Ticket Sales', icon: '🎟️', path: 'AADSTickets-Dashboard.html' },
+  { id: 'shirt-admin', label: 'Shirt Admin', icon: '👕', path: 'shirt-admin.html' },
+  { id: 'shirt-order', label: 'Shirt Order', icon: '🧾', path: 'shirt-order.html' },
 ]
 
 const hdrs = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
@@ -36,6 +33,8 @@ export default function StaffDashboard({ onSelect }) {
   const [loggingIn, setLoggingIn] = useState(false)
   const [activityLog, setActivityLog] = useState([])
   const [logLoading, setLogLoading] = useState(false)
+  const [toolPermissions, setToolPermissions] = useState([])
+  const [allStaff, setAllStaff] = useState([])
   const base = getBaseUrl()
 
   useEffect(() => {
@@ -46,8 +45,39 @@ export default function StaffDashboard({ onSelect }) {
   }, [])
 
   useEffect(() => {
-    if (session?.isMaster) fetchLog()
+    if (session?.isMaster) {
+      fetchLog()
+      fetchAllStaff()
+    } else if (session) {
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${session.id}&select=tool_permissions`, { headers: hdrs })
+        .then(r => r.json())
+        .then(rows => setToolPermissions(rows[0]?.tool_permissions || []))
+        .catch(() => {})
+    }
   }, [session])
+
+  async function fetchAllStaff() {
+    try {
+      const r = await fetch(
+        `${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,is_master,tool_permissions&order=name.asc`,
+        { headers: hdrs }
+      )
+      setAllStaff(await r.json())
+    } catch {}
+  }
+
+  function toggleStaffTool(staffId, toolId) {
+    const staff = allStaff.find(s => s.id === staffId)
+    if (!staff) return
+    const current = staff.tool_permissions || []
+    const next = current.includes(toolId) ? current.filter(t => t !== toolId) : [...current, toolId]
+    setAllStaff(prev => prev.map(s => (s.id === staffId ? { ...s, tool_permissions: next } : s)))
+    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${staffId}`, {
+      method: 'PATCH',
+      headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ tool_permissions: next }),
+    }).catch(() => {})
+  }
 
   async function fetchLog() {
     setLogLoading(true)
@@ -168,7 +198,7 @@ export default function StaffDashboard({ onSelect }) {
   }
 
   const isMaster = session.isMaster
-  const tools = isMaster ? MASTER_TOOLS : STAFF_TOOLS
+  const tools = isMaster ? ALL_TOOLS : ALL_TOOLS.filter(t => toolPermissions.includes(t.id))
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -200,19 +230,25 @@ export default function StaffDashboard({ onSelect }) {
       )}
 
       {/* Tool grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-10">
-        {tools.map(tool => (
-          <button
-            key={tool.label}
-            type="button"
-            onClick={() => openTool(tool)}
-            className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-xl p-5 flex flex-col items-center gap-3 text-center transition-all group cursor-pointer"
-          >
-            <span className="text-3xl group-hover:scale-110 transition-transform">{tool.icon}</span>
-            <span className="text-xs font-semibold text-gray-300 group-hover:text-white leading-tight">{tool.label}</span>
-          </button>
-        ))}
-      </div>
+      {tools.length === 0 ? (
+        <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-8 text-center mb-10">
+          <p className="text-gray-500 text-sm">No tools assigned yet — ask Matthew to set up your access.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-10">
+          {tools.map(tool => (
+            <button
+              key={tool.id}
+              type="button"
+              onClick={() => openTool(tool)}
+              className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-xl p-5 flex flex-col items-center gap-3 text-center transition-all group cursor-pointer"
+            >
+              <span className="text-3xl group-hover:scale-110 transition-transform">{tool.icon}</span>
+              <span className="text-xs font-semibold text-gray-300 group-hover:text-white leading-tight">{tool.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Master-only admin panel */}
       {isMaster && (
@@ -231,6 +267,52 @@ export default function StaffDashboard({ onSelect }) {
             >
               Open Registration Page
             </button>
+          </div>
+
+          {/* Staff tool permissions */}
+          <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-5">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">Staff Tool Permissions</h3>
+            <p className="text-xs text-gray-500 mb-4">Choose which tools each staff member sees in their dashboard.</p>
+            {allStaff.length === 0 ? (
+              <p className="text-gray-600 text-sm text-center py-6">No staff accounts found.</p>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {allStaff.map(staff => (
+                  <div key={staff.id} className="border border-[#1e1e1e] rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-sm font-semibold text-white">{staff.name}</span>
+                      {staff.is_master && (
+                        <span className="text-xs font-bold uppercase tracking-widest text-orange-400 bg-orange-950 border border-orange-800/60 px-2 py-0.5 rounded-full">
+                          Master · Full Access
+                        </span>
+                      )}
+                    </div>
+                    {!staff.is_master && (
+                      <div className="flex flex-wrap gap-2">
+                        {ALL_TOOLS.map(tool => {
+                          const granted = (staff.tool_permissions || []).includes(tool.id)
+                          return (
+                            <button
+                              key={tool.id}
+                              type="button"
+                              onClick={() => toggleStaffTool(staff.id, tool.id)}
+                              className={
+                                granted
+                                  ? 'flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
+                                  : 'flex items-center gap-1.5 bg-[#1a1a1a] hover:bg-[#222] text-gray-400 hover:text-gray-200 border border-[#333] text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
+                              }
+                            >
+                              <span>{tool.icon}</span>
+                              <span>{tool.label}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Activity log */}
