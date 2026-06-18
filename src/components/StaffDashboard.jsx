@@ -19,6 +19,13 @@ const ALL_TOOLS = [
 ]
 
 const hdrs = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+const ONLINE_THRESHOLD_MS = 90 * 1000
+const STAFF_LIST_POLL_MS = 20000
+
+function isOnline(staff) {
+  if (!staff.last_seen_at) return false
+  return Date.now() - new Date(staff.last_seen_at).getTime() < ONLINE_THRESHOLD_MS
+}
 
 function loadSession() {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY)) } catch { return null }
@@ -66,10 +73,17 @@ export default function StaffDashboard({ onSelect }) {
     }
   }, [session])
 
+  // Keep the online dots in Manage Staff roughly live while the master is viewing it.
+  useEffect(() => {
+    if (!session?.isMaster) return
+    const t = setInterval(fetchAllStaff, STAFF_LIST_POLL_MS)
+    return () => clearInterval(t)
+  }, [session])
+
   async function fetchAllStaff() {
     try {
       const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,pin,is_master,is_active,tool_permissions&order=name.asc`,
+        `${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,pin,is_master,is_active,tool_permissions,last_seen_at&order=name.asc`,
         { headers: hdrs }
       )
       const rows = await r.json()
@@ -393,6 +407,9 @@ export default function StaffDashboard({ onSelect }) {
                     className={`flex items-center justify-between gap-3 border border-[#1e1e1e] hover:border-orange-600/40 bg-[#0a0a0a] hover:bg-[#141414] rounded-xl px-4 py-3 text-left transition-colors ${staff.is_active === false ? 'opacity-50' : ''}`}
                   >
                     <div className="flex items-center gap-2 flex-wrap">
+                      {isOnline(staff) && (
+                        <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Online now" />
+                      )}
                       <span className="text-sm font-semibold text-white">{staff.name}</span>
                       {staff.is_master && (
                         <span className="text-xs font-bold uppercase tracking-widest text-orange-400 bg-orange-950 border border-orange-800/60 px-2 py-0.5 rounded-full">

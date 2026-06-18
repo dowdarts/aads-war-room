@@ -7,6 +7,7 @@ const SESSION_KEY = 'aads_staff_session'
 const LASTREAD_PREFIX = 'aads_chat_lastread_'
 const MESSAGE_POLL_MS = 2000
 const ELIGIBILITY_POLL_MS = 4000
+const HEARTBEAT_MS = 30000
 
 function loadSession() {
   try { return JSON.parse(localStorage.getItem(SESSION_KEY)) } catch { return null }
@@ -44,6 +45,23 @@ export default function StaffChatWidget() {
     const t = setInterval(checkEligibility, ELIGIBILITY_POLL_MS)
     return () => clearInterval(t)
   }, [])
+
+  // "Online now" heartbeat for the Manage Staff list — runs for every signed-in
+  // staff member regardless of chat eligibility, since this widget is the one
+  // component mounted across the whole app no matter which tab is active.
+  useEffect(() => {
+    if (!session?.id) return
+    function heartbeat() {
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${session.id}`, {
+        method: 'PATCH',
+        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ last_seen_at: new Date().toISOString() }),
+      }).catch(() => {})
+    }
+    heartbeat()
+    const t = setInterval(heartbeat, HEARTBEAT_MS)
+    return () => clearInterval(t)
+  }, [session?.id])
 
   useEffect(() => {
     if (!eligible || !session) { setContacts([]); return }
@@ -141,6 +159,31 @@ export default function StaffChatWidget() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() }
   }
 
+  function deleteMessage(id) {
+    if (typeof id !== 'string' || id.startsWith('temp_')) return
+    setMessages(prev => prev.filter(m => m.id !== id))
+    fetch(`${SUPABASE_URL}/rest/v1/staff_messages?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: hdrs,
+    }).catch(() => {})
+  }
+
+  function deleteConversation(otherId) {
+    if (!session) return
+    const contact = contacts.find(c => c.id === otherId)
+    if (!window.confirm(`Delete this entire conversation with ${contact ? contact.name : 'this person'}? This can't be undone.`)) return
+    setMessages(prev => prev.filter(m => !(
+      (m.sender_id === otherId && m.recipient_id === session.id) ||
+      (m.sender_id === session.id && m.recipient_id === otherId)
+    )))
+    if (activeContactId === otherId) setActiveContactId(null)
+    const filterExpr = `or=(and(sender_id.eq.${session.id},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${session.id}))`
+    fetch(`${SUPABASE_URL}/rest/v1/staff_messages?${filterExpr}`, {
+      method: 'DELETE',
+      headers: hdrs,
+    }).catch(() => {})
+  }
+
   if (!eligible) return null
 
   const activeContact = contacts.find(c => c.id === activeContactId)
@@ -199,17 +242,28 @@ export default function StaffChatWidget() {
                   const preview = conv.length ? conv[conv.length - 1].body : 'No messages yet'
                   const unread = isUnread(c.id)
                   return (
-                    <button
+                    <div
                       key={c.id}
                       onClick={() => openContact(c.id)}
-                      className="flex flex-col w-full text-left px-4 py-3 border-b border-[#141414] hover:bg-[#141414] transition-colors"
+                      className="flex items-center gap-2 w-full text-left px-4 py-3 border-b border-[#141414] hover:bg-[#141414] transition-colors cursor-pointer"
                     >
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-bold text-white">{c.name}</span>
-                        {unread && <span className="w-2 h-2 rounded-full bg-orange shrink-0" />}
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-bold text-white">{c.name}</span>
+                          {unread && <span className="w-2 h-2 rounded-full bg-orange shrink-0" />}
+                        </div>
+                        <span className="text-xs text-gray-500 truncate">{preview}</span>
                       </div>
-                      <span className="text-xs text-gray-500 truncate">{preview}</span>
-                    </button>
+                      {conv.length > 0 && (
+                        <button
+                          onClick={e => { e.stopPropagation(); deleteConversation(c.id) }}
+                          className="text-gray-600 hover:text-red-400 text-sm px-1 shrink-0"
+                          title={`Delete conversation with ${c.name}`}
+                        >
+                          🗑
+                        </button>
+                      )}
+                    </div>
                   )
                 })
               )}
@@ -231,7 +285,16 @@ export default function StaffChatWidget() {
                       >
                         {m.body}
                       </div>
-                      <span className="text-[10px] text-gray-600 mt-1">{formatTime(m.created_at)}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] text-gray-600">{formatTime(m.created_at)}</span>
+                        <button
+                          onClick={() => deleteMessage(m.id)}
+                          className="text-[10px] text-gray-700 hover:text-red-400"
+                          title="Delete message"
+                        >
+                          🗑
+                        </button>
+                      </div>
                     </div>
                   ))
                 )}
