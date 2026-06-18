@@ -68,7 +68,7 @@ export default function StaffDashboard({ onSelect }) {
   async function fetchAllStaff() {
     try {
       const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,is_master,is_active,tool_permissions&order=name.asc`,
+        `${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,pin,is_master,is_active,tool_permissions&order=name.asc`,
         { headers: hdrs }
       )
       const rows = await r.json()
@@ -79,7 +79,7 @@ export default function StaffDashboard({ onSelect }) {
   function openEditStaff(staff) {
     setEditingStaff(staff)
     setDraftName(staff.name)
-    setDraftPin('')
+    setDraftPin(staff.pin || '')
     setDraftActive(staff.is_active !== false)
     setDraftTools(staff.tool_permissions || [])
     setEditError('')
@@ -99,14 +99,13 @@ export default function StaffDashboard({ onSelect }) {
     if (allStaff.some(s => s.id !== editingStaff.id && s.name.toLowerCase() === trimmed.toLowerCase())) {
       setEditError('Another staff member already has that name.'); return
     }
-    if (draftPin && draftPin.length < 4) { setEditError('PIN must be at least 4 digits.'); return }
+    if (draftPin.length < 4) { setEditError('PIN must be at least 4 digits.'); return }
     if (!draftActive && editingStaff.is_master) {
       const otherActiveMasters = allStaff.filter(s => s.is_master && s.id !== editingStaff.id && s.is_active !== false)
       if (otherActiveMasters.length === 0) { setEditError("Can't pause the last active Master account."); return }
     }
 
-    const payload = { name: trimmed, is_active: draftActive, tool_permissions: draftTools }
-    if (draftPin) payload.pin = draftPin
+    const payload = { name: trimmed, pin: draftPin, is_active: draftActive, tool_permissions: draftTools }
 
     setAllStaff(prev => prev.map(s => (s.id === editingStaff.id ? { ...s, ...payload } : s)))
     setStaffList(prev => [...prev.filter(n => n !== editingStaff.name), trimmed].sort())
@@ -486,14 +485,13 @@ export default function StaffDashboard({ onSelect }) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Reset PIN</label>
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PIN</label>
                 <input
                   type="text"
                   inputMode="numeric"
                   value={draftPin}
                   onChange={e => setDraftPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="Leave blank to keep current PIN"
-                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500 placeholder:text-gray-600"
+                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm tracking-widest focus:outline-none focus:border-orange-500"
                 />
               </div>
 
