@@ -27,7 +27,6 @@ function clearSession() { localStorage.removeItem(SESSION_KEY) }
 export default function StaffDashboard({ onSelect }) {
   const [session, setSession] = useState(() => loadSession())
   const [staffList, setStaffList] = useState([])
-  const [selectedName, setSelectedName] = useState('')
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
   const [loggingIn, setLoggingIn] = useState(false)
@@ -99,7 +98,10 @@ export default function StaffDashboard({ onSelect }) {
     if (allStaff.some(s => s.id !== editingStaff.id && s.name.toLowerCase() === trimmed.toLowerCase())) {
       setEditError('Another staff member already has that name.'); return
     }
-    if (draftPin.length < 4) { setEditError('PIN must be at least 4 digits.'); return }
+    if (draftPin.length < 4) { setEditError('Staff code must be at least 4 digits.'); return }
+    if (allStaff.some(s => s.id !== editingStaff.id && s.pin === draftPin)) {
+      setEditError('Another staff member already has that code.'); return
+    }
     if (!draftActive && editingStaff.is_master) {
       const otherActiveMasters = allStaff.filter(s => s.is_master && s.id !== editingStaff.id && s.is_active !== false)
       if (otherActiveMasters.length === 0) { setEditError("Can't pause the last active Master account."); return }
@@ -136,9 +138,12 @@ export default function StaffDashboard({ onSelect }) {
   async function handleAddStaff() {
     const name = newStaffName.trim()
     if (!name) { setAddStaffError('Enter a name.'); return }
-    if (newStaffPin.length < 4) { setAddStaffError('PIN must be at least 4 digits.'); return }
+    if (newStaffPin.length < 4) { setAddStaffError('Staff code must be at least 4 digits.'); return }
     if (allStaff.some(s => s.name.toLowerCase() === name.toLowerCase())) {
       setAddStaffError('An account with that name already exists.'); return
+    }
+    if (allStaff.some(s => s.pin === newStaffPin)) {
+      setAddStaffError('That staff code is already in use. Choose a different one.'); return
     }
     setAddStaffError('')
     try {
@@ -172,18 +177,17 @@ export default function StaffDashboard({ onSelect }) {
   }
 
   async function handleLogin() {
-    if (!selectedName) { setError('Select your name.'); return }
-    if (pin.length < 4) { setError('PIN must be at least 4 digits.'); return }
+    if (pin.length < 4) { setError('Enter your staff code.'); return }
     setLoggingIn(true)
     setError('')
     try {
       const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(selectedName)}&pin=eq.${pin}&select=id,name,is_master,is_active`,
+        `${SUPABASE_URL}/rest/v1/staff_accounts?pin=eq.${pin}&select=id,name,is_master,is_active`,
         { headers: hdrs }
       )
       const rows = await r.json()
       if (!Array.isArray(rows)) { setError('Connection error. Try again.'); setLoggingIn(false); return }
-      if (!rows.length) { setError('Incorrect PIN. Try again.'); setLoggingIn(false); return }
+      if (!rows.length) { setError('Code not recognized. Try again.'); setLoggingIn(false); return }
       if (rows[0].is_active === false) { setError('This account is paused. Contact Matthew.'); setLoggingIn(false); return }
       const s = { id: rows[0].id, name: rows[0].name, isMaster: rows[0].is_master, loginAt: Date.now() }
       saveSession(s)
@@ -231,21 +235,7 @@ export default function StaffDashboard({ onSelect }) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</label>
-            <select
-              value={selectedName}
-              onChange={e => { setSelectedName(e.target.value); setError('') }}
-              className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
-            >
-              <option value="">— Select your name —</option>
-              {staffList.map(name => (
-                <option key={name} value={name}>{name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">4-Digit PIN</label>
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Staff Code</label>
             <input
               type="password"
               inputMode="numeric"
@@ -253,7 +243,8 @@ export default function StaffDashboard({ onSelect }) {
               value={pin}
               onChange={e => { setPin(e.target.value.replace(/\D/g, '').slice(0, 6)); setError('') }}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              placeholder="••••"
+              placeholder="Enter your staff code"
+              autoFocus
               className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm text-center tracking-[0.5em] focus:outline-none focus:border-orange-500 placeholder:tracking-normal placeholder:text-gray-600"
             />
           </div>
@@ -368,7 +359,7 @@ export default function StaffDashboard({ onSelect }) {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PIN</label>
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Staff Code</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -485,7 +476,7 @@ export default function StaffDashboard({ onSelect }) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">PIN</label>
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Staff Code</label>
                 <input
                   type="text"
                   inputMode="numeric"
