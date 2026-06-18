@@ -11,9 +11,9 @@ import PolicyDocs from './components/PolicyDocs.jsx'
 import DataManager from './components/DataManager.jsx'
 import StaffDashboard from './components/StaffDashboard.jsx'
 import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
-import LocalChat from './components/LocalChat.jsx'
 import PaymentLanding from './components/PaymentLanding.jsx'
 import Commentator from './components/Commentator.jsx'
+import StaffChatWidget from './components/StaffChatWidget.jsx'
 
 function AppShell() {
   const [tab, setTab] = useState(() => sessionStorage.getItem('activeTab') || 'provinces')
@@ -98,7 +98,7 @@ function AppShell() {
         {tab === 'ack' && <AcknowledgementLauncher />}
         {tab === 'commentator' && <Commentator />}
       </main>
-      <LocalChat />
+      <StaffChatWidget />
     </div>
   )
 }
