@@ -201,7 +201,13 @@ on conflict (key) do nothing;</pre>
         .then(function (rows) {
           if (!Array.isArray(rows) || !rows.length) { rowExists = false; return null }
           rowExists = true
-          return rows[0].value || defaultState()
+          if (!rows[0].value) return defaultState()
+          try {
+            var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
+            return Object.assign(defaultState(), parsed)
+          } catch (e) {
+            return defaultState()
+          }
         })
         .catch(function () { return null })
     }
@@ -211,7 +217,7 @@ on conflict (key) do nothing;</pre>
       return fetch(SUPABASE_URL + '/rest/v1/app_settings?key=eq.' + SETTINGS_KEY, {
         method: 'PATCH',
         headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
-        body: JSON.stringify({ value: next })
+        body: JSON.stringify({ value: JSON.stringify(next) })
       }).catch(function () {})
     }
 
