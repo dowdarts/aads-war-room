@@ -163,14 +163,13 @@ export default function StaffChatWidget() {
 
       {open && (
         <div
-          className="fixed bottom-20 right-5 z-50 flex flex-col
-                     bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl shadow-2xl overflow-hidden
-                     w-80 sm:w-96"
-          style={{ height: '530px' }}
+          className="fixed inset-0 z-50 flex flex-col bg-[#0a0a0a]
+                     sm:inset-auto sm:bottom-20 sm:right-5 sm:w-96 sm:h-132.5
+                     sm:border sm:border-[#1f1f1f] sm:rounded-2xl sm:shadow-2xl sm:overflow-hidden"
         >
           <div className="flex items-center gap-2.5 px-4 py-3 border-b border-[#1a1a1a] bg-[#0f0f0f] shrink-0">
             {activeContactId && (
-              <button onClick={backToContacts} className="text-gray-400 hover:text-white text-lg px-1">
+              <button onClick={backToContacts} className="text-gray-400 hover:text-white text-lg px-1 -ml-1">
                 ←
               </button>
             )}
@@ -185,6 +184,9 @@ export default function StaffChatWidget() {
                 Signed in as {session?.name}
               </div>
             </div>
+            <button onClick={() => setOpen(false)} className="text-gray-400 hover:text-white text-lg px-1">
+              ✕
+            </button>
           </div>
 
           {!activeContactId ? (
