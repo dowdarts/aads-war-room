@@ -419,9 +419,9 @@ export default function StaffChatWidget() {
                   onClick={pickImage}
                   disabled={uploading}
                   title="Send a photo"
-                  className="w-9 h-9 rounded-xl bg-[#141414] border border-[#2a2a2a] text-gray-300
+                  className="w-10 h-10 rounded-xl bg-[#262626] border border-[#444] text-white
                              disabled:opacity-40 hover:border-orange/50 transition-colors
-                             flex items-center justify-center shrink-0 text-base"
+                             flex items-center justify-center shrink-0 text-xl"
                 >
                   {uploading ? '…' : '📷'}
                 </button>
