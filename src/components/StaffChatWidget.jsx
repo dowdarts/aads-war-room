@@ -411,7 +411,6 @@ export default function StaffChatWidget() {
                   ref={fileInputRef}
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={handleFileSelected}
                   className="hidden"
                 />
