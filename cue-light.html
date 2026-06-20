@@ -178,9 +178,12 @@ on conflict (key) do nothing;</pre>
       <div class="schedule-heading">Event Schedule</div>
       <div class="schedule-list" id="dispSchedule"></div>
     </div>
-    <canvas id="pipCanvas" width="320" height="220" class="hidden"></canvas>
-    <video id="pipVideo" muted playsinline class="hidden"></video>
   </div>
+
+  <!-- Off-screen but still rendered (NOT display:none — browsers stop
+       decoding/painting display:none video, which breaks PiP) -->
+  <canvas id="pipCanvas" width="320" height="220" style="position:fixed; left:-9999px; top:-9999px;"></canvas>
+  <video id="pipVideo" muted playsinline style="position:fixed; left:-9999px; top:-9999px; width:320px; height:220px;"></video>
 
   <script>
     /* ══ CONSTANTS ══ */
