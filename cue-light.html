@@ -149,6 +149,7 @@ on conflict (key) do nothing;</pre>
     <div class="top-bar">
       <span class="top-bar-title">Controller</span>
       <div style="display:flex; gap:14px; align-items:center;">
+        <button type="button" class="switch-role-link" id="doorsOpenBtn">🚪 Doors Open</button>
         <button type="button" class="switch-role-link" id="alertsToggleBtn">🔔 Notifications: ON</button>
         <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
       </div>
@@ -213,7 +214,7 @@ on conflict (key) do nothing;</pre>
     var lastServerJSON = ''
 
     /* ══ PERSISTENCE ══ */
-    function defaultState() { return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true } }
+    function defaultState() { return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
 
     function parseStateRows(rows) {
       if (!Array.isArray(rows) || !rows.length) { rowExists = false; return null }
@@ -392,6 +393,7 @@ on conflict (key) do nothing;</pre>
       renderAll()
       saveState(state)
       if (state.alertsEnabled !== false) sendPushAlert(value)
+      if (value === 'start') notifyLive()
     }
 
     // Master kill switch, controlled from the Controller view: when off, no
@@ -418,10 +420,56 @@ on conflict (key) do nothing;</pre>
     function toggleComplete(id, complete) {
       var m = state.matches.find(function (x) { return x.id === id })
       if (!m) return
+      var wasComplete = m.complete
       m.complete = complete
+      if (complete && !wasComplete) {
+        state.currentMatchId = m.id
+        notifyCalled(m)
+      }
       lastServerJSON = JSON.stringify(state)
       renderAll()
       saveState(state)
+    }
+
+    // Players Portal notifications — sent to specific players (by exact
+    // name match against their player_portal_accounts.display_name), not
+    // broadcast to every device like the cue light's own push alerts.
+    // Kept separate from sendPushAlert()/send-cue-light-push above: that
+    // function fans out to everyone watching the light; this one targets
+    // only the players actually involved in the match in question.
+    function playersPortalPush(payload) {
+      fetch(SUPABASE_URL + '/functions/v1/send-players-portal-push', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
+        body: JSON.stringify(payload)
+      }).catch(function () {})
+    }
+
+    function doorsOpen() {
+      if (!window.confirm('Notify every signed-in player that doors are open and the event has started?')) return
+      state.doorsOpenedAt = new Date().toISOString()
+      lastServerJSON = JSON.stringify(state)
+      renderAll()
+      saveState(state)
+      playersPortalPush({ action: 'doors_open' })
+    }
+
+    function notifyCalled(m) {
+      var names = [m.playerA, m.playerB].filter(Boolean)
+      if (!names.length) return
+      playersPortalPush({ action: 'called', names: names })
+    }
+
+    function notifyLive() {
+      if (!state.currentMatchId) return
+      var idx = state.matches.findIndex(function (x) { return x.id === state.currentMatchId })
+      if (idx === -1) return
+      var live = state.matches[idx]
+      var next = state.matches[idx + 1]
+      var liveNames = [live.playerA, live.playerB].filter(Boolean)
+      var nextNames = next ? [next.playerA, next.playerB].filter(Boolean) : []
+      if (!liveNames.length && !nextNames.length) return
+      playersPortalPush({ action: 'live', liveNames: liveNames, nextNames: nextNames })
     }
 
     function uploadCSV(file) {
@@ -729,6 +777,7 @@ on conflict (key) do nothing;</pre>
         el.addEventListener('click', switchRole)
       })
       document.getElementById('alertsToggleBtn').addEventListener('click', toggleAlertsEnabled)
+      document.getElementById('doorsOpenBtn').addEventListener('click', doorsOpen)
       document.querySelectorAll('.ctrl-btn').forEach(function (btn) {
         btn.addEventListener('click', function () { setLight(btn.getAttribute('data-light')) })
       })
