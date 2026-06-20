@@ -78,6 +78,8 @@ CREATE TABLE public.toc_tickets (
   scan_count         int     NOT NULL DEFAULT 0,
   last_scanned_at    timestamptz,
   wristband_issued   boolean NOT NULL DEFAULT false,
+  tickets_issued     boolean NOT NULL DEFAULT false,
+  tickets_issued_at  timestamptz,
   generated          boolean NOT NULL DEFAULT false,
   generated_at       timestamptz,
   print_file         text,

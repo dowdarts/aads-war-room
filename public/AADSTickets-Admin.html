@@ -65,6 +65,8 @@
     .stat-value.gold { color: var(--gold); }
     .stat-value.blue.small { font-size: 18px; padding-top: 6px; }
     .inv-bar { padding-top: 0; gap: 8px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .fin-bar { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    @media (max-width: 900px) { .fin-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .inv-card { flex: 1; min-width: 0; }
     .inv-detail { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.8; }
     .inv-comp { color: #aaa; } .inv-res { color: var(--gold); }
@@ -240,6 +242,13 @@
         </div>
       </div>
     </div>
+    <!-- Financial summary -->
+    <div class="stats-bar fin-bar">
+      <div class="stat-card"><p class="stat-label">Raised So Far</p><div class="stat-value green" id="statRaised">—</div></div>
+      <div class="stat-card"><p class="stat-label">Pending Value</p><div class="stat-value yellow" id="statPendingValue">—</div></div>
+      <div class="stat-card"><p class="stat-label">Potential (Unsold)</p><div class="stat-value blue" id="statPotential">—</div></div>
+      <div class="stat-card"><p class="stat-label">Max Possible Total</p><div class="stat-value gold" id="statMaxTotal">—</div></div>
+    </div>
 
     <!-- Public orders table -->
     <div class="panel">
@@ -358,7 +367,7 @@
     try {
       const [orders, tickets, cfg] = await Promise.all([
         api('/rest/v1/toc_orders?select=id,order_number,order_type,purchaser_name,purchaser_email,purchaser_phone,ticket_type,quantity,total_amount,delivery_method,payment_status,expires_at,notes,confirmed_at,created_at&order=created_at.desc'),
-        api('/rest/v1/toc_tickets?select=id,ticket_code,ticket_type,ticket_group,table_number,seat_number,sold_status,payment_status,ticket_status,ticket_holder_name,purchaser_name,purchaser_email,purchaser_phone,order_id,checked_in,generated,print_file&order=ticket_code.asc'),
+        api('/rest/v1/toc_tickets?select=id,ticket_code,ticket_type,ticket_group,table_number,seat_number,price,sold_status,payment_status,ticket_status,ticket_holder_name,purchaser_name,purchaser_email,purchaser_phone,order_id,checked_in,generated,print_file&order=ticket_code.asc'),
         api('/rest/v1/toc_config?id=eq.1&select=sale_open')
       ])
       allOrders  = orders  || []
@@ -418,6 +427,17 @@
     document.getElementById('invGaRes').textContent   = ga.filter(t => t.payment_status === 'PENDING_PAYMENT').length
     document.getElementById('invGaPaid').textContent  = ga.filter(t => t.payment_status === 'PAID').length
     document.getElementById('invGaAvail').textContent = gaAvail
+
+    // Financial summary — COMP tickets are excluded, no cash changes hands
+    const sumPrice = list => list.reduce((s, t) => s + (parseFloat(t.price) || 0), 0)
+    const raised       = sumPrice(allTickets.filter(t => t.payment_status === 'PAID'))
+    const pendingValue = sumPrice(allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT'))
+    const potential     = sumPrice(allTickets.filter(t => t.sold_status === 'AVAILABLE'))
+    const maxTotal      = raised + pendingValue + potential
+    document.getElementById('statRaised').textContent       = `$${raised.toFixed(2)}`
+    document.getElementById('statPendingValue').textContent = `$${pendingValue.toFixed(2)}`
+    document.getElementById('statPotential').textContent    = `$${potential.toFixed(2)}`
+    document.getElementById('statMaxTotal').textContent     = `$${maxTotal.toFixed(2)}`
   }
 
   let _printAllCodes = []
@@ -538,7 +558,7 @@
           ? '<span class="status-badge sb-pastdue">⚠ PAST DUE</span>'
           : '<span class="status-badge sb-pending">Pending</span>'
         actions = `
-          <button class="action-btn btn-confirm" onclick="openConfirmModal('${o.id}','${esc(o.order_number)}','${o.ticket_type}',${o.quantity})">✓ Mark Paid</button>
+          <button class="action-btn btn-confirm" onclick="openConfirmModal('${o.id}','${esc(o.order_number)}','${o.ticket_type}',${o.quantity},${o.total_amount})">✓ Mark Paid</button>
           <button class="action-btn btn-cancel" style="margin-left:6px" onclick="cancelOrder('${o.id}','${esc(o.order_number)}')">✗ Release</button>`
       } else if (o.payment_status === 'PAID') {
         badge = '<span class="status-badge sb-confirmed">Confirmed</span>'
@@ -569,9 +589,9 @@
   }
 
   // ── Confirm payment ────────────────────────────────────────────
-  function openConfirmModal(id, orderNum, ticketType, qty) {
+  function openConfirmModal(id, orderNum, ticketType, qty, totalAmount) {
     activeConfirmOrderId = id
-    document.getElementById('confirmModalDesc').textContent = `Order ${orderNum} — ${ticketType === 'VIP_TABLE' ? 'VIP Table (6 seats)' : `GA × ${qty}`} · Mark as paid?`
+    document.getElementById('confirmModalDesc').textContent = `Order ${orderNum} — ${ticketType === 'VIP_TABLE' ? 'VIP Table (6 seats)' : `GA × ${qty}`} · $${Number(totalAmount).toFixed(2)} · Mark as paid?`
     document.getElementById('confirmModal').classList.add('open')
   }
   function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('open'); activeConfirmOrderId = null }

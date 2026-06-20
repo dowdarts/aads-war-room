@@ -151,6 +151,9 @@
     <div class="stat-pill dim"><span class="sv" id="statComp">—</span> comp</div>
     <div class="stat-pill dimmer"><span class="sv" id="statAvail">—</span> available</div>
     <div class="stat-pill cyan"><span class="sv" id="statCheckedIn">—</span> checked in</div>
+    <div class="stat-pill green"><span class="sv" id="statRaised">—</span> raised</div>
+    <div class="stat-pill red"><span class="sv" id="statPendingValue">—</span> pending value</div>
+    <div class="stat-pill dim"><span class="sv" id="statPotential">—</span> potential</div>
   </div>
 
   <div class="filter-bar">
@@ -304,6 +307,15 @@
       document.getElementById('statComp').textContent      = comp
       document.getElementById('statAvail').textContent     = avail
       document.getElementById('statCheckedIn').textContent = ci
+
+      // Financial summary — COMP tickets are excluded, no cash changes hands
+      const sumPrice = list => list.reduce((s, t) => s + (parseFloat(t.price) || 0), 0)
+      const raised       = sumPrice(allTickets.filter(t => t.payment_status === 'PAID'))
+      const pendingValue = sumPrice(allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT'))
+      const potential     = sumPrice(allTickets.filter(t => t.sold_status === 'AVAILABLE'))
+      document.getElementById('statRaised').textContent       = `$${raised.toFixed(2)}`
+      document.getElementById('statPendingValue').textContent = `$${pendingValue.toFixed(2)}`
+      document.getElementById('statPotential').textContent    = `$${potential.toFixed(2)}`
     }
 
     function setStatusFilter(val, el) {
@@ -428,7 +440,7 @@
               </a>
               <button class="btn btn-outline btn-sm" onclick="openEditModal('${t.ticket_code}')">✏️</button>
               ${canMarkPaid ? `<button class="btn btn-outline btn-sm" onclick='openPayModal(${JSON.stringify(t)})'>✓ Pay</button>` : ''}
-              ${t.payment_status === 'PAID' && buyerEmail && buyerEmail !== '—' ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(t.ticket_code)}','${buyerEmail}','${t.order_id || ''}')">📧 Email</button>` : ''}
+              ${(t.payment_status === 'PAID' || t.payment_status === 'COMP') && buyerEmail && buyerEmail !== '—' ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(t.ticket_code)}','${buyerEmail}','${t.order_id || ''}')">📧 Email</button>` : ''}
             </div>
           </td>
         </tr>`
@@ -438,7 +450,7 @@
 
     function renderOrders(tickets) {
       document.getElementById('tblHead').innerHTML = `<tr>
-        <th>Buyer</th><th>Tickets</th><th>Types</th><th>Status</th><th>Value</th><th>Actions</th>
+        <th>Buyer</th><th>Tickets</th><th>Types</th><th>Status</th><th>Value</th><th>Issued</th><th>Actions</th>
       </tr>`
 
       // Group by email (normalised), fall back to name
@@ -454,7 +466,7 @@
       })
 
       if (!groups.size) {
-        document.getElementById('tblBody').innerHTML = '<tr><td colspan="6" class="empty">No buyer orders found.</td></tr>'
+        document.getElementById('tblBody').innerHTML = '<tr><td colspan="7" class="empty">No buyer orders found.</td></tr>'
         return
       }
 
@@ -493,9 +505,24 @@
         const total    = gTickets.reduce((s, t) => s + (parseFloat(t.price) || 0), 0)
         const totalStr = total > 0 ? `$${total.toFixed(2)}` : '—'
 
-        const hasPaid = paidN > 0
-        const emailBtn = (hasPaid && email)
-          ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(gTickets.find(t => t.payment_status === 'PAID').ticket_code)}','${email}','')">📧 Email All</button>`
+        // Deliverable tickets are the ones that actually get emailed/issued — PAID or COMP
+        const deliverable = gTickets.filter(t => t.payment_status === 'PAID' || t.payment_status === 'COMP')
+        const hasDeliverable = deliverable.length > 0
+        const isIssued = hasDeliverable && deliverable.every(t => t.tickets_issued)
+        const issuedAt = isIssued ? deliverable.map(t => t.tickets_issued_at).filter(Boolean).sort().pop() : null
+
+        const emailBtn = (hasDeliverable && email)
+          ? `<button class="btn btn-outline btn-sm" onclick="emailTicket('${encodeURIComponent(deliverable[0].ticket_code)}','${email}','')">📧 Email All</button>`
+          : ''
+        const issuedCell = !hasDeliverable
+          ? '<span style="color:var(--muted2);font-size:11px">—</span>'
+          : isIssued
+            ? `<span class="badge status-paid" title="${issuedAt ? new Date(issuedAt).toLocaleString() : ''}">✅ Issued</span>`
+            : '<span style="color:var(--muted2);font-size:11px">—</span>'
+        const issuedBtn = hasDeliverable && email
+          ? (isIssued
+              ? `<button class="btn btn-outline btn-sm" onclick="toggleIssued('${email}', false)">↩ Unmark</button>`
+              : `<button class="btn btn-outline btn-sm" onclick="toggleIssued('${email}', true)">✓ Mark Issued</button>`)
           : ''
 
         return `<tr>
@@ -510,7 +537,8 @@
           <td style="font-size:12px;color:var(--muted)">${typeStr}</td>
           <td>${statusBadge}</td>
           <td style="font-weight:700;font-size:13px">${totalStr}</td>
-          <td><div class="row-actions">${emailBtn}</div></td>
+          <td>${issuedCell}</td>
+          <td><div class="row-actions">${emailBtn}${issuedBtn}</div></td>
         </tr>`
       }).join('')
 
@@ -566,11 +594,11 @@
       const decodedCode = decodeURIComponent(code)
       const baseUrl = 'https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/'
 
-      // Gather ALL PAID tickets for this buyer email across all orders,
-      // so a single email includes every ticket they purchased.
+      // Gather ALL PAID/COMP tickets for this buyer email across all orders,
+      // so a single email includes every ticket they purchased or were comp'd.
       const normalizedEmail = email.toLowerCase()
       let orderTickets = allTickets
-        .filter(t => t.payment_status === 'PAID' && (t.purchaser_email || '').toLowerCase() === normalizedEmail)
+        .filter(t => (t.payment_status === 'PAID' || t.payment_status === 'COMP') && (t.purchaser_email || '').toLowerCase() === normalizedEmail)
         .sort((a, b) => (a.ticket_code || '').localeCompare(b.ticket_code || ''))
 
       // Fallback: if email lookup yields nothing, use just this ticket
@@ -591,6 +619,24 @@
         `Hi ${buyerName},\n\nYour ticket${plural ? 's' : ''} for the AADS Tournament of Champions ${plural ? 'are' : 'is'} ready!\n\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\nDoors Open: 8 AM · Play Starts: 9 AM\n\nYour Ticket${plural ? 's' : ''}:\n\n${ticketLinks}\n\nPresent your ticket${plural ? 's' : ''} at the door on July 25.\n\n— AADS`
       )
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
+    }
+
+    async function toggleIssued(email, issued) {
+      const normalizedEmail = email.toLowerCase()
+      const issuedAt = issued ? new Date().toISOString() : null
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?purchaser_email=ilike.${encodeURIComponent(email)}&payment_status=in.(PAID,COMP)`, {
+          method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' },
+          body: JSON.stringify({ tickets_issued: issued, tickets_issued_at: issuedAt, updated_at: new Date().toISOString() })
+        })
+        allTickets.forEach(t => {
+          if ((t.purchaser_email || '').toLowerCase() === normalizedEmail && (t.payment_status === 'PAID' || t.payment_status === 'COMP')) {
+            t.tickets_issued = issued
+            t.tickets_issued_at = issuedAt
+          }
+        })
+        filterTable()
+      } catch (e) { alert('Error updating issued status: ' + e.message) }
     }
 
     // ── Edit ticket ──────────────────────────────────────────────

@@ -71,12 +71,18 @@ CREATE TABLE IF NOT EXISTS public.toc_tickets (
   scan_count        int     NOT NULL DEFAULT 0,
   last_scanned_at   timestamptz,
   wristband_issued  boolean NOT NULL DEFAULT false,
+  tickets_issued    boolean NOT NULL DEFAULT false,
+  tickets_issued_at timestamptz,
   generated         boolean NOT NULL DEFAULT false,
   generated_at      timestamptz,
   print_file        text,
   created_at        timestamptz NOT NULL DEFAULT now(),
   updated_at        timestamptz NOT NULL DEFAULT now()
 );
+
+-- ── 3b. New columns on existing live tables (safe to re-run) ──────
+ALTER TABLE public.toc_tickets ADD COLUMN IF NOT EXISTS tickets_issued boolean NOT NULL DEFAULT false;
+ALTER TABLE public.toc_tickets ADD COLUMN IF NOT EXISTS tickets_issued_at timestamptz;
 
 -- ── 4. Indexes ───────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS toc_tickets_code_idx   ON public.toc_tickets(ticket_code);
