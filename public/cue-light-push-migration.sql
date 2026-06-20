@@ -31,5 +31,14 @@ DROP POLICY IF EXISTS "anon delete own subscription" ON public.cue_light_push_su
 CREATE POLICY "anon delete own subscription" ON public.cue_light_push_subscriptions
   FOR DELETE TO anon USING (true);
 
--- Note: no anon SELECT policy — only the Edge Function (service role)
--- needs to read subscriptions, so anon can't enumerate other devices.
+-- Required even though anon never explicitly SELECTs: Postgres requires
+-- SELECT privilege to use ON CONFLICT DO UPDATE (what the client's
+-- upsert-on-endpoint generates), even when no conflicting row exists yet —
+-- without it, Postgres reports the missing-SELECT problem as a generic RLS
+-- violation on the insert itself. Low sensitivity here: just opaque push
+-- tokens, no names/emails, and useless without the server-side VAPID key.
+DROP POLICY IF EXISTS "anon select own subscription" ON public.cue_light_push_subscriptions;
+CREATE POLICY "anon select own subscription" ON public.cue_light_push_subscriptions
+  FOR SELECT TO anon USING (true);
+
+GRANT INSERT, UPDATE, DELETE, SELECT ON public.cue_light_push_subscriptions TO anon;

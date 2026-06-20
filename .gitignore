@@ -11,6 +11,9 @@ node_modules
 dist
 dist-ssr
 
+# Supabase CLI local link/cache state, not project source
+supabase/.temp
+
 # Environment files — NEVER commit API keys
 .env
 .env.local
