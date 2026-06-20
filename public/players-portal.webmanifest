@@ -1,0 +1,12 @@
+{
+  "name": "AADS Players Portal",
+  "short_name": "Players Portal",
+  "start_url": "players-portal.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "logo-wiki.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "logo-wiki.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,39 @@
+name: Deploy Supabase (migrations + Edge Functions)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/functions/**"
+  workflow_dispatch: {}
+
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link project
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Push database migrations
+        run: supabase db push
+
+      - name: Deploy send-cue-light-push
+        run: supabase functions deploy send-cue-light-push --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Deploy send-players-portal-push
+        run: supabase functions deploy send-players-portal-push --project-ref "$SUPABASE_PROJECT_REF"
