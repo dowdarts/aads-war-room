@@ -204,20 +204,22 @@ on conflict (key) do nothing;</pre>
     /* ══ PERSISTENCE ══ */
     function defaultState() { return { light: 'off', matches: [], updatedAt: null } }
 
+    function parseStateRows(rows) {
+      if (!Array.isArray(rows) || !rows.length) { rowExists = false; return null }
+      rowExists = true
+      if (!rows[0].value) return defaultState()
+      try {
+        var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
+        return Object.assign(defaultState(), parsed)
+      } catch (e) {
+        return defaultState()
+      }
+    }
+
     function loadState() {
       return fetch(SUPABASE_URL + '/rest/v1/app_settings?key=eq.' + SETTINGS_KEY + '&select=value', { headers: hdrs })
         .then(function (r) { return r.json() })
-        .then(function (rows) {
-          if (!Array.isArray(rows) || !rows.length) { rowExists = false; return null }
-          rowExists = true
-          if (!rows[0].value) return defaultState()
-          try {
-            var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
-            return Object.assign(defaultState(), parsed)
-          } catch (e) {
-            return defaultState()
-          }
-        })
+        .then(parseStateRows)
         .catch(function () { return null })
     }
 
@@ -508,19 +510,54 @@ on conflict (key) do nothing;</pre>
     }
 
     /* ══ POLLING ══ */
+    function applyFreshState(fresh) {
+      if (!rowExists) { showSetupNeeded(); return }
+      var freshJSON = fresh ? JSON.stringify(fresh) : ''
+      if (fresh && freshJSON !== lastServerJSON) {
+        lastServerJSON = freshJSON
+        state = fresh
+      } else if (!state) {
+        state = fresh || defaultState()
+        lastServerJSON = JSON.stringify(state)
+      }
+      if (role) { showViewForRole(); renderAll() } else { showRoleGate() }
+    }
+
     function tick() {
-      loadState().then(function (fresh) {
-        if (!rowExists) { showSetupNeeded(); return }
-        var freshJSON = fresh ? JSON.stringify(fresh) : ''
-        if (fresh && freshJSON !== lastServerJSON) {
-          lastServerJSON = freshJSON
-          state = fresh
-        } else if (!state) {
-          state = fresh || defaultState()
-          lastServerJSON = JSON.stringify(state)
+      loadState().then(applyFreshState)
+    }
+
+    // Polling on the main thread gets throttled (or paused) once the tab is
+    // backgrounded — e.g. after switching to another app while the cue
+    // light is floating in Picture-in-Picture — so the floating window can
+    // freeze on stale state. A dedicated Worker isn't subject to that
+    // hidden-document timer clamp, so move the actual polling there and
+    // just hand the result back to the main thread to redraw.
+    function startPollWorker() {
+      if (typeof Worker === 'undefined') return false
+      try {
+        var src = [
+          'var SB_URL = ' + JSON.stringify(SUPABASE_URL) + ';',
+          'var SB_KEY = ' + JSON.stringify(SUPABASE_KEY) + ';',
+          'var SB_SETTINGS_KEY = ' + JSON.stringify(SETTINGS_KEY) + ';',
+          'function poll() {',
+          '  fetch(SB_URL + "/rest/v1/app_settings?key=eq." + SB_SETTINGS_KEY + "&select=value", { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } })',
+          '    .then(function (r) { return r.json() })',
+          '    .then(function (rows) { postMessage({ ok: true, rows: rows }) })',
+          '    .catch(function () { postMessage({ ok: false }) })',
+          '}',
+          'poll();',
+          'setInterval(poll, ' + POLL_MS + ');'
+        ].join('\n')
+        var blob = new Blob([src], { type: 'application/javascript' })
+        var worker = new Worker(URL.createObjectURL(blob))
+        worker.onmessage = function (e) {
+          if (e.data && e.data.ok) applyFreshState(parseStateRows(e.data.rows))
         }
-        if (role) { showViewForRole(); renderAll() } else { showRoleGate() }
-      })
+        return true
+      } catch (e) {
+        return false
+      }
     }
 
     /* ══ INIT ══ */
@@ -544,7 +581,9 @@ on conflict (key) do nothing;</pre>
       wireButtons()
       wireFloat()
       tick()
-      setInterval(tick, POLL_MS)
+      if (!startPollWorker()) {
+        setInterval(tick, POLL_MS)
+      }
     })
   </script>
 </body>
