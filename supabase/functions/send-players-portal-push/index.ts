@@ -37,6 +37,34 @@ async function subscriptionsForNames(supabase: ReturnType<typeof createClient>, 
   return subs ?? [];
 }
 
+// Accounts with notify_all=true (e.g. a test device) get every "called"/
+// "live"/"up next" push regardless of whose name the schedule matched —
+// doors_open already reaches them since it already broadcasts to every
+// subscription with no name filter at all.
+async function alwaysNotifySubs(supabase: ReturnType<typeof createClient>) {
+  const { data: accounts, error: accountsError } = await supabase
+    .from("player_portal_accounts")
+    .select("id")
+    .eq("notify_all", true);
+  if (accountsError) throw accountsError;
+  const ids = (accounts ?? []).map((a) => a.id);
+  if (!ids.length) return [];
+  const { data: subs, error: subsError } = await supabase
+    .from("player_portal_push_subscriptions")
+    .select("id, endpoint, p256dh, auth")
+    .in("player_id", ids);
+  if (subsError) throw subsError;
+  return subs ?? [];
+}
+
+function mergeSubs(
+  ...lists: { id: string; endpoint: string; p256dh: string; auth: string }[][]
+) {
+  const byId = new Map<string, { id: string; endpoint: string; p256dh: string; auth: string }>();
+  for (const list of lists) for (const sub of list) byId.set(sub.id, sub);
+  return [...byId.values()];
+}
+
 async function sendToSubs(
   supabase: ReturnType<typeof createClient>,
   subs: { id: string; endpoint: string; p256dh: string; auth: string }[],
@@ -85,7 +113,8 @@ Deno.serve(async (req) => {
         "Doors are open — the event has started.",
       );
     } else if (body.action === "called") {
-      const subs = await subscriptionsForNames(supabase, body.names);
+      const always = await alwaysNotifySubs(supabase);
+      const subs = mergeSubs(await subscriptionsForNames(supabase, body.names), always);
       sent += await sendToSubs(
         supabase,
         subs,
@@ -93,9 +122,10 @@ Deno.serve(async (req) => {
         "You're called — report to the board and wait for the green light.",
       );
     } else if (body.action === "live") {
-      const liveSubs = await subscriptionsForNames(supabase, body.liveNames);
+      const always = await alwaysNotifySubs(supabase);
+      const liveSubs = mergeSubs(await subscriptionsForNames(supabase, body.liveNames), always);
       sent += await sendToSubs(supabase, liveSubs, "🟢 GO!", "Start your match now.");
-      const nextSubs = await subscriptionsForNames(supabase, body.nextNames);
+      const nextSubs = mergeSubs(await subscriptionsForNames(supabase, body.nextNames), always);
       sent += await sendToSubs(
         supabase,
         nextSubs,
