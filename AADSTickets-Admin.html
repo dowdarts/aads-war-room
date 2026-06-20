@@ -480,9 +480,11 @@
     const buyer  = document.getElementById('editBuyerName').value.trim()
     const email  = document.getElementById('editBuyerEmail').value.trim()
     const status = document.getElementById('editPayStatus').value
-    // A PAID/COMP ticket must never be left sold_status='AVAILABLE' — that's
-    // the gap that let already-paid tickets get re-grabbed by a new buyer.
-    const soldStatus = (status === 'PAID' || status === 'COMP') ? 'SOLD' : undefined
+    // Any ticket that's been assigned to someone — PAID, COMP, or still
+    // PENDING_PAYMENT — must never be left sold_status='AVAILABLE', or it's
+    // eligible to be re-grabbed by a brand new buyer. Only UNPAID (i.e. via
+    // Unissue) should leave it open.
+    const soldStatus = status !== 'UNPAID' ? 'SOLD' : undefined
     try {
       await patch('toc_tickets', `ticket_code=eq.${encodeURIComponent(activeEditCode)}`, {
         ticket_holder_name: holder || null,
