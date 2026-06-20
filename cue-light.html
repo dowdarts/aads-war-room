@@ -148,7 +148,10 @@ on conflict (key) do nothing;</pre>
   <div id="controllerView" class="hidden">
     <div class="top-bar">
       <span class="top-bar-title">Controller</span>
-      <button type="button" class="switch-role-link">Switch role</button>
+      <div style="display:flex; gap:14px; align-items:center;">
+        <button type="button" class="switch-role-link" id="alertsToggleBtn">🔔 Notifications: ON</button>
+        <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
+      </div>
     </div>
     <div class="controller-page">
       <div class="ctrl-buttons">
@@ -176,7 +179,7 @@ on conflict (key) do nothing;</pre>
         <button type="button" class="switch-role-link hidden" id="openSafariBtn">🧭 Open in Safari to Float</button>
         <button type="button" class="switch-role-link hidden" id="installBtn">📲 Add to Home Screen</button>
         <button type="button" class="switch-role-link hidden" id="alertsBtn">🔔 Enable Alerts</button>
-        <button type="button" class="switch-role-link">Switch role</button>
+        <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
       </div>
     </div>
     <div class="light-panel light-off" id="displayLight">
@@ -210,7 +213,7 @@ on conflict (key) do nothing;</pre>
     var lastServerJSON = ''
 
     /* ══ PERSISTENCE ══ */
-    function defaultState() { return { light: 'off', matches: [], updatedAt: null } }
+    function defaultState() { return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true } }
 
     function parseStateRows(rows) {
       if (!Array.isArray(rows) || !rows.length) { rowExists = false; return null }
@@ -370,6 +373,10 @@ on conflict (key) do nothing;</pre>
         document.querySelectorAll('.ctrl-btn').forEach(function (b) {
           b.classList.toggle('active', b.getAttribute('data-light') === state.light)
         })
+        var alertsBtn = document.getElementById('alertsToggleBtn')
+        var alertsOn = state.alertsEnabled !== false
+        alertsBtn.textContent = alertsOn ? '🔔 Notifications: ON' : '🔕 Notifications: OFF'
+        alertsBtn.style.color = alertsOn ? '' : 'var(--danger-text)'
         renderSchedule(document.getElementById('ctrlSchedule'), state.matches)
       } else if (role === 'display') {
         renderLight(document.getElementById('displayLight'), state.light)
@@ -384,7 +391,18 @@ on conflict (key) do nothing;</pre>
       lastServerJSON = JSON.stringify(state)
       renderAll()
       saveState(state)
-      sendPushAlert(value)
+      if (state.alertsEnabled !== false) sendPushAlert(value)
+    }
+
+    // Master kill switch, controlled from the Controller view: when off, no
+    // device gets a push no matter who has alerts enabled on their phone.
+    // The Edge Function re-checks this itself too (see send-cue-light-push),
+    // so this isn't just a client-side skip — it's enforced server-side.
+    function toggleAlertsEnabled() {
+      state.alertsEnabled = !(state.alertsEnabled !== false)
+      lastServerJSON = JSON.stringify(state)
+      renderAll()
+      saveState(state)
     }
 
     // Real Web Push so subscribed devices get notified even if fully closed.
@@ -707,9 +725,10 @@ on conflict (key) do nothing;</pre>
     function wireButtons() {
       document.getElementById('roleControllerBtn').addEventListener('click', function () { chooseRole('controller') })
       document.getElementById('roleDisplayBtn').addEventListener('click', function () { chooseRole('display') })
-      document.querySelectorAll('.switch-role-link').forEach(function (el) {
+      document.querySelectorAll('[data-role-switch]').forEach(function (el) {
         el.addEventListener('click', switchRole)
       })
+      document.getElementById('alertsToggleBtn').addEventListener('click', toggleAlertsEnabled)
       document.querySelectorAll('.ctrl-btn').forEach(function (btn) {
         btn.addEventListener('click', function () { setLight(btn.getAttribute('data-light')) })
       })
