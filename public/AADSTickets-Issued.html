@@ -696,14 +696,16 @@
     async function saveTicketEdit() {
       if (!editCode) return
       const status = document.getElementById('editStatus').value
-      // A PAID/COMP ticket must never be left sold_status='AVAILABLE' — that's
-      // the gap that let already-paid tickets get re-grabbed by a new buyer.
+      // Any ticket that's been assigned to someone — PAID, COMP, or still
+      // PENDING_PAYMENT — must never be left sold_status='AVAILABLE', or
+      // it's eligible to be re-grabbed by a brand new buyer. Only UNPAID
+      // (i.e. via Unissue) should leave it open.
       const body = {
         ticket_holder_name: document.getElementById('editHolder').value.trim() || null,
         purchaser_name:     document.getElementById('editBuyer').value.trim()  || null,
         purchaser_email:    document.getElementById('editEmail').value.trim()  || null,
         payment_status:     status,
-        ...(status === 'PAID' || status === 'COMP' ? { sold_status: 'SOLD' } : {}),
+        ...(status !== 'UNPAID' ? { sold_status: 'SOLD' } : {}),
         updated_at:         new Date().toISOString()
       }
       try {
