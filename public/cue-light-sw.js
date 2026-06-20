@@ -6,6 +6,17 @@ self.addEventListener('fetch', function (event) {
   event.respondWith(fetch(event.request))
 })
 
+// Without these, an already-registered older version of this file (e.g. one
+// with no push handler) keeps controlling the page indefinitely — updates
+// only normally activate once every tab using the old version is fully
+// closed. This forces the newest version to take over immediately.
+self.addEventListener('install', function () {
+  self.skipWaiting()
+})
+self.addEventListener('activate', function (event) {
+  event.waitUntil(self.clients.claim())
+})
+
 // Wakes the app (even if fully closed) to show a real push notification,
 // sent by the send-cue-light-push Edge Function whenever the controller
 // changes the light to Start/Wait.
