@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="cue-light.webmanifest" />
+  <link rel="apple-touch-icon" href="logo-wiki.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>AADS Cue Light &amp; Schedule</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -169,6 +174,8 @@ on conflict (key) do nothing;</pre>
       <div style="display:flex; gap:14px; align-items:center;">
         <button type="button" class="switch-role-link hidden" id="floatBtn">🪟 Float</button>
         <button type="button" class="switch-role-link hidden" id="openSafariBtn">🧭 Open in Safari to Float</button>
+        <button type="button" class="switch-role-link hidden" id="installBtn">📲 Add to Home Screen</button>
+        <button type="button" class="switch-role-link hidden" id="alertsBtn">🔔 Enable Alerts</button>
         <button type="button" class="switch-role-link">Switch role</button>
       </div>
     </div>
@@ -509,6 +516,94 @@ on conflict (key) do nothing;</pre>
       })
     }
 
+    /* ══ INSTALL (Add to Home Screen) + NOTIFICATIONS ══
+       iOS only allows web notifications once the page is added to the home
+       screen and opened from that icon — a plain Safari/Chrome tab can
+       never show them on iPhone, no matter what this code does. Android
+       Chrome has no such restriction; a granted permission is enough on
+       its own, install or not. */
+    var ALERTS_KEY = 'aads_cue_light_alerts'
+    var deferredInstallPrompt = null
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault()
+      deferredInstallPrompt = e
+    })
+
+    function isIOSDevice() {
+      return /iP(hone|od|ad)/.test(navigator.platform) ||
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+    }
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    }
+
+    function registerCueLightSW() {
+      if (!('serviceWorker' in navigator)) return Promise.resolve(null)
+      return navigator.serviceWorker.register('cue-light-sw.js', { scope: '/cue-light.html' }).catch(function () { return null })
+    }
+
+    function installApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt()
+        deferredInstallPrompt = null
+        return
+      }
+      if (isIOSDevice()) {
+        alert(isIOSChrome()
+          ? 'On iPhone, installing only works in Safari. Tap "Open in Safari to Float" above, then in Safari tap the Share icon and choose "Add to Home Screen".'
+          : 'Tap the Share icon, then choose "Add to Home Screen".')
+      } else {
+        alert('Use your browser menu and choose "Add to Home Screen" or "Install app".')
+      }
+    }
+
+    function enableAlerts() {
+      if (!('Notification' in window)) { alert('Notifications are not supported in this browser.'); return }
+      if (isIOSDevice() && !isStandalone()) {
+        alert('On iPhone, notifications only work once this page is added to the Home Screen — tap 📲 Add to Home Screen first, then open it from that icon and try again.')
+        return
+      }
+      Notification.requestPermission().then(function (perm) {
+        if (perm === 'granted') {
+          localStorage.setItem(ALERTS_KEY, '1')
+          registerCueLightSW()
+          document.getElementById('alertsBtn').textContent = '🔔 Alerts On'
+        } else {
+          alert('Notifications were not enabled.')
+        }
+      })
+    }
+
+    function wireInstallAndAlerts() {
+      var installBtn = document.getElementById('installBtn')
+      var alertsBtn = document.getElementById('alertsBtn')
+      installBtn.classList.remove('hidden')
+      installBtn.addEventListener('click', installApp)
+      alertsBtn.classList.remove('hidden')
+      alertsBtn.addEventListener('click', enableAlerts)
+      if (('Notification' in window) && Notification.permission === 'granted' && localStorage.getItem(ALERTS_KEY)) {
+        alertsBtn.textContent = '🔔 Alerts On'
+        registerCueLightSW()
+      }
+    }
+
+    var lastNotifiedLight = null
+    var hasInitializedLight = false
+    function maybeNotifyLightChange(light) {
+      if (!hasInitializedLight) { hasInitializedLight = true; lastNotifiedLight = light; return }
+      if (light === lastNotifiedLight) return
+      lastNotifiedLight = light
+      if (light === 'off') return
+      if (!('Notification' in window) || Notification.permission !== 'granted') return
+      if (!('serviceWorker' in navigator)) return
+      var title = light === 'start' ? '🟢 GO' : '🔴 WAIT'
+      var body = light === 'start' ? 'The light just turned green.' : 'The light just turned red.'
+      navigator.serviceWorker.ready.then(function (registration) {
+        registration.showNotification(title, { body: body, icon: 'logo-wiki.png', tag: 'cue-light', renotify: true })
+      }).catch(function () {})
+    }
+
     /* ══ POLLING ══ */
     function applyFreshState(fresh) {
       if (!rowExists) { showSetupNeeded(); return }
@@ -520,6 +615,7 @@ on conflict (key) do nothing;</pre>
         state = fresh || defaultState()
         lastServerJSON = JSON.stringify(state)
       }
+      if (fresh) maybeNotifyLightChange(fresh.light)
       if (role) { showViewForRole(); renderAll() } else { showRoleGate() }
     }
 
@@ -580,6 +676,7 @@ on conflict (key) do nothing;</pre>
       role = localStorage.getItem(ROLE_KEY)
       wireButtons()
       wireFloat()
+      wireInstallAndAlerts()
       tick()
       if (!startPollWorker()) {
         setInterval(tick, POLL_MS)
