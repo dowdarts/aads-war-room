@@ -582,16 +582,27 @@ on conflict (key) do nothing;</pre>
 
     function saveSubscription(sub) {
       var json = sub.toJSON()
+      // fetch() only rejects on a network failure, NOT on a non-2xx HTTP
+      // status — so a blocked RLS policy or bad payload would otherwise
+      // resolve "successfully" here and never reach a .catch().
       return fetch(SUPABASE_URL + '/rest/v1/cue_light_push_subscriptions?on_conflict=endpoint', {
         method: 'POST',
         headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }),
         body: JSON.stringify({ endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth })
-      }).catch(function () {})
+      }).then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (body) {
+            throw new Error('Save subscription failed (' + res.status + '): ' + body)
+          })
+        }
+      })
     }
 
     function subscribeToPush() {
       registerCueLightSW().then(function (registration) {
-        if (!registration || !registration.pushManager) return
+        if (!registration || !registration.pushManager) {
+          throw new Error('Push is not supported in this browser/mode.')
+        }
         return registration.pushManager.getSubscription().then(function (existing) {
           return existing || registration.pushManager.subscribe({
             userVisibleOnly: true,
@@ -599,9 +610,10 @@ on conflict (key) do nothing;</pre>
           })
         })
       }).then(function (sub) {
-        if (sub) saveSubscription(sub)
+        if (sub) return saveSubscription(sub)
       }).catch(function (e) {
         console.error('Push subscribe failed', e)
+        alert('Push setup failed: ' + (e && e.message ? e.message : e))
       })
     }
 
