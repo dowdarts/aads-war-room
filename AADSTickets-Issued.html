@@ -661,17 +661,25 @@
 
     async function saveTicketEdit() {
       if (!editCode) return
+      const status = document.getElementById('editStatus').value
+      // A PAID/COMP ticket must never be left sold_status='AVAILABLE' — that's
+      // the gap that let already-paid tickets get re-grabbed by a new buyer.
       const body = {
         ticket_holder_name: document.getElementById('editHolder').value.trim() || null,
         purchaser_name:     document.getElementById('editBuyer').value.trim()  || null,
         purchaser_email:    document.getElementById('editEmail').value.trim()  || null,
-        payment_status:     document.getElementById('editStatus').value,
+        payment_status:     status,
+        ...(status === 'PAID' || status === 'COMP' ? { sold_status: 'SOLD' } : {}),
         updated_at:         new Date().toISOString()
       }
       try {
-        await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(editCode)}`, {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(editCode)}`, {
           method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify(body)
         })
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => null)
+          throw new Error(errBody?.message || `HTTP ${res.status}`)
+        }
         const t = allTickets.find(t => t.ticket_code === editCode)
         if (t) Object.assign(t, body)
         closeEditModal()
