@@ -440,22 +440,30 @@ on conflict (key) do nothing;</pre>
       document.getElementById('floatBtn').textContent = '🪟 Float'
     }
 
-    function startFloat() {
+    // Start the canvas → video stream as soon as possible (not in the click
+    // handler) so the video already has metadata/is playing by the time the
+    // user taps Float — requestPictureInPicture must run synchronously inside
+    // the click handler with no async hop before it, or browsers reject it as
+    // "not triggered by a user action".
+    function ensurePipStream() {
       var canvas = document.getElementById('pipCanvas')
       var video = document.getElementById('pipVideo')
-      if (!video.srcObject) {
-        video.srcObject = canvas.captureStream(15)
-      }
-      video.play().then(function () {
-        if (document.pictureInPictureEnabled && video.requestPictureInPicture) {
-          video.requestPictureInPicture().then(function () {
-            document.getElementById('floatBtn').textContent = '🪟 Floating…'
-          }).catch(function (e) { alert('Could not float: ' + e.message) })
-        } else if (video.webkitSupportsPresentationMode && video.webkitSupportsPresentationMode('picture-in-picture')) {
-          video.webkitSetPresentationMode('picture-in-picture')
+      if (video.srcObject) return
+      video.srcObject = canvas.captureStream(15)
+      video.muted = true
+      video.play().catch(function () {})
+    }
+
+    function startFloat() {
+      var video = document.getElementById('pipVideo')
+      if (document.pictureInPictureEnabled && video.requestPictureInPicture) {
+        video.requestPictureInPicture().then(function () {
           document.getElementById('floatBtn').textContent = '🪟 Floating…'
-        }
-      })
+        }).catch(function (e) { alert('Could not float: ' + e.message) })
+      } else if (video.webkitSupportsPresentationMode && video.webkitSupportsPresentationMode('picture-in-picture')) {
+        video.webkitSetPresentationMode('picture-in-picture')
+        document.getElementById('floatBtn').textContent = '🪟 Floating…'
+      }
     }
 
     function wireFloat() {
@@ -463,6 +471,7 @@ on conflict (key) do nothing;</pre>
       var video = document.getElementById('pipVideo')
       if (!pipSupported()) { btn.classList.add('hidden'); return }
       btn.classList.remove('hidden')
+      ensurePipStream()
       btn.addEventListener('click', startFloat)
       video.addEventListener('leavepictureinpicture', resetFloatBtn)
       video.addEventListener('webkitpresentationmodechanged', function () {
