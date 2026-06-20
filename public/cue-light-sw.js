@@ -5,3 +5,20 @@
 self.addEventListener('fetch', function (event) {
   event.respondWith(fetch(event.request))
 })
+
+// Wakes the app (even if fully closed) to show a real push notification,
+// sent by the send-cue-light-push Edge Function whenever the controller
+// changes the light to Start/Wait.
+self.addEventListener('push', function (event) {
+  var data = {}
+  try { data = event.data ? event.data.json() : {} } catch (e) {}
+  var title = data.title || 'AADS Cue Light'
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || '',
+      icon: 'logo-wiki.png',
+      tag: 'cue-light',
+      renotify: true
+    })
+  )
+})
