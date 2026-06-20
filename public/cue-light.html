@@ -168,6 +168,7 @@ on conflict (key) do nothing;</pre>
       <span class="top-bar-title">Display</span>
       <div style="display:flex; gap:14px; align-items:center;">
         <button type="button" class="switch-role-link hidden" id="floatBtn">🪟 Float</button>
+        <button type="button" class="switch-role-link hidden" id="openSafariBtn">🧭 Open in Safari to Float</button>
         <button type="button" class="switch-role-link">Switch role</button>
       </div>
     </div>
@@ -439,6 +440,22 @@ on conflict (key) do nothing;</pre>
       return !!(document.pictureInPictureEnabled || (v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')))
     }
 
+    // iOS forces every browser onto Apple's WebKit engine, but only Safari
+    // itself gets the privileged video Picture-in-Picture API — Chrome/
+    // Firefox/Edge on iPhone never get it, no matter what this page does.
+    // x-safari- is an iOS-only URL scheme that forces the link to open in
+    // Safari even when tapped from inside another browser.
+    function isIOSChrome() {
+      var ua = navigator.userAgent
+      var isIOS = /iP(hone|od|ad)/.test(navigator.platform) ||
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+      return isIOS && /CriOS/.test(ua)
+    }
+
+    function openInSafari() {
+      window.location.href = 'x-safari-' + window.location.href
+    }
+
     function resetFloatBtn() {
       document.getElementById('floatBtn').textContent = '🪟 Float'
     }
@@ -472,7 +489,15 @@ on conflict (key) do nothing;</pre>
     function wireFloat() {
       var btn = document.getElementById('floatBtn')
       var video = document.getElementById('pipVideo')
-      if (!pipSupported()) { btn.classList.add('hidden'); return }
+      if (!pipSupported()) {
+        if (isIOSChrome()) {
+          var safariBtn = document.getElementById('openSafariBtn')
+          safariBtn.classList.remove('hidden')
+          safariBtn.addEventListener('click', openInSafari)
+        }
+        btn.classList.add('hidden')
+        return
+      }
       btn.classList.remove('hidden')
       ensurePipStream()
       btn.addEventListener('click', startFloat)
