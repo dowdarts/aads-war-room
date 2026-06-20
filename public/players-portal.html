@@ -150,10 +150,11 @@
           if (!Array.isArray(rows) || !rows.length || !rows[0].value) return []
           var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
           var matches = parsed.matches || []
+          var placeholder = /^(TBD|\d+(st|nd|rd|th) Place|SF\d+ Winner)$/i
           var names = {}
           matches.forEach(function (m) {
-            if (m.playerA && m.playerA.trim()) names[m.playerA.trim()] = true
-            if (m.playerB && m.playerB.trim()) names[m.playerB.trim()] = true
+            if (m.playerA && m.playerA.trim() && !placeholder.test(m.playerA.trim())) names[m.playerA.trim()] = true
+            if (m.playerB && m.playerB.trim() && !placeholder.test(m.playerB.trim())) names[m.playerB.trim()] = true
           })
           return Object.keys(names).sort(function (a, b) { return a.localeCompare(b) })
         })
