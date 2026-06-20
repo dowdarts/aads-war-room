@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.player_portal_accounts (
   id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   display_name text UNIQUE NOT NULL,
   pin          text NOT NULL,
+  notify_all   boolean NOT NULL DEFAULT false, -- test/admin accounts: get every push regardless of name match
   created_at   timestamptz NOT NULL DEFAULT now(),
   last_seen_at timestamptz
 );

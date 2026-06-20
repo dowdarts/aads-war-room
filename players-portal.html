@@ -368,6 +368,10 @@
           opt.textContent = n
           select.appendChild(opt)
         })
+        var testOpt = document.createElement('option')
+        testOpt.value = 'Test Account'
+        testOpt.textContent = 'Test Account (gets every alert)'
+        select.appendChild(testOpt)
         var session = getSession()
         if (session) {
           afterAuth()
