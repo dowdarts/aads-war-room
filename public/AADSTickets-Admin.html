@@ -431,11 +431,19 @@
     document.getElementById('invGaPaid').textContent  = ga.filter(t => t.payment_status === 'PAID').length
     document.getElementById('invGaAvail').textContent = gaAvail
 
-    // Financial summary — COMP tickets are excluded, no cash changes hands
-    const sumPrice = list => list.reduce((s, t) => s + (parseFloat(t.price) || 0), 0)
-    const raised       = sumPrice(allTickets.filter(t => t.payment_status === 'PAID'))
-    const pendingValue = sumPrice(allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT'))
-    const potential     = sumPrice(allTickets.filter(t => t.sold_status === 'AVAILABLE'))
+    // Financial summary — COMP tickets are excluded, no cash changes hands.
+    // GA is always exactly $10/ticket. VIP is always exactly $110/table (6
+    // seats) — summing the per-seat `price` column (110/6 = $18.33, which
+    // doesn't divide evenly) drifts a couple cents short per table, so VIP
+    // value is computed from whole tables instead of summed seat prices.
+    const sumValue = list => {
+      const gaCount  = list.filter(t => t.ticket_type === 'GA').length
+      const vipCount = list.filter(t => t.ticket_type === 'VIP').length
+      return gaCount * 10 + Math.round(vipCount / 6) * 110
+    }
+    const raised       = sumValue(allTickets.filter(t => t.payment_status === 'PAID'))
+    const pendingValue = sumValue(allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT'))
+    const potential     = sumValue(allTickets.filter(t => t.sold_status === 'AVAILABLE'))
     const maxTotal      = raised + pendingValue + potential
     document.getElementById('statRaised').textContent       = `$${raised.toFixed(2)}`
     document.getElementById('statPendingValue').textContent = `$${pendingValue.toFixed(2)}`
