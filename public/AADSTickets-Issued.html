@@ -151,6 +151,8 @@
     <div class="stat-pill dim"><span class="sv" id="statComp">—</span> comp</div>
     <div class="stat-pill dimmer"><span class="sv" id="statAvail">—</span> available</div>
     <div class="stat-pill cyan"><span class="sv" id="statCheckedIn">—</span> checked in</div>
+    <div class="stat-pill green"><span class="sv" id="statIssued">—</span> issued</div>
+    <div class="stat-pill red"><span class="sv" id="statNotIssued">—</span> not sent yet</div>
     <div class="stat-pill green"><span class="sv" id="statRaised">—</span> raised</div>
     <div class="stat-pill red"><span class="sv" id="statPendingValue">—</span> pending value</div>
     <div class="stat-pill dim"><span class="sv" id="statPotential">—</span> potential</div>
@@ -169,6 +171,8 @@
       <span class="chip" data-status="COMP"             onclick="setStatusFilter('COMP', this)">Comp</span>
       <span class="chip" data-status="AVAILABLE"        onclick="setStatusFilter('AVAILABLE', this)">Available</span>
       <span class="chip" data-status="checkedin"        onclick="setStatusFilter('checkedin', this)">Checked In</span>
+      <span class="chip" data-status="issued"           onclick="setStatusFilter('issued', this)">Issued</span>
+      <span class="chip" data-status="notissued"        onclick="setStatusFilter('notissued', this)">Not Sent</span>
     </div>
     <div class="filter-chips">
       <span class="chip active" data-type="all" onclick="setTypeFilter('all', this)">All Types</span>
@@ -194,11 +198,12 @@
           <th>Buyer</th>
           <th>Status</th>
           <th>Checked In</th>
+          <th>Issued</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody id="tblBody">
-        <tr><td colspan="10" class="empty"><span class="spin"></span>Loading…</td></tr>
+        <tr><td colspan="11" class="empty"><span class="spin"></span>Loading…</td></tr>
       </tbody>
     </table>
   </div>
@@ -208,6 +213,7 @@
     <div class="bulk-bar-actions">
       <button class="btn btn-gold btn-sm" onclick="openSelected()">🖨️ Open & Print Selected</button>
       <button class="btn btn-outline btn-sm" onclick="markSelectedPaid()">✓ Mark Selected Paid</button>
+      <button class="btn btn-outline btn-sm" onclick="markSelectedIssued()">📧 Mark Selected Issued</button>
       <button class="btn btn-outline btn-sm" onclick="clearSelection()">✕ Clear</button>
     </div>
   </div>
@@ -270,7 +276,7 @@
 
     async function loadTickets() {
       document.getElementById('tblBody').innerHTML =
-        '<tr><td colspan="10" class="empty"><span class="spin"></span>Loading…</td></tr>'
+        '<tr><td colspan="11" class="empty"><span class="spin"></span>Loading…</td></tr>'
       try {
         const res = await fetch(
           `${SUPABASE_URL}/rest/v1/toc_tickets?select=*&order=ticket_number.asc`,
@@ -284,7 +290,7 @@
         filterTable()
       } catch (e) {
         document.getElementById('tblBody').innerHTML =
-          `<tr><td colspan="10" class="empty">Error loading tickets: ${e.message}</td></tr>`
+          `<tr><td colspan="11" class="empty">Error loading tickets: ${e.message}</td></tr>`
       }
     }
 
@@ -298,6 +304,11 @@
       const comp     = allTickets.filter(t => t.payment_status === 'COMP').length
       const avail    = allTickets.filter(t => t.sold_status === 'AVAILABLE').length
       const ci       = allTickets.filter(t => t.checked_in).length
+      // "Issued" only makes sense for tickets that are actually deliverable
+      // (PAID/COMP) — pending/available tickets aren't waiting on an email.
+      const deliverable = allTickets.filter(t => t.payment_status === 'PAID' || t.payment_status === 'COMP')
+      const issued    = deliverable.filter(t => t.tickets_issued).length
+      const notIssued = deliverable.length - issued
       document.getElementById('statTotal').textContent     = all
       document.getElementById('statVip').textContent       = vip
       document.getElementById('statGa').textContent        = ga
@@ -307,6 +318,8 @@
       document.getElementById('statComp').textContent      = comp
       document.getElementById('statAvail').textContent     = avail
       document.getElementById('statCheckedIn').textContent = ci
+      document.getElementById('statIssued').textContent    = issued
+      document.getElementById('statNotIssued').textContent = notIssued
 
       // Financial summary — COMP tickets are excluded, no cash changes hands
       const sumPrice = list => list.reduce((s, t) => s + (parseFloat(t.price) || 0), 0)
@@ -361,6 +374,8 @@
         const matchQ = !q || searchable.includes(q)
         const matchS = statusFilter === 'all'       ? true
           : statusFilter === 'checkedin'             ? t.checked_in === true
+          : statusFilter === 'issued'                ? t.tickets_issued === true
+          : statusFilter === 'notissued'              ? (!t.tickets_issued && (t.payment_status === 'PAID' || t.payment_status === 'COMP'))
           : statusFilter === 'PENDING'               ? t.payment_status === 'PENDING_PAYMENT'
           : statusFilter === 'RESERVED'              ? (t.sold_status === 'RESERVED' && t.payment_status !== 'COMP')
           : statusFilter === 'AVAILABLE'             ? t.sold_status === 'AVAILABLE'
@@ -376,14 +391,14 @@
     const TICKETS_THEAD = `<tr>
       <th class="check-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" /></th>
       <th>Ticket #</th><th>Ticket Code</th><th>Holder Name</th><th>Type</th>
-      <th>Seat</th><th>Buyer</th><th>Status</th><th>Checked In</th><th>Actions</th>
+      <th>Seat</th><th>Buyer</th><th>Status</th><th>Checked In</th><th>Issued</th><th>Actions</th>
     </tr>`
 
     function renderRows(tickets) {
       document.getElementById('tblHead').innerHTML = TICKETS_THEAD
       if (!tickets.length) {
         document.getElementById('tblBody').innerHTML =
-          '<tr><td colspan="10" class="empty">No tickets match your filters.</td></tr>'
+          '<tr><td colspan="11" class="empty">No tickets match your filters.</td></tr>'
         return
       }
       const rows = tickets.map(t => {
@@ -416,6 +431,12 @@
         const imgFile = t.print_file || (t.ticket_number.replace('-', '_') + '.jpg')
         const viewUrl = `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`
 
+        const canBeIssued = t.payment_status === 'PAID' || t.payment_status === 'COMP'
+        const isIssued = t.tickets_issued === true
+        const issuedCell = !canBeIssued
+          ? '<span style="color:var(--muted2);font-size:11px">—</span>'
+          : `<button class="btn ${isIssued ? 'btn-outline' : 'btn-gold'} btn-sm" onclick="toggleTicketIssued('${t.ticket_code}', ${!isIssued})" title="${isIssued && t.tickets_issued_at ? new Date(t.tickets_issued_at).toLocaleString() : ''}">${isIssued ? '✅ Issued' : '📧 Mark Issued'}</button>`
+
         return `<tr class="${isSel ? 'sel' : ''}" data-code="${t.ticket_code}">
           <td class="check-col center">
             <input type="checkbox" ${isSel ? 'checked' : ''} onchange="toggleRow('${t.ticket_code}', this)" />
@@ -433,6 +454,7 @@
           </td>
           <td><span class="badge ${statusBadgeClass}">${statusBadgeText}</span></td>
           <td>${checkInText}</td>
+          <td>${issuedCell}</td>
           <td>
             <div class="row-actions">
               <a href="${viewUrl}" target="_blank" rel="noopener noreferrer">
@@ -764,6 +786,45 @@
         ))
         clearSelection()
         showToast(`✅ ${codes.length} ticket${codes.length !== 1 ? 's' : ''} marked as PAID`)
+        await loadTickets()
+      } catch (e) {
+        showToast('Error: ' + e.message)
+      }
+    }
+
+    // Per-ticket issued/not-issued tracking, so staff know exactly who's
+    // actually been emailed their ticket vs who still needs it sent.
+    async function toggleTicketIssued(code, issued) {
+      const issuedAt = issued ? new Date().toISOString() : null
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}`, {
+          method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' },
+          body: JSON.stringify({ tickets_issued: issued, tickets_issued_at: issuedAt, updated_at: new Date().toISOString() })
+        })
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => null)
+          throw new Error(errBody?.message || `HTTP ${res.status}`)
+        }
+        const t = allTickets.find(t => t.ticket_code === code)
+        if (t) { t.tickets_issued = issued; t.tickets_issued_at = issuedAt }
+        updateStats()
+        filterTable()
+      } catch (e) { showToast('Error: ' + e.message) }
+    }
+
+    async function markSelectedIssued() {
+      if (!selectedCodes.size) return
+      const codes = [...selectedCodes]
+      const issuedAt = new Date().toISOString()
+      try {
+        await Promise.all(codes.map(code =>
+          fetch(
+            `${SUPABASE_URL}/rest/v1/toc_tickets?ticket_code=eq.${encodeURIComponent(code)}`,
+            { method: 'PATCH', headers: { ...HDR, Prefer: 'return=minimal' }, body: JSON.stringify({ tickets_issued: true, tickets_issued_at: issuedAt }) }
+          )
+        ))
+        clearSelection()
+        showToast(`📧 ${codes.length} ticket${codes.length !== 1 ? 's' : ''} marked as issued`)
         await loadTickets()
       } catch (e) {
         showToast('Error: ' + e.message)
