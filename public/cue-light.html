@@ -166,7 +166,10 @@ on conflict (key) do nothing;</pre>
   <div id="displayView" class="hidden">
     <div class="top-bar">
       <span class="top-bar-title">Display</span>
-      <button type="button" class="switch-role-link">Switch role</button>
+      <div style="display:flex; gap:14px; align-items:center;">
+        <button type="button" class="switch-role-link hidden" id="floatBtn">🪟 Float</button>
+        <button type="button" class="switch-role-link">Switch role</button>
+      </div>
     </div>
     <div class="light-panel light-off" id="displayLight">
       <div class="light-label"></div>
@@ -175,6 +178,8 @@ on conflict (key) do nothing;</pre>
       <div class="schedule-heading">Event Schedule</div>
       <div class="schedule-list" id="dispSchedule"></div>
     </div>
+    <canvas id="pipCanvas" width="320" height="220" class="hidden"></canvas>
+    <video id="pipVideo" muted playsinline class="hidden"></video>
   </div>
 
   <script>
@@ -291,6 +296,29 @@ on conflict (key) do nothing;</pre>
       panelEl.querySelector('.light-label').textContent = label
     }
 
+    function drawPiPFrame(light) {
+      var canvas = document.getElementById('pipCanvas')
+      var ctx = canvas.getContext('2d')
+      var w = canvas.width, h = canvas.height
+      var cx = w / 2, cy = h / 2
+      var colors = light === 'start' ? ['#1fae53', '#0a2614']
+        : light === 'wait' ? ['#d23f3f', '#260a0a']
+        : ['#0a0a0a', '#0a0a0a']
+      var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) / 1.3)
+      grad.addColorStop(0, colors[0])
+      grad.addColorStop(1, colors[1])
+      ctx.fillStyle = grad
+      ctx.fillRect(0, 0, w, h)
+      var label = light === 'start' ? 'GO' : light === 'wait' ? 'WAIT' : ''
+      if (label) {
+        ctx.fillStyle = '#fff'
+        ctx.font = '900 64px "Segoe UI", system-ui, sans-serif'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText(label, cx, cy)
+      }
+    }
+
     function renderSchedule(containerEl, matches) {
       containerEl.innerHTML = ''
       if (!matches.length) {
@@ -331,6 +359,7 @@ on conflict (key) do nothing;</pre>
         renderSchedule(document.getElementById('ctrlSchedule'), state.matches)
       } else if (role === 'display') {
         renderLight(document.getElementById('displayLight'), state.light)
+        drawPiPFrame(state.light)
         renderSchedule(document.getElementById('dispSchedule'), state.matches)
       }
     }
@@ -401,6 +430,46 @@ on conflict (key) do nothing;</pre>
       showRoleGate()
     }
 
+    /* ══ FLOATING (Picture-in-Picture) ══ */
+    function pipSupported() {
+      var v = document.getElementById('pipVideo')
+      return !!(document.pictureInPictureEnabled || (v.webkitSupportsPresentationMode && v.webkitSupportsPresentationMode('picture-in-picture')))
+    }
+
+    function resetFloatBtn() {
+      document.getElementById('floatBtn').textContent = '🪟 Float'
+    }
+
+    function startFloat() {
+      var canvas = document.getElementById('pipCanvas')
+      var video = document.getElementById('pipVideo')
+      if (!video.srcObject) {
+        video.srcObject = canvas.captureStream(15)
+      }
+      video.play().then(function () {
+        if (document.pictureInPictureEnabled && video.requestPictureInPicture) {
+          video.requestPictureInPicture().then(function () {
+            document.getElementById('floatBtn').textContent = '🪟 Floating…'
+          }).catch(function (e) { alert('Could not float: ' + e.message) })
+        } else if (video.webkitSupportsPresentationMode && video.webkitSupportsPresentationMode('picture-in-picture')) {
+          video.webkitSetPresentationMode('picture-in-picture')
+          document.getElementById('floatBtn').textContent = '🪟 Floating…'
+        }
+      })
+    }
+
+    function wireFloat() {
+      var btn = document.getElementById('floatBtn')
+      var video = document.getElementById('pipVideo')
+      if (!pipSupported()) { btn.classList.add('hidden'); return }
+      btn.classList.remove('hidden')
+      btn.addEventListener('click', startFloat)
+      video.addEventListener('leavepictureinpicture', resetFloatBtn)
+      video.addEventListener('webkitpresentationmodechanged', function () {
+        if (video.webkitPresentationMode === 'inline') resetFloatBtn()
+      })
+    }
+
     /* ══ POLLING ══ */
     function tick() {
       loadState().then(function (fresh) {
@@ -436,6 +505,7 @@ on conflict (key) do nothing;</pre>
     document.addEventListener('DOMContentLoaded', function () {
       role = localStorage.getItem(ROLE_KEY)
       wireButtons()
+      wireFloat()
       tick()
       setInterval(tick, POLL_MS)
     })
