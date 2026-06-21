@@ -11,7 +11,6 @@ import PolicyDocs from './components/PolicyDocs.jsx'
 import DataManager from './components/DataManager.jsx'
 import StaffDashboard from './components/StaffDashboard.jsx'
 import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
-import PaymentLanding from './components/PaymentLanding.jsx'
 import Commentator from './components/Commentator.jsx'
 import StaffChatWidget from './components/StaffChatWidget.jsx'
 
@@ -91,7 +90,6 @@ function AppShell() {
         {tab === 'players' && <PlayerWiki selectedPlayerName={selectedPlayerName} onClearSelectedPlayer={() => setSelectedPlayerName(null)} />}
         {tab === 'standings' && <PlayerStandings />}
         {tab === 'h2h' && <H2HComparison />}
-        {tab === 'payment' && <PaymentLanding />}
         {tab === 'staff' && <StaffDashboard onSelect={handleTabSelect} />}
         {tab === 'policy' && <PolicyDocs uploadedPolicies={uploadedPolicies} onUpload={addPolicy} />}
         {tab === 'data' && <DataManager />}
