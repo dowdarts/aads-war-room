@@ -77,6 +77,26 @@
     .badge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 8px; }
     .badge-on { color: #8cffb0; background: rgba(45,168,90,0.15); border: 1px solid rgba(45,168,90,0.4); }
     .badge-off { color: var(--danger-text); background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.35); }
+
+    .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 13px; font-weight: 800; cursor: pointer; }
+    .tab-btn.active { color: var(--text); border-color: var(--accent); background: rgba(255,122,0,0.08); }
+    .tab-panel.hidden { display: none; }
+    .empty-note { color: var(--muted); font-size: 13px; }
+
+    .sched-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .sched-row:last-child { border-bottom: none; }
+    .sched-row.up-next { background: rgba(255,122,0,0.08); border-radius: 10px; padding: 12px 10px; border-bottom: none; }
+    .sched-row.complete .sched-headline { opacity: 0.45; text-decoration: line-through; }
+    .sched-info { min-width: 0; }
+    .sched-headline { font-weight: 800; font-size: 14px; }
+    .sched-sub, .sched-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    .up-next-badge, .status-pill { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+    .up-next-badge, .status-next { color: var(--accent); background: rgba(255,122,0,0.15); border: 1px solid rgba(255,122,0,0.4); }
+    .status-live { color: #8cffb0; background: rgba(45,168,90,0.15); border: 1px solid rgba(45,168,90,0.4); }
+    .status-wait { color: var(--danger-text); background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.35); }
+    .status-done, .status-scheduled { color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); }
   </style>
 </head>
 <body>
@@ -113,15 +133,26 @@
       <button type="button" class="link-btn" id="skipNotifyBtn">Skip for now</button>
     </div>
 
-    <div id="statusView" class="card hidden">
-      <div class="status-row">
-        <span class="status-name" id="statusName"></span>
-        <span class="badge" id="statusBadge"></span>
+    <div id="statusView" class="hidden">
+      <div class="card">
+        <div class="status-row">
+          <span class="status-name" id="statusName"></span>
+          <span class="badge" id="statusBadge"></span>
+        </div>
+        <p class="status-sub">You'll get a notification when the event starts, when you're called to the stage, and when the light goes green.</p>
+        <button type="button" class="btn hidden" id="enableNotifyBtn2">🔔 Enable Notifications</button>
+        <button type="button" class="btn hidden" id="installBtn">📲 Add to Home Screen</button>
+        <button type="button" class="btn" id="signOutBtn">Sign Out</button>
       </div>
-      <p class="status-sub">You'll get a notification when the event starts, when you're called to the stage, and when the light goes green.</p>
-      <button type="button" class="btn hidden" id="enableNotifyBtn2">🔔 Enable Notifications</button>
-      <button type="button" class="btn hidden" id="installBtn">📲 Add to Home Screen</button>
-      <button type="button" class="btn" id="signOutBtn">Sign Out</button>
+
+      <div class="card">
+        <div class="tab-bar">
+          <button type="button" class="tab-btn active" data-tab="full">Full Schedule</button>
+          <button type="button" class="tab-btn" data-tab="mine">My Matches</button>
+        </div>
+        <div id="fullScheduleTab" class="tab-panel"></div>
+        <div id="myMatchesTab" class="tab-panel hidden"></div>
+      </div>
     </div>
 
   </div>
@@ -134,6 +165,13 @@
     var VAPID_PUBLIC_KEY = 'BPIESfNBbD2RClDErwjAvB0j-PVya6bFBves1iLElnl17vmvuF3V1PymOPgAHt7KD0tE3gV944mWZeKrztR1_38'
     var SETTINGS_KEY = 'cue_light_event'
     var SESSION_KEY = 'aads_player_session'
+    var POLL_MS = 4000
+
+    /* ══ STATE ══ */
+    var eventState = null
+    var lastServerJSON = ''
+    var pollTimer = null
+    var activeTab = 'full'
 
     /* ══ SESSION ══ */
     function getSession() {
@@ -142,23 +180,139 @@
     function saveSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)) }
     function clearSession() { localStorage.removeItem(SESSION_KEY) }
 
-    /* ══ SCHEDULE NAMES ══ */
-    function loadScheduleNames() {
+    /* ══ EVENT SCHEDULE ══ */
+    function defaultEventState() {
+      return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, currentMatchId: null, doorsOpenedAt: null }
+    }
+
+    function loadEventState() {
       return fetch(SUPABASE_URL + '/rest/v1/app_settings?key=eq.' + SETTINGS_KEY + '&select=value', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
-          if (!Array.isArray(rows) || !rows.length || !rows[0].value) return []
-          var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
-          var matches = parsed.matches || []
-          var placeholder = /^(TBD|\d+(st|nd|rd|th) Place|SF\d+ Winner)$/i
-          var names = {}
-          matches.forEach(function (m) {
-            if (m.playerA && m.playerA.trim() && !placeholder.test(m.playerA.trim())) names[m.playerA.trim()] = true
-            if (m.playerB && m.playerB.trim() && !placeholder.test(m.playerB.trim())) names[m.playerB.trim()] = true
-          })
-          return Object.keys(names).sort(function (a, b) { return a.localeCompare(b) })
+          if (!Array.isArray(rows) || !rows.length || !rows[0].value) return null
+          try {
+            var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
+            return Object.assign(defaultEventState(), parsed)
+          } catch (e) { return null }
         })
-        .catch(function () { return [] })
+        .catch(function () { return null })
+    }
+
+    function namesFromMatches(matches) {
+      var placeholder = /^(TBD|\d+(st|nd|rd|th) Place|SF\d+ Winner)$/i
+      var names = {}
+      matches.forEach(function (m) {
+        if (m.playerA && m.playerA.trim() && !placeholder.test(m.playerA.trim())) names[m.playerA.trim()] = true
+        if (m.playerB && m.playerB.trim() && !placeholder.test(m.playerB.trim())) names[m.playerB.trim()] = true
+      })
+      return Object.keys(names).sort(function (a, b) { return a.localeCompare(b) })
+    }
+
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      })
+    }
+
+    /* ══ POLLING ══ */
+    function startPolling() {
+      if (pollTimer) return
+      pollTimer = setInterval(pollTick, POLL_MS)
+    }
+    function stopPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+    }
+    function pollTick() {
+      loadEventState().then(function (fresh) {
+        if (!fresh) return
+        var freshJSON = JSON.stringify(fresh)
+        if (freshJSON === lastServerJSON) return
+        lastServerJSON = freshJSON
+        eventState = fresh
+        renderActiveTab()
+      })
+    }
+
+    /* ══ SCHEDULE TABS ══ */
+    function setActiveTab(tab) {
+      activeTab = tab
+      document.querySelectorAll('.tab-btn').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-tab') === tab)
+      })
+      document.getElementById('fullScheduleTab').classList.toggle('hidden', tab !== 'full')
+      document.getElementById('myMatchesTab').classList.toggle('hidden', tab !== 'mine')
+      renderActiveTab()
+    }
+
+    function renderActiveTab() {
+      if (activeTab === 'full') renderFullSchedule()
+      else renderMyMatches()
+    }
+
+    function renderFullSchedule() {
+      var el = document.getElementById('fullScheduleTab')
+      var matches = (eventState && eventState.matches) || []
+      el.innerHTML = ''
+      if (!matches.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
+      var nextIdx = matches.findIndex(function (m) { return !m.complete })
+      matches.forEach(function (m, i) {
+        var row = document.createElement('div')
+        row.className = 'sched-row' + (m.complete ? ' complete' : '') + (i === nextIdx ? ' up-next' : '')
+        var subParts = []
+        if (m.time) subParts.push(escapeHtml(m.time))
+        if (m.round) subParts.push(escapeHtml(m.round))
+        var metaParts = []
+        if (m.format) metaParts.push(escapeHtml(m.format))
+        if (m.notes) metaParts.push(escapeHtml(m.notes))
+        var headline = m.match || ([m.playerA, m.playerB].filter(Boolean).join(' vs ')) || '(untitled)'
+        row.innerHTML =
+          '<div class="sched-info">' +
+            '<div class="sched-headline">' + escapeHtml(headline) + '</div>' +
+            (subParts.length ? '<div class="sched-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
+            (metaParts.length ? '<div class="sched-meta">' + metaParts.join(' &middot; ') + '</div>' : '') +
+          '</div>' +
+          (i === nextIdx ? '<span class="up-next-badge">Up Next</span>' : '')
+        el.appendChild(row)
+      })
+    }
+
+    function statusForMatch(m) {
+      var matches = eventState.matches
+      var nextIdx = matches.findIndex(function (x) { return !x.complete })
+      var idx = matches.indexOf(m)
+      var isCurrent = eventState.currentMatchId === m.id
+      if (isCurrent && eventState.light === 'start') return { label: 'Live Now', cls: 'status-live' }
+      if (isCurrent && eventState.light === 'wait') return { label: 'Waiting', cls: 'status-wait' }
+      if (idx === nextIdx && !m.complete) return { label: 'Up Next', cls: 'status-next' }
+      if (m.complete) return { label: 'Done', cls: 'status-done' }
+      return { label: 'Scheduled', cls: 'status-scheduled' }
+    }
+
+    function renderMyMatches() {
+      var el = document.getElementById('myMatchesTab')
+      var session = getSession()
+      var matches = (eventState && eventState.matches) || []
+      var mine = matches.filter(function (m) {
+        return session && (m.playerA === session.displayName || m.playerB === session.displayName)
+      })
+      el.innerHTML = ''
+      if (!mine.length) { el.innerHTML = '<p class="empty-note">No matches found for you on the schedule yet.</p>'; return }
+      mine.forEach(function (m) {
+        var opponent = (m.playerA === session.displayName) ? m.playerB : m.playerA
+        var st = statusForMatch(m)
+        var row = document.createElement('div')
+        row.className = 'sched-row'
+        var subParts = []
+        if (m.time) subParts.push(escapeHtml(m.time))
+        if (m.round) subParts.push(escapeHtml(m.round))
+        row.innerHTML =
+          '<div class="sched-info">' +
+            '<div class="sched-headline">vs ' + escapeHtml(opponent || 'TBD') + '</div>' +
+            (subParts.length ? '<div class="sched-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
+          '</div>' +
+          '<span class="status-pill ' + st.cls + '">' + st.label + '</span>'
+        el.appendChild(row)
+      })
     }
 
     /* ══ VIEW SWITCHING ══ */
@@ -226,6 +380,7 @@
     }
 
     function signOut() {
+      stopPolling()
       clearSession()
       document.getElementById('pinInput').value = ''
       showOnly('authView')
@@ -342,6 +497,8 @@
       document.getElementById('enableNotifyBtn2').classList.toggle('hidden', granted)
       if (!isStandalone()) document.getElementById('installBtn').classList.remove('hidden')
       showOnly('statusView')
+      setActiveTab('full')
+      startPolling()
     }
 
     /* ══ INIT ══ */
@@ -355,11 +512,17 @@
       document.getElementById('skipNotifyBtn').addEventListener('click', showStatusView)
       document.getElementById('signOutBtn').addEventListener('click', signOut)
       document.getElementById('installBtn').addEventListener('click', installApp)
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { setActiveTab(btn.getAttribute('data-tab')) })
+      })
     }
 
     function init() {
       wireButtons()
-      loadScheduleNames().then(function (names) {
+      loadEventState().then(function (fresh) {
+        eventState = fresh || defaultEventState()
+        lastServerJSON = JSON.stringify(eventState)
+        var names = namesFromMatches(eventState.matches)
         if (!names.length) { showOnly('noScheduleView'); return }
         var select = document.getElementById('nameSelect')
         names.forEach(function (n) {
