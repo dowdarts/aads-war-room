@@ -150,7 +150,8 @@ on conflict (key) do nothing;</pre>
       <span class="top-bar-title">Controller</span>
       <div style="display:flex; gap:14px; align-items:center;">
         <button type="button" class="switch-role-link" id="doorsOpenBtn">🚪 Doors Open</button>
-        <button type="button" class="switch-role-link" id="alertsToggleBtn">🔔 Notifications: ON</button>
+        <button type="button" class="switch-role-link" id="cueAlertsToggleBtn">🔔 Cue Light Alerts: ON</button>
+        <button type="button" class="switch-role-link" id="portalAlertsToggleBtn">🔔 Players Portal Alerts: ON</button>
         <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
       </div>
     </div>
@@ -214,7 +215,7 @@ on conflict (key) do nothing;</pre>
     var lastServerJSON = ''
 
     /* ══ PERSISTENCE ══ */
-    function defaultState() { return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
+    function defaultState() { return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, portalAlertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
 
     function parseStateRows(rows) {
       if (!Array.isArray(rows) || !rows.length) { rowExists = false; return null }
@@ -374,10 +375,14 @@ on conflict (key) do nothing;</pre>
         document.querySelectorAll('.ctrl-btn').forEach(function (b) {
           b.classList.toggle('active', b.getAttribute('data-light') === state.light)
         })
-        var alertsBtn = document.getElementById('alertsToggleBtn')
-        var alertsOn = state.alertsEnabled !== false
-        alertsBtn.textContent = alertsOn ? '🔔 Notifications: ON' : '🔕 Notifications: OFF'
-        alertsBtn.style.color = alertsOn ? '' : 'var(--danger-text)'
+        var cueAlertsBtn = document.getElementById('cueAlertsToggleBtn')
+        var cueAlertsOn = state.alertsEnabled !== false
+        cueAlertsBtn.textContent = cueAlertsOn ? '🔔 Cue Light Alerts: ON' : '🔕 Cue Light Alerts: OFF'
+        cueAlertsBtn.style.color = cueAlertsOn ? '' : 'var(--danger-text)'
+        var portalAlertsBtn = document.getElementById('portalAlertsToggleBtn')
+        var portalAlertsOn = state.portalAlertsEnabled !== false
+        portalAlertsBtn.textContent = portalAlertsOn ? '🔔 Players Portal Alerts: ON' : '🔕 Players Portal Alerts: OFF'
+        portalAlertsBtn.style.color = portalAlertsOn ? '' : 'var(--danger-text)'
         renderSchedule(document.getElementById('ctrlSchedule'), state.matches)
       } else if (role === 'display') {
         renderLight(document.getElementById('displayLight'), state.light)
@@ -396,12 +401,23 @@ on conflict (key) do nothing;</pre>
       if (value === 'start') notifyLive()
     }
 
-    // Master kill switch, controlled from the Controller view: when off, no
-    // device gets a push no matter who has alerts enabled on their phone.
-    // The Edge Function re-checks this itself too (see send-cue-light-push),
-    // so this isn't just a client-side skip — it's enforced server-side.
+    // Master kill switches, controlled from the Controller view: when off,
+    // no device gets a push no matter who has alerts enabled on their
+    // phone. Both Edge Functions re-check their own flag too (see
+    // send-cue-light-push and send-players-portal-push), so neither is
+    // just a client-side skip — both are enforced server-side. Kept as two
+    // independent flags since the cue light's own GO/WAIT broadcast and
+    // the players portal's called/live/doors-open pushes are different
+    // audiences and Matthew may want to silence one without the other.
     function toggleAlertsEnabled() {
       state.alertsEnabled = !(state.alertsEnabled !== false)
+      lastServerJSON = JSON.stringify(state)
+      renderAll()
+      saveState(state)
+    }
+
+    function togglePortalAlertsEnabled() {
+      state.portalAlertsEnabled = !(state.portalAlertsEnabled !== false)
       lastServerJSON = JSON.stringify(state)
       renderAll()
       saveState(state)
@@ -451,16 +467,18 @@ on conflict (key) do nothing;</pre>
       lastServerJSON = JSON.stringify(state)
       renderAll()
       saveState(state)
-      playersPortalPush({ action: 'doors_open' })
+      if (state.portalAlertsEnabled !== false) playersPortalPush({ action: 'doors_open' })
     }
 
     function notifyCalled(m) {
+      if (state.portalAlertsEnabled === false) return
       var names = [m.playerA, m.playerB].filter(Boolean)
       if (!names.length) return
       playersPortalPush({ action: 'called', names: names })
     }
 
     function notifyLive() {
+      if (state.portalAlertsEnabled === false) return
       if (!state.currentMatchId) return
       var idx = state.matches.findIndex(function (x) { return x.id === state.currentMatchId })
       if (idx === -1) return
@@ -776,7 +794,8 @@ on conflict (key) do nothing;</pre>
       document.querySelectorAll('[data-role-switch]').forEach(function (el) {
         el.addEventListener('click', switchRole)
       })
-      document.getElementById('alertsToggleBtn').addEventListener('click', toggleAlertsEnabled)
+      document.getElementById('cueAlertsToggleBtn').addEventListener('click', toggleAlertsEnabled)
+      document.getElementById('portalAlertsToggleBtn').addEventListener('click', togglePortalAlertsEnabled)
       document.getElementById('doorsOpenBtn').addEventListener('click', doorsOpen)
       document.querySelectorAll('.ctrl-btn').forEach(function (btn) {
         btn.addEventListener('click', function () { setLight(btn.getAttribute('data-light')) })

@@ -99,6 +99,26 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json();
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // Authoritative kill switch: the Controller can flip portalAlertsEnabled
+    // off, and that's enforced here regardless of how/why this function was
+    // called — not just a client-side skip in cue-light.html. Mirrors the
+    // same pattern send-cue-light-push uses for its own alertsEnabled flag.
+    const { data: settingsRow, error: settingsError } = await supabase
+      .from("app_settings")
+      .select("value")
+      .eq("key", "cue_light_event")
+      .maybeSingle();
+    if (settingsError) throw settingsError;
+    const settings = settingsRow?.value
+      ? (typeof settingsRow.value === "string" ? JSON.parse(settingsRow.value) : settingsRow.value)
+      : {};
+    if (settings.portalAlertsEnabled === false) {
+      return new Response(JSON.stringify({ skipped: true, reason: "alerts disabled" }), {
+        headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+      });
+    }
+
     let sent = 0;
 
     if (body.action === "doors_open") {
