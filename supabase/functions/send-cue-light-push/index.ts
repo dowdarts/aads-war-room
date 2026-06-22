@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { light } = await req.json();
+    const { light, eventId } = await req.json();
     if (light !== "start" && light !== "wait") {
       return new Response(JSON.stringify({ skipped: true }), {
         headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
@@ -32,17 +32,20 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    // Authoritative kill switch: the Controller can flip alertsEnabled off,
-    // and that's enforced here regardless of how/why this function was
-    // called — not just a client-side skip.
-    const { data: settingsRow, error: settingsError } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "cue_light_event")
+    // Authoritative kill switch: the Controller can flip alertsEnabled off
+    // for the event it's currently managing, and that's enforced here
+    // regardless of how/why this function was called — not just a
+    // client-side skip. One events row per event (see migration
+    // 20260622040000_create_events_table.sql) replaces the old single
+    // app_settings row keyed 'cue_light_event'.
+    const { data: eventRow, error: eventError } = await supabase
+      .from("events")
+      .select("state")
+      .eq("id", eventId)
       .maybeSingle();
-    if (settingsError) throw settingsError;
-    const settings = settingsRow?.value
-      ? (typeof settingsRow.value === "string" ? JSON.parse(settingsRow.value) : settingsRow.value)
+    if (eventError) throw eventError;
+    const settings = eventRow?.state
+      ? (typeof eventRow.state === "string" ? JSON.parse(eventRow.state) : eventRow.state)
       : {};
     if (settings.alertsEnabled === false) {
       return new Response(JSON.stringify({ skipped: true, reason: "alerts disabled" }), {

@@ -56,14 +56,14 @@
     .role-btn:hover { border-color: var(--accent); }
     .role-btn .role-sub { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-top: 4px; }
 
-    /* ══ SETUP NEEDED ══ */
-    .setup-needed { max-width: 620px; margin: 60px auto; padding: 28px; background: var(--panel); border: 1px solid var(--danger-line); border-radius: 16px; }
-    .setup-needed h2 { color: var(--danger-text); font-size: 18px; margin-bottom: 10px; }
-    .setup-needed p { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
-    .setup-needed pre {
-      background: #0a0a0a; border: 1px solid var(--line); border-radius: 10px;
-      padding: 16px; overflow: auto; font-size: 12px; color: var(--danger-text); white-space: pre-wrap;
+    /* ══ EVENT GATE ══ */
+    .new-event-row { display: flex; gap: 8px; margin-top: 18px; }
+    .new-event-row input {
+      flex: 1; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 14px;
     }
+    .new-event-row input:focus { outline: none; border-color: var(--accent); }
+    .new-event-row button { margin-bottom: 0; white-space: nowrap; }
 
     /* ══ TOP BAR ══ */
     .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--line); }
@@ -125,14 +125,6 @@
     <h1 class="hero-title">Cue Light &amp; <em>Schedule</em></h1>
   </div>
 
-  <div id="setupNeeded" class="setup-needed hidden">
-    <h2>One-time setup needed</h2>
-    <p>This tool's shared state row doesn't exist in Supabase yet, and the app can't create it itself (blocked by row-level security). Run this once in the Supabase SQL editor, then reload this page:</p>
-    <pre>insert into app_settings (key, value)
-values ('cue_light_event', '{"light":"off","matches":[],"updatedAt":null}'::jsonb)
-on conflict (key) do nothing;</pre>
-  </div>
-
   <div id="roleGate" class="role-gate hidden">
     <p>Which screen is this?</p>
     <button type="button" class="role-btn" id="roleControllerBtn">
@@ -145,6 +137,15 @@ on conflict (key) do nothing;</pre>
     </button>
   </div>
 
+  <div id="eventGate" class="role-gate hidden">
+    <p>Which event?</p>
+    <div id="eventList"></div>
+    <div class="new-event-row">
+      <input type="text" id="newEventName" placeholder="New event name" />
+      <button type="button" class="role-btn" id="newEventBtn">+ Create New Event</button>
+    </div>
+  </div>
+
   <div id="controllerView" class="hidden">
     <div class="top-bar">
       <span class="top-bar-title">Controller</span>
@@ -152,6 +153,7 @@ on conflict (key) do nothing;</pre>
         <button type="button" class="switch-role-link" id="doorsOpenBtn">🚪 Doors Open</button>
         <button type="button" class="switch-role-link" id="cueAlertsToggleBtn">🔔 Cue Light Alerts: ON</button>
         <button type="button" class="switch-role-link" id="portalAlertsToggleBtn">🔔 Players Portal Alerts: ON</button>
+        <button type="button" class="switch-role-link" data-event-switch>Switch event</button>
         <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
       </div>
     </div>
@@ -181,6 +183,7 @@ on conflict (key) do nothing;</pre>
         <button type="button" class="switch-role-link hidden" id="openSafariBtn">🧭 Open in Safari to Float</button>
         <button type="button" class="switch-role-link hidden" id="installBtn">📲 Add to Home Screen</button>
         <button type="button" class="switch-role-link hidden" id="alertsBtn">🔔 Enable Alerts</button>
+        <button type="button" class="switch-role-link" data-event-switch>Switch event</button>
         <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
       </div>
     </div>
@@ -204,25 +207,30 @@ on conflict (key) do nothing;</pre>
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
     var hdrs = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
     var VAPID_PUBLIC_KEY = 'BPIESfNBbD2RClDErwjAvB0j-PVya6bFBves1iLElnl17vmvuF3V1PymOPgAHt7KD0tE3gV944mWZeKrztR1_38'
-    var SETTINGS_KEY = 'cue_light_event'
     var ROLE_KEY = 'aads_cue_light_role'
+    var EVENT_ID_KEY = 'aads_cue_light_event_id'
     var POLL_MS = 750
 
     /* ══ STATE ══ */
     var role = null
+    var eventId = null
+    var allEvents = []
     var state = null
-    var rowExists = false
     var lastServerJSON = ''
+    var pollWorker = null
+    var pollIntervalId = null
 
-    /* ══ PERSISTENCE ══ */
+    /* ══ PERSISTENCE ══
+       One row per event in the `events` table (id, name, state) — replaces
+       the old single app_settings row keyed 'cue_light_event'. Lets the
+       Controller/Display pick which event's schedule they're working on. */
     function defaultState() { return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, portalAlertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
 
-    function parseStateRows(rows) {
-      if (!Array.isArray(rows) || !rows.length) { rowExists = false; return null }
-      rowExists = true
-      if (!rows[0].value) return defaultState()
+    function parseEventStateRows(rows) {
+      if (!Array.isArray(rows) || !rows.length) return null
+      if (!rows[0].state) return defaultState()
       try {
-        var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
+        var parsed = typeof rows[0].state === 'string' ? JSON.parse(rows[0].state) : rows[0].state
         return Object.assign(defaultState(), parsed)
       } catch (e) {
         return defaultState()
@@ -230,19 +238,26 @@ on conflict (key) do nothing;</pre>
     }
 
     function loadState() {
-      return fetch(SUPABASE_URL + '/rest/v1/app_settings?key=eq.' + SETTINGS_KEY + '&select=value', { headers: hdrs })
+      return fetch(SUPABASE_URL + '/rest/v1/events?id=eq.' + eventId + '&select=state', { headers: hdrs })
         .then(function (r) { return r.json() })
-        .then(parseStateRows)
+        .then(parseEventStateRows)
         .catch(function () { return null })
     }
 
     function saveState(next) {
       next.updatedAt = new Date().toISOString()
-      return fetch(SUPABASE_URL + '/rest/v1/app_settings?key=eq.' + SETTINGS_KEY, {
+      return fetch(SUPABASE_URL + '/rest/v1/events?id=eq.' + eventId, {
         method: 'PATCH',
         headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
-        body: JSON.stringify({ value: JSON.stringify(next) })
+        body: JSON.stringify({ state: next })
       }).catch(function () {})
+    }
+
+    function loadEvents() {
+      return fetch(SUPABASE_URL + '/rest/v1/events?select=id,name,created_at&order=created_at.asc', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) { return Array.isArray(rows) ? rows : [] })
+        .catch(function () { return [] })
     }
 
     /* ══ CSV PARSING ══ */
@@ -429,7 +444,7 @@ on conflict (key) do nothing;</pre>
       fetch(SUPABASE_URL + '/functions/v1/send-cue-light-push', {
         method: 'POST',
         headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ light: light })
+        body: JSON.stringify({ light: light, eventId: eventId })
       }).catch(function () {})
     }
 
@@ -457,7 +472,7 @@ on conflict (key) do nothing;</pre>
       fetch(SUPABASE_URL + '/functions/v1/send-players-portal-push', {
         method: 'POST',
         headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
-        body: JSON.stringify(payload)
+        body: JSON.stringify(Object.assign({ eventId: eventId }, payload))
       }).catch(function () {})
     }
 
@@ -505,23 +520,16 @@ on conflict (key) do nothing;</pre>
     }
 
     /* ══ ROLE GATE ══ */
-    function showSetupNeeded() {
-      document.getElementById('setupNeeded').classList.remove('hidden')
-      document.getElementById('roleGate').classList.add('hidden')
-      document.getElementById('controllerView').classList.add('hidden')
-      document.getElementById('displayView').classList.add('hidden')
-    }
-
     function showRoleGate() {
-      document.getElementById('setupNeeded').classList.add('hidden')
+      document.getElementById('eventGate').classList.add('hidden')
       document.getElementById('roleGate').classList.remove('hidden')
       document.getElementById('controllerView').classList.add('hidden')
       document.getElementById('displayView').classList.add('hidden')
     }
 
     function showViewForRole() {
-      document.getElementById('setupNeeded').classList.add('hidden')
       document.getElementById('roleGate').classList.add('hidden')
+      document.getElementById('eventGate').classList.add('hidden')
       document.getElementById('controllerView').classList.toggle('hidden', role !== 'controller')
       document.getElementById('displayView').classList.toggle('hidden', role !== 'display')
     }
@@ -529,14 +537,93 @@ on conflict (key) do nothing;</pre>
     function chooseRole(r) {
       role = r
       localStorage.setItem(ROLE_KEY, r)
-      showViewForRole()
-      renderAll()
+      initEventSelection()
     }
 
     function switchRole() {
+      stopEventPolling()
       role = null
+      eventId = null
       localStorage.removeItem(ROLE_KEY)
+      localStorage.removeItem(EVENT_ID_KEY)
       showRoleGate()
+    }
+
+    /* ══ EVENT GATE ══
+       Auto-picks the only event with zero extra taps so the existing
+       single-event workflow keeps working unchanged; only prompts when
+       there's a real choice to make (none yet, or more than one). */
+    function showEventGate() {
+      document.getElementById('roleGate').classList.add('hidden')
+      document.getElementById('controllerView').classList.add('hidden')
+      document.getElementById('displayView').classList.add('hidden')
+      document.getElementById('eventGate').classList.remove('hidden')
+      renderEventGate()
+    }
+
+    function renderEventGate() {
+      var list = document.getElementById('eventList')
+      list.innerHTML = ''
+      if (!allEvents.length) {
+        var p = document.createElement('p')
+        p.textContent = 'No events yet — create one below.'
+        list.appendChild(p)
+        return
+      }
+      allEvents.forEach(function (ev) {
+        var btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'role-btn'
+        btn.textContent = '📅 ' + ev.name
+        btn.addEventListener('click', function () { selectEvent(ev.id) })
+        list.appendChild(btn)
+      })
+    }
+
+    function initEventSelection() {
+      loadEvents().then(function (events) {
+        allEvents = events
+        var storedId = localStorage.getItem(EVENT_ID_KEY)
+        var match = events.find(function (e) { return e.id === storedId })
+        if (match) {
+          selectEvent(match.id)
+        } else if (events.length === 1) {
+          selectEvent(events[0].id)
+        } else {
+          showEventGate()
+        }
+      })
+    }
+
+    function selectEvent(id) {
+      eventId = id
+      localStorage.setItem(EVENT_ID_KEY, id)
+      showViewForRole()
+      startEventPolling()
+    }
+
+    function switchEvent() {
+      stopEventPolling()
+      eventId = null
+      localStorage.removeItem(EVENT_ID_KEY)
+      initEventSelection()
+    }
+
+    function createEvent() {
+      var name = document.getElementById('newEventName').value.trim()
+      if (!name) { alert('Enter an event name.'); return }
+      fetch(SUPABASE_URL + '/rest/v1/events', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+        body: JSON.stringify({ name: name })
+      }).then(function (res) { return res.json() })
+        .then(function (rows) {
+          if (Array.isArray(rows) && rows.length) {
+            allEvents.push({ id: rows[0].id, name: rows[0].name, created_at: rows[0].created_at })
+            document.getElementById('newEventName').value = ''
+            selectEvent(rows[0].id)
+          }
+        }).catch(function () { alert('Could not create event. Try again.') })
     }
 
     /* ══ FLOATING (Picture-in-Picture) ══ */
@@ -738,7 +825,6 @@ on conflict (key) do nothing;</pre>
     // is fully closed, and avoids double-firing on the device that made
     // the change.
     function applyFreshState(fresh) {
-      if (!rowExists) { showSetupNeeded(); return }
       var freshJSON = fresh ? JSON.stringify(fresh) : ''
       if (fresh && freshJSON !== lastServerJSON) {
         lastServerJSON = freshJSON
@@ -747,11 +833,27 @@ on conflict (key) do nothing;</pre>
         state = fresh || defaultState()
         lastServerJSON = JSON.stringify(state)
       }
-      if (role) { showViewForRole(); renderAll() } else { showRoleGate() }
+      showViewForRole()
+      renderAll()
     }
 
     function tick() {
       loadState().then(applyFreshState)
+    }
+
+    function stopEventPolling() {
+      if (pollWorker) { pollWorker.terminate(); pollWorker = null }
+      if (pollIntervalId) { clearInterval(pollIntervalId); pollIntervalId = null }
+      state = null
+      lastServerJSON = ''
+    }
+
+    function startEventPolling() {
+      stopEventPolling()
+      tick()
+      if (!startPollWorker()) {
+        pollIntervalId = setInterval(tick, POLL_MS)
+      }
     }
 
     // Polling on the main thread gets throttled (or paused) once the tab is
@@ -766,9 +868,9 @@ on conflict (key) do nothing;</pre>
         var src = [
           'var SB_URL = ' + JSON.stringify(SUPABASE_URL) + ';',
           'var SB_KEY = ' + JSON.stringify(SUPABASE_KEY) + ';',
-          'var SB_SETTINGS_KEY = ' + JSON.stringify(SETTINGS_KEY) + ';',
+          'var SB_EVENT_ID = ' + JSON.stringify(eventId) + ';',
           'function poll() {',
-          '  fetch(SB_URL + "/rest/v1/app_settings?key=eq." + SB_SETTINGS_KEY + "&select=value", { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } })',
+          '  fetch(SB_URL + "/rest/v1/events?id=eq." + SB_EVENT_ID + "&select=state", { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } })',
           '    .then(function (r) { return r.json() })',
           '    .then(function (rows) { postMessage({ ok: true, rows: rows }) })',
           '    .catch(function () { postMessage({ ok: false }) })',
@@ -777,9 +879,9 @@ on conflict (key) do nothing;</pre>
           'setInterval(poll, ' + POLL_MS + ');'
         ].join('\n')
         var blob = new Blob([src], { type: 'application/javascript' })
-        var worker = new Worker(URL.createObjectURL(blob))
-        worker.onmessage = function (e) {
-          if (e.data && e.data.ok) applyFreshState(parseStateRows(e.data.rows))
+        pollWorker = new Worker(URL.createObjectURL(blob))
+        pollWorker.onmessage = function (e) {
+          if (e.data && e.data.ok) applyFreshState(parseEventStateRows(e.data.rows))
         }
         return true
       } catch (e) {
@@ -793,6 +895,13 @@ on conflict (key) do nothing;</pre>
       document.getElementById('roleDisplayBtn').addEventListener('click', function () { chooseRole('display') })
       document.querySelectorAll('[data-role-switch]').forEach(function (el) {
         el.addEventListener('click', switchRole)
+      })
+      document.querySelectorAll('[data-event-switch]').forEach(function (el) {
+        el.addEventListener('click', switchEvent)
+      })
+      document.getElementById('newEventBtn').addEventListener('click', createEvent)
+      document.getElementById('newEventName').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') createEvent()
       })
       document.getElementById('cueAlertsToggleBtn').addEventListener('click', toggleAlertsEnabled)
       document.getElementById('portalAlertsToggleBtn').addEventListener('click', togglePortalAlertsEnabled)
@@ -811,9 +920,10 @@ on conflict (key) do nothing;</pre>
       wireButtons()
       wireFloat()
       wireInstallAndAlerts()
-      tick()
-      if (!startPollWorker()) {
-        setInterval(tick, POLL_MS)
+      if (role) {
+        initEventSelection()
+      } else {
+        showRoleGate()
       }
     })
   </script>

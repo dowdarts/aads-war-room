@@ -101,17 +101,20 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
     // Authoritative kill switch: the Controller can flip portalAlertsEnabled
-    // off, and that's enforced here regardless of how/why this function was
-    // called — not just a client-side skip in cue-light.html. Mirrors the
-    // same pattern send-cue-light-push uses for its own alertsEnabled flag.
-    const { data: settingsRow, error: settingsError } = await supabase
-      .from("app_settings")
-      .select("value")
-      .eq("key", "cue_light_event")
+    // off for the event it's currently managing, and that's enforced here
+    // regardless of how/why this function was called — not just a
+    // client-side skip in cue-light.html. Mirrors the same pattern
+    // send-cue-light-push uses for its own alertsEnabled flag. One events
+    // row per event (see migration 20260622040000_create_events_table.sql)
+    // replaces the old single app_settings row keyed 'cue_light_event'.
+    const { data: eventRow, error: eventError } = await supabase
+      .from("events")
+      .select("state")
+      .eq("id", body.eventId)
       .maybeSingle();
-    if (settingsError) throw settingsError;
-    const settings = settingsRow?.value
-      ? (typeof settingsRow.value === "string" ? JSON.parse(settingsRow.value) : settingsRow.value)
+    if (eventError) throw eventError;
+    const settings = eventRow?.state
+      ? (typeof eventRow.state === "string" ? JSON.parse(eventRow.state) : eventRow.state)
       : {};
     if (settings.portalAlertsEnabled === false) {
       return new Response(JSON.stringify({ skipped: true, reason: "alerts disabled" }), {
