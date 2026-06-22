@@ -108,21 +108,30 @@
 
   <div class="page">
 
-    <div id="noScheduleView" class="card hidden">
-      <h2>No event schedule yet</h2>
-      <p class="sub">There's no event loaded right now. Check back closer to the event, or ask Matthew if the schedule has been uploaded.</p>
-    </div>
-
     <div id="authView" class="card hidden">
-      <h2>Sign In / Create Account</h2>
-      <p class="sub">Select your name from the event schedule. First time here? Pick any 4-digit code — that becomes your sign-in code from now on.</p>
+      <h2 id="authHeading">Sign In</h2>
+      <p class="sub" id="authSub">Enter your name and 4-digit code to sign in.</p>
       <p id="authMsg" class="msg"></p>
-      <label for="nameSelect">Your Name</label>
-      <select id="nameSelect"></select>
-      <label for="pinInput">4-Digit Code</label>
-      <input type="password" id="pinInput" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" />
-      <p class="hint">Don't see your name? Ask Matthew to check the event schedule.</p>
-      <button type="button" class="btn btn-primary" id="continueBtn">Continue</button>
+
+      <div id="signinFields">
+        <label for="signinName">Your Name</label>
+        <input type="text" id="signinName" placeholder="First Last" />
+        <label for="signinPin">4-Digit Code</label>
+        <input type="password" id="signinPin" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" />
+        <button type="button" class="btn btn-primary" id="signInBtn">Sign In</button>
+        <button type="button" class="link-btn" id="showCreateBtn">Don't have an account? Create one</button>
+      </div>
+
+      <div id="createFields" class="hidden">
+        <label for="createFirstName">First Name</label>
+        <input type="text" id="createFirstName" placeholder="First name" />
+        <label for="createLastName">Last Name</label>
+        <input type="text" id="createLastName" placeholder="Last name" />
+        <label for="createPin">Choose a 4-Digit Code</label>
+        <input type="password" id="createPin" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" />
+        <button type="button" class="btn btn-primary" id="createAccountBtn">Create Account</button>
+        <button type="button" class="link-btn" id="showSigninBtn">Already have an account? Sign in</button>
+      </div>
     </div>
 
     <div id="notifyView" class="card hidden">
@@ -196,16 +205,6 @@
           } catch (e) { return null }
         })
         .catch(function () { return null })
-    }
-
-    function namesFromMatches(matches) {
-      var placeholder = /^(TBD|\d+(st|nd|rd|th) Place|SF\d+ Winner)$/i
-      var names = {}
-      matches.forEach(function (m) {
-        if (m.playerA && m.playerA.trim() && !placeholder.test(m.playerA.trim())) names[m.playerA.trim()] = true
-        if (m.playerB && m.playerB.trim() && !placeholder.test(m.playerB.trim())) names[m.playerB.trim()] = true
-      })
-      return Object.keys(names).sort(function (a, b) { return a.localeCompare(b) })
     }
 
     function escapeHtml(s) {
@@ -317,7 +316,7 @@
 
     /* ══ VIEW SWITCHING ══ */
     function showOnly(id) {
-      ['noScheduleView', 'authView', 'notifyView', 'statusView'].forEach(function (v) {
+      ['authView', 'notifyView', 'statusView'].forEach(function (v) {
         document.getElementById(v).classList.toggle('hidden', v !== id)
       })
     }
@@ -329,43 +328,80 @@
     }
 
     /* ══ AUTH ══ */
-    function continueAuth() {
-      var name = document.getElementById('nameSelect').value
-      var pin = document.getElementById('pinInput').value.trim()
-      if (!name) { setAuthMsg('Please select your name.', 'error'); return }
+    var authMode = 'signin'
+
+    function setAuthMode(mode) {
+      authMode = mode
+      document.getElementById('signinFields').classList.toggle('hidden', mode !== 'signin')
+      document.getElementById('createFields').classList.toggle('hidden', mode !== 'create')
+      document.getElementById('authHeading').textContent = mode === 'signin' ? 'Sign In' : 'Create Account'
+      document.getElementById('authSub').textContent = mode === 'signin'
+        ? 'Enter your name and 4-digit code to sign in.'
+        : 'Type your name and pick any 4-digit code — that becomes your sign-in code from now on.'
+      setAuthMsg('', '')
+    }
+
+    function signIn() {
+      var name = document.getElementById('signinName').value.trim()
+      var pin = document.getElementById('signinPin').value.trim()
+      if (!name) { setAuthMsg('Please enter your name.', 'error'); return }
       if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
       setAuthMsg('Checking...', '')
 
       fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id,pin', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
-          if (Array.isArray(rows) && rows.length) {
-            var account = rows[0]
-            if (account.pin !== pin) { setAuthMsg('That code is incorrect for ' + name + '.', 'error'); return }
-            saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
-            fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?id=eq.' + account.id, {
-              method: 'PATCH',
-              headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
-              body: JSON.stringify({ last_seen_at: new Date().toISOString() })
-            }).catch(function () {})
-            afterAuth()
-          } else {
-            return fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts', {
-              method: 'POST',
-              headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=representation' }),
-              body: JSON.stringify({ display_name: name, pin: pin })
-            }).then(function (res) {
-              if (!res.ok) return res.text().then(function (body) { throw new Error(body) })
-              return res.json()
-            }).then(function (created) {
-              var account = created[0]
-              saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
-              afterAuth()
-            })
+          if (!Array.isArray(rows) || !rows.length) {
+            setAuthMsg('No account found for that name. Create one below.', 'error')
+            return
           }
+          var account = rows[0]
+          if (account.pin !== pin) { setAuthMsg('That code is incorrect for ' + name + '.', 'error'); return }
+          saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+          fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?id=eq.' + account.id, {
+            method: 'PATCH',
+            headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+            body: JSON.stringify({ last_seen_at: new Date().toISOString() })
+          }).catch(function () {})
+          afterAuth()
         })
         .catch(function (e) {
-          console.error('Auth failed', e)
+          console.error('Sign in failed', e)
+          setAuthMsg('Something went wrong. Please try again.', 'error')
+        })
+    }
+
+    function createAccount() {
+      var firstName = document.getElementById('createFirstName').value.trim()
+      var lastName = document.getElementById('createLastName').value.trim()
+      var pin = document.getElementById('createPin').value.trim()
+      if (!firstName || !lastName) { setAuthMsg('Please enter your first and last name.', 'error'); return }
+      if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
+      var name = firstName + ' ' + lastName
+      setAuthMsg('Creating account...', '')
+
+      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (Array.isArray(rows) && rows.length) {
+            setAuthMsg('An account with that name already exists. Sign in instead.', 'error')
+            return
+          }
+          return fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts', {
+            method: 'POST',
+            headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+            body: JSON.stringify({ display_name: name, pin: pin })
+          }).then(function (res) {
+            if (!res.ok) return res.text().then(function (body) { throw new Error(body) })
+            return res.json()
+          }).then(function (created) {
+            var account = created[0]
+            saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+            afterAuth()
+          })
+        })
+        .catch(function (e) {
+          console.error('Create account failed', e)
           setAuthMsg('Something went wrong. Please try again.', 'error')
         })
     }
@@ -382,7 +418,12 @@
     function signOut() {
       stopPolling()
       clearSession()
-      document.getElementById('pinInput').value = ''
+      document.getElementById('signinName').value = ''
+      document.getElementById('signinPin').value = ''
+      document.getElementById('createFirstName').value = ''
+      document.getElementById('createLastName').value = ''
+      document.getElementById('createPin').value = ''
+      setAuthMode('signin')
       showOnly('authView')
     }
 
@@ -503,10 +544,16 @@
 
     /* ══ INIT ══ */
     function wireButtons() {
-      document.getElementById('continueBtn').addEventListener('click', continueAuth)
-      document.getElementById('pinInput').addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') continueAuth()
+      document.getElementById('signInBtn').addEventListener('click', signIn)
+      document.getElementById('signinPin').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') signIn()
       })
+      document.getElementById('createAccountBtn').addEventListener('click', createAccount)
+      document.getElementById('createPin').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') createAccount()
+      })
+      document.getElementById('showCreateBtn').addEventListener('click', function () { setAuthMode('create') })
+      document.getElementById('showSigninBtn').addEventListener('click', function () { setAuthMode('signin') })
       document.getElementById('enableNotifyBtn').addEventListener('click', enableNotify)
       document.getElementById('enableNotifyBtn2').addEventListener('click', enableNotify)
       document.getElementById('skipNotifyBtn').addEventListener('click', showStatusView)
@@ -522,23 +569,11 @@
       loadEventState().then(function (fresh) {
         eventState = fresh || defaultEventState()
         lastServerJSON = JSON.stringify(eventState)
-        var names = namesFromMatches(eventState.matches)
-        if (!names.length) { showOnly('noScheduleView'); return }
-        var select = document.getElementById('nameSelect')
-        names.forEach(function (n) {
-          var opt = document.createElement('option')
-          opt.value = n
-          opt.textContent = n
-          select.appendChild(opt)
-        })
-        var testOpt = document.createElement('option')
-        testOpt.value = 'Test Account'
-        testOpt.textContent = 'Test Account (gets every alert)'
-        select.appendChild(testOpt)
         var session = getSession()
         if (session) {
           afterAuth()
         } else {
+          setAuthMode('signin')
           showOnly('authView')
         }
       })
