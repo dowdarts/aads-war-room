@@ -1,0 +1,11 @@
+{
+  "name": "AADS Ticket Admin",
+  "short_name": "Ticket Admin",
+  "start_url": "AADSTickets-Admin.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/branding/icon-ticket-pass.png", "sizes": "any", "type": "image/png" }
+  ]
+}
