@@ -6,12 +6,9 @@ const TABS = [
   { id: 'players', label: 'Player Wiki' },
   { id: 'standings', label: 'Player Standings' },
   { id: 'h2h', label: 'H2H Match-Up' },
-  { id: 'staff', label: '🛠️ Staff' },
-  { id: 'policy', label: 'Policy Docs' },
+  { id: 'staff', label: '🔑 Sign In' },
   { id: 'ack', label: '📋 Acknowledgements' },
   { id: 'form', label: '📝 Competition Form' },
-  { id: 'merch', label: '👕 Merch Store' },
-  { id: 'shirts', label: '🧾 Shirt Order' },
   { id: 'data', label: 'Data Manager' },
 ]
 

@@ -19,7 +19,7 @@ function AppShell() {
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
   const wakeLockRef = useRef(null)
-  const LOCKED_TABS = ['data', 'policy']
+  const LOCKED_TABS = ['data']
   const [unlockedTabs, setUnlockedTabs] = useState(new Set())
   const [pendingTab, setPendingTab] = useState(null)
 
@@ -42,14 +42,6 @@ function AppShell() {
   function handleTabSelect(id) {
     if (id === 'form') {
       window.open('competition-form.html', '_blank', 'noopener,noreferrer')
-      return
-    }
-    if (id === 'merch') {
-      window.open('merch.html', '_blank', 'noopener,noreferrer')
-      return
-    }
-    if (id === 'shirts') {
-      window.open('shirt-order.html', '_blank', 'noopener,noreferrer')
       return
     }
 

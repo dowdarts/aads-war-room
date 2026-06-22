@@ -14,6 +14,8 @@ const ALL_TOOLS = [
   { id: 'ticket-sales', label: 'Ticket Sales', icon: '🎟️', path: 'AADSTickets-Dashboard.html' },
   { id: 'shirt-admin', label: 'Shirt Admin', icon: '👕', path: 'shirt-admin.html' },
   { id: 'shirt-order', label: 'Shirt Order', icon: '🧾', path: 'shirt-order.html' },
+  { id: 'merch', label: 'Merch Store', icon: '👕', path: 'merch.html' },
+  { id: 'policy', label: 'Policy Docs', icon: '📋', tabId: 'policy' },
   { id: 'cue-light', label: 'Cue Light & Schedule', icon: '🚦', path: 'cue-light.html' },
   { id: 'staff-chat', label: 'Staff Chat', icon: '💬', path: 'staff-chat.html' },
 ]
@@ -45,6 +47,7 @@ function clearSession() { localStorage.removeItem(SESSION_KEY) }
 
 export default function StaffDashboard({ onSelect }) {
   const [session, setSession] = useState(() => loadSession())
+  const [mode, setMode] = useState('choice')
   const [staffList, setStaffList] = useState([])
   const [pin, setPin] = useState('')
   const [error, setError] = useState('')
@@ -246,9 +249,37 @@ export default function StaffDashboard({ onSelect }) {
   function signOut() {
     clearSession()
     setSession(null)
+    setMode('choice')
     setPin('')
     setError('')
     setActivityLog([])
+  }
+
+  if (!session && mode === 'choice') {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-md flex flex-col gap-4">
+          <button
+            type="button"
+            onClick={() => setMode('login')}
+            className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-2xl p-8 flex flex-col items-center gap-2 text-center transition-all cursor-pointer"
+          >
+            <span className="text-3xl">🛠️</span>
+            <span className="text-lg font-bold text-white">Staff Login</span>
+            <span className="text-gray-500 text-sm">Staff &amp; tool access</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { window.location.href = base + 'players-portal.html' }}
+            className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-2xl p-8 flex flex-col items-center gap-2 text-center transition-all cursor-pointer"
+          >
+            <span className="text-3xl">🎯</span>
+            <span className="text-lg font-bold text-white">Players Dashboard</span>
+            <span className="text-gray-500 text-sm">Sign in to your event schedule &amp; alerts</span>
+          </button>
+        </div>
+      </div>
+    )
   }
 
   if (!session) {
@@ -285,6 +316,14 @@ export default function StaffDashboard({ onSelect }) {
             className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white font-bold rounded-lg py-2.5 text-sm transition-colors"
           >
             {loggingIn ? 'Verifying…' : 'Sign In'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMode('choice')}
+            className="text-gray-500 hover:text-gray-300 text-xs text-center transition-colors"
+          >
+            ← Back
           </button>
 
           {staffList.length === 0 && (
