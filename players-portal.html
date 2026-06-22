@@ -97,6 +97,18 @@
     .status-live { color: #8cffb0; background: rgba(45,168,90,0.15); border: 1px solid rgba(45,168,90,0.4); }
     .status-wait { color: var(--danger-text); background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.35); }
     .status-done, .status-scheduled { color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); }
+
+    .event-row {
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; margin-bottom: 8px;
+      background: var(--panel-2); cursor: pointer;
+    }
+    .event-row:hover { border-color: var(--accent); }
+    .event-row.selected { border-color: var(--accent); background: rgba(255,122,0,0.08); }
+    .event-row-name { font-weight: 800; font-size: 14px; }
+    .event-row-badge { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); background: rgba(255,122,0,0.15); border: 1px solid rgba(255,122,0,0.4); padding: 4px 8px; border-radius: 8px; white-space: nowrap; }
+
+    .launcher-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
   </style>
 </head>
 <body>
@@ -156,11 +168,17 @@
 
       <div class="card">
         <div class="tab-bar">
-          <button type="button" class="tab-btn active" data-tab="full">Full Schedule</button>
+          <button type="button" class="tab-btn active" data-tab="events">Events</button>
+          <button type="button" class="tab-btn" data-tab="full">Full Schedule</button>
           <button type="button" class="tab-btn" data-tab="mine">My Matches</button>
+          <button type="button" class="tab-btn" data-tab="ack">Acknowledgement</button>
+          <button type="button" class="tab-btn" data-tab="form">Competition Form</button>
         </div>
-        <div id="fullScheduleTab" class="tab-panel"></div>
+        <div id="eventsTab" class="tab-panel"></div>
+        <div id="fullScheduleTab" class="tab-panel hidden"></div>
         <div id="myMatchesTab" class="tab-panel hidden"></div>
+        <div id="ackTab" class="tab-panel hidden"></div>
+        <div id="formTab" class="tab-panel hidden"></div>
       </div>
     </div>
 
@@ -172,15 +190,21 @@
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
     var hdrs = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
     var VAPID_PUBLIC_KEY = 'BPIESfNBbD2RClDErwjAvB0j-PVya6bFBves1iLElnl17vmvuF3V1PymOPgAHt7KD0tE3gV944mWZeKrztR1_38'
-    var SETTINGS_KEY = 'cue_light_event'
     var SESSION_KEY = 'aads_player_session'
+    var SELECTED_EVENT_KEY = 'aads_player_selected_event'
     var POLL_MS = 4000
 
-    /* ══ STATE ══ */
-    var eventState = null
+    /* ══ STATE ══
+       One row per event in the `events` table now (id, name, state) —
+       replaces the old single app_settings row keyed 'cue_light_event'.
+       The player picks which event they're registered for via the
+       Events tab; everything else (Full Schedule/My Matches) reads from
+       that one selected event's state. */
+    var allEvents = []
+    var selectedEventId = null
     var lastServerJSON = ''
     var pollTimer = null
-    var activeTab = 'full'
+    var activeTab = 'events'
 
     /* ══ SESSION ══ */
     function getSession() {
@@ -194,17 +218,28 @@
       return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, currentMatchId: null, doorsOpenedAt: null }
     }
 
-    function loadEventState() {
-      return fetch(SUPABASE_URL + '/rest/v1/app_settings?key=eq.' + SETTINGS_KEY + '&select=value', { headers: hdrs })
+    function parseEventStateField(value) {
+      if (!value) return defaultEventState()
+      try {
+        var parsed = typeof value === 'string' ? JSON.parse(value) : value
+        return Object.assign(defaultEventState(), parsed)
+      } catch (e) { return defaultEventState() }
+    }
+
+    function loadAllEvents() {
+      return fetch(SUPABASE_URL + '/rest/v1/events?select=id,name,state&order=created_at.asc', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
-          if (!Array.isArray(rows) || !rows.length || !rows[0].value) return null
-          try {
-            var parsed = typeof rows[0].value === 'string' ? JSON.parse(rows[0].value) : rows[0].value
-            return Object.assign(defaultEventState(), parsed)
-          } catch (e) { return null }
+          if (!Array.isArray(rows)) return []
+          return rows.map(function (row) {
+            return { id: row.id, name: row.name, state: parseEventStateField(row.state) }
+          })
         })
-        .catch(function () { return null })
+        .catch(function () { return [] })
+    }
+
+    function getSelectedEvent() {
+      return allEvents.find(function (e) { return e.id === selectedEventId }) || null
     }
 
     function escapeHtml(s) {
@@ -222,12 +257,11 @@
       if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
     }
     function pollTick() {
-      loadEventState().then(function (fresh) {
-        if (!fresh) return
+      loadAllEvents().then(function (fresh) {
         var freshJSON = JSON.stringify(fresh)
         if (freshJSON === lastServerJSON) return
         lastServerJSON = freshJSON
-        eventState = fresh
+        allEvents = fresh
         renderActiveTab()
       })
     }
@@ -238,19 +272,58 @@
       document.querySelectorAll('.tab-btn').forEach(function (b) {
         b.classList.toggle('active', b.getAttribute('data-tab') === tab)
       })
+      document.getElementById('eventsTab').classList.toggle('hidden', tab !== 'events')
       document.getElementById('fullScheduleTab').classList.toggle('hidden', tab !== 'full')
       document.getElementById('myMatchesTab').classList.toggle('hidden', tab !== 'mine')
+      document.getElementById('ackTab').classList.toggle('hidden', tab !== 'ack')
+      document.getElementById('formTab').classList.toggle('hidden', tab !== 'form')
       renderActiveTab()
     }
 
     function renderActiveTab() {
-      if (activeTab === 'full') renderFullSchedule()
-      else renderMyMatches()
+      if (activeTab === 'events') renderEventsTab()
+      else if (activeTab === 'full') renderFullSchedule()
+      else if (activeTab === 'mine') renderMyMatches()
+      else if (activeTab === 'ack') renderAckTab()
+      else if (activeTab === 'form') renderFormTab()
+    }
+
+    // Implicit registration: a player "belongs" to any event where their
+    // display name appears somewhere in that event's schedule — no
+    // separate registration table, same trust model the rest of the
+    // portal already uses.
+    function renderEventsTab() {
+      var el = document.getElementById('eventsTab')
+      var session = getSession()
+      var mine = allEvents.filter(function (ev) {
+        return ev.state.matches.some(function (m) {
+          return session && (m.playerA === session.displayName || m.playerB === session.displayName)
+        })
+      })
+      el.innerHTML = ''
+      if (!mine.length) { el.innerHTML = '<p class="empty-note">No events found with you on the schedule yet.</p>'; return }
+      mine.forEach(function (ev) {
+        var row = document.createElement('div')
+        row.className = 'event-row' + (ev.id === selectedEventId ? ' selected' : '')
+        row.innerHTML =
+          '<span class="event-row-name">' + escapeHtml(ev.name) + '</span>' +
+          (ev.id === selectedEventId ? '<span class="event-row-badge">Selected</span>' : '')
+        row.addEventListener('click', function () { selectEvent(ev.id) })
+        el.appendChild(row)
+      })
+    }
+
+    function selectEvent(id) {
+      selectedEventId = id
+      localStorage.setItem(SELECTED_EVENT_KEY, id)
+      renderActiveTab()
     }
 
     function renderFullSchedule() {
       var el = document.getElementById('fullScheduleTab')
-      var matches = (eventState && eventState.matches) || []
+      var selected = getSelectedEvent()
+      if (!selected) { el.innerHTML = '<p class="empty-note">Pick an event from the Events tab to see its schedule.</p>'; return }
+      var matches = selected.state.matches || []
       el.innerHTML = ''
       if (!matches.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
       var nextIdx = matches.findIndex(function (m) { return !m.complete })
@@ -275,7 +348,7 @@
       })
     }
 
-    function statusForMatch(m) {
+    function statusForMatch(eventState, m) {
       var matches = eventState.matches
       var nextIdx = matches.findIndex(function (x) { return !x.complete })
       var idx = matches.indexOf(m)
@@ -289,8 +362,10 @@
 
     function renderMyMatches() {
       var el = document.getElementById('myMatchesTab')
+      var selected = getSelectedEvent()
+      if (!selected) { el.innerHTML = '<p class="empty-note">Pick an event from the Events tab to see your matches.</p>'; return }
       var session = getSession()
-      var matches = (eventState && eventState.matches) || []
+      var matches = selected.state.matches || []
       var mine = matches.filter(function (m) {
         return session && (m.playerA === session.displayName || m.playerB === session.displayName)
       })
@@ -298,7 +373,7 @@
       if (!mine.length) { el.innerHTML = '<p class="empty-note">No matches found for you on the schedule yet.</p>'; return }
       mine.forEach(function (m) {
         var opponent = (m.playerA === session.displayName) ? m.playerB : m.playerA
-        var st = statusForMatch(m)
+        var st = statusForMatch(selected.state, m)
         var row = document.createElement('div')
         row.className = 'sched-row'
         var subParts = []
@@ -311,6 +386,26 @@
           '</div>' +
           '<span class="status-pill ' + st.cls + '">' + st.label + '</span>'
         el.appendChild(row)
+      })
+    }
+
+    function renderAckTab() {
+      var el = document.getElementById('ackTab')
+      el.innerHTML =
+        '<p class="launcher-note">Review and sign the media release / acknowledgement form for your event.</p>' +
+        '<button type="button" class="btn btn-primary" id="openAckBtn">📋 Open Acknowledgement Form</button>'
+      document.getElementById('openAckBtn').addEventListener('click', function () {
+        window.open('aads-acknowledgement.html', '_blank', 'noopener,noreferrer')
+      })
+    }
+
+    function renderFormTab() {
+      var el = document.getElementById('formTab')
+      el.innerHTML =
+        '<p class="launcher-note">Fill out the competition entry form for your event.</p>' +
+        '<button type="button" class="btn btn-primary" id="openFormBtn">📝 Open Competition Form</button>'
+      document.getElementById('openFormBtn').addEventListener('click', function () {
+        window.open('competition-form.html', '_blank', 'noopener,noreferrer')
       })
     }
 
@@ -418,6 +513,8 @@
     function signOut() {
       stopPolling()
       clearSession()
+      selectedEventId = null
+      localStorage.removeItem(SELECTED_EVENT_KEY)
       document.getElementById('signinName').value = ''
       document.getElementById('signinPin').value = ''
       document.getElementById('createFirstName').value = ''
@@ -538,7 +635,7 @@
       document.getElementById('enableNotifyBtn2').classList.toggle('hidden', granted)
       if (!isStandalone()) document.getElementById('installBtn').classList.remove('hidden')
       showOnly('statusView')
-      setActiveTab('full')
+      setActiveTab(selectedEventId ? 'full' : 'events')
       startPolling()
     }
 
@@ -566,9 +663,13 @@
 
     function init() {
       wireButtons()
-      loadEventState().then(function (fresh) {
-        eventState = fresh || defaultEventState()
-        lastServerJSON = JSON.stringify(eventState)
+      loadAllEvents().then(function (fresh) {
+        allEvents = fresh
+        lastServerJSON = JSON.stringify(allEvents)
+        var storedEventId = localStorage.getItem(SELECTED_EVENT_KEY)
+        if (allEvents.some(function (e) { return e.id === storedEventId })) {
+          selectedEventId = storedEventId
+        }
         var session = getSession()
         if (session) {
           afterAuth()
