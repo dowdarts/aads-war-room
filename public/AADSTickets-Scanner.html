@@ -105,6 +105,27 @@
     /* Loading spinner */
     .spin { display: inline-block; width: 32px; height: 32px; border: 3px solid #333; border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── ROTATE PROMPT ──
+       html5-qrcode sizes its video/canvas once at start() and never
+       recalculates on resize/orientationchange (no such listener exists
+       in the library), so letting the camera view run across a rotation
+       leaves it mis-sized and half cut off. Blocking landscape outright
+       keeps the scanner box a fixed, reliable size at all times instead
+       of racing a library resize bug that has no real fix. */
+    #rotatePrompt { display: none; }
+    @media (orientation: landscape) {
+      #rotatePrompt {
+        display: flex; position: fixed; inset: 0; z-index: 999;
+        background: var(--bg); color: var(--text);
+        flex-direction: column; align-items: center; justify-content: center;
+        gap: 16px; padding: 24px; text-align: center;
+      }
+      .rotate-icon { font-size: 56px; animation: rotateHint 1.6s ease-in-out infinite; }
+      @keyframes rotateHint { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-90deg); } }
+      .rotate-title { font-size: 18px; font-weight: 900; }
+      .rotate-sub { font-size: 13px; color: var(--muted); max-width: 280px; }
+    }
   </style>
 </head>
 <body>
@@ -143,6 +164,13 @@
         <button class="manual-submit" onclick="submitManual()">Check →</button>
       </div>
     </div>
+  </div>
+
+  <!-- Rotate prompt (landscape blocks the scanner, see CSS) -->
+  <div id="rotatePrompt">
+    <div class="rotate-icon">📱</div>
+    <div class="rotate-title">Rotate Back to Portrait</div>
+    <div class="rotate-sub">The scanner only works upright — turn your phone back to keep the camera the right size.</div>
   </div>
 
   <!-- Result overlay -->
@@ -238,6 +266,7 @@
     // ── SCANNER ──
     async function startScanner() {
       if (scannerRunning) return
+      if (window.matchMedia('(orientation: landscape)').matches) return
       html5QrCode = new Html5Qrcode('reader', { verbose: false })
       try {
         await html5QrCode.start(
@@ -402,6 +431,24 @@
       await startScanner()
     }
 
+    // html5-qrcode sizes its video/canvas once at start() and never
+    // recalculates on rotation, so running the camera across an
+    // orientation change leaves it mis-sized and half cut off (no fix
+    // exists upstream for this). Pausing while landscape and resuming
+    // once back to portrait keeps the scanner box a fixed, correct size
+    // instead of letting it run mis-sized.
+    function handleOrientationChange(e) {
+      const inLandscape = e.matches
+      const scannerVisible = !document.getElementById('scannerUI').classList.contains('hidden')
+      const resultVisible = !document.getElementById('resultOverlay').classList.contains('hidden')
+      if (!scannerVisible || resultVisible) return
+      if (inLandscape) {
+        stopScanner()
+      } else {
+        startScanner()
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       if (!tryAutoLogin()) {
         const restored = sessionStorage.getItem('toc_staff')
@@ -410,6 +457,8 @@
       document.getElementById('manualInput').addEventListener('keydown', e => {
         if (e.key === 'Enter') submitManual()
       })
+      const orientationQuery = window.matchMedia('(orientation: landscape)')
+      orientationQuery.addEventListener('change', handleOrientationChange)
     })
   </script>
 </body>
