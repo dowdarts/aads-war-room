@@ -591,10 +591,10 @@
     // ── Inventory ────────────────────────────────────────────────
     async function loadInventory() {
       try {
-        // Date gate — pre-sale countdown until June 25; subscriber early access from June 20
+        // Date gate — public sale opened early on June 22; subscriber early access from June 20
         const SUB_CODE    = 'TOC2026EARLY'
         const SUB_DATE    = new Date('2026-06-20T00:00:00')
-        const PUBLIC_DATE = new Date('2026-06-25T00:00:00')
+        const PUBLIC_DATE = new Date('2026-06-22T00:00:00')
         const now         = new Date()
         const hasSubAccess = new URLSearchParams(location.search).get('sub') === SUB_CODE
         if (now < PUBLIC_DATE && !(now >= SUB_DATE && hasSubAccess)) {
