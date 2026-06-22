@@ -66,6 +66,7 @@ export default function StaffDashboard({ onSelect }) {
   const [draftActive, setDraftActive] = useState(true)
   const [draftTools, setDraftTools] = useState([])
   const [editError, setEditError] = useState('')
+  const [showManageStaff, setShowManageStaff] = useState(false)
   const base = getBaseUrl()
 
   useEffect(() => {
@@ -386,6 +387,16 @@ export default function StaffDashboard({ onSelect }) {
               <span className="text-xs font-semibold text-gray-300 group-hover:text-white leading-tight">{tool.label}</span>
             </button>
           ))}
+          {isMaster && (
+            <button
+              type="button"
+              onClick={() => setShowManageStaff(s => !s)}
+              className={`bg-[#111] hover:bg-[#1a1a1a] border rounded-xl p-5 flex flex-col items-center gap-3 text-center transition-all group cursor-pointer ${showManageStaff ? 'border-orange-500' : 'border-[#222] hover:border-orange-600/40'}`}
+            >
+              <span className="text-3xl group-hover:scale-110 transition-transform">👥</span>
+              <span className="text-xs font-semibold text-gray-300 group-hover:text-white leading-tight">Manage Staff</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -393,96 +404,100 @@ export default function StaffDashboard({ onSelect }) {
       {isMaster && (
         <div className="flex flex-col gap-6">
 
-          {/* Create staff account */}
-          <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-5 flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-bold text-white">Add Staff Member</p>
-              <p className="text-xs text-gray-500 mt-0.5">Send the registration link to a new staff member so they can create their own account and PIN.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => window.open(base + 'staff-register.html', '_blank', 'noopener,noreferrer')}
-              className="shrink-0 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
-            >
-              Open Registration Page
-            </button>
-          </div>
-
-          {/* Manage staff */}
-          <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-5">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">Manage Staff</h3>
-            <p className="text-xs text-gray-500 mb-4">Select a staff member to edit their name, PIN, status, and tool access.</p>
-
-            <div className="flex items-end gap-2 mb-4 flex-wrap">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</label>
-                <input
-                  type="text"
-                  value={newStaffName}
-                  onChange={e => { setNewStaffName(e.target.value); setAddStaffError('') }}
-                  placeholder="New staff name"
-                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm w-40 focus:outline-none focus:border-orange-500"
-                />
+          {showManageStaff && (
+            <>
+              {/* Create staff account */}
+              <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-5 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-bold text-white">Add Staff Member</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Send the registration link to a new staff member so they can create their own account and PIN.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => window.open(base + 'staff-register.html', '_blank', 'noopener,noreferrer')}
+                  className="shrink-0 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
+                >
+                  Open Registration Page
+                </button>
               </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Staff Code</label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={newStaffPin}
-                  onChange={e => { setNewStaffPin(e.target.value.replace(/\D/g, '').slice(0, 6)); setAddStaffError('') }}
-                  placeholder="4-6 digits"
-                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm w-28 text-center tracking-widest focus:outline-none focus:border-orange-500 placeholder:tracking-normal placeholder:text-gray-600"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleAddStaff}
-                className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
-              >
-                + Add Staff
-              </button>
-            </div>
-            {addStaffError && <p className="text-red-400 text-xs mb-4">{addStaffError}</p>}
 
-            {allStaff.length === 0 ? (
-              <p className="text-gray-600 text-sm text-center py-6">No staff accounts found.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {allStaff.map(staff => (
+              {/* Manage staff */}
+              <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl p-5">
+                <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-1">Manage Staff</h3>
+                <p className="text-xs text-gray-500 mb-4">Select a staff member to edit their name, PIN, status, and tool access.</p>
+
+                <div className="flex items-end gap-2 mb-4 flex-wrap">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Name</label>
+                    <input
+                      type="text"
+                      value={newStaffName}
+                      onChange={e => { setNewStaffName(e.target.value); setAddStaffError('') }}
+                      placeholder="New staff name"
+                      className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm w-40 focus:outline-none focus:border-orange-500"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Staff Code</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={newStaffPin}
+                      onChange={e => { setNewStaffPin(e.target.value.replace(/\D/g, '').slice(0, 6)); setAddStaffError('') }}
+                      placeholder="4-6 digits"
+                      className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2 text-white text-sm w-28 text-center tracking-widest focus:outline-none focus:border-orange-500 placeholder:tracking-normal placeholder:text-gray-600"
+                    />
+                  </div>
                   <button
-                    key={staff.id}
                     type="button"
-                    onClick={() => openEditStaff(staff)}
-                    className={`flex items-center justify-between gap-3 border border-[#1e1e1e] hover:border-orange-600/40 bg-[#0a0a0a] hover:bg-[#141414] rounded-xl px-4 py-3 text-left transition-colors ${staff.is_active === false ? 'opacity-50' : ''}`}
+                    onClick={handleAddStaff}
+                    className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
                   >
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {isOnline(staff) && (
-                        <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Online now" />
-                      )}
-                      <span className="text-sm font-semibold text-white">{staff.name}</span>
-                      {staff.is_master && (
-                        <span className="text-xs font-bold uppercase tracking-widest text-orange-400 bg-orange-950 border border-orange-800/60 px-2 py-0.5 rounded-full">
-                          Master
-                        </span>
-                      )}
-                      {staff.is_active === false && (
-                        <span className="text-xs font-bold uppercase tracking-widest text-gray-400 bg-[#1a1a1a] border border-[#333] px-2 py-0.5 rounded-full">
-                          Paused
-                        </span>
-                      )}
-                      {!staff.is_master && (
-                        <span className="text-xs text-gray-500">
-                          {(staff.tool_permissions || []).length} tool{(staff.tool_permissions || []).length === 1 ? '' : 's'}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-gray-500 text-sm">&rsaquo;</span>
+                    + Add Staff
                   </button>
-                ))}
+                </div>
+                {addStaffError && <p className="text-red-400 text-xs mb-4">{addStaffError}</p>}
+
+                {allStaff.length === 0 ? (
+                  <p className="text-gray-600 text-sm text-center py-6">No staff accounts found.</p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    {allStaff.map(staff => (
+                      <button
+                        key={staff.id}
+                        type="button"
+                        onClick={() => openEditStaff(staff)}
+                        className={`flex items-center justify-between gap-3 border border-[#1e1e1e] hover:border-orange-600/40 bg-[#0a0a0a] hover:bg-[#141414] rounded-xl px-4 py-3 text-left transition-colors ${staff.is_active === false ? 'opacity-50' : ''}`}
+                      >
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {isOnline(staff) && (
+                            <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Online now" />
+                          )}
+                          <span className="text-sm font-semibold text-white">{staff.name}</span>
+                          {staff.is_master && (
+                            <span className="text-xs font-bold uppercase tracking-widest text-orange-400 bg-orange-950 border border-orange-800/60 px-2 py-0.5 rounded-full">
+                              Master
+                            </span>
+                          )}
+                          {staff.is_active === false && (
+                            <span className="text-xs font-bold uppercase tracking-widest text-gray-400 bg-[#1a1a1a] border border-[#333] px-2 py-0.5 rounded-full">
+                              Paused
+                            </span>
+                          )}
+                          {!staff.is_master && (
+                            <span className="text-xs text-gray-500">
+                              {(staff.tool_permissions || []).length} tool{(staff.tool_permissions || []).length === 1 ? '' : 's'}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-gray-500 text-sm">&rsaquo;</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* Activity log */}
           <div className="bg-[#0d0d0d] border border-[#1e1e1e] rounded-2xl overflow-hidden">
