@@ -1,0 +1,11 @@
+{
+  "name": "AADS Shirt Catalog",
+  "short_name": "Shirt Catalog",
+  "start_url": "shirt-order.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/branding/icon-shirt-catalog.png", "sizes": "any", "type": "image/png" }
+  ]
+}
