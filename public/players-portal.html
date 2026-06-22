@@ -78,8 +78,8 @@
     .badge-on { color: #8cffb0; background: rgba(45,168,90,0.15); border: 1px solid rgba(45,168,90,0.4); }
     .badge-off { color: var(--danger-text); background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.35); }
 
-    .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tab-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 13px; font-weight: 800; cursor: pointer; }
+    .tab-bar { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+    .tab-btn { flex: 0 0 auto; padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel-2); color: var(--muted); font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
     .tab-btn.active { color: var(--text); border-color: var(--accent); background: rgba(255,122,0,0.08); }
     .tab-panel.hidden { display: none; }
     .empty-note { color: var(--muted); font-size: 13px; }
