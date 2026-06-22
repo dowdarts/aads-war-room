@@ -31,12 +31,10 @@ CREATE POLICY "anon update events" ON public.events
 GRANT SELECT, INSERT, UPDATE ON public.events TO anon;
 
 -- Carry the existing single event's live schedule/state into the new
--- table so nothing is lost. value is jsonb but may hold either a raw
--- object or a JSON-encoded string scalar depending on which code path
--- last wrote it (see cue-light.html saveState) -- #>>'{}' unwraps either
--- shape to plain text before re-parsing as jsonb.
+-- table so nothing is lost. app_settings.value is a text column holding
+-- the JSON-encoded state string (see cue-light.html saveState).
 INSERT INTO public.events (name, state)
-SELECT 'Tournament of Champions', (value #>> '{}')::jsonb
+SELECT 'Tournament of Champions', value::jsonb
 FROM public.app_settings
 WHERE key = 'cue_light_event'
   AND NOT EXISTS (SELECT 1 FROM public.events);
