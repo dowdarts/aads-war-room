@@ -249,7 +249,7 @@ export default function StaffDashboard({ onSelect }) {
   }
 
   function copyLoginLink() {
-    navigator.clipboard.writeText(`${window.location.origin}${base}staff-login.html`).then(() => {
+    navigator.clipboard.writeText(`${window.location.origin}${base}staff-portal.html`).then(() => {
       setLinkCopied(true)
       setTimeout(() => setLinkCopied(false), 2000)
     }).catch(() => {})

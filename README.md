@@ -60,7 +60,7 @@ This site has three audiences: **Players**, **Staff**, and **Matthew (Master Adm
 
 ## For Staff
 
-**Where to go:** the **Staff Login** page (`staff-login.html`) — its own shareable URL, or the "Staff Login" tile from the main site's sign-in choice screen. Signing in here signs you into every staff tool below automatically (they all share the same session), and it works whether you got there directly or through the main wiki.
+**Where to go:** the **Staff Login** page (`staff-portal.html`) — its own shareable URL, or the "Staff Login" tile from the main site's sign-in choice screen. Signing in here signs you into every staff tool below automatically (they all share the same session), and it works whether you got there directly or through the main wiki.
 
 - **Sign in** with your staff code (the PIN Matthew gave you).
 - You'll land on a tile grid of tools — but you'll only see the tools Matthew has switched on for your account. If you see none, ask Matthew to grant you access in Manage Staff.
@@ -91,7 +91,7 @@ Everything Staff have, plus:
 
 - **Master sign-in** unlocks every tool tile automatically — no per-tool permissions needed.
 - **Manage Staff** (in the Staff Dashboard, click the 👥 tile): add new staff accounts, edit names/PINs, pause or remove accounts, and check/uncheck exactly which tool tiles each person can see.
-  - **Copy Login Link** — copies the `staff-login.html` URL to your clipboard so you can text/Slack it to staff directly.
+  - **Copy Login Link** — copies the `staff-portal.html` URL to your clipboard so you can text/Slack it to staff directly.
   - **Open Registration Page** — sends a link to `staff-register.html` so a new hire can pick their own name + PIN instead of you typing it in for them.
 - **Staff Activity Log** — see who opened which tool and when.
 - **Data Manager** (`?tab=data` on the main site, behind its own separate admin PIN — not the staff code):
@@ -106,6 +106,6 @@ Everything Staff have, plus:
 | Audience | Link |
 |---|---|
 | Players | `players-portal.html` |
-| Staff | `staff-login.html` (or use the **Copy Login Link** button in Manage Staff) |
+| Staff | `staff-portal.html` (or use the **Copy Login Link** button in Manage Staff) |
 | New staff registration | `staff-register.html` |
 | Full admin dashboard (master only) | `index.html?tab=staff` |
