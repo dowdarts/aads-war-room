@@ -67,6 +67,7 @@ export default function StaffDashboard({ onSelect }) {
   const [draftTools, setDraftTools] = useState([])
   const [editError, setEditError] = useState('')
   const [showManageStaff, setShowManageStaff] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
   const base = getBaseUrl()
 
   useEffect(() => {
@@ -247,6 +248,13 @@ export default function StaffDashboard({ onSelect }) {
     }
   }
 
+  function copyLoginLink() {
+    navigator.clipboard.writeText(`${window.location.origin}${base}staff-login.html`).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    }).catch(() => {})
+  }
+
   function signOut() {
     clearSession()
     setSession(null)
@@ -412,13 +420,22 @@ export default function StaffDashboard({ onSelect }) {
                   <p className="text-sm font-bold text-white">Add Staff Member</p>
                   <p className="text-xs text-gray-500 mt-0.5">Send the registration link to a new staff member so they can create their own account and PIN.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => window.open(base + 'staff-register.html', '_blank', 'noopener,noreferrer')}
-                  className="shrink-0 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
-                >
-                  Open Registration Page
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={copyLoginLink}
+                    className="bg-[#1a1a1a] hover:bg-[#222] border border-[#333] text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
+                  >
+                    {linkCopied ? 'Copied!' : 'Copy Login Link'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => window.open(base + 'staff-register.html', '_blank', 'noopener,noreferrer')}
+                    className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
+                  >
+                    Open Registration Page
+                  </button>
+                </div>
               </div>
 
               {/* Manage staff */}

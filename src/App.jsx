@@ -15,7 +15,10 @@ import Commentator from './components/Commentator.jsx'
 import StaffChatWidget from './components/StaffChatWidget.jsx'
 
 function AppShell() {
-  const [tab, setTab] = useState(() => sessionStorage.getItem('activeTab') || 'provinces')
+  const [tab, setTab] = useState(() => {
+    const urlTab = new URLSearchParams(window.location.search).get('tab')
+    return urlTab || sessionStorage.getItem('activeTab') || 'provinces'
+  })
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
   const wakeLockRef = useRef(null)
