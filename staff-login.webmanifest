@@ -1,0 +1,11 @@
+{
+  "name": "AADS Staff Login",
+  "short_name": "Staff Login",
+  "start_url": "staff-login.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "icon-staff-login.png", "sizes": "any", "type": "image/png" }
+  ]
+}

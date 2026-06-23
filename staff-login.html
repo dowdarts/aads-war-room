@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="staff-login.webmanifest" />
+  <link rel="icon" href="icon-staff-login.png" />
+  <link rel="apple-touch-icon" href="icon-staff-login.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AADS Staff Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #fff;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 20px;
+      padding: 40px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .hero { text-align: center; }
+    .hero-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .hero-logo { width: 120px; height: auto; margin-bottom: 6px; }
+    .hero h1 { font-size: 1.3rem; font-weight: 700; color: #fff; letter-spacing: 0.02em; }
+    .hero p { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #777;
+    }
+    .field input {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+      text-align: center;
+      letter-spacing: 0.5em;
+      transition: border-color 0.15s;
+    }
+    .field input::placeholder { letter-spacing: normal; color: #555; }
+    .field input:focus { border-color: #f97316; }
+    .btn-submit {
+      background: #ea580c;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      padding: 13px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-submit:hover { background: #f97316; }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+    .message {
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    .message.error { background: #3b1010; color: #f87171; }
+    .message.success { background: #0d2f1c; color: #4ade80; }
+
+    /* Dashboard (post-login) */
+    .dashboard {
+      width: 100%;
+      max-width: 720px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .dash-header {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .dash-header.master {
+      background: linear-gradient(to right, rgba(124, 45, 18, 0.4), #111);
+      border-color: rgba(154, 52, 18, 0.4);
+    }
+    .badge-master {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #fb923c;
+      background: #431407;
+      border: 1px solid rgba(154, 52, 18, 0.6);
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+    .dash-header h2 { font-size: 1.4rem; font-weight: 700; color: #fff; }
+    .dash-header p { font-size: 0.8rem; color: #999; margin-top: 2px; }
+    .btn-signout {
+      background: transparent;
+      border: 1px solid #333;
+      color: #999;
+      font-size: 0.8rem;
+      border-radius: 10px;
+      padding: 9px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-signout:hover { border-color: #555; color: #fff; }
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 14px;
+    }
+    .tile {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 14px;
+      padding: 18px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .tile:hover { background: #1a1a1a; border-color: rgba(234, 88, 12, 0.4); }
+    .tile-icon { font-size: 1.8rem; }
+    .tile-label { font-size: 0.75rem; font-weight: 600; color: #ccc; line-height: 1.2; }
+    .empty-tools {
+      background: #0d0d0d;
+      border: 1px solid #1e1e1e;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: center;
+      color: #777;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const SESSION_KEY = 'aads_staff_session'
+    const hdrs = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+
+    const ALL_TOOLS = [
+      { id: 'interview', label: 'Denis Interview Assistant', icon: '🎙️', path: 'interview.html' },
+      { id: 'commentator', label: 'Commentator', icon: '🎤', tabId: 'commentator' },
+      { id: 'scanner', label: 'QR Scanner', icon: '📷', path: 'AADSTickets-Scanner.html' },
+      { id: 'checkin', label: 'Ticket Check-in', icon: '✅', path: 'AADSTickets-Checkin.html' },
+      { id: 'interview-admin', label: 'Interview Admin', icon: '📋', path: 'interview-admin.html' },
+      { id: 'ticket-sales', label: 'Ticket Sales', icon: '🎟️', path: 'AADSTickets-Dashboard.html' },
+      { id: 'shirt-admin', label: 'Shirt Admin', icon: '👕', path: 'shirt-admin.html' },
+      { id: 'shirt-order', label: 'Shirt Order', icon: '🧾', path: 'shirt-order.html' },
+      { id: 'merch', label: 'Merch Store', icon: '👕', path: 'merch.html' },
+      { id: 'policy', label: 'Policy Docs', icon: '📋', tabId: 'policy' },
+      { id: 'cue-light', label: 'Cue Light & Schedule', icon: '🚦', path: 'cue-light.html' },
+      { id: 'staff-chat', label: 'Staff Chat', icon: '💬', path: 'staff-chat.html' },
+    ]
+
+    function loadSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY)) } catch { return null }
+    }
+    function saveSession(s) { localStorage.setItem(SESSION_KEY, JSON.stringify(s)) }
+    function clearSession() { localStorage.removeItem(SESSION_KEY) }
+
+    function logToolAccess(session, label) {
+      fetch(`${SUPABASE_URL}/rest/v1/staff_activity_log`, {
+        method: 'POST',
+        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ staff_id: session.id, staff_name: session.name, tool_name: label }),
+      }).catch(() => {})
+    }
+
+    function openTool(tool, session) {
+      logToolAccess(session, tool.label)
+      if (tool.tabId) {
+        window.location.href = `index.html?tab=${tool.tabId}`
+      } else {
+        window.open(tool.path, '_blank', 'noopener,noreferrer')
+      }
+    }
+
+    function renderLogin() {
+      const app = document.getElementById('app')
+      app.innerHTML = `
+        <div class="card">
+          <div class="hero">
+            <img class="hero-logo" src="icon-staff-login.png" alt="AADS Staff Portal" />
+            <h1>Staff Login</h1>
+            <p>AADS War Room</p>
+          </div>
+          <div class="field">
+            <label>Staff Code</label>
+            <input type="password" inputmode="numeric" maxlength="6" id="pinInput" placeholder="Enter your staff code" autofocus />
+          </div>
+          <div id="message" class="message" style="display:none"></div>
+          <button type="button" class="btn-submit" id="submitBtn">Sign In</button>
+        </div>
+      `
+      const pinInput = document.getElementById('pinInput')
+      pinInput.addEventListener('input', () => {
+        pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6)
+        hideMsg()
+      })
+      pinInput.addEventListener('keydown', e => { if (e.key === 'Enter') login() })
+      document.getElementById('submitBtn').addEventListener('click', login)
+      pinInput.focus()
+    }
+
+    function showMsg(text, type) {
+      const el = document.getElementById('message')
+      el.textContent = text
+      el.className = 'message ' + type
+      el.style.display = 'block'
+    }
+    function hideMsg() {
+      const el = document.getElementById('message')
+      if (el) el.style.display = 'none'
+    }
+
+    async function login() {
+      const pin = document.getElementById('pinInput').value.trim()
+      if (pin.length < 4) { showMsg('Enter your staff code.', 'error'); return }
+      const btn = document.getElementById('submitBtn')
+      btn.disabled = true
+      btn.textContent = 'Verifying…'
+      try {
+        const r = await fetch(
+          `${SUPABASE_URL}/rest/v1/staff_accounts?pin=eq.${pin}&select=id,name,is_master,is_active`,
+          { headers: hdrs }
+        )
+        const rows = await r.json()
+        if (!Array.isArray(rows)) { showMsg('Connection error. Try again.', 'error'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+        if (!rows.length) { showMsg('Code not recognized. Try again.', 'error'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+        if (rows[0].is_active === false) { showMsg('This account is paused. Contact Matthew.', 'error'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+        saveSession({ id: rows[0].id, name: rows[0].name, isMaster: rows[0].is_master, loginAt: Date.now() })
+        render()
+      } catch {
+        showMsg('Connection error. Try again.', 'error')
+        btn.disabled = false
+        btn.textContent = 'Sign In'
+      }
+    }
+
+    function signOut() {
+      clearSession()
+      render()
+    }
+
+    function buildToolGrid(tools, session, isMaster) {
+      const grid = document.createElement('div')
+      grid.className = 'tool-grid'
+      tools.forEach(tool => {
+        const tile = document.createElement('button')
+        tile.type = 'button'
+        tile.className = 'tile'
+        tile.innerHTML = `<span class="tile-icon">${tool.icon}</span><span class="tile-label">${tool.label}</span>`
+        tile.addEventListener('click', () => openTool(tool, session))
+        grid.appendChild(tile)
+      })
+      if (isMaster) {
+        const tile = document.createElement('button')
+        tile.type = 'button'
+        tile.className = 'tile'
+        tile.innerHTML = `<span class="tile-icon">🛠️</span><span class="tile-label">Full Staff Dashboard</span>`
+        tile.addEventListener('click', () => { window.location.href = 'index.html?tab=staff' })
+        grid.appendChild(tile)
+      }
+      return grid
+    }
+
+    async function renderDashboard(session) {
+      const app = document.getElementById('app')
+      const isMaster = !!session.isMaster
+
+      let tools = ALL_TOOLS
+      if (!isMaster) {
+        try {
+          const r = await fetch(
+            `${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${session.id}&select=tool_permissions`,
+            { headers: hdrs }
+          )
+          const rows = await r.json()
+          const perms = rows[0]?.tool_permissions || []
+          tools = ALL_TOOLS.filter(t => perms.includes(t.id))
+        } catch {
+          tools = []
+        }
+      }
+
+      app.innerHTML = `
+        <div class="dashboard">
+          <div class="dash-header ${isMaster ? 'master' : ''}">
+            <div>
+              ${isMaster ? '<span class="badge-master">Master Admin</span><br/>' : ''}
+              <h2>${isMaster ? session.name : 'Staff Dashboard'}</h2>
+              <p>${isMaster ? 'Full access · AADS War Room' : `Signed in as ${session.name}`}</p>
+            </div>
+            <button type="button" class="btn-signout" id="signOutBtn">Sign Out</button>
+          </div>
+          <div id="toolGridHost"></div>
+        </div>
+      `
+      document.getElementById('signOutBtn').addEventListener('click', signOut)
+
+      const host = document.getElementById('toolGridHost')
+      if (tools.length === 0 && !isMaster) {
+        host.innerHTML = '<div class="empty-tools">No tools assigned yet — ask Matthew to set up your access.</div>'
+      } else {
+        host.appendChild(buildToolGrid(tools, session, isMaster))
+      }
+    }
+
+    function render() {
+      const session = loadSession()
+      if (!session) {
+        renderLogin()
+      } else {
+        renderDashboard(session)
+      }
+    }
+
+    render()
+  </script>
+</body>
+</html>
