@@ -161,6 +161,51 @@
       color: #777;
       font-size: 0.85rem;
     }
+
+    /* Floating Staff Chat widget */
+    .chat-bubble-btn { position: fixed; bottom: 20px; right: 20px; z-index: 61; width: 52px; height: 52px; border-radius: 50%; background: #ea580c; border: none; color: #000; font-size: 1.4rem; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,0.45); transition: transform 0.15s, background 0.15s; }
+    .chat-bubble-btn:hover { background: #f97316; transform: scale(1.05); }
+    .chat-unread-dot { position: absolute; top: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%; background: #ef4444; border: 2px solid #050505; }
+    .chat-panel { position: fixed; inset: 0; z-index: 60; background: #0a0a0a; display: flex; flex-direction: column; }
+    @media (min-width: 640px) {
+      .chat-panel { inset: auto; bottom: 84px; right: 20px; width: 380px; height: 520px; border: 1px solid #1f1f1f; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+    }
+    .chat-panel-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #1a1a1a; background: #0f0f0f; flex-shrink: 0; }
+    .chat-back-btn, .chat-close-btn { background: none; border: none; color: #999; font-size: 1.1rem; cursor: pointer; padding: 0 4px; }
+    .chat-back-btn:hover, .chat-close-btn:hover { color: #fff; }
+    .chat-panel-avatar { width: 28px; height: 28px; border-radius: 50%; background: #ea580c; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; flex-shrink: 0; }
+    .chat-panel-titles { flex: 1; min-width: 0; }
+    .chat-panel-name { font-size: 0.85rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 6px; }
+    .chat-panel-sub { font-size: 0.65rem; color: #666; font-weight: 600; letter-spacing: 0.02em; }
+    .chat-panel-body { flex: 1; overflow-y: auto; min-height: 0; }
+    .chat-empty { color: #555; font-size: 0.85rem; text-align: center; padding: 32px 16px; }
+    .chat-contact-row { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #141414; cursor: pointer; transition: background 0.15s; }
+    .chat-contact-row:hover { background: #141414; }
+    .chat-contact-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .chat-contact-name { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 700; color: #fff; }
+    .chat-contact-preview { font-size: 0.7rem; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chat-online-dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+    .chat-unread-dot-inline { width: 8px; height: 8px; border-radius: 50%; background: #ea580c; flex-shrink: 0; }
+    .chat-del-conv-btn { background: none; border: none; color: #555; font-size: 0.85rem; cursor: pointer; padding: 2px; flex-shrink: 0; }
+    .chat-del-conv-btn:hover { color: #f87171; }
+    .chat-msg-row { display: flex; flex-direction: column; padding: 4px 12px; }
+    .chat-msg-row.mine { align-items: flex-end; }
+    .chat-msg-row.theirs { align-items: flex-start; }
+    .chat-msg-bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 0.82rem; line-height: 1.4; word-break: break-word; }
+    .chat-msg-row.mine .chat-msg-bubble { background: #ea580c; color: #1a0a00; border-bottom-right-radius: 4px; }
+    .chat-msg-row.theirs .chat-msg-bubble { background: #1a1a1a; color: #ddd; border: 1px solid #2a2a2a; border-bottom-left-radius: 4px; }
+    .chat-msg-image { max-width: 180px; max-height: 180px; border-radius: 12px; border: 1px solid #2a2a2a; object-fit: cover; }
+    .chat-msg-meta { display: flex; align-items: center; gap: 8px; margin-top: 3px; }
+    .chat-msg-time { font-size: 0.6rem; color: #555; }
+    .chat-del-msg-btn { background: none; border: none; color: #444; font-size: 0.65rem; cursor: pointer; padding: 0; }
+    .chat-del-msg-btn:hover { color: #f87171; }
+    .chat-input-row { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #1a1a1a; flex-shrink: 0; }
+    .chat-photo-btn { width: 38px; height: 38px; border-radius: 10px; background: #262626; border: 1px solid #444; color: #fff; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .chat-photo-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .chat-msg-input { flex: 1; background: #141414; border: 1px solid #2a2a2a; border-radius: 10px; padding: 9px 12px; color: #fff; font-size: 0.82rem; outline: none; }
+    .chat-msg-input:focus { border-color: #f97316; }
+    .chat-send-btn { width: 36px; height: 36px; border-radius: 10px; background: #ea580c; border: none; color: #000; font-weight: 700; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
+    .chat-send-btn:hover { background: #f97316; }
   </style>
 </head>
 <body>
@@ -351,6 +396,405 @@
     }
 
     render()
+
+    /* ════════ Floating Staff Chat widget ════════ */
+    const CHAT_LASTREAD_PREFIX = 'aads_chat_lastread_'
+    const CHAT_MESSAGE_POLL_MS = 2000
+    const CHAT_ELIGIBILITY_POLL_MS = 4000
+    const CHAT_HEARTBEAT_MS = 30000
+    const CHAT_CONTACTS_POLL_MS = 15000
+    const CHAT_ONLINE_THRESHOLD_MS = 90000
+    const CHAT_IMAGE_BUCKET = 'staff-chat-images'
+    const CHAT_IMAGE_MAX_DIM = 1600
+    const CHAT_IMAGE_QUALITY = 0.8
+
+    let chatSession = null
+    let chatEligible = false
+    let chatOpen = false
+    let chatContacts = []
+    let chatMessages = []
+    let chatActiveId = null
+    let chatLastJSON = ''
+    let chatUploading = false
+
+    function chatIsOnline(c) {
+      if (!c.last_seen_at) return false
+      return Date.now() - new Date(c.last_seen_at).getTime() < CHAT_ONLINE_THRESHOLD_MS
+    }
+
+    function chatEscapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
+    }
+
+    function chatFormatTime(iso) {
+      try { return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) } catch { return '' }
+    }
+
+    function chatCompressImage(file) {
+      return new Promise((resolve, reject) => {
+        const img = new Image()
+        const reader = new FileReader()
+        reader.onload = () => {
+          img.onload = () => {
+            let { width, height } = img
+            if (width > CHAT_IMAGE_MAX_DIM || height > CHAT_IMAGE_MAX_DIM) {
+              if (width > height) { height = Math.round(height * CHAT_IMAGE_MAX_DIM / width); width = CHAT_IMAGE_MAX_DIM }
+              else { width = Math.round(width * CHAT_IMAGE_MAX_DIM / height); height = CHAT_IMAGE_MAX_DIM }
+            }
+            const canvas = document.createElement('canvas')
+            canvas.width = width
+            canvas.height = height
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height)
+            canvas.toBlob(blob => (blob ? resolve(blob) : reject(new Error('compress failed'))), 'image/jpeg', CHAT_IMAGE_QUALITY)
+          }
+          img.onerror = reject
+          img.src = reader.result
+        }
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+    }
+
+    function chatConversationWith(otherId) {
+      if (!chatSession) return []
+      return chatMessages.filter(m =>
+        (m.sender_id === otherId && m.recipient_id === chatSession.id) ||
+        (m.sender_id === chatSession.id && m.recipient_id === otherId)
+      )
+    }
+
+    function chatIsUnread(otherId) {
+      const conv = chatConversationWith(otherId)
+      if (!conv.length) return false
+      const last = conv[conv.length - 1]
+      if (last.sender_id === chatSession.id) return false
+      const lastRead = localStorage.getItem(CHAT_LASTREAD_PREFIX + otherId)
+      if (!lastRead) return true
+      return new Date(last.created_at) > new Date(lastRead)
+    }
+
+    function chatMarkRead(otherId) {
+      const conv = chatConversationWith(otherId)
+      const lastTime = conv.length ? conv[conv.length - 1].created_at : new Date().toISOString()
+      localStorage.setItem(CHAT_LASTREAD_PREFIX + otherId, lastTime)
+    }
+
+    function chatHasUnread() {
+      return chatContacts.some(c => chatIsUnread(c.id))
+    }
+
+    function checkChatEligibility() {
+      const s = loadSession()
+      chatSession = s
+      if (!s) {
+        chatEligible = false; chatOpen = false; chatContacts = []; chatMessages = []
+        renderChatBubble(); renderChatPanel()
+        return
+      }
+      if (s.isMaster) {
+        chatEligible = true
+        renderChatBubble()
+        loadChatContacts()
+        pollChatMessages()
+        return
+      }
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${s.id}&select=tool_permissions`, { headers: hdrs })
+        .then(r => r.json())
+        .then(rows => {
+          chatEligible = Array.isArray(rows) && !!rows[0]?.tool_permissions?.includes('staff-chat')
+          if (!chatEligible) { chatOpen = false; chatContacts = []; chatMessages = [] }
+          renderChatBubble(); renderChatPanel()
+          if (chatEligible) { loadChatContacts(); pollChatMessages() }
+        })
+        .catch(() => { chatEligible = false; renderChatBubble() })
+    }
+
+    function chatHeartbeat() {
+      if (!chatSession?.id) return
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${chatSession.id}`, {
+        method: 'PATCH',
+        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ last_seen_at: new Date().toISOString() }),
+      }).catch(() => {})
+    }
+
+    function loadChatContacts() {
+      if (!chatEligible || !chatSession) { chatContacts = []; return }
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,last_seen_at&is_active=eq.true&order=name.asc`, { headers: hdrs })
+        .then(r => r.json())
+        .then(rows => {
+          chatContacts = Array.isArray(rows) ? rows.filter(c => c.id !== chatSession.id) : []
+          renderChatPanel()
+        })
+        .catch(() => {})
+    }
+
+    function pollChatMessages() {
+      if (!chatEligible || !chatSession) { chatMessages = []; return }
+      fetch(`${SUPABASE_URL}/rest/v1/staff_messages?or=(sender_id.eq.${chatSession.id},recipient_id.eq.${chatSession.id})&order=created_at.asc`, { headers: hdrs })
+        .then(r => r.json())
+        .then(rows => {
+          if (!Array.isArray(rows)) return
+          const json = JSON.stringify(rows)
+          if (json !== chatLastJSON) {
+            chatLastJSON = json
+            chatMessages = rows
+            renderChatBubble()
+            renderChatPanel()
+          }
+        })
+        .catch(() => {})
+    }
+
+    function toggleChat() {
+      chatOpen = !chatOpen
+      renderChatBubble()
+      renderChatPanel()
+    }
+
+    function chatOpenContact(id) {
+      chatActiveId = id
+      chatMarkRead(id)
+      renderChatPanel()
+    }
+
+    function chatBackToContacts() {
+      chatActiveId = null
+      renderChatPanel()
+    }
+
+    function chatSend() {
+      const input = document.getElementById('chatMsgInput')
+      const body = input.value.trim()
+      if (!body || !chatActiveId || !chatSession) return
+      const contact = chatContacts.find(c => c.id === chatActiveId)
+      if (!contact) return
+      input.value = ''
+      const optimistic = {
+        id: `temp_${Date.now()}`,
+        sender_id: chatSession.id, sender_name: chatSession.name,
+        recipient_id: contact.id, recipient_name: contact.name,
+        body, created_at: new Date().toISOString(),
+      }
+      chatMessages.push(optimistic)
+      chatLastJSON = JSON.stringify(chatMessages)
+      renderChatPanel()
+      fetch(`${SUPABASE_URL}/rest/v1/staff_messages`, {
+        method: 'POST',
+        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({
+          sender_id: chatSession.id, sender_name: chatSession.name,
+          recipient_id: contact.id, recipient_name: contact.name,
+          body,
+        }),
+      }).catch(() => {})
+    }
+
+    function chatPickImage() {
+      document.getElementById('chatImageInput')?.click()
+    }
+
+    async function chatHandleFileSelected(e) {
+      const file = e.target.files?.[0]
+      e.target.value = ''
+      if (!file || !chatActiveId || !chatSession) return
+      const contact = chatContacts.find(c => c.id === chatActiveId)
+      if (!contact) return
+      chatUploading = true
+      renderChatPanel()
+      const tempId = `temp_${Date.now()}`
+      try {
+        const blob = await chatCompressImage(file)
+        const filename = `${chatSession.id}_${Date.now()}.jpg`
+        const localUrl = URL.createObjectURL(blob)
+        chatMessages.push({
+          id: tempId,
+          sender_id: chatSession.id, sender_name: chatSession.name,
+          recipient_id: contact.id, recipient_name: contact.name,
+          body: '', image_url: localUrl, created_at: new Date().toISOString(),
+        })
+        chatLastJSON = JSON.stringify(chatMessages)
+        renderChatPanel()
+
+        const uploadRes = await fetch(`${SUPABASE_URL}/storage/v1/object/${CHAT_IMAGE_BUCKET}/${filename}`, {
+          method: 'POST',
+          headers: { ...hdrs, 'Content-Type': 'image/jpeg' },
+          body: blob,
+        })
+        if (!uploadRes.ok) throw new Error('upload failed')
+        const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/${CHAT_IMAGE_BUCKET}/${filename}`
+
+        await fetch(`${SUPABASE_URL}/rest/v1/staff_messages`, {
+          method: 'POST',
+          headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+          body: JSON.stringify({
+            sender_id: chatSession.id, sender_name: chatSession.name,
+            recipient_id: contact.id, recipient_name: contact.name,
+            body: '', image_url: imageUrl,
+          }),
+        })
+      } catch {
+        chatMessages = chatMessages.filter(m => m.id !== tempId)
+        chatLastJSON = JSON.stringify(chatMessages)
+        renderChatPanel()
+        window.alert('Could not send image. Try again.')
+      }
+      chatUploading = false
+      renderChatPanel()
+    }
+
+    function chatDeleteMessage(id) {
+      if (typeof id !== 'string' || id.startsWith('temp_')) return
+      chatMessages = chatMessages.filter(m => m.id !== id)
+      chatLastJSON = JSON.stringify(chatMessages)
+      renderChatPanel()
+      fetch(`${SUPABASE_URL}/rest/v1/staff_messages?id=eq.${id}`, { method: 'DELETE', headers: hdrs }).catch(() => {})
+    }
+
+    function chatDeleteConversation(otherId) {
+      if (!chatSession) return
+      const contact = chatContacts.find(c => c.id === otherId)
+      if (!window.confirm(`Delete this entire conversation with ${contact ? contact.name : 'this person'}? This can't be undone.`)) return
+      chatMessages = chatMessages.filter(m => !(
+        (m.sender_id === otherId && m.recipient_id === chatSession.id) ||
+        (m.sender_id === chatSession.id && m.recipient_id === otherId)
+      ))
+      chatLastJSON = JSON.stringify(chatMessages)
+      if (chatActiveId === otherId) chatActiveId = null
+      renderChatPanel()
+      const filterExpr = `or=(and(sender_id.eq.${chatSession.id},recipient_id.eq.${otherId}),and(sender_id.eq.${otherId},recipient_id.eq.${chatSession.id}))`
+      fetch(`${SUPABASE_URL}/rest/v1/staff_messages?${filterExpr}`, { method: 'DELETE', headers: hdrs }).catch(() => {})
+    }
+
+    function renderChatBubble() {
+      const root = document.getElementById('chatBubbleRoot')
+      if (!root) return
+      if (!chatEligible) { root.innerHTML = ''; return }
+      const unread = !chatOpen && chatHasUnread()
+      root.innerHTML = `
+        <button type="button" id="chatBubbleBtn" class="chat-bubble-btn" title="Staff Chat">
+          ${chatOpen ? '✕' : '💬'}
+          ${unread ? '<span class="chat-unread-dot"></span>' : ''}
+        </button>
+      `
+      document.getElementById('chatBubbleBtn').addEventListener('click', toggleChat)
+    }
+
+    function renderChatPanel() {
+      const root = document.getElementById('chatPanelRoot')
+      if (!root) return
+      if (!chatEligible || !chatOpen) { root.innerHTML = ''; return }
+
+      const activeContact = chatContacts.find(c => c.id === chatActiveId)
+
+      let bodyHtml
+      if (!chatActiveId) {
+        bodyHtml = chatContacts.length === 0
+          ? `<p class="chat-empty">No other staff yet.</p>`
+          : chatContacts.map(c => {
+              const conv = chatConversationWith(c.id)
+              const lastMsg = conv.length ? conv[conv.length - 1] : null
+              const preview = lastMsg ? (lastMsg.image_url ? '📷 Photo' : chatEscapeHtml(lastMsg.body)) : 'No messages yet'
+              const unread = chatIsUnread(c.id)
+              return `
+                <div class="chat-contact-row" data-id="${c.id}">
+                  <div class="chat-contact-text">
+                    <div class="chat-contact-name">
+                      ${chatIsOnline(c) ? '<span class="chat-online-dot" title="Online now"></span>' : ''}
+                      <span>${chatEscapeHtml(c.name)}</span>
+                      ${unread ? '<span class="chat-unread-dot-inline"></span>' : ''}
+                    </div>
+                    <div class="chat-contact-preview">${preview}</div>
+                  </div>
+                  ${conv.length ? `<button type="button" class="chat-del-conv-btn" data-delconv="${c.id}" title="Delete conversation">🗑</button>` : ''}
+                </div>
+              `
+            }).join('')
+      } else {
+        const thread = chatConversationWith(chatActiveId)
+        bodyHtml = thread.length === 0
+          ? `<p class="chat-empty">Say hello — no messages yet.</p>`
+          : thread.map(m => `
+              <div class="chat-msg-row ${m.sender_id === chatSession.id ? 'mine' : 'theirs'}">
+                ${m.image_url
+                  ? `<a href="${m.image_url}" target="_blank" rel="noopener noreferrer"><img src="${m.image_url}" alt="Shared" class="chat-msg-image" /></a>`
+                  : `<div class="chat-msg-bubble">${chatEscapeHtml(m.body)}</div>`
+                }
+                <div class="chat-msg-meta">
+                  <span class="chat-msg-time">${chatFormatTime(m.created_at)}</span>
+                  <button type="button" class="chat-del-msg-btn" data-delmsg="${m.id}" title="Delete message">🗑</button>
+                </div>
+              </div>
+            `).join('')
+      }
+
+      root.innerHTML = `
+        <div class="chat-panel">
+          <div class="chat-panel-header">
+            ${chatActiveId ? `<button type="button" id="chatBackBtn" class="chat-back-btn">←</button>` : ''}
+            <div class="chat-panel-avatar">💬</div>
+            <div class="chat-panel-titles">
+              <div class="chat-panel-name">
+                ${activeContact ? chatEscapeHtml(activeContact.name) : 'Staff Chat'}
+                ${activeContact && chatIsOnline(activeContact) ? '<span class="chat-online-dot" title="Online now"></span>' : ''}
+              </div>
+              <div class="chat-panel-sub">Signed in as ${chatEscapeHtml(chatSession?.name || '')}</div>
+            </div>
+            <button type="button" id="chatCloseBtn" class="chat-close-btn">✕</button>
+          </div>
+          <div class="chat-panel-body" id="chatPanelBody">
+            ${bodyHtml}
+            <div id="chatScrollBottom"></div>
+          </div>
+          ${chatActiveId ? `
+            <div class="chat-input-row">
+              <input type="file" id="chatImageInput" accept="image/*" style="display:none" />
+              <button type="button" id="chatPhotoBtn" class="chat-photo-btn" ${chatUploading ? 'disabled' : ''} title="Send a photo">${chatUploading ? '…' : '📷'}</button>
+              <input type="text" id="chatMsgInput" class="chat-msg-input" placeholder="Type a message…" />
+              <button type="button" id="chatSendBtn" class="chat-send-btn">↑</button>
+            </div>
+          ` : ''}
+        </div>
+      `
+
+      document.getElementById('chatCloseBtn').addEventListener('click', () => { chatOpen = false; renderChatBubble(); renderChatPanel() })
+      if (chatActiveId) {
+        document.getElementById('chatBackBtn').addEventListener('click', chatBackToContacts)
+        document.getElementById('chatPhotoBtn').addEventListener('click', chatPickImage)
+        document.getElementById('chatImageInput').addEventListener('change', chatHandleFileSelected)
+        const msgInput = document.getElementById('chatMsgInput')
+        msgInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chatSend() } })
+        document.getElementById('chatSendBtn').addEventListener('click', chatSend)
+        root.querySelectorAll('[data-delmsg]').forEach(btn => btn.addEventListener('click', () => chatDeleteMessage(btn.dataset.delmsg)))
+        document.getElementById('chatScrollBottom')?.scrollIntoView()
+        msgInput.focus()
+      } else {
+        root.querySelectorAll('.chat-contact-row').forEach(row => {
+          row.addEventListener('click', e => {
+            if (e.target.closest('[data-delconv]')) return
+            chatOpenContact(row.dataset.id)
+          })
+        })
+        root.querySelectorAll('[data-delconv]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); chatDeleteConversation(btn.dataset.delconv) }))
+      }
+    }
+
+    function initStaffChat() {
+      const panelRoot = document.createElement('div')
+      panelRoot.id = 'chatPanelRoot'
+      const bubbleRoot = document.createElement('div')
+      bubbleRoot.id = 'chatBubbleRoot'
+      document.body.appendChild(panelRoot)
+      document.body.appendChild(bubbleRoot)
+
+      checkChatEligibility()
+      setInterval(checkChatEligibility, CHAT_ELIGIBILITY_POLL_MS)
+      setInterval(chatHeartbeat, CHAT_HEARTBEAT_MS)
+      setInterval(loadChatContacts, CHAT_CONTACTS_POLL_MS)
+      setInterval(pollChatMessages, CHAT_MESSAGE_POLL_MS)
+    }
+
+    initStaffChat()
   </script>
 </body>
 </html>
