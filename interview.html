@@ -202,6 +202,7 @@
       cursor: pointer; transition: all 0.12s; text-align: center;
     }
     .winner-btn:hover { border-color: #4ade80; color: #4ade80; }
+    .winner-btn.sel { background: #0a1f0d; border-color: #4ade80; color: #4ade80; }
 
     /* ── Logger util row ── */
     .logger-utils { display: flex; gap: 8px; }
@@ -386,9 +387,10 @@
       </div>
       <div class="card-body">
         <div class="winner-row">
-          <button type="button" class="winner-btn" id="winLegA" onclick="winLeg('A')">—</button>
-          <button type="button" class="winner-btn" id="winLegB" onclick="winLeg('B')">—</button>
+          <button type="button" class="winner-btn" id="winLegA" onclick="pickLegWinner('A')">—</button>
+          <button type="button" class="winner-btn" id="winLegB" onclick="pickLegWinner('B')">—</button>
         </div>
+        <button type="button" class="btn-primary start-btn-gap" id="confirmWinnerBtn" onclick="confirmLegWinner()" disabled>Confirm Winner</button>
       </div>
     </div>
 
@@ -483,6 +485,7 @@ let matchComplete = false
 let matchWinner = null
 let currentEvents = []
 let selectedPlayer = null
+let selectedLegWinner = null
 let pendingPromptAction = null
 let currentMatchResult = null
 
@@ -749,6 +752,7 @@ function enterLogger() {
   document.getElementById('winLegB').textContent = pB.name
   document.getElementById('lScoreTarget').textContent = `First to ${fmt.targetLegs} legs wins`
   document.getElementById('lFormatLabel').textContent = fmt.formatLabel
+  resetLegWinnerPick()
 
   loggerCard_show()
   renderScoreAndLeg()
@@ -785,6 +789,25 @@ function pickPlayer(side) {
   selectedPlayer = side
   document.getElementById('pickA').className = 'player-pick-btn' + (side === 'A' ? ' sel' : '')
   document.getElementById('pickB').className = 'player-pick-btn' + (side === 'B' ? ' sel' : '')
+}
+
+function resetLegWinnerPick() {
+  selectedLegWinner = null
+  document.getElementById('winLegA').className = 'winner-btn'
+  document.getElementById('winLegB').className = 'winner-btn'
+  document.getElementById('confirmWinnerBtn').disabled = true
+}
+
+function pickLegWinner(side) {
+  selectedLegWinner = side
+  document.getElementById('winLegA').className = 'winner-btn' + (side === 'A' ? ' sel' : '')
+  document.getElementById('winLegB').className = 'winner-btn' + (side === 'B' ? ' sel' : '')
+  document.getElementById('confirmWinnerBtn').disabled = false
+}
+
+function confirmLegWinner() {
+  if (!selectedLegWinner) return
+  winLeg(selectedLegWinner)
 }
 
 function buildActionsGrid() {
@@ -880,6 +903,7 @@ function winLeg(side) {
   selectedPlayer = null
   document.getElementById('pickA').className = 'player-pick-btn'
   document.getElementById('pickB').className = 'player-pick-btn'
+  resetLegWinnerPick()
   cancelPrompt()
 
   if (side === 'A') scoreA++; else scoreB++
@@ -915,6 +939,7 @@ function undoLastLeg() {
   currentEvents = [...last.events]
   matchComplete = false
   matchWinner = null
+  resetLegWinnerPick()
   loggerCard_show()
   renderScoreAndLeg()
   renderEventLog()
