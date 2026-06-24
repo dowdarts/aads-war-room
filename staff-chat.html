@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="staff-chat.webmanifest" />
+  <link rel="icon" href="icon-staff-chat.png" />
+  <link rel="apple-touch-icon" href="icon-staff-chat.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>AADS Staff Chat</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,6 +37,7 @@
       padding: 22px 24px 18px;
       text-align: center;
     }
+    .hero-logo { width: 96px; max-width: 100%; height: auto; margin-bottom: 8px; }
     .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
     .hero-title { font-size: clamp(24px, 4vw, 36px); font-weight: 900; letter-spacing: -0.03em; }
     .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
@@ -96,6 +103,7 @@
 <body>
 
   <div class="hero">
+    <img class="hero-logo" src="icon-staff-chat.png" alt="AADS Staff Chat" />
     <div class="hero-eyebrow">AADS War Room</div>
     <h1 class="hero-title">Staff <em>Chat</em></h1>
   </div>
