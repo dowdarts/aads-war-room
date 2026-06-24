@@ -48,8 +48,24 @@
     .hero-install-btn:hover { border-color: var(--accent); }
 
     /* ══ SIGN-IN NEEDED ══ */
-    .sign-in-needed { max-width: 480px; margin: 60px auto; padding: 28px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
+    .sign-in-needed { max-width: 360px; margin: 60px auto; padding: 28px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
     .sign-in-needed p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .login-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .login-field label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .login-field input {
+      background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 11px 14px;
+      color: var(--text); font-size: 15px; outline: none; text-align: center; letter-spacing: 0.5em; transition: border-color 0.15s;
+    }
+    .login-field input::placeholder { letter-spacing: normal; color: #555; }
+    .login-field input:focus { border-color: var(--accent); }
+    .login-submit-btn {
+      width: 100%; background: var(--accent); color: #1a0a00; font-size: 14px; font-weight: 800;
+      border: none; border-radius: 10px; padding: 12px; cursor: pointer; transition: background 0.15s;
+    }
+    .login-submit-btn:hover { background: var(--accent-2); }
+    .login-submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .login-msg { font-size: 13px; text-align: center; padding: 9px; border-radius: 8px; margin-bottom: 14px; display: none; }
+    .login-msg.error { background: #3b1010; color: #f87171; display: block; }
 
     /* ══ CHAT LAYOUT ══ */
     .chat-app { max-width: 1100px; margin: 0 auto; padding: 20px; height: calc(100vh - 95px); }
@@ -116,7 +132,12 @@
   </div>
 
   <div id="signInNeeded" class="sign-in-needed hidden">
-    <p>Please sign in via the Staff tab first, then come back to this page.</p>
+    <div class="login-field">
+      <label>Staff Code</label>
+      <input type="password" inputmode="numeric" maxlength="6" id="pinInput" placeholder="Enter your staff code" autofocus />
+    </div>
+    <div id="loginMsg" class="login-msg"></div>
+    <button type="button" class="login-submit-btn" id="loginSubmitBtn">Sign In</button>
   </div>
 
   <div id="chatApp" class="chat-app hidden">
@@ -177,6 +198,7 @@
     function loadSession() {
       try { return JSON.parse(localStorage.getItem(SESSION_KEY)) } catch (e) { return null }
     }
+    function saveSession(s) { localStorage.setItem(SESSION_KEY, JSON.stringify(s)) }
 
     /* ══ DATA ══ */
     function loadContacts() {
@@ -526,14 +548,54 @@
       if (!isStandalone()) btn.classList.remove('hidden')
     }
 
+    /* ══ LOGIN ══ */
+    function showLoginMsg(text) {
+      var el = document.getElementById('loginMsg')
+      el.textContent = text
+      el.className = 'login-msg error'
+    }
+    function hideLoginMsg() {
+      var el = document.getElementById('loginMsg')
+      el.className = 'login-msg'
+    }
+
+    function login() {
+      var pin = document.getElementById('pinInput').value.trim()
+      if (pin.length < 4) { showLoginMsg('Enter your staff code.'); return }
+      var btn = document.getElementById('loginSubmitBtn')
+      btn.disabled = true
+      btn.textContent = 'Verifying…'
+      fetch(SUPABASE_URL + '/rest/v1/staff_accounts?pin=eq.' + pin + '&select=id,name,is_master,is_active', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (!Array.isArray(rows)) { showLoginMsg('Connection error. Try again.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+          if (!rows.length) { showLoginMsg('Code not recognized. Try again.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+          if (rows[0].is_active === false) { showLoginMsg('This account is paused. Contact Matthew.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+          saveSession({ id: rows[0].id, name: rows[0].name, isMaster: rows[0].is_master, loginAt: Date.now() })
+          me = loadSession()
+          document.getElementById('signInNeeded').classList.add('hidden')
+          startChatApp()
+        })
+        .catch(function () {
+          showLoginMsg('Connection error. Try again.')
+          btn.disabled = false
+          btn.textContent = 'Sign In'
+        })
+    }
+
+    function wireLogin() {
+      var pinInput = document.getElementById('pinInput')
+      pinInput.addEventListener('input', function () {
+        pinInput.value = pinInput.value.replace(/\D/g, '').slice(0, 6)
+        hideLoginMsg()
+      })
+      pinInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') login() })
+      document.getElementById('loginSubmitBtn').addEventListener('click', login)
+      pinInput.focus()
+    }
+
     /* ══ INIT ══ */
-    document.addEventListener('DOMContentLoaded', function () {
-      wireInstallButton()
-      me = loadSession()
-      if (!me || !me.id) {
-        document.getElementById('signInNeeded').classList.remove('hidden')
-        return
-      }
+    function startChatApp() {
       document.getElementById('chatApp').classList.remove('hidden')
       document.getElementById('meLabel').textContent = me.name
       wireUI()
@@ -543,6 +605,17 @@
       setInterval(tick, POLL_MS)
       heartbeat()
       setInterval(heartbeat, HEARTBEAT_MS)
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      wireInstallButton()
+      me = loadSession()
+      if (!me || !me.id) {
+        document.getElementById('signInNeeded').classList.remove('hidden')
+        wireLogin()
+        return
+      }
+      startChatApp()
     })
   </script>
 </body>
