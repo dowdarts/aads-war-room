@@ -206,6 +206,15 @@
     .chat-msg-input:focus { border-color: #f97316; }
     .chat-send-btn { width: 36px; height: 36px; border-radius: 10px; background: #ea580c; border: none; color: #000; font-weight: 700; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
     .chat-send-btn:hover { background: #f97316; }
+
+    /* Add to Home Screen button */
+    .install-pill-btn {
+      position: fixed; bottom: 20px; left: 20px; z-index: 61;
+      background: #ea580c; border: none; color: #000; font-size: 0.8rem; font-weight: 700;
+      padding: 12px 18px; border-radius: 999px; cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.45); transition: transform 0.15s, background 0.15s;
+    }
+    .install-pill-btn:hover { background: #f97316; transform: scale(1.03); }
   </style>
 </head>
 <body>
@@ -794,7 +803,46 @@
       setInterval(pollChatMessages, CHAT_MESSAGE_POLL_MS)
     }
 
+    /* ════════ Add to Home Screen ════════ */
+    let deferredInstallPrompt = null
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault()
+      deferredInstallPrompt = e
+    })
+
+    function isIOSDevice() {
+      return /iP(hone|od|ad)/.test(navigator.platform) ||
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+    }
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    }
+
+    function installApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt()
+        deferredInstallPrompt = null
+        return
+      }
+      if (isIOSDevice()) {
+        alert('Tap the Share icon, then choose "Add to Home Screen".')
+      } else {
+        alert('Use your browser menu and choose "Add to Home Screen" or "Install app".')
+      }
+    }
+
+    function initInstallButton() {
+      if (isStandalone()) return
+      const root = document.createElement('div')
+      root.id = 'installBtnRoot'
+      root.innerHTML = `<button type="button" id="installBtn" class="install-pill-btn">📲 Add to Home Screen</button>`
+      document.body.appendChild(root)
+      document.getElementById('installBtn').addEventListener('click', installApp)
+    }
+
     initStaffChat()
+    initInstallButton()
   </script>
 </body>
 </html>

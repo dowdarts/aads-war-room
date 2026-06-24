@@ -156,6 +156,7 @@
         <button type="button" class="switch-role-link" id="doorsOpenBtn">🚪 Doors Open</button>
         <button type="button" class="switch-role-link" id="cueAlertsToggleBtn">🔔 Cue Light Alerts: ON</button>
         <button type="button" class="switch-role-link" id="portalAlertsToggleBtn">🔔 Players Portal Alerts: ON</button>
+        <button type="button" class="switch-role-link hidden install-btn" id="installBtnCtrl">📲 Add to Home Screen</button>
         <button type="button" class="switch-role-link" data-event-switch>Switch event</button>
         <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
       </div>
@@ -184,7 +185,7 @@
       <div style="display:flex; gap:14px; align-items:center;">
         <button type="button" class="switch-role-link hidden" id="floatBtn">🪟 Float</button>
         <button type="button" class="switch-role-link hidden" id="openSafariBtn">🧭 Open in Safari to Float</button>
-        <button type="button" class="switch-role-link hidden" id="installBtn">📲 Add to Home Screen</button>
+        <button type="button" class="switch-role-link hidden install-btn" id="installBtn">📲 Add to Home Screen</button>
         <button type="button" class="switch-role-link hidden" id="alertsBtn">🔔 Enable Alerts</button>
         <button type="button" class="switch-role-link" data-event-switch>Switch event</button>
         <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
@@ -809,10 +810,11 @@
     }
 
     function wireInstallAndAlerts() {
-      var installBtn = document.getElementById('installBtn')
       var alertsBtn = document.getElementById('alertsBtn')
-      installBtn.classList.remove('hidden')
-      installBtn.addEventListener('click', installApp)
+      document.querySelectorAll('.install-btn').forEach(function (btn) {
+        btn.classList.remove('hidden')
+        btn.addEventListener('click', installApp)
+      })
       alertsBtn.classList.remove('hidden')
       alertsBtn.addEventListener('click', enableAlerts)
       if (('Notification' in window) && Notification.permission === 'granted' && localStorage.getItem(ALERTS_KEY)) {
