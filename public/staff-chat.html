@@ -41,6 +41,11 @@
     .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
     .hero-title { font-size: clamp(24px, 4vw, 36px); font-weight: 900; letter-spacing: -0.03em; }
     .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-install-btn {
+      margin-top: 12px; background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+      font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: border-color 0.15s;
+    }
+    .hero-install-btn:hover { border-color: var(--accent); }
 
     /* ══ SIGN-IN NEEDED ══ */
     .sign-in-needed { max-width: 480px; margin: 60px auto; padding: 28px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
@@ -106,6 +111,8 @@
     <img class="hero-logo" src="icon-staff-chat.png" alt="AADS Staff Chat" />
     <div class="hero-eyebrow">AADS War Room</div>
     <h1 class="hero-title">Staff <em>Chat</em></h1>
+    <br />
+    <button type="button" id="installBtn" class="hero-install-btn hidden">📲 Add to Home Screen</button>
   </div>
 
   <div id="signInNeeded" class="sign-in-needed hidden">
@@ -484,8 +491,44 @@
       })
     }
 
+    /* ══ INSTALL (Add to Home Screen) ══ */
+    var deferredInstallPrompt = null
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault()
+      deferredInstallPrompt = e
+    })
+
+    function isIOSDevice() {
+      return /iP(hone|od|ad)/.test(navigator.platform) ||
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+    }
+
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    }
+
+    function installApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt()
+        deferredInstallPrompt = null
+        return
+      }
+      if (isIOSDevice()) {
+        alert('Tap the Share icon, then choose "Add to Home Screen".')
+      } else {
+        alert('Use your browser menu and choose "Add to Home Screen" or "Install app".')
+      }
+    }
+
+    function wireInstallButton() {
+      var btn = document.getElementById('installBtn')
+      btn.addEventListener('click', installApp)
+      if (!isStandalone()) btn.classList.remove('hidden')
+    }
+
     /* ══ INIT ══ */
     document.addEventListener('DOMContentLoaded', function () {
+      wireInstallButton()
       me = loadSession()
       if (!me || !me.id) {
         document.getElementById('signInNeeded').classList.remove('hidden')
