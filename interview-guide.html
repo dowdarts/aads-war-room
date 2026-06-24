@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interview Assistant — Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #e8e8e8;
+      min-height: 100dvh;
+      line-height: 1.55;
+      padding-bottom: 60px;
+    }
+    .hero {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 22px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hero-title { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .hero-sub { font-size: 0.78rem; color: #666; margin-top: 4px; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 18px; }
+
+    .toc {
+      background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px;
+    }
+    .toc-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #ea580c; margin-bottom: 10px; }
+    .toc a { display: block; color: #ccc; font-size: 0.88rem; text-decoration: none; padding: 5px 0; }
+    .toc a:hover { color: #ea580c; }
+
+    .section { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 18px; scroll-margin-top: 80px; }
+    .section h2 { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .section h2 .num { color: #ea580c; margin-right: 6px; }
+    .section .lede { font-size: 0.85rem; color: #888; margin-bottom: 14px; }
+    .section h3 { font-size: 0.9rem; font-weight: 700; color: #f97316; margin: 16px 0 6px; }
+    .section h3:first-of-type { margin-top: 6px; }
+    .section p { font-size: 0.88rem; color: #ccc; margin-bottom: 8px; }
+    .section ul, .section ol { margin: 0 0 8px 0; padding-left: 22px; }
+    .section li { font-size: 0.88rem; color: #ccc; margin-bottom: 6px; }
+    .section li strong { color: #fff; }
+
+    .tip {
+      background: #0d1410; border: 1px solid #1d3322; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #8fd9a8;
+    }
+    .tip b { color: #4ade80; }
+    .warn {
+      background: #1a1200; border: 1px solid #713f12; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #fbbf24;
+    }
+    .warn b { color: #fcd34d; }
+
+    code { background: #1a1a1a; border-radius: 5px; padding: 2px 6px; color: #f97316; font-family: inherit; font-size: 0.85em; }
+
+    .action-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .action-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .action-table td { padding: 8px 8px; border-bottom: 1px solid #161616; color: #ccc; vertical-align: top; }
+    .action-table td:first-child { font-weight: 700; color: #fff; white-space: nowrap; }
+
+    .format-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .format-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .format-table td { padding: 7px 8px; border-bottom: 1px solid #161616; color: #ccc; }
+
+    .badge { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #1a1a1a; color: #888; }
+    .footer-note { text-align: center; font-size: 0.76rem; color: #444; padding: 10px 0 30px; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-title">🎙️ Interview Assistant — Guide</div>
+    <div class="hero-sub">How to use the app, screen by screen</div>
+  </div>
+
+  <div class="container">
+
+    <div class="toc">
+      <div class="toc-title">Jump to</div>
+      <a href="#overview">Overview</a>
+      <a href="#screen1">1. Picking a Match</a>
+      <a href="#screen2">2. Logging the Match Live</a>
+      <a href="#screen3">3. Winner Screen</a>
+      <a href="#screen4">4. Interview Questions & Timer</a>
+      <a href="#standings">5. Standings</a>
+      <a href="#tips">Tips, Undo & Troubleshooting</a>
+      <a href="#cheatsheet">Action Button Cheat Sheet</a>
+    </div>
+
+    <div class="section" id="overview">
+      <h2><span class="num">●</span>Overview</h2>
+      <p>The Interview Assistant tracks each match leg-by-leg as it happens, then automatically writes up to 4 custom interview questions based on what actually happened in that specific match — a comeback, a big finish, a string of 180s, how it compares to that player's earlier result, who's coming up next, and so on.</p>
+      <p>You don't need to do anything with stats or scoring math — just tap the player who did something notable and tap the matching action button. The app builds the story for you.</p>
+      <p>The flow for every match is the same four steps:</p>
+      <ol>
+        <li>Pick the match from the list</li>
+        <li>Log events &amp; leg winners as the match is played</li>
+        <li>When the match ends, generate the interview questions</li>
+        <li>Run the interview against the 3-minute timer, then mark it done</li>
+      </ol>
+    </div>
+
+    <div class="section" id="screen1">
+      <h2><span class="num">1.</span>Picking a Match</h2>
+      <p class="lede">This is the screen you land on when you open the app.</p>
+
+      <p>The list is split into <strong>Completed</strong> (matches already finished, shown with a ✓ and the final score) and <strong>Upcoming</strong> (not yet played). Tap any upcoming match to highlight it in orange, then tap <strong>Start Selected Match</strong> at the bottom.</p>
+
+      <h3>Match formats</h3>
+      <p>Each match's format is set automatically based on its position in the schedule — you don't need to choose it:</p>
+      <table class="format-table">
+        <tr><th>Matches</th><th>Stage</th><th>Format</th></tr>
+        <tr><td>1–15</td><td>Round Robin</td><td>Best of 7 — first to 4 legs</td></tr>
+        <tr><td>16</td><td>4th Place Tiebreak</td><td>Best of 3 — first to 2 legs</td></tr>
+        <tr><td>17–18</td><td>Semifinal</td><td>Best of 11 — first to 6 legs</td></tr>
+        <tr><td>19</td><td>Championship Final</td><td>Best of 17 — first to 9 legs</td></tr>
+      </table>
+
+      <div class="warn"><b>No Event Configured?</b> That message means the player list and match schedule haven't been loaded yet — that's set up separately by the admin (Matthew), not something you need to fix. Just check back once it's ready.</div>
+
+      <h3>Resuming a match</h3>
+      <p>If the app was closed or crashed mid-match, an orange <strong>Match in progress</strong> banner appears at the top with <strong>Discard</strong> and <strong>Resume</strong> buttons — tap <strong>Resume</strong> to pick back up exactly where you left off (score, legs, and events all restored).</p>
+    </div>
+
+    <div class="section" id="screen2">
+      <h2><span class="num">2.</span>Logging the Match Live</h2>
+      <p class="lede">This is where you'll spend most of your time during a match.</p>
+
+      <p>At the top is the scoreboard: both player names, the current leg score (not points — legs won), and which leg you're on. The leader's number turns orange.</p>
+
+      <h3>Step 1 — Pick the player</h3>
+      <p>Before logging anything, tap the <strong>player name button</strong> for whoever the moment belongs to. The button highlights orange when selected. If you tap an action without picking a player first, both buttons flash orange as a reminder.</p>
+
+      <h3>Step 2 — Tap the action</h3>
+      <p>Tap whichever button matches what just happened (180, High Finish, Comeback, etc — full list in the <a href="#cheatsheet">cheat sheet</a> below). Three of the actions open a tiny prompt asking for a detail:</p>
+      <ul>
+        <li><strong>Big Finish</strong> — type the checkout number (e.g. <code>146</code>)</li>
+        <li><strong>Low Dart Leg</strong> — type how many darts the leg took (e.g. <code>15</code>)</li>
+        <li><strong>Clutch Shot</strong> — type a short description (e.g. <code>Double 16 to hold</code>)</li>
+      </ul>
+      <p>Everything you log appears in the event list right below, and can be removed individually with the ✕ if you tap the wrong thing.</p>
+
+      <h3>Step 3 — Mark the leg winner</h3>
+      <p>Once a leg finishes, tap that player's name under <strong>"Who won this leg?"</strong>. The score updates, the leg gets filed into <strong>Leg History</strong> below, and the event log clears ready for the next leg.</p>
+
+      <div class="tip"><b>That's it — repeat steps 1–3</b> for every notable moment, every leg, until the match reaches its target leg count. The app then automatically jumps you to the Winner screen — you don't tap anything to end the match.</div>
+
+      <h3>If something's wrong</h3>
+      <ul>
+        <li><strong>↩ Undo Event</strong> — removes the last thing you logged in the current leg.</li>
+        <li><strong>↩ Undo Leg</strong> — un-does the most recently completed leg (use this if you tapped the wrong winner) and restores its events so you can re-log the ending correctly.</li>
+        <li><strong>💾 Save</strong> — the app already auto-saves every time you log something, but tap this any time you want to be sure.</li>
+      </ul>
+
+      <p>Tap <strong>← List</strong> in the header at any time to back out to the match list — your progress is saved as a draft automatically, so you can come back to it later from the Resume banner.</p>
+    </div>
+
+    <div class="section" id="screen3">
+      <h2><span class="num">3.</span>Winner Screen</h2>
+      <p class="lede">Shown automatically the moment a match is decided.</p>
+      <p>Three options here:</p>
+      <ul>
+        <li><strong>Generate Interview Questions</strong> — the normal next step. Takes you to the questions + timer screen.</li>
+        <li><strong>Edit Result</strong> — jumps back into the live logger for this match if the final score or a leg winner was wrong.</li>
+        <li><strong>Back to Match List (no interview)</strong> — skips the interview for this match entirely (e.g. no time, or the player isn't available) and returns you to the match list.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="screen4">
+      <h2><span class="num">4.</span>Interview Questions &amp; Timer</h2>
+      <p class="lede">Your on-air reference for the interview itself.</p>
+
+      <h3>The questions</h3>
+      <p>Up to 4 questions appear automatically, picked based on what actually happened: how the match opened (a last-leg decider, a comeback, a dominant win, or a standard close one), plus whichever of these are relevant — a big/high finish, a clutch shot, multiple 180s, a low-dart leg, a winning streak, the opponent's missed doubles, an updated round-robin record, or a tease of who's up next. If none of those fit, two general fallback questions are always available.</p>
+      <p>Tap the <strong>↻</strong> button next to any question to cycle through 2–3 alternate phrasings of that same question — handy if the wording doesn't feel natural to say on air, or you've already half-covered it talking to the player off-camera.</p>
+
+      <h3>The timer</h3>
+      <p>A 3-minute countdown starts automatically as soon as you reach this screen. It turns red under 30 seconds, and at 0:00 the whole screen flashes red with a <strong>WRAP UP INTERVIEW</strong> banner — your cue to close it out. The timer is a guide, not a hard cutoff — it keeps running (and flashing) past zero, so there's no rush to cut someone off mid-sentence.</p>
+
+      <h3>Ending it</h3>
+      <p>Tap <strong>Done — End Interview</strong> when you're finished. This stops the timer and returns you to the match list, ready for the next match.</p>
+    </div>
+
+    <div class="section" id="standings">
+      <h2><span class="num">5.</span>Standings</h2>
+      <p>Tap <strong>Standings</strong> in the top-right of the match list screen at any time to see the current Round Robin table — position, name, province, win-loss record, and points (2 per win). Semifinal, tiebreak, and final matches don't affect this table. Tap outside the sheet (or <strong>Close</strong>) to dismiss it.</p>
+    </div>
+
+    <div class="section" id="tips">
+      <h2><span class="num">★</span>Tips &amp; Troubleshooting</h2>
+      <ul>
+        <li><strong>The save dot</strong> next to "← List" in the logger header shows save status: grey = idle, orange = saving, green = saved. You never need to manually save, but it's there to reassure you it's working.</li>
+        <li><strong>Lost connection or app closed mid-match?</strong> Nothing is lost — reopen the app, and the Resume banner on the match list will offer to pick the match back up exactly where it left off.</li>
+        <li><strong>Wrong leg winner tapped?</strong> Use <strong>↩ Undo Leg</strong> right away, before logging anything new — it un-does the leg and gives you back its events to fix.</li>
+        <li><strong>Need to redo a finished match?</strong> Go to its Winner screen result and tap <strong>Edit Result</strong> — or if questions were already generated, you can still go back via the match list and select it again once it's marked incomplete.</li>
+        <li><strong>Multiple devices?</strong> Drafts are saved to the cloud, not just your device — if you hand the tablet to someone else partway through a match, they'll see the same Resume banner.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="cheatsheet">
+      <h2><span class="num">📋</span>Action Button Cheat Sheet</h2>
+      <table class="action-table">
+        <tr><th>Button</th><th>Tap it when…</th></tr>
+        <tr><td>180</td><td>A player throws a maximum (three darts in treble 20).</td></tr>
+        <tr><td>High Finish</td><td>A strong checkout that doesn't need a number typed in.</td></tr>
+        <tr><td>Big Finish</td><td>A high checkout where the exact number matters — you'll be asked to type it (e.g. 146).</td></tr>
+        <tr><td>Bullseye Out</td><td>The leg is finished on the bull.</td></tr>
+        <tr><td>Low Dart Leg</td><td>An especially fast/clean leg — you'll be asked how many darts it took (e.g. 15).</td></tr>
+        <tr><td>Missed Doubles</td><td>A player has trouble closing out a leg on the doubles — useful context for the other player's question later.</td></tr>
+        <tr><td>Max Response</td><td>A player answers their opponent's big score with one of their own right back.</td></tr>
+        <tr><td>Comeback</td><td>A player claws back after falling behind.</td></tr>
+        <tr><td>Clutch Shot</td><td>One specific big dart under pressure — you'll be asked for a short description (e.g. "Double 16 to hold").</td></tr>
+        <tr><td>Bad Visit</td><td>A rough/low-scoring visit worth remembering for context.</td></tr>
+      </table>
+      <p style="font-size:0.78rem;color:#555;margin-top:4px;">Remember: pick the player first, then the action — the order matters, the action always applies to whichever player is currently selected.</p>
+    </div>
+
+    <div class="footer-note">AADS War Room — Interview Assistant Guide</div>
+  </div>
+
+</body>
+</html>
