@@ -6,6 +6,6 @@
   "background_color": "#050505",
   "theme_color": "#050505",
   "icons": [
-    { "src": "https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/branding/icon-ticket-pass.png", "sizes": "any", "type": "image/png" }
+    { "src": "icon-ticket-scanner.png", "sizes": "any", "type": "image/png" }
   ]
 }

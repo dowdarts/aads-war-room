@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="theme-color" content="#050505" />
   <link rel="manifest" href="aads-tickets-scanner.webmanifest" />
-  <link rel="icon" href="https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/branding/icon-ticket-pass.png" />
-  <link rel="apple-touch-icon" href="https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/branding/icon-ticket-pass.png" />
+  <link rel="icon" href="icon-ticket-scanner.png" />
+  <link rel="apple-touch-icon" href="icon-ticket-scanner.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>AADS TOC 2026 — QR Scanner</title>
@@ -28,6 +28,7 @@
     /* ── PIN ── */
     .pin-wrap { display: flex; align-items: center; justify-content: center; height: 100vh; padding: 24px; }
     .pin-card { padding: 36px 32px; border: 1px solid #2a2a2a; border-radius: 22px; background: var(--panel); max-width: 380px; width: 100%; }
+    .pin-logo { width: 140px; max-width: 100%; height: auto; display: block; margin: 0 auto 14px; }
     .pin-eye { color: var(--gold); font-size: 11px; font-weight: 900; letter-spacing: 0.32em; text-transform: uppercase; margin-bottom: 10px; }
     .pin-title { font-size: 24px; font-weight: 900; margin-bottom: 20px; }
     .pin-input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #2a2a2a; background: #0a0a0a; color: var(--text); font-size: 24px; font-weight: 900; letter-spacing: 0.3em; text-align: center; font-family: inherit; outline: none; transition: border-color 120ms; }
@@ -139,6 +140,7 @@
   <!-- Staff name gate -->
   <div id="pinWrap" class="pin-wrap">
     <div class="pin-card">
+      <img class="pin-logo" src="icon-ticket-scanner.png" alt="AADS Ticket Scanner" />
       <div class="pin-eye">AADS Door Scanner</div>
       <h1 class="pin-title">TOC 2026 · QR Scanner</h1>
       <input class="pin-input" type="password" inputmode="numeric" maxlength="4"
