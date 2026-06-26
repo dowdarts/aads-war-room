@@ -178,7 +178,7 @@
       <div class="upload-row">
         <label class="file-label" for="scorekeeperCsvInput">Upload Score Keeper Schedule (CSV)</label>
         <input type="file" id="scorekeeperCsvInput" accept=".csv" />
-        <span class="upload-hint">Columns: Time, Match, Role, Name, Notes &mdash; Match should match the player schedule's Match column for shifts tied to a specific match; leave blank for general standby/backup rows.</span>
+        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Section, MatchNo, StartTime, Match, PlayerA, PlayerB, MatchFormat, Caller, MainScorekeeper, TabletBackupScorekeeper, SecondBackupScorekeeper, BackupCaller, FloorPlayerControl, ReliefEquipmentSupport, OnBreak, Notes.</span>
       </div>
 
       <div class="schedule-heading">Event Schedule</div>
@@ -327,25 +327,72 @@
       return out
     }
 
+    // Matches the AADS TOC officials schedule export: one row per
+    // schedule block (a match, a setup check, a break, etc.) with a
+    // separate column per role rather than one row per person. Each
+    // non-empty role column on a row becomes its own shift entry, all
+    // sharing that row's time/match/players/notes. PlayerA/PlayerB are
+    // what later let notifyScorekeepersLive() in cue-light.html (and the
+    // portal's own status badges) match a shift to "the match currently
+    // live" — far more reliable than string-matching a free-text label,
+    // since both this file and the player schedule CSV name the same
+    // people. Rows with no PlayerA/PlayerB (setup/reset/standings/etc.)
+    // just never match a live match — they still show up in the
+    // portal's personal schedule by time, just without a live/next push.
+    var SHIFT_ROLE_COLUMNS = [
+      { key: 'caller', label: 'Caller' },
+      { key: 'mainscorekeeper', label: 'Main Scorekeeper' },
+      { key: 'tabletbackupscorekeeper', label: 'Tablet Backup Scorekeeper' },
+      { key: 'secondbackupscorekeeper', label: 'Second Backup Scorekeeper' },
+      { key: 'backupcaller', label: 'Backup Caller' },
+      { key: 'floorplayercontrol', label: 'Floor/Player Control' },
+      { key: 'reliefequipmentsupport', label: 'Relief/Equipment Support' }
+    ]
+
     function shiftsFromCSV(text) {
       var rows = parseCSV(text.replace(/^﻿/, ''))
       if (!rows.length) return []
       var header = rows[0].map(function (h) { return h.trim().toLowerCase() })
       function idx(name) { return header.indexOf(name) }
-      var iTime = idx('time'), iMatch = idx('match'), iRole = idx('role')
-      var iName = idx('name'), iNotes = idx('notes')
+      var iTime = idx('starttime'), iSection = idx('section'), iMatchNo = idx('matchno')
+      var iMatch = idx('match'), iPA = idx('playera'), iPB = idx('playerb')
+      var iNotes = idx('notes'), iOnBreak = idx('onbreak')
+      var roleCols = SHIFT_ROLE_COLUMNS.map(function (rc) {
+        return { idx: idx(rc.key), label: rc.label }
+      }).filter(function (rc) { return rc.idx !== -1 })
+
       var out = []
+      var n = 0
       for (var r = 1; r < rows.length; r++) {
         var row = rows[r]
         if (!row || row.every(function (c) { return c.trim() === '' })) continue
-        out.push({
-          id: 's_' + r + '_' + Date.now().toString(36),
-          time: (row[iTime] || '').trim(),
-          match: (row[iMatch] || '').trim(),
-          role: (row[iRole] || '').trim(),
-          name: (row[iName] || '').trim(),
-          notes: (row[iNotes] || '').trim()
+        var time = (row[iTime] || '').trim()
+        var section = iSection !== -1 ? (row[iSection] || '').trim() : ''
+        var matchNo = iMatchNo !== -1 ? (row[iMatchNo] || '').trim() : ''
+        var matchLabel = (row[iMatch] || '').trim()
+        var playerA = (row[iPA] || '').trim()
+        var playerB = (row[iPB] || '').trim()
+        var notes = (row[iNotes] || '').trim()
+
+        roleCols.forEach(function (rc) {
+          var name = (row[rc.idx] || '').trim()
+          if (!name) return
+          out.push({
+            id: 's_' + (n++) + '_' + Date.now().toString(36),
+            time: time, section: section, matchNo: matchNo, match: matchLabel,
+            playerA: playerA, playerB: playerB, role: rc.label, name: name, notes: notes
+          })
         })
+
+        if (iOnBreak !== -1) {
+          (row[iOnBreak] || '').split(',').map(function (s) { return s.trim() }).filter(Boolean).forEach(function (name) {
+            out.push({
+              id: 's_' + (n++) + '_' + Date.now().toString(36),
+              time: time, section: section, matchNo: matchNo, match: matchLabel,
+              playerA: '', playerB: '', role: 'On Break', name: name, notes: notes
+            })
+          })
+        }
       }
       return out
     }
@@ -566,7 +613,17 @@
     }
 
     // Mirrors notifyLive() above, but resolves against scorekeeperShifts
-    // (matched by the shift's `match` field) instead of playerA/playerB.
+    // by matching playerA/playerB (order-independent) instead of by
+    // playerA/playerB belonging to the players portal's own accounts —
+    // see the shiftsFromCSV() comment for why player names, not a
+    // free-text match label, are the join key.
+    function shiftHasSamePlayers(match, shift) {
+      if (!match || !shift.playerA || !shift.playerB) return false
+      var mA = (match.playerA || '').trim().toLowerCase(), mB = (match.playerB || '').trim().toLowerCase()
+      var sA = shift.playerA.trim().toLowerCase(), sB = shift.playerB.trim().toLowerCase()
+      return (mA === sA && mB === sB) || (mA === sB && mB === sA)
+    }
+
     function notifyScorekeepersLive() {
       if (state.scorekeeperAlertsEnabled === false) return
       if (!state.currentMatchId) return
@@ -576,11 +633,7 @@
       var next = state.matches[idx + 1]
       var shifts = state.scorekeeperShifts || []
       function namesForMatch(m) {
-        if (!m || !m.match) return []
-        var label = m.match.trim().toLowerCase()
-        return shifts.filter(function (s) {
-          return s.match && s.match.trim().toLowerCase() === label
-        }).map(function (s) { return s.name }).filter(Boolean)
+        return shifts.filter(function (s) { return shiftHasSamePlayers(m, s) }).map(function (s) { return s.name }).filter(Boolean)
       }
       var liveNames = namesForMatch(live)
       var nextNames = namesForMatch(next)
