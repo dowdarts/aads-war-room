@@ -170,15 +170,9 @@
       </div>
 
       <div class="upload-row">
-        <label class="file-label" for="csvInput">Upload Schedule (CSV)</label>
-        <input type="file" id="csvInput" accept=".csv" />
-        <span class="upload-hint">Columns: Time, Round, Match, Player A, Province A, Player B, Province B, Format, Notes</span>
-      </div>
-
-      <div class="upload-row">
-        <label class="file-label" for="scorekeeperCsvInput">Upload Score Keeper Schedule (CSV)</label>
-        <input type="file" id="scorekeeperCsvInput" accept=".csv" />
-        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Section, MatchNo, StartTime, Match, PlayerA, PlayerB, MatchFormat, Caller, MainScorekeeper, TabletBackupScorekeeper, SecondBackupScorekeeper, BackupCaller, FloorPlayerControl, ReliefEquipmentSupport, OnBreak, Notes.</span>
+        <label class="file-label" for="scheduleCsvInput">Upload Event Schedule (CSV)</label>
+        <input type="file" id="scheduleCsvInput" accept=".csv" />
+        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Section, MatchNo, StartTime, Match, PlayerA, PlayerB, MatchFormat, Caller, MainScorekeeper, TabletBackupScorekeeper, SecondBackupScorekeeper, BackupCaller, FloorPlayerControl, ReliefEquipmentSupport, OnBreak, Notes. Rows with both PlayerA and PlayerB become matches; every named official becomes a score keeper shift &mdash; one file drives both schedules, so they can never drift out of sync.</span>
       </div>
 
       <div class="schedule-heading">Event Schedule</div>
@@ -297,48 +291,21 @@
       return rows.filter(function (r) { return r.length > 1 || (r.length === 1 && r[0] !== '') })
     }
 
-    function matchesFromCSV(text) {
-      var rows = parseCSV(text.replace(/^﻿/, ''))
-      if (!rows.length) return []
-      var header = rows[0].map(function (h) { return h.trim().toLowerCase() })
-      function idx(name) { return header.indexOf(name) }
-      var iTime = idx('time'), iRound = idx('round'), iMatch = idx('match')
-      var iPA = idx('player a'), iProvA = idx('province a')
-      var iPB = idx('player b'), iProvB = idx('province b')
-      var iFormat = idx('format'), iNotes = idx('notes')
-      var out = []
-      for (var r = 1; r < rows.length; r++) {
-        var row = rows[r]
-        if (!row || row.every(function (c) { return c.trim() === '' })) continue
-        out.push({
-          id: 'm_' + r + '_' + Date.now().toString(36),
-          time: (row[iTime] || '').trim(),
-          round: (row[iRound] || '').trim(),
-          match: (row[iMatch] || '').trim(),
-          playerA: (row[iPA] || '').trim(),
-          provinceA: (row[iProvA] || '').trim(),
-          playerB: (row[iPB] || '').trim(),
-          provinceB: (row[iProvB] || '').trim(),
-          format: (row[iFormat] || '').trim(),
-          notes: (row[iNotes] || '').trim(),
-          complete: false
-        })
-      }
-      return out
-    }
-
-    // Matches the AADS TOC officials schedule export: one row per
-    // schedule block (a match, a setup check, a break, etc.) with a
-    // separate column per role rather than one row per person. Each
-    // non-empty role column on a row becomes its own shift entry, all
-    // sharing that row's time/match/players/notes. PlayerA/PlayerB are
-    // what later let notifyScorekeepersLive() in cue-light.html (and the
+    // One CSV — the AADS TOC officials schedule export — now drives both
+    // the player match schedule and the score keeper shifts, parsed in a
+    // single pass. Previously these were two separately-uploaded files
+    // (a player CSV and an officials CSV) that had no shared match
+    // identifier and could silently drift out of sync; a row with both
+    // PlayerA and PlayerB filled in is unambiguously a match, so there's
+    // nothing left to keep in sync by hand.
+    //
+    // PlayerA/PlayerB are also what let notifyScorekeepersLive() (and the
     // portal's own status badges) match a shift to "the match currently
     // live" — far more reliable than string-matching a free-text label,
-    // since both this file and the player schedule CSV name the same
-    // people. Rows with no PlayerA/PlayerB (setup/reset/standings/etc.)
-    // just never match a live match — they still show up in the
-    // portal's personal schedule by time, just without a live/next push.
+    // since matches[] and scorekeeperShifts[] are now built from the very
+    // same row. Rows with no PlayerA/PlayerB (setup/reset/standings/etc.)
+    // never match a live match — they still show up in the portal's
+    // personal schedule by time, just without a live/next push.
     var SHIFT_ROLE_COLUMNS = [
       { key: 'caller', label: 'Caller' },
       { key: 'mainscorekeeper', label: 'Main Scorekeeper' },
@@ -349,19 +316,20 @@
       { key: 'reliefequipmentsupport', label: 'Relief/Equipment Support' }
     ]
 
-    function shiftsFromCSV(text) {
+    function scheduleFromCSV(text) {
       var rows = parseCSV(text.replace(/^﻿/, ''))
-      if (!rows.length) return []
+      if (!rows.length) return { matches: [], shifts: [] }
       var header = rows[0].map(function (h) { return h.trim().toLowerCase() })
       function idx(name) { return header.indexOf(name) }
       var iTime = idx('starttime'), iSection = idx('section'), iMatchNo = idx('matchno')
       var iMatch = idx('match'), iPA = idx('playera'), iPB = idx('playerb')
-      var iNotes = idx('notes'), iOnBreak = idx('onbreak')
+      var iFormat = idx('matchformat'), iNotes = idx('notes'), iOnBreak = idx('onbreak')
       var roleCols = SHIFT_ROLE_COLUMNS.map(function (rc) {
         return { idx: idx(rc.key), label: rc.label }
       }).filter(function (rc) { return rc.idx !== -1 })
 
-      var out = []
+      var matches = []
+      var shifts = []
       var n = 0
       for (var r = 1; r < rows.length; r++) {
         var row = rows[r]
@@ -372,12 +340,22 @@
         var matchLabel = (row[iMatch] || '').trim()
         var playerA = (row[iPA] || '').trim()
         var playerB = (row[iPB] || '').trim()
+        var format = iFormat !== -1 ? (row[iFormat] || '').trim() : ''
         var notes = (row[iNotes] || '').trim()
+
+        if (playerA && playerB) {
+          matches.push({
+            id: 'm_' + r + '_' + Date.now().toString(36),
+            time: time, round: section, matchNo: matchNo, match: matchLabel,
+            playerA: playerA, provinceA: '', playerB: playerB, provinceB: '',
+            format: format, notes: notes, complete: false
+          })
+        }
 
         roleCols.forEach(function (rc) {
           var name = (row[rc.idx] || '').trim()
           if (!name) return
-          out.push({
+          shifts.push({
             id: 's_' + (n++) + '_' + Date.now().toString(36),
             time: time, section: section, matchNo: matchNo, match: matchLabel,
             playerA: playerA, playerB: playerB, role: rc.label, name: name, notes: notes
@@ -386,7 +364,7 @@
 
         if (iOnBreak !== -1) {
           (row[iOnBreak] || '').split(',').map(function (s) { return s.trim() }).filter(Boolean).forEach(function (name) {
-            out.push({
+            shifts.push({
               id: 's_' + (n++) + '_' + Date.now().toString(36),
               time: time, section: section, matchNo: matchNo, match: matchLabel,
               playerA: '', playerB: '', role: 'On Break', name: name, notes: notes
@@ -394,7 +372,7 @@
           })
         }
       }
-      return out
+      return { matches: matches, shifts: shifts }
     }
 
     /* ══ RENDERING ══ */
@@ -613,10 +591,9 @@
     }
 
     // Mirrors notifyLive() above, but resolves against scorekeeperShifts
-    // by matching playerA/playerB (order-independent) instead of by
-    // playerA/playerB belonging to the players portal's own accounts —
-    // see the shiftsFromCSV() comment for why player names, not a
-    // free-text match label, are the join key.
+    // by matching playerA/playerB (order-independent) — see the
+    // scheduleFromCSV() comment for why player names, not a free-text
+    // match label, are the join key.
     function shiftHasSamePlayers(match, shift) {
       if (!match || !shift.playerA || !shift.playerB) return false
       var mA = (match.playerA || '').trim().toLowerCase(), mB = (match.playerB || '').trim().toLowerCase()
@@ -641,27 +618,18 @@
       scorekeeperPortalPush({ action: 'live', liveNames: liveNames, nextNames: nextNames })
     }
 
-    function uploadCSV(file) {
+    function uploadSchedule(file) {
       var reader = new FileReader()
       reader.onload = function () {
-        var matches = matchesFromCSV(String(reader.result))
-        if (!matches.length) { alert('No rows found in that CSV.'); return }
-        if (state.matches.length && !window.confirm('Replace the existing ' + state.matches.length + '-match schedule with ' + matches.length + ' matches from this file?')) return
-        state.matches = matches
-        lastServerJSON = JSON.stringify(state)
-        renderAll()
-        saveState(state)
-      }
-      reader.readAsText(file)
-    }
-
-    function uploadScorekeeperCSV(file) {
-      var reader = new FileReader()
-      reader.onload = function () {
-        var shifts = shiftsFromCSV(String(reader.result))
-        if (!shifts.length) { alert('No rows found in that CSV.'); return }
-        if (state.scorekeeperShifts.length && !window.confirm('Replace the existing ' + state.scorekeeperShifts.length + '-shift schedule with ' + shifts.length + ' shifts from this file?')) return
-        state.scorekeeperShifts = shifts
+        var parsed = scheduleFromCSV(String(reader.result))
+        if (!parsed.matches.length && !parsed.shifts.length) { alert('No rows found in that CSV.'); return }
+        var hadExisting = state.matches.length || state.scorekeeperShifts.length
+        if (hadExisting && !window.confirm(
+          'Replace the existing schedule (' + state.matches.length + ' matches, ' + state.scorekeeperShifts.length + ' shifts) ' +
+          'with ' + parsed.matches.length + ' matches and ' + parsed.shifts.length + ' shifts from this file?'
+        )) return
+        state.matches = parsed.matches
+        state.scorekeeperShifts = parsed.shifts
         lastServerJSON = JSON.stringify(state)
         renderAll()
         saveState(state)
@@ -1062,12 +1030,8 @@
       document.querySelectorAll('.ctrl-btn').forEach(function (btn) {
         btn.addEventListener('click', function () { setLight(btn.getAttribute('data-light')) })
       })
-      document.getElementById('csvInput').addEventListener('change', function (e) {
-        if (e.target.files && e.target.files[0]) uploadCSV(e.target.files[0])
-        e.target.value = ''
-      })
-      document.getElementById('scorekeeperCsvInput').addEventListener('change', function (e) {
-        if (e.target.files && e.target.files[0]) uploadScorekeeperCSV(e.target.files[0])
+      document.getElementById('scheduleCsvInput').addEventListener('change', function (e) {
+        if (e.target.files && e.target.files[0]) uploadSchedule(e.target.files[0])
         e.target.value = ''
       })
     }
