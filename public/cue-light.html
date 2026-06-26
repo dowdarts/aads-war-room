@@ -156,6 +156,7 @@
         <button type="button" class="switch-role-link" id="doorsOpenBtn">🚪 Doors Open</button>
         <button type="button" class="switch-role-link" id="cueAlertsToggleBtn">🔔 Cue Light Alerts: ON</button>
         <button type="button" class="switch-role-link" id="portalAlertsToggleBtn">🔔 Players Portal Alerts: ON</button>
+        <button type="button" class="switch-role-link" id="scorekeeperAlertsToggleBtn">🔔 Score Keepers Alerts: ON</button>
         <button type="button" class="switch-role-link hidden install-btn" id="installBtnCtrl">📲 Add to Home Screen</button>
         <button type="button" class="switch-role-link" data-event-switch>Switch event</button>
         <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
@@ -234,7 +235,7 @@
        One row per event in the `events` table (id, name, state) — replaces
        the old single app_settings row keyed 'cue_light_event'. Lets the
        Controller/Display pick which event's schedule they're working on. */
-    function defaultState() { return { light: 'off', matches: [], scorekeeperShifts: [], updatedAt: null, alertsEnabled: true, portalAlertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
+    function defaultState() { return { light: 'off', matches: [], scorekeeperShifts: [], updatedAt: null, alertsEnabled: true, portalAlertsEnabled: true, scorekeeperAlertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
 
     function parseEventStateRows(rows) {
       if (!Array.isArray(rows) || !rows.length) return null
@@ -431,6 +432,10 @@
         var portalAlertsOn = state.portalAlertsEnabled !== false
         portalAlertsBtn.textContent = portalAlertsOn ? '🔔 Players Portal Alerts: ON' : '🔕 Players Portal Alerts: OFF'
         portalAlertsBtn.style.color = portalAlertsOn ? '' : 'var(--danger-text)'
+        var scorekeeperAlertsBtn = document.getElementById('scorekeeperAlertsToggleBtn')
+        var scorekeeperAlertsOn = state.scorekeeperAlertsEnabled !== false
+        scorekeeperAlertsBtn.textContent = scorekeeperAlertsOn ? '🔔 Score Keepers Alerts: ON' : '🔕 Score Keepers Alerts: OFF'
+        scorekeeperAlertsBtn.style.color = scorekeeperAlertsOn ? '' : 'var(--danger-text)'
         renderSchedule(document.getElementById('ctrlSchedule'), state.matches)
       } else if (role === 'display') {
         renderLight(document.getElementById('displayLight'), state.light)
@@ -452,12 +457,14 @@
 
     // Master kill switches, controlled from the Controller view: when off,
     // no device gets a push no matter who has alerts enabled on their
-    // phone. Both Edge Functions re-check their own flag too (see
-    // send-cue-light-push and send-players-portal-push), so neither is
-    // just a client-side skip — both are enforced server-side. Kept as two
-    // independent flags since the cue light's own GO/WAIT broadcast and
-    // the players portal's called/live/doors-open pushes are different
-    // audiences and Matthew may want to silence one without the other.
+    // phone. All three Edge Functions re-check their own flag too (see
+    // send-cue-light-push, send-players-portal-push, and
+    // send-scorekeeper-portal-push), so none of these are just a
+    // client-side skip — all are enforced server-side. Kept as
+    // independent flags since the cue light's own GO/WAIT broadcast, the
+    // players portal's called/live/doors-open pushes, and the score
+    // keepers' schedule-updated/live pushes are different audiences and
+    // Matthew may want to silence one without the others.
     function toggleAlertsEnabled() {
       state.alertsEnabled = !(state.alertsEnabled !== false)
       lastServerJSON = JSON.stringify(state)
@@ -467,6 +474,13 @@
 
     function togglePortalAlertsEnabled() {
       state.portalAlertsEnabled = !(state.portalAlertsEnabled !== false)
+      lastServerJSON = JSON.stringify(state)
+      renderAll()
+      saveState(state)
+    }
+
+    function toggleScorekeeperAlertsEnabled() {
+      state.scorekeeperAlertsEnabled = !(state.scorekeeperAlertsEnabled !== false)
       lastServerJSON = JSON.stringify(state)
       renderAll()
       saveState(state)
@@ -518,7 +532,7 @@
       fetch(SUPABASE_URL + '/functions/v1/send-scorekeeper-portal-push', {
         method: 'POST',
         headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
-        body: JSON.stringify(payload)
+        body: JSON.stringify(Object.assign({ eventId: eventId }, payload))
       }).catch(function () {})
     }
 
@@ -554,6 +568,7 @@
     // Mirrors notifyLive() above, but resolves against scorekeeperShifts
     // (matched by the shift's `match` field) instead of playerA/playerB.
     function notifyScorekeepersLive() {
+      if (state.scorekeeperAlertsEnabled === false) return
       if (!state.currentMatchId) return
       var idx = state.matches.findIndex(function (x) { return x.id === state.currentMatchId })
       if (idx === -1) return
@@ -597,7 +612,7 @@
         lastServerJSON = JSON.stringify(state)
         renderAll()
         saveState(state)
-        scorekeeperPortalPush({ action: 'schedule_updated' })
+        if (state.scorekeeperAlertsEnabled !== false) scorekeeperPortalPush({ action: 'schedule_updated' })
       }
       reader.readAsText(file)
     }
@@ -989,6 +1004,7 @@
       })
       document.getElementById('cueAlertsToggleBtn').addEventListener('click', toggleAlertsEnabled)
       document.getElementById('portalAlertsToggleBtn').addEventListener('click', togglePortalAlertsEnabled)
+      document.getElementById('scorekeeperAlertsToggleBtn').addEventListener('click', toggleScorekeeperAlertsEnabled)
       document.getElementById('doorsOpenBtn').addEventListener('click', doorsOpen)
       document.querySelectorAll('.ctrl-btn').forEach(function (btn) {
         btn.addEventListener('click', function () { setLight(btn.getAttribute('data-light')) })
