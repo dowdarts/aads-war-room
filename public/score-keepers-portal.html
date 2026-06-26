@@ -251,17 +251,25 @@
 
     /* ══ SHIFT STATUS ══
        Mirrors players-portal.html's statusForMatch — a shift tied to a
-       specific match (shift.match non-blank) inherits that match's
-       live/next/done state from cue-light's own matches[]/currentMatchId.
-       Shifts with no match (general standby/backup rows) just show as
-       Standby; there's nothing in the live match progression to compare
-       them against. */
+       specific match (identified by playerA/playerB, same join key
+       cue-light.html's notifyScorekeepersLive() uses) inherits that
+       match's live/next/done state from cue-light's own
+       matches[]/currentMatchId. Shifts with no players (setup/reset/
+       standings rows, or "On Break" rows) aren't tied to a tracked
+       match, so they just show their role as-is. */
+    function shiftHasSamePlayers(match, shift) {
+      if (!match || !shift.playerA || !shift.playerB) return false
+      var mA = (match.playerA || '').trim().toLowerCase(), mB = (match.playerB || '').trim().toLowerCase()
+      var sA = shift.playerA.trim().toLowerCase(), sB = shift.playerB.trim().toLowerCase()
+      return (mA === sA && mB === sB) || (mA === sB && mB === sA)
+    }
+
     function statusForShift(shift) {
-      if (!shift.match) return { label: 'Standby', cls: 'status-standby' }
+      if (!shift.playerA || !shift.playerB) {
+        return shift.role === 'On Break' ? { label: 'On Break', cls: 'status-standby' } : { label: 'Scheduled', cls: 'status-scheduled' }
+      }
       var matches = eventState.matches || []
-      var m = matches.find(function (x) {
-        return (x.match || '').trim().toLowerCase() === shift.match.trim().toLowerCase()
-      })
+      var m = matches.find(function (x) { return shiftHasSamePlayers(x, shift) })
       if (!m) return { label: 'Scheduled', cls: 'status-scheduled' }
       var nextIdx = matches.findIndex(function (x) { return !x.complete })
       var idx = matches.indexOf(m)
@@ -293,12 +301,6 @@
       return row
     }
 
-    function sortedShifts(shifts) {
-      return shifts.slice().sort(function (a, b) {
-        return (a.time || '').localeCompare(b.time || '')
-      })
-    }
-
     /* ══ TABS ══ */
     function setActiveTab(tab) {
       activeTab = tab
@@ -324,7 +326,11 @@
       })
       el.innerHTML = ''
       if (!shifts.length) { el.innerHTML = '<p class="empty-note">No shifts found for you on the schedule yet.</p>'; return }
-      sortedShifts(shifts).forEach(function (s) { el.appendChild(renderShiftRow(s)) })
+      // No re-sort by time string — trust the CSV's row order, same as
+      // cue-light.html/players-portal.html do for matches (a naive string
+      // sort mis-orders "9:00 AM" after "10:00 AM"; the export is already
+      // chronological).
+      shifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
     }
 
     function renderFullSchedule() {
@@ -332,7 +338,7 @@
       var shifts = eventState.scorekeeperShifts || []
       el.innerHTML = ''
       if (!shifts.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
-      sortedShifts(shifts).forEach(function (s) { el.appendChild(renderShiftRow(s)) })
+      shifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
     }
 
     /* ══ VIEW SWITCHING ══ */
