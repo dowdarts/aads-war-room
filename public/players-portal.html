@@ -331,7 +331,7 @@
     function renderEventsTab() {
       var el = document.getElementById('eventsTab')
       var session = getSession()
-      var mine = allEvents.filter(function (ev) {
+      var mine = (session && session.notifyAll) ? allEvents : allEvents.filter(function (ev) {
         return ev.state.matches.some(function (m) {
           return session && (namesMatch(m.playerA, session.displayName) || namesMatch(m.playerB, session.displayName))
         })
