@@ -12,22 +12,15 @@ function saveLocalSession(key, session) {
   localStorage.setItem(key, JSON.stringify(session))
 }
 
-const ROLES = [
-  { id: 'staff', icon: '🛠️', label: 'Staff' },
-  { id: 'player', icon: '🎯', label: 'Player' },
-  { id: 'scorekeeper', icon: '🗒️', label: 'Score Keeper' },
-]
-
 export default function AccountGate({ onStaffSession }) {
   const [mode, setMode] = useState('choice')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [pin, setPin] = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
-  const [roles, setRoles] = useState([])
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState('')
-  const [results, setResults] = useState(null) // { staff: {...}|null, player: bool, scorekeeper: bool, notes: {role: msg} }
+  const [results, setResults] = useState(null) // { staffSession: {...}|null, player: bool, scorekeeper: bool, notes: {role: msg} }
   const base = getBaseUrl()
 
   function resetForm() {
@@ -35,16 +28,50 @@ export default function AccountGate({ onStaffSession }) {
     setLastName('')
     setPin('')
     setPinConfirm('')
-    setRoles([])
     setFormError('')
-  }
-
-  function toggleRole(id) {
-    setRoles(prev => (prev.includes(id) ? prev.filter(r => r !== id) : [...prev, id]))
   }
 
   function fullName() {
     return `${firstName.trim()} ${lastName.trim()}`.trim()
+  }
+
+  // One account now works everywhere — a row in any one of the three
+  // tables (staff_accounts / player_portal_accounts /
+  // scorekeeper_portal_accounts) gets a matching row auto-created in the
+  // other two by a DB trigger (same name+pin), so this just needs to look
+  // up whichever of the three exist and build a session for each.
+  async function resolveSessions(name, pinValue) {
+    const [staffRows, playerRows, scorekeeperRows] = await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=ilike.${encodeURIComponent(name)}&pin=eq.${pinValue}&select=id,name,is_master,is_active`, { headers: hdrs }).then(r => r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?display_name=ilike.${encodeURIComponent(name)}&pin=eq.${pinValue}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/scorekeeper_portal_accounts?display_name=ilike.${encodeURIComponent(name)}&pin=eq.${pinValue}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
+    ])
+
+    const notes = {}
+    let staffSession = null
+    let playerOk = false
+    let scorekeeperOk = false
+
+    if (Array.isArray(staffRows) && staffRows.length) {
+      const row = staffRows[0]
+      if (row.is_active === false) {
+        notes.staff = 'This staff account is paused. Contact Matthew.'
+      } else {
+        staffSession = { id: row.id, name: row.name, isMaster: row.is_master, loginAt: Date.now() }
+      }
+    }
+    if (Array.isArray(playerRows) && playerRows.length) {
+      const row = playerRows[0]
+      saveLocalSession(PLAYER_SESSION_KEY, { id: row.id, displayName: name, notifyAll: !!row.notify_all, loginAt: Date.now() })
+      playerOk = true
+    }
+    if (Array.isArray(scorekeeperRows) && scorekeeperRows.length) {
+      const row = scorekeeperRows[0]
+      saveLocalSession(SCOREKEEPER_SESSION_KEY, { id: row.id, displayName: name, notifyAll: !!row.notify_all, loginAt: Date.now() })
+      scorekeeperOk = true
+    }
+
+    return { staffSession, player: playerOk, scorekeeper: scorekeeperOk, notes }
   }
 
   async function handleSignIn() {
@@ -54,43 +81,13 @@ export default function AccountGate({ onStaffSession }) {
     setBusy(true)
     setFormError('')
     try {
-      const [staffRows, playerRows, scorekeeperRows] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=ilike.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,name,is_master,is_active`, { headers: hdrs }).then(r => r.json()),
-        fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?display_name=ilike.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
-        fetch(`${SUPABASE_URL}/rest/v1/scorekeeper_portal_accounts?display_name=ilike.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
-      ])
-
-      const notes = {}
-      let staffSession = null
-      let playerOk = false
-      let scorekeeperOk = false
-
-      if (Array.isArray(staffRows) && staffRows.length) {
-        const row = staffRows[0]
-        if (row.is_active === false) {
-          notes.staff = 'This staff account is paused. Contact Matthew.'
-        } else {
-          staffSession = { id: row.id, name: row.name, isMaster: row.is_master, loginAt: Date.now() }
-        }
-      }
-      if (Array.isArray(playerRows) && playerRows.length) {
-        const row = playerRows[0]
-        saveLocalSession(PLAYER_SESSION_KEY, { id: row.id, displayName: name, notifyAll: !!row.notify_all, loginAt: Date.now() })
-        playerOk = true
-      }
-      if (Array.isArray(scorekeeperRows) && scorekeeperRows.length) {
-        const row = scorekeeperRows[0]
-        saveLocalSession(SCOREKEEPER_SESSION_KEY, { id: row.id, displayName: name, notifyAll: !!row.notify_all, loginAt: Date.now() })
-        scorekeeperOk = true
-      }
-
-      if (!staffSession && !playerOk && !scorekeeperOk && !notes.staff) {
+      const resolved = await resolveSessions(name, pin)
+      if (!resolved.staffSession && !resolved.player && !resolved.scorekeeper && !resolved.notes.staff) {
         setFormError('No account found with that name and code.')
         setBusy(false)
         return
       }
-
-      setResults({ staffSession, player: playerOk, scorekeeper: scorekeeperOk, notes })
+      setResults(resolved)
       setMode('result')
     } catch {
       setFormError('Connection error. Try again.')
@@ -98,68 +95,35 @@ export default function AccountGate({ onStaffSession }) {
     setBusy(false)
   }
 
-  async function createRole(table, nameField, name, extra) {
-    const dupRes = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${nameField}=ilike.${encodeURIComponent(name)}&select=id`, { headers: hdrs })
-    const dupRows = await dupRes.json()
-    if (Array.isArray(dupRows) && dupRows.length) {
-      return { ok: false, message: 'An account with that name already exists for this role.' }
-    }
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: 'POST',
-      headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-      body: JSON.stringify({ [nameField]: name, pin, ...extra }),
-    })
-    if (!res.ok) {
-      const body = await res.text()
-      return { ok: false, message: body || 'Could not create account.' }
-    }
-    const rows = await res.json()
-    return { ok: true, row: rows[0] }
-  }
-
   async function handleCreate() {
     const name = fullName()
     if (!firstName.trim() || !lastName.trim()) { setFormError('Enter your first and last name.'); return }
     if (!/^\d{4}$/.test(pin)) { setFormError('Code must be exactly 4 digits.'); return }
     if (pin !== pinConfirm) { setFormError('Codes do not match.'); return }
-    if (!roles.length) { setFormError('Pick at least one account type.'); return }
     setBusy(true)
     setFormError('')
-
-    const notes = {}
-    let staffSession = null
-    let playerOk = false
-    let scorekeeperOk = false
-
     try {
-      if (roles.includes('staff')) {
-        const r = await createRole('staff_accounts', 'name', name, { is_master: false, is_active: true, tool_permissions: ['merch', 'scanner'] })
-        if (r.ok) {
-          staffSession = { id: r.row.id, name: r.row.name, isMaster: r.row.is_master, loginAt: Date.now() }
-        } else {
-          notes.staff = r.message
-        }
+      const dupRes = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=ilike.${encodeURIComponent(name)}&select=id`, { headers: hdrs })
+      const dupRows = await dupRes.json()
+      if (Array.isArray(dupRows) && dupRows.length) {
+        setFormError('An account with that name already exists. Sign in instead.')
+        setBusy(false)
+        return
       }
-      if (roles.includes('player')) {
-        const r = await createRole('player_portal_accounts', 'display_name', name, {})
-        if (r.ok) {
-          saveLocalSession(PLAYER_SESSION_KEY, { id: r.row.id, displayName: name, notifyAll: !!r.row.notify_all, loginAt: Date.now() })
-          playerOk = true
-        } else {
-          notes.player = r.message
-        }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts`, {
+        method: 'POST',
+        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+        body: JSON.stringify({ name, pin, is_master: false, is_active: true, tool_permissions: [] }),
+      })
+      if (!res.ok) {
+        setFormError('Could not create account. Try again.')
+        setBusy(false)
+        return
       }
-      if (roles.includes('scorekeeper')) {
-        const r = await createRole('scorekeeper_portal_accounts', 'display_name', name, {})
-        if (r.ok) {
-          saveLocalSession(SCOREKEEPER_SESSION_KEY, { id: r.row.id, displayName: name, notifyAll: !!r.row.notify_all, loginAt: Date.now() })
-          scorekeeperOk = true
-        } else {
-          notes.scorekeeper = r.message
-        }
-      }
-
-      setResults({ staffSession, player: playerOk, scorekeeper: scorekeeperOk, notes })
+      // The DB trigger has already created matching player/scorekeeper rows
+      // by the time this POST resolves — same lookup as sign-in finds all three.
+      const resolved = await resolveSessions(name, pin)
+      setResults(resolved)
       setMode('result')
     } catch {
       setFormError('Connection error. Try again.')
@@ -191,7 +155,7 @@ export default function AccountGate({ onStaffSession }) {
           >
             <span className="text-3xl">✨</span>
             <span className="text-lg font-bold text-white">Create Account</span>
-            <span className="text-gray-500 text-sm">Staff, Player, and/or Score Keeper</span>
+            <span className="text-gray-500 text-sm">One account works everywhere</span>
           </button>
         </div>
       </div>
@@ -206,7 +170,9 @@ export default function AccountGate({ onStaffSession }) {
           <div className="text-center">
             <div className="text-3xl mb-2">{isCreate ? '✨' : '🔑'}</div>
             <h2 className="text-xl font-bold text-white tracking-wide">{isCreate ? 'Create Account' : 'Sign In'}</h2>
-            <p className="text-gray-500 text-sm mt-1">AADS War Room</p>
+            <p className="text-gray-500 text-sm mt-1">
+              {isCreate ? 'One account — works as Staff, Player & Score Keeper.' : 'AADS War Room'}
+            </p>
           </div>
 
           <div className="flex gap-2">
@@ -258,33 +224,6 @@ export default function AccountGate({ onStaffSession }) {
                 placeholder="0000"
                 className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm text-center tracking-[0.5em] focus:outline-none focus:border-orange-500 placeholder:tracking-normal placeholder:text-gray-600"
               />
-            </div>
-          )}
-
-          {isCreate && (
-            <div className="flex flex-col gap-2">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">What's this account for?</span>
-              <div className="flex flex-wrap gap-2">
-                {ROLES.map(role => {
-                  const picked = roles.includes(role.id)
-                  return (
-                    <button
-                      key={role.id}
-                      type="button"
-                      onClick={() => toggleRole(role.id)}
-                      className={
-                        picked
-                          ? 'flex items-center gap-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
-                          : 'flex items-center gap-1.5 bg-[#1a1a1a] hover:bg-[#222] text-gray-400 hover:text-gray-200 border border-[#333] text-xs font-semibold rounded-lg px-3 py-1.5 transition-colors'
-                      }
-                    >
-                      <span>{role.icon}</span>
-                      <span>{role.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              <p className="text-gray-600 text-xs">Pick as many as apply — they'll all share this same name and code.</p>
             </div>
           )}
 

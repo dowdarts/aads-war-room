@@ -170,7 +170,7 @@ export default function StaffDashboard({ onSelect }) {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts`, {
         method: 'POST',
         headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-        body: JSON.stringify({ name, pin: newStaffPin, is_master: false, is_active: true, tool_permissions: ['merch', 'scanner'] }),
+        body: JSON.stringify({ name, pin: newStaffPin, is_master: false, is_active: true, tool_permissions: [] }),
       })
       const rows = await r.json()
       if (!r.ok || !Array.isArray(rows) || !rows.length) { setAddStaffError(rows?.message || 'Could not add staff member.'); return }
