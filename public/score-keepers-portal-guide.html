@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Score Keepers Portal — Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #e8e8e8;
+      min-height: 100dvh;
+      line-height: 1.55;
+      padding-bottom: 60px;
+    }
+    .hero {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 22px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hero-title { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .hero-sub { font-size: 0.78rem; color: #666; margin-top: 4px; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 18px; }
+
+    .toc {
+      background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px;
+    }
+    .toc-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #ea580c; margin-bottom: 10px; }
+    .toc a { display: block; color: #ccc; font-size: 0.88rem; text-decoration: none; padding: 5px 0; }
+    .toc a:hover { color: #ea580c; }
+
+    .section { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 18px; scroll-margin-top: 80px; }
+    .section h2 { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .section h2 .num { color: #ea580c; margin-right: 6px; }
+    .section .lede { font-size: 0.85rem; color: #888; margin-bottom: 14px; }
+    .section h3 { font-size: 0.9rem; font-weight: 700; color: #f97316; margin: 16px 0 6px; }
+    .section h3:first-of-type { margin-top: 6px; }
+    .section p { font-size: 0.88rem; color: #ccc; margin-bottom: 8px; }
+    .section ul, .section ol { margin: 0 0 8px 0; padding-left: 22px; }
+    .section li { font-size: 0.88rem; color: #ccc; margin-bottom: 6px; }
+    .section li strong { color: #fff; }
+
+    .tip {
+      background: #0d1410; border: 1px solid #1d3322; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #8fd9a8;
+    }
+    .tip b { color: #4ade80; }
+    .warn {
+      background: #1a1200; border: 1px solid #713f12; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #fbbf24;
+    }
+    .warn b { color: #fcd34d; }
+
+    code { background: #1a1a1a; border-radius: 5px; padding: 2px 6px; color: #f97316; font-family: inherit; font-size: 0.85em; }
+
+    .action-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .action-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .action-table td { padding: 8px 8px; border-bottom: 1px solid #161616; color: #ccc; vertical-align: top; }
+    .action-table td:first-child { font-weight: 700; color: #fff; white-space: nowrap; }
+
+    .format-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .format-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .format-table td { padding: 7px 8px; border-bottom: 1px solid #161616; color: #ccc; }
+
+    .badge { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #1a1a1a; color: #888; }
+    .footer-note { text-align: center; font-size: 0.76rem; color: #444; padding: 10px 0 30px; }
+    .note { font-size: 0.78rem; color: #555; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-title">🖊️ Score Keepers Portal — Guide</div>
+    <div class="hero-sub">How to use the app, screen by screen</div>
+  </div>
+
+  <div class="container">
+
+    <div class="toc">
+      <div class="toc-title">Jump to</div>
+      <a href="#overview">Overview</a>
+      <a href="#screen1">1. Signing In / Creating an Account</a>
+      <a href="#screen2">2. Enable Notifications</a>
+      <a href="#screen3">3. Your Status Card</a>
+      <a href="#screen4">4. My Shifts</a>
+      <a href="#screen5">5. Full Schedule</a>
+      <a href="#tips">Tips &amp; Troubleshooting</a>
+      <a href="#cheatsheet">Status Pill Cheat Sheet</a>
+    </div>
+
+    <div class="section" id="overview">
+      <h2><span class="num">●</span>Overview</h2>
+      <p>The Score Keepers Portal is a simple self-serve schedule lookup for scorekeepers working a live event. It doesn't score matches itself — it just tells you when and where you're working, and pings your phone the moment your assigned match goes live or the schedule changes.</p>
+      <p>You sign in once with your name and a 4-digit code you pick yourself, turn on notifications, and from then on the portal just sits there quietly updating itself every few seconds — no refreshing, no re-logging-in.</p>
+      <p>The flow is the same every time you use it:</p>
+      <ol>
+        <li>Sign in (or create an account the first time)</li>
+        <li>Turn on notifications so you don't have to keep checking</li>
+        <li>Check <strong>My Shifts</strong> to see what you're working and its live status</li>
+        <li>Use <strong>Full Schedule</strong> if you need to see everyone else's shifts too</li>
+      </ol>
+    </div>
+
+    <div class="section" id="screen1">
+      <h2><span class="num">1.</span>Signing In / Creating an Account</h2>
+      <p class="lede">This is the screen you land on the very first time you open the portal, or any time you've signed out.</p>
+
+      <p>If you already have an account, enter your <strong>name</strong> exactly as it appears on the schedule and your <strong>4-digit code</strong>, then tap <strong>Sign In</strong>.</p>
+
+      <p>If this is your first time, tap <strong>Don't have an account? Create one</strong> and fill in your <strong>first name</strong>, <strong>last name</strong>, and a 4-digit code of your choosing — that code becomes your sign-in code from then on. Tap <strong>Create Account</strong> to finish.</p>
+
+      <div class="warn"><b>Name must match the schedule.</b> Your shifts are matched up by the exact name on your account, so use the same first/last name spelling the schedule organizer used (e.g. "Sarah Mitchell", not a nickname). If your shifts aren't showing up later, a name mismatch is the most likely reason.</div>
+
+      <div class="warn"><b>No account found?</b> If sign-in says it can't find an account with that name, you haven't created one on this device/browser yet — use <strong>Create one</strong> below instead. If you already created one elsewhere, just create it again here; it's the same account either way as long as the name matches.</div>
+
+      <p class="note">You stay signed in between visits — there's no need to sign in again each time you reopen the page, unless you've tapped <strong>Sign Out</strong>.</p>
+    </div>
+
+    <div class="section" id="screen2">
+      <h2><span class="num">2.</span>Enable Notifications</h2>
+      <p class="lede">Shown right after you sign in, if notifications aren't already turned on.</p>
+
+      <p>Tap <strong>🔔 Enable Notifications</strong> and accept the browser's permission prompt. This is what lets the portal alert you the moment the schedule changes or your match goes live — without it, you'd have to keep the page open and watch it yourself.</p>
+
+      <p>Not ready yet? Tap <strong>Skip for now</strong> to move on without it — you can turn notifications on later from your status card (see next section).</p>
+
+      <div class="warn"><b>On iPhone</b>, notifications only work once the page has been added to the Home Screen as an app. If you try to enable notifications on iPhone before doing that, you'll get a reminder to tap <strong>📲 Add to Home Screen</strong> first, then reopen the portal from that home screen icon and try again.</div>
+    </div>
+
+    <div class="section" id="screen3">
+      <h2><span class="num">3.</span>Your Status Card</h2>
+      <p class="lede">The card at the top of the main screen, visible the whole time you're signed in.</p>
+
+      <p>Shows your name and an <strong>Alerts On</strong> / <strong>Alerts Off</strong> badge so you can tell at a glance whether notifications are working. If they're off, a <strong>🔔 Enable Notifications</strong> button appears here so you can turn them on without signing out and back in.</p>
+
+      <p>If your browser supports installing the page as an app and hasn't already been added, a <strong>📲 Add to Home Screen</strong> button also appears — worth doing, since it makes notifications more reliable (especially on iPhone) and gives you a one-tap icon for event day.</p>
+
+      <p>Tap <strong>Sign Out</strong> to log out of the portal on this device — you'll need your name and 4-digit code again to sign back in.</p>
+    </div>
+
+    <div class="section" id="screen4">
+      <h2><span class="num">4.</span>My Shifts</h2>
+      <p class="lede">The default tab below your status card — this is the one you'll check most.</p>
+
+      <p>Lists only the shifts assigned to <strong>your</strong> name on the schedule, in the same order they were entered (not re-sorted), each showing its time, role, and the match it's tied to if there is one.</p>
+
+      <p>Every shift carries a live status pill on the right — see the <a href="#cheatsheet">cheat sheet</a> below for what each one means. The card updates itself automatically every few seconds as the event progresses, so you never need to refresh.</p>
+
+      <div class="tip"><b>Up next?</b> A shift that's about to start gets highlighted with a soft orange background and an <strong>Up Next</strong> pill, so it's easy to spot which one needs your attention soon.</div>
+
+      <div class="warn"><b>"No shifts found for you on the schedule yet."</b> This means either the schedule hasn't been loaded by the event admin yet, or your account name doesn't exactly match the name used on the schedule. Double-check the spelling matches (see the warning in the Sign In section), and check back once the schedule is published.</div>
+    </div>
+
+    <div class="section" id="screen5">
+      <h2><span class="num">5.</span>Full Schedule</h2>
+      <p class="lede">The second tab — tap <strong>Full Schedule</strong> in the tab bar to switch to it.</p>
+
+      <p>Shows every scorekeeper shift for the event, not just yours — useful for finding a swap, checking who else is working a session, or seeing the bigger picture. Same live status pills apply here too.</p>
+
+      <p>Rows for completed shifts are dimmed and struck through so the list stays readable as the event moves on.</p>
+    </div>
+
+    <div class="section" id="tips">
+      <h2><span class="num">★</span>Tips &amp; Troubleshooting</h2>
+      <ul>
+        <li><strong>The portal polls automatically.</strong> Every few seconds it quietly checks for schedule or match-status changes and re-draws the screen if anything changed — you never need to pull-to-refresh or reload the page.</li>
+        <li><strong>Notifications didn't fire?</strong> Check your status card for the <strong>Alerts On/Off</strong> badge. If it says Off, tap <strong>🔔 Enable Notifications</strong> again — on iPhone, make sure the page was opened from the Home Screen icon, not the browser.</li>
+        <li><strong>Forgot your 4-digit code?</strong> There's no reset flow in the portal — contact the event admin to confirm your name and code, or create a fresh account using a slightly different name if you truly can't recover it.</li>
+        <li><strong>Shifts not showing up?</strong> It's almost always a name mismatch between your account and the schedule — check capitalization and spelling against what's printed on the official schedule.</li>
+        <li><strong>Multiple devices?</strong> You can sign in with the same name and code on more than one device (e.g. phone and tablet) — both will poll and show the same live status independently.</li>
+        <li><strong>Switching devices on event day?</strong> Notifications and "Add to Home Screen" are per-device — if you sign in somewhere new, you'll need to enable notifications there too.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="cheatsheet">
+      <h2><span class="num">📋</span>Status Pill Cheat Sheet</h2>
+      <table class="action-table">
+        <tr><th>Pill</th><th>What it means</th></tr>
+        <tr><td>Live Now</td><td>This shift's match is currently being played — you're on.</td></tr>
+        <tr><td>Waiting</td><td>This match is up but currently paused/holding (e.g. between legs or players not ready yet).</td></tr>
+        <tr><td>Up Next</td><td>This is the next match coming up — the row is also highlighted in orange so it stands out.</td></tr>
+        <tr><td>Done</td><td>This shift's match has already finished.</td></tr>
+        <tr><td>Scheduled</td><td>Booked on the schedule but not yet tied to a live match, or its match hasn't started moving through the order yet.</td></tr>
+        <tr><td>On Break</td><td>A break shift with no match attached — just a scheduled rest period.</td></tr>
+      </table>
+      <p class="note">Status updates automatically as the event runs — you don't need to do anything to refresh it.</p>
+    </div>
+
+    <div class="footer-note">AADS War Room — Score Keepers Portal Guide</div>
+  </div>
+
+</body>
+</html>

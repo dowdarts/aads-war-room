@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cue Light &amp; Schedule — Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #e8e8e8;
+      min-height: 100dvh;
+      line-height: 1.55;
+      padding-bottom: 60px;
+    }
+    .hero {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 22px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hero-title { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .hero-sub { font-size: 0.78rem; color: #666; margin-top: 4px; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 18px; }
+
+    .toc {
+      background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px;
+    }
+    .toc-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #ea580c; margin-bottom: 10px; }
+    .toc a { display: block; color: #ccc; font-size: 0.88rem; text-decoration: none; padding: 5px 0; }
+    .toc a:hover { color: #ea580c; }
+
+    .section { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 18px; scroll-margin-top: 80px; }
+    .section h2 { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .section h2 .num { color: #ea580c; margin-right: 6px; }
+    .section .lede { font-size: 0.85rem; color: #888; margin-bottom: 14px; }
+    .section h3 { font-size: 0.9rem; font-weight: 700; color: #f97316; margin: 16px 0 6px; }
+    .section h3:first-of-type { margin-top: 6px; }
+    .section p { font-size: 0.88rem; color: #ccc; margin-bottom: 8px; }
+    .section ul, .section ol { margin: 0 0 8px 0; padding-left: 22px; }
+    .section li { font-size: 0.88rem; color: #ccc; margin-bottom: 6px; }
+    .section li strong { color: #fff; }
+
+    .tip {
+      background: #0d1410; border: 1px solid #1d3322; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #8fd9a8;
+    }
+    .tip b { color: #4ade80; }
+    .warn {
+      background: #1a1200; border: 1px solid #713f12; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #fbbf24;
+    }
+    .warn b { color: #fcd34d; }
+
+    code { background: #1a1a1a; border-radius: 5px; padding: 2px 6px; color: #f97316; font-family: inherit; font-size: 0.85em; }
+
+    .action-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .action-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .action-table td { padding: 8px 8px; border-bottom: 1px solid #161616; color: #ccc; vertical-align: top; }
+    .action-table td:first-child { font-weight: 700; color: #fff; white-space: nowrap; }
+
+    .format-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .format-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .format-table td { padding: 7px 8px; border-bottom: 1px solid #161616; color: #ccc; }
+
+    .badge { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #1a1a1a; color: #888; }
+    .footer-note { text-align: center; font-size: 0.76rem; color: #444; padding: 10px 0 30px; }
+    .note { font-size: 0.78rem; color: #555; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-title">🚦 Cue Light &amp; Schedule — Guide</div>
+    <div class="hero-sub">How to use the app, screen by screen</div>
+  </div>
+
+  <div class="container">
+
+    <div class="toc">
+      <div class="toc-title">Jump to</div>
+      <a href="#overview">Overview</a>
+      <a href="#screen1">1. Role &amp; Event Selection</a>
+      <a href="#screen2">2. Controller — Lights &amp; Schedule</a>
+      <a href="#screen3">3. Display — The Big Light</a>
+      <a href="#screen4">4. Uploading the Schedule</a>
+      <a href="#screen5">5. Alerts &amp; Kill Switches</a>
+      <a href="#screen6">6. Floating the Display (Picture-in-Picture)</a>
+      <a href="#tips">Tips &amp; Troubleshooting</a>
+      <a href="#cheatsheet">Light Cheat Sheet</a>
+    </div>
+
+    <div class="section" id="overview">
+      <h2><span class="num">●</span>Overview</h2>
+      <p>Cue Light &amp; Schedule is a two-screen signalling tool: one device is the <strong>Controller</strong> (whoever is running the floor presses Start, Wait, or Off), and a second device is the <strong>Display</strong> (a big, simple light on a screen near the players/scorekeepers, showing exactly what the controller pressed). Both stay in sync automatically over the network — there's no cable between them.</p>
+      <p>The same uploaded schedule also drives push notifications to two other apps in this suite: the <strong>Players Portal</strong> (tells players when they're called, when their match goes live, and when doors open) and the <strong>Score Keepers Portal</strong> (tells scorekeepers when their match goes live or the schedule changes). You don't need to do anything extra for those — they ride along on the same Controller actions.</p>
+      <p>Everything is organized by <strong>event</strong> — if more than one event exists, you'll be asked which one this device is working on before you see anything else.</p>
+    </div>
+
+    <div class="section" id="screen1">
+      <h2><span class="num">1.</span>Role &amp; Event Selection</h2>
+      <p class="lede">This is what you see the very first time the app is opened on a device.</p>
+
+      <h3>Choosing a role</h3>
+      <p>Tap <strong>🎛️ Controller</strong> if this device is the one being used to press Start / Wait / Off. Tap <strong>🚦 Display</strong> if this device is the one being pointed at the floor showing the big light and schedule. The app remembers your choice — it won't ask again on this device unless you tap <strong>Switch role</strong> later.</p>
+
+      <h3>Choosing an event</h3>
+      <p>If there's exactly one event set up, the app skips straight past this and opens it automatically. If there's more than one, you'll see a list — tap the one you're running. If there are none yet, type a name and tap <strong>+ Create New Event</strong>.</p>
+      <p>Like the role, the event choice is remembered on this device. Use <strong>Switch event</strong> in the header any time to pick a different one (useful if the same tablet is reused across multiple tournaments).</p>
+    </div>
+
+    <div class="section" id="screen2">
+      <h2><span class="num">2.</span>Controller — Lights &amp; Schedule</h2>
+      <p class="lede">The main working screen for whoever is running the floor.</p>
+
+      <h3>The three buttons</h3>
+      <p>Three big buttons sit at the top: <strong>▶ Start</strong>, <strong>✋ Wait</strong>, and <strong>⏹ Off</strong>. Tap one and it lights up (with a glow matching its colour) to confirm it's the active state — and the Display screen updates within about a second to show the same thing.</p>
+      <ul>
+        <li><strong>▶ Start</strong> — tells the Display to show a green <strong>GO</strong> light. Also pushes a "match is live" notification to the Players Portal and the Score Keepers Portal for whoever's involved in the current match.</li>
+        <li><strong>✋ Wait</strong> — tells the Display to show a red <strong>WAIT</strong> light. No portal notifications fire for this one — it's a floor-only signal.</li>
+        <li><strong>⏹ Off</strong> — tells the Display to go dark (no label shown at all).</li>
+      </ul>
+
+      <h3>Marking a match complete</h3>
+      <p>Below the buttons is the <strong>Event Schedule</strong> — every match from the uploaded CSV, in order. The next match that hasn't been checked off is automatically marked <span class="badge">Up Next</span> with an orange border. Tick a match's checkbox once it's finished:</p>
+      <ul>
+        <li>Completed matches grey out and get a line through the name, so the list visually shrinks to what's left.</li>
+        <li>Checking a box also sends a "you've been called" notification to that match's two players on the Players Portal, and sets it as the <strong>current match</strong> — which is what <strong>Start</strong> uses to figure out who to notify as "live" and who's "up next."</li>
+        <li>Unchecking a box just un-marks it — it doesn't undo the notification that already went out.</li>
+      </ul>
+      <div class="tip"><b>Order matters.</b> Check off the match that just finished <em>before</em> you press Start on the next one — that's how the app knows which match is "live" for the scorekeeper and player push notifications.</div>
+    </div>
+
+    <div class="section" id="screen3">
+      <h2><span class="num">3.</span>Display — The Big Light</h2>
+      <p class="lede">This is the screen that actually faces the players/floor — set this device's role to Display, then leave it alone.</p>
+      <p>A large coloured panel fills the top of the screen: green with a <strong>GO</strong> label for Start, red with <strong>WAIT</strong> for Wait, and plain dark with no label for Off. It updates automatically whenever the Controller changes state — nobody touches this screen during play.</p>
+      <p>Below the light is the same Event Schedule list as the Controller (read-only here — no checkboxes to tap), so anyone standing near the Display can also see what match is up next.</p>
+      <div class="warn"><b>Don't tap Switch role on this device by accident.</b> Doing so drops it back to the role-selection screen and the light disappears until someone re-selects Display.</div>
+    </div>
+
+    <div class="section" id="screen4">
+      <h2><span class="num">4.</span>Uploading the Schedule</h2>
+      <p class="lede">Controller-only — Upload Event Schedule (CSV), above the schedule list.</p>
+      <p>One CSV file — the same AADS TOC officials schedule export used elsewhere — drives everything: the match list shown on both Controller and Display, <em>and</em> every scorekeeper/caller/floor-control shift used by the Score Keepers Portal. There's nothing left to upload separately, and nothing that can drift out of sync, because both come from the very same rows.</p>
+      <ul>
+        <li>Any row with both a Player A and Player B filled in becomes a match in the schedule list.</li>
+        <li>Any named official in that row (Caller, Main Scorekeeper, Tablet/Second Backup Scorekeeper, Backup Caller, Floor/Player Control, Relief/Equipment Support) becomes a shift for that person, linked to the same match.</li>
+        <li>Names listed in the "On Break" column become a break shift, not tied to any match.</li>
+        <li>Rows with no players at all (setup, reset, standings breaks, etc.) are skipped from the match list but officials in them still get a personal shift.</li>
+      </ul>
+      <p>Uploading a new file when matches or shifts already exist asks you to confirm first — it tells you exactly how many matches/shifts it's about to replace and how many the new file contains, since this <strong>replaces the whole schedule</strong>, it doesn't merge.</p>
+    </div>
+
+    <div class="section" id="screen5">
+      <h2><span class="num">5.</span>Alerts &amp; Kill Switches</h2>
+      <p class="lede">Three independent toggles in the Controller header — each one a master switch for a different audience.</p>
+      <table class="action-table">
+        <tr><th>Toggle</th><th>What it silences</th></tr>
+        <tr><td>🔔 Cue Light Alerts</td><td>Push notifications sent to any device subscribed to the cue light itself, whenever Start or Wait is pressed.</td></tr>
+        <tr><td>🔔 Players Portal Alerts</td><td>"You're called" / "match is live" / "doors are open" pushes sent to the specific players involved.</td></tr>
+        <tr><td>🔔 Score Keepers Alerts</td><td>"Match is live" / "schedule updated" pushes sent to whoever is on a scorekeeper/caller/floor shift for that match.</td></tr>
+      </table>
+      <p>Each one flips between <strong>ON</strong> (normal colour) and <strong>OFF</strong> (shown in red) independently — turning one off does not affect the other two, since they go to different audiences and you may only want to quiet one of them at a time (e.g. mute Score Keeper pings during a quiet stretch while players still get called).</p>
+      <div class="warn"><b>This is a real kill switch, not just a per-device mute.</b> Turning a toggle off stops that category's pushes for <em>every</em> device, even ones where a person has notifications enabled on their own phone — the check happens on the server before anything is sent, not just in this browser tab.</div>
+
+      <h3>Doors Open</h3>
+      <p>🚪 Doors Open in the header sends a one-time notification to every signed-in player that the event has started and doors are open. It asks you to confirm before sending, since it goes out to the entire player list at once, not just whoever's in the current match. It's covered by the Players Portal Alerts toggle — if that's off, this button won't actually push anything.</p>
+    </div>
+
+    <div class="section" id="screen6">
+      <h2><span class="num">6.</span>Floating the Display (Picture-in-Picture)</h2>
+      <p class="lede">Display screen only — lets the light keep floating on top of other apps.</p>
+      <p>Tap <strong>🪟 Float</strong> to pop the light out into a small floating window using Picture-in-Picture, so it stays visible even if you switch to another app on the same device. The button changes to <strong>🪟 Floating…</strong> while active.</p>
+      <div class="tip"><b>Why this exists:</b> a browser tab that gets pushed into the background can be throttled by the OS, which would otherwise freeze the light on stale data. Floating keeps it live and visible without needing to babysit the tab.</div>
+      <p>If Float isn't available (Picture-in-Picture isn't supported in this browser), you may instead see <strong>🧭 Open in Safari to Float</strong> — this only shows up on an iPhone where the app is running inside Chrome, since iOS only grants the floating video feature to Safari itself, no matter which browser app icon you tapped.</p>
+    </div>
+
+    <div class="section" id="tips">
+      <h2><span class="num">★</span>Tips &amp; Troubleshooting</h2>
+      <ul>
+        <li><strong>Controller and Display not matching?</strong> Give it a second or two — both screens poll for changes roughly twice a second, so there's a brief lag, not a sync failure.</li>
+        <li><strong>Want notifications even with the app closed?</strong> Tap <strong>📲 Add to Home Screen</strong> first, then <strong>🔔 Enable Alerts</strong> (Display screen) — on iPhone, notifications and the home-screen install go hand in hand; a plain Safari/Chrome tab can never show them, only the installed icon can.</li>
+        <li><strong>Switched role or event by mistake?</strong> Just tap the role/event buttons again — your schedule and light state aren't lost, they live on the server tied to the event, not the device.</li>
+        <li><strong>Multiple devices?</strong> Schedule, light state, and shifts are all saved to the cloud, not the device — any Controller or Display signed into the same event sees the same thing.</li>
+        <li><strong>Re-uploading a schedule mid-event?</strong> Double-check the confirmation dialog's match/shift counts before accepting — it fully replaces what's there, so re-uploading an old or wrong file will wipe completed checkmarks too.</li>
+        <li><strong>Score Keepers or Players not getting notified?</strong> Check that the relevant alert toggle in the Controller header is set to ON — all three are independent and easy to mix up.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="cheatsheet">
+      <h2><span class="num">📋</span>Light Cheat Sheet</h2>
+      <table class="action-table">
+        <tr><th>Light</th><th>Use it when…</th></tr>
+        <tr><td>▶ Start (Green / GO)</td><td>The match is ready to begin — players should start play now. Also notifies the Players Portal and Score Keepers Portal that this match is live.</td></tr>
+        <tr><td>✋ Wait (Red / WAIT)</td><td>Hold play — something needs sorting out on the floor before this match can start or continue. Floor-only signal, no portal push.</td></tr>
+        <tr><td>⏹ Off (Dark, no label)</td><td>Nothing currently active on this board — between matches, end of session, or before the event has started.</td></tr>
+      </table>
+      <p class="note">The Display always mirrors whatever the Controller last pressed — there's no separate "set" step.</p>
+    </div>
+
+    <div class="footer-note">AADS War Room — Cue Light Guide</div>
+  </div>
+
+</body>
+</html>

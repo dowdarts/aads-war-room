@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Players Portal — Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #e8e8e8;
+      min-height: 100dvh;
+      line-height: 1.55;
+      padding-bottom: 60px;
+    }
+    .hero {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 22px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hero-title { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .hero-sub { font-size: 0.78rem; color: #666; margin-top: 4px; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 18px; }
+
+    .toc {
+      background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px;
+    }
+    .toc-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #ea580c; margin-bottom: 10px; }
+    .toc a { display: block; color: #ccc; font-size: 0.88rem; text-decoration: none; padding: 5px 0; }
+    .toc a:hover { color: #ea580c; }
+
+    .section { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 18px; scroll-margin-top: 80px; }
+    .section h2 { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .section h2 .num { color: #ea580c; margin-right: 6px; }
+    .section .lede { font-size: 0.85rem; color: #888; margin-bottom: 14px; }
+    .section h3 { font-size: 0.9rem; font-weight: 700; color: #f97316; margin: 16px 0 6px; }
+    .section h3:first-of-type { margin-top: 6px; }
+    .section p { font-size: 0.88rem; color: #ccc; margin-bottom: 8px; }
+    .section ul, .section ol { margin: 0 0 8px 0; padding-left: 22px; }
+    .section li { font-size: 0.88rem; color: #ccc; margin-bottom: 6px; }
+    .section li strong { color: #fff; }
+
+    .tip {
+      background: #0d1410; border: 1px solid #1d3322; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #8fd9a8;
+    }
+    .tip b { color: #4ade80; }
+    .warn {
+      background: #1a1200; border: 1px solid #713f12; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #fbbf24;
+    }
+    .warn b { color: #fcd34d; }
+
+    code { background: #1a1a1a; border-radius: 5px; padding: 2px 6px; color: #f97316; font-family: inherit; font-size: 0.85em; }
+
+    .action-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .action-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .action-table td { padding: 8px 8px; border-bottom: 1px solid #161616; color: #ccc; vertical-align: top; }
+    .action-table td:first-child { font-weight: 700; color: #fff; white-space: nowrap; }
+
+    .format-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .format-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .format-table td { padding: 7px 8px; border-bottom: 1px solid #161616; color: #ccc; }
+
+    .badge { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #1a1a1a; color: #888; }
+    .footer-note { text-align: center; font-size: 0.76rem; color: #444; padding: 10px 0 30px; }
+    .note { font-size: 0.78rem; color: #555; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-title">📱 Players Portal — Guide</div>
+    <div class="hero-sub">How to use the app, screen by screen</div>
+  </div>
+
+  <div class="container">
+
+    <div class="toc">
+      <div class="toc-title">Jump to</div>
+      <a href="#overview">Overview</a>
+      <a href="#screen1">1. Signing In / Creating an Account</a>
+      <a href="#screen2">2. Enabling Notifications</a>
+      <a href="#screen3">3. Status Card</a>
+      <a href="#screen4">4. Events Tab</a>
+      <a href="#screen5">5. Full Schedule Tab</a>
+      <a href="#screen6">6. My Matches Tab</a>
+      <a href="#screen7">7. Acknowledgement Tab</a>
+      <a href="#screen8">8. Competition Form Tab</a>
+      <a href="#tips">Tips &amp; Troubleshooting</a>
+    </div>
+
+    <div class="section" id="overview">
+      <h2><span class="num">●</span>Overview</h2>
+      <p>The Players Portal is the player-facing app for a live AADS event — it's how you check your schedule, see which match is up next, know when you've been called to the stage, and get the green-light alert that it's your turn to play. It also gives you quick access to the event's acknowledgement form and competition entry form.</p>
+      <p>The portal works on any phone browser, but it's built to be added to your Home Screen as an app so notifications work properly — especially important on iPhone.</p>
+      <p>The flow the first time you use it is:</p>
+      <ol>
+        <li>Create an account (just your name and a 4-digit code — no email needed)</li>
+        <li>Turn on notifications</li>
+        <li>Pick your event from the Events tab</li>
+        <li>Check Full Schedule / My Matches as the day goes on, and wait for your alerts</li>
+      </ol>
+    </div>
+
+    <div class="section" id="screen1">
+      <h2><span class="num">1.</span>Signing In / Creating an Account</h2>
+      <p class="lede">This is the screen you land on the very first time you open the portal.</p>
+      <p>If you've never used the portal before, tap <strong>Don't have an account? Create one</strong>. Type your first and last name, and choose any 4-digit code — that code becomes your permanent sign-in PIN, so remember it.</p>
+      <p>Already have an account? Enter your name exactly as you registered it and your 4-digit code, then tap <strong>Sign In</strong>. You can also just press <strong>Enter</strong> after typing your code instead of tapping the button.</p>
+      <div class="warn"><b>No account found for that name?</b> Names must match exactly how you originally created the account (capitalisation doesn't matter, but spelling does). If sign-in says no account exists, double check the spelling before creating a duplicate.</div>
+      <div class="warn"><b>An account with that name already exists?</b> Someone has already registered under that exact name — sign in instead of creating a new one. If it's not you, check with event staff.</div>
+      <p>Once you're in, your sign-in is remembered on this device — you won't see this screen again unless you tap <strong>Sign Out</strong>.</p>
+    </div>
+
+    <div class="section" id="screen2">
+      <h2><span class="num">2.</span>Enabling Notifications</h2>
+      <p class="lede">Shown right after you sign in, unless notifications are already turned on.</p>
+      <p>Tap <strong>🔔 Enable Notifications</strong> and accept the permission prompt your browser shows. This is what lets the portal alert you the moment the event starts, when you're called to the stage, and when the green light comes on for your match.</p>
+      <p>If you're not ready to decide, tap <strong>Skip for now</strong> — you can always turn notifications on later from the Status Card.</p>
+      <div class="warn"><b>On iPhone:</b> notifications only work once the portal has been added to your Home Screen. If you try to enable them in a regular Safari tab, you'll get a message asking you to add it to your Home Screen first, then open it from that icon and try again.</div>
+    </div>
+
+    <div class="section" id="screen3">
+      <h2><span class="num">3.</span>Status Card</h2>
+      <p class="lede">The card at the top of the main screen, always visible.</p>
+      <p>Shows your name and an <strong>Alerts On</strong> / <strong>Alerts Off</strong> badge so you can tell at a glance whether notifications are active. If they're off, a <strong>🔔 Enable Notifications</strong> button appears here so you can turn them on at any time.</p>
+      <p>If your browser supports installing the page as an app and you haven't done so yet, a <strong>📲 Add to Home Screen</strong> button also appears — tap it to install the portal so it behaves like a real app and notifications are more reliable.</p>
+      <p>Tap <strong>Sign Out</strong> to log out of this device — you'll need your name and 4-digit code to sign back in.</p>
+    </div>
+
+    <div class="section" id="screen4">
+      <h2><span class="num">4.</span>Events Tab</h2>
+      <p class="lede">The first tab, and the one you'll use once per event.</p>
+      <p>This lists every event where your name appears somewhere on the schedule. Tap an event to select it — it gets a <span class="badge">Selected</span> tag and becomes the event the other tabs (Full Schedule, My Matches) read from.</p>
+      <div class="tip"><b>You don't register separately.</b> The portal automatically treats you as "in" an event the moment your name shows up on that event's match schedule — there's nothing extra to fill in here.</div>
+      <p>If this tab is empty, it means your name hasn't appeared on any event's schedule yet — check back once the organiser has published the draw, or confirm your registered name matches exactly what's on the schedule.</p>
+    </div>
+
+    <div class="section" id="screen5">
+      <h2><span class="num">5.</span>Full Schedule Tab</h2>
+      <p class="lede">The complete running order for whichever event you've selected.</p>
+      <p>Every match is listed in order, with its time, round, and format/notes where available. Completed matches are shown dimmed with a strikethrough. The very next match still to be played is highlighted in orange with an <strong>Up Next</strong> tag.</p>
+      <p>This list updates automatically — it polls the server every few seconds, so you don't need to refresh the page to see the latest order.</p>
+      <p>If you haven't picked an event yet, this tab will ask you to go back to the Events tab first.</p>
+    </div>
+
+    <div class="section" id="screen6">
+      <h2><span class="num">6.</span>My Matches Tab</h2>
+      <p class="lede">Just the matches with your name on them, for the selected event.</p>
+      <p>Each row shows your opponent's name (or "TBD" if not yet decided) and a status pill:</p>
+      <table class="format-table">
+        <tr><th>Pill</th><th>Meaning</th></tr>
+        <tr><td>Live Now</td><td>This is your current match and the green light is on — go.</td></tr>
+        <tr><td>Waiting</td><td>This is your current match but you're being held — stay nearby.</td></tr>
+        <tr><td>Up Next</td><td>You're the next match to be called.</td></tr>
+        <tr><td>Done</td><td>This match has already been completed.</td></tr>
+        <tr><td>Scheduled</td><td>Still to come, not yet next in line.</td></tr>
+      </table>
+      <p>Like Full Schedule, this list refreshes itself automatically — leave the tab open and the status pills will update on their own as the event progresses.</p>
+    </div>
+
+    <div class="section" id="screen7">
+      <h2><span class="num">7.</span>Acknowledgement Tab</h2>
+      <p class="lede">For the media release / acknowledgement form.</p>
+      <p>Tap <strong>📋 Open Acknowledgement Form</strong> to open the form in a new browser tab. It's a separate page, so filling it out doesn't affect anything in the portal itself — just complete and submit it there, then close that tab and come back.</p>
+    </div>
+
+    <div class="section" id="screen8">
+      <h2><span class="num">8.</span>Competition Form Tab</h2>
+      <p class="lede">For the competition entry form.</p>
+      <p>Tap <strong>📝 Open Competition Form</strong> to open the entry form in a new tab, the same way the Acknowledgement tab does. Fill it out and submit it there.</p>
+    </div>
+
+    <div class="section" id="tips">
+      <h2><span class="num">★</span>Tips &amp; Troubleshooting</h2>
+      <ul>
+        <li><strong>Forgot your code?</strong> There's no reset option in the portal — check with event staff, since codes are tied to the exact name you registered with.</li>
+        <li><strong>Notifications not arriving?</strong> Check the badge on the Status Card first — if it says <strong>Alerts Off</strong>, tap <strong>🔔 Enable Notifications</strong> and accept the browser prompt. On iPhone, this only works after adding the page to your Home Screen.</li>
+        <li><strong>Can't find your event?</strong> The Events tab only shows events where your exact registered name is already on the schedule — if it's empty, the draw may not be published yet, or your name on the schedule doesn't match your account name exactly.</li>
+        <li><strong>Schedule looks out of date?</strong> It shouldn't — Full Schedule and My Matches both poll the server every few seconds automatically. If something still looks stale, try closing and reopening the portal.</li>
+        <li><strong>Switching events?</strong> Just go back to the Events tab and tap a different one — your selection is remembered on this device, so it'll reopen on the same event next time.</li>
+        <li><strong>New phone or browser?</strong> Your account isn't tied to a device — just sign in again with your name and 4-digit code, and re-enable notifications.</li>
+      </ul>
+    </div>
+
+    <div class="footer-note">AADS War Room — Players Portal Guide</div>
+  </div>
+
+</body>
+</html>
