@@ -55,9 +55,9 @@ export default function AccountGate({ onStaffSession }) {
     setFormError('')
     try {
       const [staffRows, playerRows, scorekeeperRows] = await Promise.all([
-        fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,name,is_master,is_active`, { headers: hdrs }).then(r => r.json()),
-        fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?display_name=eq.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
-        fetch(`${SUPABASE_URL}/rest/v1/scorekeeper_portal_accounts?display_name=eq.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=ilike.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,name,is_master,is_active`, { headers: hdrs }).then(r => r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?display_name=ilike.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/scorekeeper_portal_accounts?display_name=ilike.${encodeURIComponent(name)}&pin=eq.${pin}&select=id,notify_all`, { headers: hdrs }).then(r => r.json()),
       ])
 
       const notes = {}
@@ -99,7 +99,7 @@ export default function AccountGate({ onStaffSession }) {
   }
 
   async function createRole(table, nameField, name, extra) {
-    const dupRes = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${nameField}=eq.${encodeURIComponent(name)}&select=id`, { headers: hdrs })
+    const dupRes = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${nameField}=ilike.${encodeURIComponent(name)}&select=id`, { headers: hdrs })
     const dupRows = await dupRes.json()
     if (Array.isArray(dupRows) && dupRows.length) {
       return { ok: false, message: 'An account with that name already exists for this role.' }

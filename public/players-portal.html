@@ -222,6 +222,33 @@
     function saveSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)) }
     function clearSession() { localStorage.removeItem(SESSION_KEY) }
 
+    /* ══ NAME MATCHING ══
+       Matthew types schedule names freehand from the CSV, so they don't
+       always match an account's registered display name exactly — wrong
+       case ("tom holden" vs "Tom Holden"), or a nickname he's used to
+       ("Darrall Cormier" on the sheet for an account registered as "Dee
+       Cormier"). Match case-insensitively, and treat known first-name
+       aliases as equivalent as long as the last name matches. */
+    var NAME_ALIAS_GROUPS = [
+      ['michel', 'michal', 'michael', 'mike'],
+      ['darrell', 'darrall', 'dee'],
+    ]
+    function nameKey(s) { return (s || '').toLowerCase().replace(/\s+/g, ' ').trim() }
+    function canonicalFirstName(first) {
+      for (var i = 0; i < NAME_ALIAS_GROUPS.length; i++) {
+        if (NAME_ALIAS_GROUPS[i].indexOf(first) !== -1) return NAME_ALIAS_GROUPS[i][0]
+      }
+      return first
+    }
+    function namesMatch(a, b) {
+      var ka = nameKey(a), kb = nameKey(b)
+      if (!ka || !kb) return false
+      if (ka === kb) return true
+      var pa = ka.split(' '), pb = kb.split(' ')
+      if (pa[pa.length - 1] !== pb[pb.length - 1]) return false
+      return canonicalFirstName(pa[0]) === canonicalFirstName(pb[0])
+    }
+
     /* ══ EVENT SCHEDULE ══ */
     function defaultEventState() {
       return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, currentMatchId: null, doorsOpenedAt: null }
@@ -306,7 +333,7 @@
       var session = getSession()
       var mine = allEvents.filter(function (ev) {
         return ev.state.matches.some(function (m) {
-          return session && (m.playerA === session.displayName || m.playerB === session.displayName)
+          return session && (namesMatch(m.playerA, session.displayName) || namesMatch(m.playerB, session.displayName))
         })
       })
       el.innerHTML = ''
@@ -376,14 +403,14 @@
       var session = getSession()
       var matches = selected.state.matches || []
       var mine = (session && session.notifyAll) ? matches : matches.filter(function (m) {
-        return session && (m.playerA === session.displayName || m.playerB === session.displayName)
+        return session && (namesMatch(m.playerA, session.displayName) || namesMatch(m.playerB, session.displayName))
       })
       el.innerHTML = ''
       if (!mine.length) { el.innerHTML = '<p class="empty-note">No matches found for you on the schedule yet.</p>'; return }
       mine.forEach(function (m) {
         var headline = (session && session.notifyAll)
           ? (escapeHtml(m.playerA || 'TBD') + ' vs ' + escapeHtml(m.playerB || 'TBD'))
-          : ('vs ' + escapeHtml(((m.playerA === session.displayName) ? m.playerB : m.playerA) || 'TBD'))
+          : ('vs ' + escapeHtml((namesMatch(m.playerA, session.displayName) ? m.playerB : m.playerA) || 'TBD'))
         var st = statusForMatch(selected.state, m)
         var row = document.createElement('div')
         row.className = 'sched-row'
@@ -454,7 +481,7 @@
       if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
       setAuthMsg('Checking...', '')
 
-      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id,pin,notify_all', { headers: hdrs })
+      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=ilike.' + encodeURIComponent(name) + '&select=id,pin,notify_all', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
           if (!Array.isArray(rows) || !rows.length) {
@@ -486,7 +513,7 @@
       var name = firstName + ' ' + lastName
       setAuthMsg('Creating account...', '')
 
-      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id', { headers: hdrs })
+      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=ilike.' + encodeURIComponent(name) + '&select=id', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
           if (Array.isArray(rows) && rows.length) {

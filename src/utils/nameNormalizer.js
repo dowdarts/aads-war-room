@@ -61,6 +61,7 @@ const FIRST_NAME_ALIASES = {
   'michal': 'mike',
   'michael': 'mike',
   'darrell': 'dee',
+  'darrall': 'dee',
 }
 
 /**

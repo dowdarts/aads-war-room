@@ -19,15 +19,43 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Matthew types schedule names freehand from the CSV, so they don't always
+// match an account's registered display_name exactly — wrong case, or a
+// nickname he's used to ("Darrall Cormier" on the sheet for an account
+// registered as "Dee Cormier"). Match case-insensitively, and treat known
+// first-name aliases as equivalent as long as the last name matches.
+const NAME_ALIAS_GROUPS = [
+  ["michel", "michal", "michael", "mike"],
+  ["darrell", "darrall", "dee"],
+];
+function nameKey(s: string | null | undefined) {
+  return (s ?? "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+function canonicalFirstName(first: string) {
+  for (const group of NAME_ALIAS_GROUPS) if (group.includes(first)) return group[0];
+  return first;
+}
+function namesMatch(a: string, b: string) {
+  const ka = nameKey(a);
+  const kb = nameKey(b);
+  if (!ka || !kb) return false;
+  if (ka === kb) return true;
+  const pa = ka.split(" ");
+  const pb = kb.split(" ");
+  if (pa[pa.length - 1] !== pb[pb.length - 1]) return false;
+  return canonicalFirstName(pa[0]) === canonicalFirstName(pb[0]);
+}
+
 async function subscriptionsForNames(supabase: ReturnType<typeof createClient>, names: string[]) {
   const cleaned = (names ?? []).filter((n) => typeof n === "string" && n.trim() !== "");
   if (!cleaned.length) return [];
-  const { data: accounts, error: accountsError } = await supabase
+  const { data: allAccounts, error: accountsError } = await supabase
     .from("player_portal_accounts")
-    .select("id")
-    .in("display_name", cleaned);
+    .select("id, display_name");
   if (accountsError) throw accountsError;
-  const ids = (accounts ?? []).map((a) => a.id);
+  const ids = (allAccounts ?? [])
+    .filter((a) => cleaned.some((n) => namesMatch(n, a.display_name)))
+    .map((a) => a.id);
   if (!ids.length) return [];
   const { data: subs, error: subsError } = await supabase
     .from("player_portal_push_subscriptions")
