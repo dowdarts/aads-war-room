@@ -37,3 +37,6 @@ jobs:
 
       - name: Deploy send-players-portal-push
         run: supabase functions deploy send-players-portal-push --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Deploy send-scorekeeper-portal-push
+        run: supabase functions deploy send-scorekeeper-portal-push --project-ref "$SUPABASE_PROJECT_REF"
