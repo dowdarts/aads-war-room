@@ -216,9 +216,17 @@
     /* ── Leg history ── */
     .leg-history-item { padding: 8px 0; border-bottom: 1px solid #111; font-size: 0.78rem; }
     .leg-history-item:last-child { border-bottom: none; }
-    .leg-history-title { font-weight: 700; color: #ccc; margin-bottom: 3px; }
+    .leg-history-title { display: flex; align-items: center; justify-content: space-between; font-weight: 700; color: #ccc; margin-bottom: 3px; }
     .leg-history-events { color: #666; font-size: 0.72rem; }
     .leg-history-win { color: #4ade80; font-weight: 700; }
+    .leg-history-actions { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+    .leg-winner-btn {
+      font-size: 0.68rem; font-weight: 700; cursor: pointer; color: #999;
+      background: #171717; border: 1px solid #2a2a2a; border-radius: 6px; padding: 3px 8px;
+    }
+    .leg-winner-btn.active { color: #4ade80; border-color: #166534; background: #052010; }
+    .leg-remove-btn { font-size: 0.68rem; font-weight: 700; cursor: pointer; color: #555; background: none; border: none; margin-left: auto; }
+    .leg-remove-btn:hover { color: #f87171; }
 
     /* ── Winner screen ── */
     .winner-screen-card {
@@ -1072,6 +1080,55 @@ function saveDraftManual() {
   showToast('Draft saved')
 }
 
+// ── Direct leg editing ── lets Denis fix one specific earlier leg (the
+// wrong side tapped, a duplicate/phantom leg, a bad event) without
+// undoing and re-entering every leg after it. Works the same whether
+// the match is still in progress or was reopened via editCompletedMatch
+// — scoreA/scoreB are always recomputed from the full legs[] array
+// rather than incrementally adjusted, so they can't drift out of sync.
+function recalcScoresFromLegs() {
+  scoreA = legs.filter(l => l.winner === 'A').length
+  scoreB = legs.filter(l => l.winner === 'B').length
+}
+
+function setLegWinner(legNumber, side) {
+  const leg = legs.find(l => l.legNumber === legNumber)
+  if (!leg || leg.winner === side) return
+  leg.winner = side
+  recalcScoresFromLegs()
+  matchComplete = false
+  matchWinner = null
+  resetLegWinnerPick()
+  renderScoreAndLeg()
+  renderHistory()
+  saveActiveMatchDraft()
+}
+
+function removeLegByNumber(legNumber) {
+  const idx = legs.findIndex(l => l.legNumber === legNumber)
+  if (idx === -1) return
+  if (!confirm(`Remove Leg ${legNumber}? This cannot be undone.`)) return
+  legs.splice(idx, 1)
+  legs.forEach((l, i) => {
+    l.legNumber = i + 1
+    l.events = l.events.map(e => ({ ...e, legNumber: i + 1 }))
+  })
+  recalcScoresFromLegs()
+  matchComplete = false
+  matchWinner = null
+  renderScoreAndLeg()
+  renderHistory()
+  saveActiveMatchDraft()
+}
+
+function removeHistoricalEvent(legNumber, eventIdx) {
+  const leg = legs.find(l => l.legNumber === legNumber)
+  if (!leg) return
+  leg.events.splice(eventIdx, 1)
+  renderHistory()
+  saveActiveMatchDraft()
+}
+
 function renderHistory() {
   const card = document.getElementById('historyCard')
   if (!legs.length) { card.classList.add('hidden'); return }
@@ -1080,11 +1137,23 @@ function renderHistory() {
   const pA = getPlayerById(m.playerA)
   const pB = getPlayerById(m.playerB)
   document.getElementById('historyBody').innerHTML = legs.map(leg => {
-    const winName = leg.winner === 'A' ? pA.name : pB.name
-    const evStr = leg.events.length ? leg.events.map(e => `${e.playerName}: ${e.action}`).join(' · ') : 'No events logged'
+    const eventsHtml = leg.events.length
+      ? leg.events.map((e, i) => `
+          <div class="event-log-entry">
+            <span>${e.playerName}: ${e.action}</span>
+            <button type="button" class="event-del" onclick="removeHistoricalEvent(${leg.legNumber}, ${i})">✕</button>
+          </div>`).join('')
+      : '<div class="leg-history-events">No events logged</div>'
     return `<div class="leg-history-item">
-      <div class="leg-history-title">Leg ${leg.legNumber} — <span class="leg-history-win">${winName} ✓</span></div>
-      <div class="leg-history-events">${evStr}</div>
+      <div class="leg-history-title">
+        Leg ${leg.legNumber}
+        <button type="button" class="leg-remove-btn" onclick="removeLegByNumber(${leg.legNumber})">✕ Remove Leg</button>
+      </div>
+      <div class="leg-history-actions">
+        <button type="button" class="leg-winner-btn${leg.winner === 'A' ? ' active' : ''}" onclick="setLegWinner(${leg.legNumber}, 'A')">${pA.name}${leg.winner === 'A' ? ' ✓' : ''}</button>
+        <button type="button" class="leg-winner-btn${leg.winner === 'B' ? ' active' : ''}" onclick="setLegWinner(${leg.legNumber}, 'B')">${pB.name}${leg.winner === 'B' ? ' ✓' : ''}</button>
+      </div>
+      ${eventsHtml}
     </div>`
   }).join('')
 }
