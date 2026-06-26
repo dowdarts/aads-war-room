@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="score-keepers-portal.webmanifest" />
+  <link rel="icon" href="AADS-ScoreKeeperPortal-Logo.png" />
+  <link rel="apple-touch-icon" href="AADS-ScoreKeeperPortal-Logo.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AADS Score Keepers Portal</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --green: #2da85a;
+      --green-2: #5dd88a;
+      --danger-text: #ffb3b3;
+    }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .hidden { display: none !important; }
+
+    .hero {
+      background: linear-gradient(180deg, #0e0805 0%, #050505 100%);
+      border-bottom: 1px solid #1a1a1a;
+      padding: 24px 24px 20px;
+      text-align: center;
+    }
+    .hero-logo { width: 320px; max-width: 100%; height: auto; margin-bottom: 12px; }
+    .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .hero-title { font-size: clamp(26px, 4vw, 40px); font-weight: 900; letter-spacing: -0.03em; }
+    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    .page { max-width: 440px; margin: 40px auto; padding: 0 20px 60px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 26px; }
+    .card + .card { margin-top: 16px; }
+    .card h2 { font-size: 18px; margin-bottom: 8px; }
+    .card p.sub { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 18px; }
+
+    label { display: block; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 6px; }
+    select, input[type="password"], input[type="text"] {
+      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--panel-2); color: var(--text); font-size: 15px; margin-bottom: 16px;
+    }
+    select:focus, input:focus { outline: none; border-color: var(--accent); }
+
+    .btn {
+      display: block; width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--line);
+      background: var(--panel-2); color: var(--text); font-size: 15px; font-weight: 800; cursor: pointer; transition: 0.15s;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn-primary { background: linear-gradient(180deg, #d96a00, var(--accent)); border-color: var(--accent); color: #1a0d00; }
+    .btn-primary:hover { border-color: var(--accent-2); }
+    .btn + .btn { margin-top: 10px; }
+    .link-btn { background: none; border: none; color: var(--muted); font-size: 12px; text-decoration: underline; cursor: pointer; display: block; margin: 14px auto 0; }
+    .link-btn:hover { color: var(--text); }
+
+    .msg { font-size: 13px; margin-bottom: 14px; min-height: 1em; }
+    .msg.error { color: var(--danger-text); }
+    .msg.ok { color: var(--green-2); }
+    .hint { font-size: 11px; color: var(--muted); margin-top: -8px; margin-bottom: 16px; }
+
+    .status-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .status-name { font-size: 20px; font-weight: 900; }
+    .status-sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+    .badge { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 10px; border-radius: 8px; }
+    .badge-on { color: #8cffb0; background: rgba(45,168,90,0.15); border: 1px solid rgba(45,168,90,0.4); }
+    .badge-off { color: var(--danger-text); background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.35); }
+
+    .tab-bar { display: flex; gap: 10px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 2px; }
+    .tab-btn {
+      flex: 0 0 auto; padding: 14px 18px; border-radius: 12px; border: 1px solid var(--line);
+      background: var(--panel-2); color: var(--text); font-size: 15px; font-weight: 800; cursor: pointer;
+      white-space: nowrap; transition: 0.15s;
+    }
+    .tab-btn:hover { border-color: var(--accent); }
+    .tab-btn.active { background: linear-gradient(180deg, #d96a00, var(--accent)); border-color: var(--accent); color: #1a0d00; }
+    .tab-panel.hidden { display: none; }
+    .empty-note { color: var(--muted); font-size: 13px; }
+
+    .sched-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .sched-row:last-child { border-bottom: none; }
+    .sched-row.up-next { background: rgba(255,122,0,0.08); border-radius: 10px; padding: 12px 10px; border-bottom: none; }
+    .sched-row.complete .sched-headline { opacity: 0.45; text-decoration: line-through; }
+    .sched-info { min-width: 0; }
+    .sched-headline { font-weight: 800; font-size: 14px; }
+    .sched-sub, .sched-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    .up-next-badge, .status-pill { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+    .up-next-badge, .status-next { color: var(--accent); background: rgba(255,122,0,0.15); border: 1px solid rgba(255,122,0,0.4); }
+    .status-live { color: #8cffb0; background: rgba(45,168,90,0.15); border: 1px solid rgba(45,168,90,0.4); }
+    .status-wait { color: var(--danger-text); background: rgba(180,30,30,0.15); border: 1px solid rgba(220,60,60,0.35); }
+    .status-done, .status-scheduled, .status-standby { color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); }
+
+    .launcher-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img class="hero-logo" src="AADS-ScoreKeeperPortal-Logo.png" alt="AADS Score Keepers Portal" />
+    <div class="hero-eyebrow">AADS Live Event</div>
+    <h1 class="hero-title">Score Keepers <em>Portal</em></h1>
+  </div>
+
+  <div class="page">
+
+    <div id="authView" class="card hidden">
+      <h2 id="authHeading">Sign In</h2>
+      <p class="sub" id="authSub">Enter your name and 4-digit code to sign in.</p>
+      <p id="authMsg" class="msg"></p>
+
+      <div id="signinFields">
+        <label for="signinName">Your Name</label>
+        <input type="text" id="signinName" placeholder="First Last" />
+        <label for="signinPin">4-Digit Code</label>
+        <input type="password" id="signinPin" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" />
+        <button type="button" class="btn btn-primary" id="signInBtn">Sign In</button>
+        <button type="button" class="link-btn" id="showCreateBtn">Don't have an account? Create one</button>
+      </div>
+
+      <div id="createFields" class="hidden">
+        <label for="createFirstName">First Name</label>
+        <input type="text" id="createFirstName" placeholder="First name" />
+        <label for="createLastName">Last Name</label>
+        <input type="text" id="createLastName" placeholder="Last name" />
+        <label for="createPin">Choose a 4-Digit Code</label>
+        <input type="password" id="createPin" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" />
+        <button type="button" class="btn btn-primary" id="createAccountBtn">Create Account</button>
+        <button type="button" class="link-btn" id="showSigninBtn">Already have an account? Sign in</button>
+      </div>
+    </div>
+
+    <div id="notifyView" class="card hidden">
+      <h2>Enable Notifications</h2>
+      <p class="sub" id="notifyWelcome"></p>
+      <p class="sub">Turn on notifications so you get alerted when the schedule changes and the moment your match is live.</p>
+      <button type="button" class="btn btn-primary" id="enableNotifyBtn">🔔 Enable Notifications</button>
+      <button type="button" class="link-btn" id="skipNotifyBtn">Skip for now</button>
+    </div>
+
+    <div id="statusView" class="hidden">
+      <div class="card">
+        <div class="status-row">
+          <span class="status-name" id="statusName"></span>
+          <span class="badge" id="statusBadge"></span>
+        </div>
+        <p class="status-sub">You'll get a notification when the schedule is updated and when your match goes live.</p>
+        <button type="button" class="btn hidden" id="enableNotifyBtn2">🔔 Enable Notifications</button>
+        <button type="button" class="btn hidden" id="installBtn">📲 Add to Home Screen</button>
+        <button type="button" class="btn" id="signOutBtn">Sign Out</button>
+      </div>
+
+      <div class="card">
+        <div class="tab-bar">
+          <button type="button" class="tab-btn active" data-tab="mine">My Shifts</button>
+          <button type="button" class="tab-btn" data-tab="full">Full Schedule</button>
+        </div>
+        <div id="myShiftsTab" class="tab-panel"></div>
+        <div id="fullScheduleTab" class="tab-panel hidden"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /* ══ CONSTANTS ══ */
+    var SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    var hdrs = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    var VAPID_PUBLIC_KEY = 'BPIESfNBbD2RClDErwjAvB0j-PVya6bFBves1iLElnl17vmvuF3V1PymOPgAHt7KD0tE3gV944mWZeKrztR1_38'
+    var SESSION_KEY = 'aads_scorekeeper_session'
+    var POLL_MS = 4000
+
+    /* ══ STATE ══
+       Single current event only — no picker. We always read/poll the
+       first row of the `events` table (order by created_at asc, limit 1)
+       and pull scorekeeperShifts out of its state, same JSON blob
+       cue-light.html writes matches/light/etc into. */
+    var eventState = null
+    var lastServerJSON = ''
+    var pollTimer = null
+    var activeTab = 'mine'
+
+    /* ══ SESSION ══ */
+    function getSession() {
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null') } catch (e) { return null }
+    }
+    function saveSession(session) { localStorage.setItem(SESSION_KEY, JSON.stringify(session)) }
+    function clearSession() { localStorage.removeItem(SESSION_KEY) }
+
+    /* ══ EVENT / SHIFT SCHEDULE ══ */
+    function defaultEventState() {
+      return { light: 'off', matches: [], scorekeeperShifts: [], currentMatchId: null }
+    }
+
+    function parseEventStateField(value) {
+      if (!value) return defaultEventState()
+      try {
+        var parsed = typeof value === 'string' ? JSON.parse(value) : value
+        return Object.assign(defaultEventState(), parsed)
+      } catch (e) { return defaultEventState() }
+    }
+
+    function loadEventState() {
+      return fetch(SUPABASE_URL + '/rest/v1/events?select=state&order=created_at.asc&limit=1', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (!Array.isArray(rows) || !rows.length) return defaultEventState()
+          return parseEventStateField(rows[0].state)
+        })
+        .catch(function () { return defaultEventState() })
+    }
+
+    function escapeHtml(s) {
+      return (s || '').replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      })
+    }
+
+    /* ══ POLLING ══ */
+    function startPolling() {
+      if (pollTimer) return
+      pollTimer = setInterval(pollTick, POLL_MS)
+    }
+    function stopPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null }
+    }
+    function pollTick() {
+      loadEventState().then(function (fresh) {
+        var freshJSON = JSON.stringify(fresh)
+        if (freshJSON === lastServerJSON) return
+        lastServerJSON = freshJSON
+        eventState = fresh
+        renderActiveTab()
+      })
+    }
+
+    /* ══ SHIFT STATUS ══
+       Mirrors players-portal.html's statusForMatch — a shift tied to a
+       specific match (shift.match non-blank) inherits that match's
+       live/next/done state from cue-light's own matches[]/currentMatchId.
+       Shifts with no match (general standby/backup rows) just show as
+       Standby; there's nothing in the live match progression to compare
+       them against. */
+    function statusForShift(shift) {
+      if (!shift.match) return { label: 'Standby', cls: 'status-standby' }
+      var matches = eventState.matches || []
+      var m = matches.find(function (x) {
+        return (x.match || '').trim().toLowerCase() === shift.match.trim().toLowerCase()
+      })
+      if (!m) return { label: 'Scheduled', cls: 'status-scheduled' }
+      var nextIdx = matches.findIndex(function (x) { return !x.complete })
+      var idx = matches.indexOf(m)
+      var isCurrent = eventState.currentMatchId === m.id
+      if (isCurrent && eventState.light === 'start') return { label: 'Live Now', cls: 'status-live' }
+      if (isCurrent && eventState.light === 'wait') return { label: 'Waiting', cls: 'status-wait' }
+      if (idx === nextIdx && !m.complete) return { label: 'Up Next', cls: 'status-next' }
+      if (m.complete) return { label: 'Done', cls: 'status-done' }
+      return { label: 'Scheduled', cls: 'status-scheduled' }
+    }
+
+    function renderShiftRow(shift) {
+      var st = statusForShift(shift)
+      var row = document.createElement('div')
+      row.className = 'sched-row' + (st.label === 'Up Next' ? ' up-next' : '')
+      var subParts = []
+      if (shift.time) subParts.push(escapeHtml(shift.time))
+      if (shift.role) subParts.push(escapeHtml(shift.role))
+      var metaParts = []
+      if (shift.match) metaParts.push(escapeHtml(shift.match))
+      if (shift.notes) metaParts.push(escapeHtml(shift.notes))
+      row.innerHTML =
+        '<div class="sched-info">' +
+          '<div class="sched-headline">' + escapeHtml(shift.name || '') + '</div>' +
+          (subParts.length ? '<div class="sched-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
+          (metaParts.length ? '<div class="sched-meta">' + metaParts.join(' &middot; ') + '</div>' : '') +
+        '</div>' +
+        '<span class="status-pill ' + st.cls + '">' + st.label + '</span>'
+      return row
+    }
+
+    function sortedShifts(shifts) {
+      return shifts.slice().sort(function (a, b) {
+        return (a.time || '').localeCompare(b.time || '')
+      })
+    }
+
+    /* ══ TABS ══ */
+    function setActiveTab(tab) {
+      activeTab = tab
+      document.querySelectorAll('.tab-btn').forEach(function (b) {
+        b.classList.toggle('active', b.getAttribute('data-tab') === tab)
+      })
+      document.getElementById('myShiftsTab').classList.toggle('hidden', tab !== 'mine')
+      document.getElementById('fullScheduleTab').classList.toggle('hidden', tab !== 'full')
+      renderActiveTab()
+    }
+
+    function renderActiveTab() {
+      if (!eventState) return
+      if (activeTab === 'mine') renderMyShifts()
+      else renderFullSchedule()
+    }
+
+    function renderMyShifts() {
+      var el = document.getElementById('myShiftsTab')
+      var session = getSession()
+      var shifts = (eventState.scorekeeperShifts || []).filter(function (s) {
+        return session && s.name === session.displayName
+      })
+      el.innerHTML = ''
+      if (!shifts.length) { el.innerHTML = '<p class="empty-note">No shifts found for you on the schedule yet.</p>'; return }
+      sortedShifts(shifts).forEach(function (s) { el.appendChild(renderShiftRow(s)) })
+    }
+
+    function renderFullSchedule() {
+      var el = document.getElementById('fullScheduleTab')
+      var shifts = eventState.scorekeeperShifts || []
+      el.innerHTML = ''
+      if (!shifts.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
+      sortedShifts(shifts).forEach(function (s) { el.appendChild(renderShiftRow(s)) })
+    }
+
+    /* ══ VIEW SWITCHING ══ */
+    function showOnly(id) {
+      ['authView', 'notifyView', 'statusView'].forEach(function (v) {
+        document.getElementById(v).classList.toggle('hidden', v !== id)
+      })
+    }
+
+    function setAuthMsg(text, kind) {
+      var el = document.getElementById('authMsg')
+      el.textContent = text || ''
+      el.className = 'msg' + (kind ? ' ' + kind : '')
+    }
+
+    /* ══ AUTH ══ */
+    var authMode = 'signin'
+
+    function setAuthMode(mode) {
+      authMode = mode
+      document.getElementById('signinFields').classList.toggle('hidden', mode !== 'signin')
+      document.getElementById('createFields').classList.toggle('hidden', mode !== 'create')
+      document.getElementById('authHeading').textContent = mode === 'signin' ? 'Sign In' : 'Create Account'
+      document.getElementById('authSub').textContent = mode === 'signin'
+        ? 'Enter your name and 4-digit code to sign in.'
+        : 'Type your name and pick any 4-digit code — that becomes your sign-in code from now on.'
+      setAuthMsg('', '')
+    }
+
+    function signIn() {
+      var name = document.getElementById('signinName').value.trim()
+      var pin = document.getElementById('signinPin').value.trim()
+      if (!name) { setAuthMsg('Please enter your name.', 'error'); return }
+      if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
+      setAuthMsg('Checking...', '')
+
+      fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id,pin', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (!Array.isArray(rows) || !rows.length) {
+            setAuthMsg('No account found for that name. Create one below.', 'error')
+            return
+          }
+          var account = rows[0]
+          if (account.pin !== pin) { setAuthMsg('That code is incorrect for ' + name + '.', 'error'); return }
+          saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+          fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_accounts?id=eq.' + account.id, {
+            method: 'PATCH',
+            headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+            body: JSON.stringify({ last_seen_at: new Date().toISOString() })
+          }).catch(function () {})
+          afterAuth()
+        })
+        .catch(function (e) {
+          console.error('Sign in failed', e)
+          setAuthMsg('Something went wrong. Please try again.', 'error')
+        })
+    }
+
+    function createAccount() {
+      var firstName = document.getElementById('createFirstName').value.trim()
+      var lastName = document.getElementById('createLastName').value.trim()
+      var pin = document.getElementById('createPin').value.trim()
+      if (!firstName || !lastName) { setAuthMsg('Please enter your first and last name.', 'error'); return }
+      if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
+      var name = firstName + ' ' + lastName
+      setAuthMsg('Creating account...', '')
+
+      fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (Array.isArray(rows) && rows.length) {
+            setAuthMsg('An account with that name already exists. Sign in instead.', 'error')
+            return
+          }
+          return fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_accounts', {
+            method: 'POST',
+            headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+            body: JSON.stringify({ display_name: name, pin: pin })
+          }).then(function (res) {
+            if (!res.ok) return res.text().then(function (body) { throw new Error(body) })
+            return res.json()
+          }).then(function (created) {
+            var account = created[0]
+            saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+            afterAuth()
+          })
+        })
+        .catch(function (e) {
+          console.error('Create account failed', e)
+          setAuthMsg('Something went wrong. Please try again.', 'error')
+        })
+    }
+
+    function afterAuth() {
+      setAuthMsg('', '')
+      if (('Notification' in window) && Notification.permission === 'granted') {
+        subscribeToPush().then(showStatusView)
+      } else {
+        showNotifyView()
+      }
+    }
+
+    function signOut() {
+      stopPolling()
+      clearSession()
+      document.getElementById('signinName').value = ''
+      document.getElementById('signinPin').value = ''
+      document.getElementById('createFirstName').value = ''
+      document.getElementById('createLastName').value = ''
+      document.getElementById('createPin').value = ''
+      setAuthMode('signin')
+      showOnly('authView')
+    }
+
+    /* ══ NOTIFICATIONS ══ */
+    function isIOSDevice() {
+      return /iP(hone|od|ad)/.test(navigator.platform) ||
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+    }
+    function isStandalone() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
+    }
+
+    function registerPortalSW() {
+      if (!('serviceWorker' in navigator)) return Promise.resolve(null)
+      return navigator.serviceWorker.register('score-keepers-portal-sw.js', { scope: '/score-keepers-portal.html' }).catch(function () { return null })
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+      var padding = '='.repeat((4 - base64String.length % 4) % 4)
+      var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+      var rawData = window.atob(base64)
+      var outputArray = new Uint8Array(rawData.length)
+      for (var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i)
+      return outputArray
+    }
+
+    function saveSubscription(sub) {
+      var session = getSession()
+      var json = sub.toJSON()
+      return fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_push_subscriptions?on_conflict=endpoint', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify({ scorekeeper_id: session.id, endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth })
+      }).then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (body) {
+            throw new Error('Save subscription failed (' + res.status + '): ' + body)
+          })
+        }
+      })
+    }
+
+    function subscribeToPush() {
+      return registerPortalSW().then(function (registration) {
+        if (!registration || !registration.pushManager) {
+          throw new Error('Push is not supported in this browser/mode.')
+        }
+        return registration.pushManager.getSubscription().then(function (existing) {
+          return existing || registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+          })
+        })
+      }).then(function (sub) {
+        if (sub) return saveSubscription(sub)
+      }).catch(function (e) {
+        console.error('Push subscribe failed', e)
+        alert('Push setup failed: ' + (e && e.message ? e.message : e))
+      })
+    }
+
+    function enableNotify() {
+      if (!('Notification' in window)) { alert('Notifications are not supported in this browser.'); return }
+      if (isIOSDevice() && !isStandalone()) {
+        alert('On iPhone, notifications only work once this page is added to the Home Screen — tap 📲 Add to Home Screen first, then open it from that icon and try again.')
+        return
+      }
+      Notification.requestPermission().then(function (perm) {
+        if (perm === 'granted') {
+          subscribeToPush().then(showStatusView)
+        } else {
+          alert('Notifications were not enabled.')
+        }
+      })
+    }
+
+    /* ══ INSTALL ══ */
+    var deferredInstallPrompt = null
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault()
+      deferredInstallPrompt = e
+      document.getElementById('installBtn').classList.remove('hidden')
+    })
+
+    function installApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt()
+        deferredInstallPrompt = null
+        return
+      }
+      if (isIOSDevice()) {
+        alert('Tap the Share icon, then choose "Add to Home Screen".')
+      } else {
+        alert('Use your browser menu and choose "Add to Home Screen" or "Install app".')
+      }
+    }
+
+    /* ══ VIEWS ══ */
+    function showNotifyView() {
+      var session = getSession()
+      document.getElementById('notifyWelcome').textContent = 'Signed in as ' + session.displayName + '.'
+      showOnly('notifyView')
+    }
+
+    function showStatusView() {
+      var session = getSession()
+      document.getElementById('statusName').textContent = session.displayName
+      var granted = ('Notification' in window) && Notification.permission === 'granted'
+      var badge = document.getElementById('statusBadge')
+      badge.textContent = granted ? 'Alerts On' : 'Alerts Off'
+      badge.className = 'badge ' + (granted ? 'badge-on' : 'badge-off')
+      document.getElementById('enableNotifyBtn2').classList.toggle('hidden', granted)
+      if (!isStandalone()) document.getElementById('installBtn').classList.remove('hidden')
+      showOnly('statusView')
+      setActiveTab('mine')
+      startPolling()
+    }
+
+    /* ══ INIT ══ */
+    function wireButtons() {
+      document.getElementById('signInBtn').addEventListener('click', signIn)
+      document.getElementById('signinPin').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') signIn()
+      })
+      document.getElementById('createAccountBtn').addEventListener('click', createAccount)
+      document.getElementById('createPin').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') createAccount()
+      })
+      document.getElementById('showCreateBtn').addEventListener('click', function () { setAuthMode('create') })
+      document.getElementById('showSigninBtn').addEventListener('click', function () { setAuthMode('signin') })
+      document.getElementById('enableNotifyBtn').addEventListener('click', enableNotify)
+      document.getElementById('enableNotifyBtn2').addEventListener('click', enableNotify)
+      document.getElementById('skipNotifyBtn').addEventListener('click', showStatusView)
+      document.getElementById('signOutBtn').addEventListener('click', signOut)
+      document.getElementById('installBtn').addEventListener('click', installApp)
+      document.querySelectorAll('.tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () { setActiveTab(btn.getAttribute('data-tab')) })
+      })
+    }
+
+    function init() {
+      wireButtons()
+      loadEventState().then(function (fresh) {
+        eventState = fresh
+        lastServerJSON = JSON.stringify(eventState)
+        var session = getSession()
+        if (session) {
+          afterAuth()
+        } else {
+          setAuthMode('signin')
+          showOnly('authView')
+        }
+      })
+    }
+
+    init()
+  </script>
+</body>
+</html>

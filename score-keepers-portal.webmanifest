@@ -1,0 +1,11 @@
+{
+  "name": "AADS Score Keepers Portal",
+  "short_name": "Score Keepers",
+  "start_url": "score-keepers-portal.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "AADS-ScoreKeeperPortal-Logo.png", "sizes": "any", "type": "image/png" }
+  ]
+}
