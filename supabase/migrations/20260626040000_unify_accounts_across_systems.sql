@@ -5,6 +5,13 @@
 -- this only means the *account* exists everywhere, not that it can do
 -- anything in the Staff dashboard by default (see the tool_permissions
 -- default revert below).
+--
+-- All "does this person already have an account here" checks are
+-- case-insensitive (lower(trim(...))), not just ON CONFLICT on the exact
+-- string — production already has a few case-variant rows for the same
+-- person (e.g. "matthew dow" vs "Matthew Dow" in different tables), and a
+-- naive exact-match conflict check would create yet another duplicate
+-- instead of recognizing the account already exists.
 
 -- staff_accounts.name had no DB-level uniqueness before now (only an
 -- app-level check) — needed as the ON CONFLICT target below.
@@ -24,7 +31,9 @@ BEGIN
   END IF;
   acct_pin := NEW.pin;
 
-  IF TG_TABLE_NAME != 'staff_accounts' THEN
+  IF TG_TABLE_NAME != 'staff_accounts' AND NOT EXISTS (
+    SELECT 1 FROM public.staff_accounts WHERE lower(trim(name)) = lower(trim(acct_name))
+  ) THEN
     SELECT data_type INTO tp_type FROM information_schema.columns
       WHERE table_schema = 'public' AND table_name = 'staff_accounts' AND column_name = 'tool_permissions';
     IF tp_type = 'jsonb' THEN
@@ -38,13 +47,17 @@ BEGIN
     END IF;
   END IF;
 
-  IF TG_TABLE_NAME != 'player_portal_accounts' THEN
+  IF TG_TABLE_NAME != 'player_portal_accounts' AND NOT EXISTS (
+    SELECT 1 FROM public.player_portal_accounts WHERE lower(trim(display_name)) = lower(trim(acct_name))
+  ) THEN
     INSERT INTO public.player_portal_accounts (display_name, pin)
     VALUES (acct_name, acct_pin)
     ON CONFLICT (display_name) DO NOTHING;
   END IF;
 
-  IF TG_TABLE_NAME != 'scorekeeper_portal_accounts' THEN
+  IF TG_TABLE_NAME != 'scorekeeper_portal_accounts' AND NOT EXISTS (
+    SELECT 1 FROM public.scorekeeper_portal_accounts WHERE lower(trim(display_name)) = lower(trim(acct_name))
+  ) THEN
     INSERT INTO public.scorekeeper_portal_accounts (display_name, pin)
     VALUES (acct_name, acct_pin)
     ON CONFLICT (display_name) DO NOTHING;
@@ -117,7 +130,12 @@ CREATE TRIGGER trg_scorekeeper_account_sync_pin
   EXECUTE FUNCTION public.sync_account_pin_update();
 
 -- Backfill: every existing account in any one table gets matching
--- sibling rows created now too, not just from this point forward.
+-- sibling rows created now too, not just from this point forward. Each
+-- insert is guarded by the same case-insensitive existence check as the
+-- trigger above, so a pre-existing case-variant row (e.g. "matthew dow"
+-- already in player_portal_accounts) is recognized as already covering
+-- that person instead of getting a second, differently-cased row created
+-- alongside it.
 DO $$
 DECLARE
   r record;
@@ -127,30 +145,42 @@ BEGIN
     WHERE table_schema = 'public' AND table_name = 'staff_accounts' AND column_name = 'tool_permissions';
 
   FOR r IN SELECT name AS acct_name, pin AS acct_pin FROM public.staff_accounts LOOP
-    INSERT INTO public.player_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
-    INSERT INTO public.scorekeeper_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
+    IF NOT EXISTS (SELECT 1 FROM public.player_portal_accounts WHERE lower(trim(display_name)) = lower(trim(r.acct_name))) THEN
+      INSERT INTO public.player_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM public.scorekeeper_portal_accounts WHERE lower(trim(display_name)) = lower(trim(r.acct_name))) THEN
+      INSERT INTO public.scorekeeper_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
+    END IF;
   END LOOP;
 
   FOR r IN SELECT display_name AS acct_name, pin AS acct_pin FROM public.player_portal_accounts LOOP
-    IF tp_type = 'jsonb' THEN
-      INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
-        VALUES (r.acct_name, r.acct_pin, false, true, '[]'::jsonb) ON CONFLICT (name) DO NOTHING;
-    ELSE
-      INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
-        VALUES (r.acct_name, r.acct_pin, false, true, ARRAY[]::text[]) ON CONFLICT (name) DO NOTHING;
+    IF NOT EXISTS (SELECT 1 FROM public.staff_accounts WHERE lower(trim(name)) = lower(trim(r.acct_name))) THEN
+      IF tp_type = 'jsonb' THEN
+        INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
+          VALUES (r.acct_name, r.acct_pin, false, true, '[]'::jsonb) ON CONFLICT (name) DO NOTHING;
+      ELSE
+        INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
+          VALUES (r.acct_name, r.acct_pin, false, true, ARRAY[]::text[]) ON CONFLICT (name) DO NOTHING;
+      END IF;
     END IF;
-    INSERT INTO public.scorekeeper_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
+    IF NOT EXISTS (SELECT 1 FROM public.scorekeeper_portal_accounts WHERE lower(trim(display_name)) = lower(trim(r.acct_name))) THEN
+      INSERT INTO public.scorekeeper_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
+    END IF;
   END LOOP;
 
   FOR r IN SELECT display_name AS acct_name, pin AS acct_pin FROM public.scorekeeper_portal_accounts LOOP
-    IF tp_type = 'jsonb' THEN
-      INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
-        VALUES (r.acct_name, r.acct_pin, false, true, '[]'::jsonb) ON CONFLICT (name) DO NOTHING;
-    ELSE
-      INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
-        VALUES (r.acct_name, r.acct_pin, false, true, ARRAY[]::text[]) ON CONFLICT (name) DO NOTHING;
+    IF NOT EXISTS (SELECT 1 FROM public.staff_accounts WHERE lower(trim(name)) = lower(trim(r.acct_name))) THEN
+      IF tp_type = 'jsonb' THEN
+        INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
+          VALUES (r.acct_name, r.acct_pin, false, true, '[]'::jsonb) ON CONFLICT (name) DO NOTHING;
+      ELSE
+        INSERT INTO public.staff_accounts (name, pin, is_master, is_active, tool_permissions)
+          VALUES (r.acct_name, r.acct_pin, false, true, ARRAY[]::text[]) ON CONFLICT (name) DO NOTHING;
+      END IF;
     END IF;
-    INSERT INTO public.player_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
+    IF NOT EXISTS (SELECT 1 FROM public.player_portal_accounts WHERE lower(trim(display_name)) = lower(trim(r.acct_name))) THEN
+      INSERT INTO public.player_portal_accounts (display_name, pin) VALUES (r.acct_name, r.acct_pin) ON CONFLICT (display_name) DO NOTHING;
+    END IF;
   END LOOP;
 END $$;
 
