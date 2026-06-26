@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Portal — Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #050505;
+      color: #e8e8e8;
+      min-height: 100dvh;
+      line-height: 1.55;
+      padding-bottom: 60px;
+    }
+    .hero {
+      background: #0a0a0a;
+      border-bottom: 1px solid #1a1a1a;
+      padding: 22px 20px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .hero-title { font-size: 1.2rem; font-weight: 800; color: #fff; }
+    .hero-sub { font-size: 0.78rem; color: #666; margin-top: 4px; }
+
+    .container { max-width: 640px; margin: 0 auto; padding: 18px 16px; display: flex; flex-direction: column; gap: 18px; }
+
+    .toc {
+      background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 16px 18px;
+    }
+    .toc-title { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #ea580c; margin-bottom: 10px; }
+    .toc a { display: block; color: #ccc; font-size: 0.88rem; text-decoration: none; padding: 5px 0; }
+    .toc a:hover { color: #ea580c; }
+
+    .section { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 14px; padding: 18px; scroll-margin-top: 80px; }
+    .section h2 { font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 6px; }
+    .section h2 .num { color: #ea580c; margin-right: 6px; }
+    .section .lede { font-size: 0.85rem; color: #888; margin-bottom: 14px; }
+    .section h3 { font-size: 0.9rem; font-weight: 700; color: #f97316; margin: 16px 0 6px; }
+    .section h3:first-of-type { margin-top: 6px; }
+    .section p { font-size: 0.88rem; color: #ccc; margin-bottom: 8px; }
+    .section ul, .section ol { margin: 0 0 8px 0; padding-left: 22px; }
+    .section li { font-size: 0.88rem; color: #ccc; margin-bottom: 6px; }
+    .section li strong { color: #fff; }
+
+    .tip {
+      background: #0d1410; border: 1px solid #1d3322; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #8fd9a8;
+    }
+    .tip b { color: #4ade80; }
+    .warn {
+      background: #1a1200; border: 1px solid #713f12; border-radius: 10px; padding: 10px 14px; margin: 10px 0;
+      font-size: 0.84rem; color: #fbbf24;
+    }
+    .warn b { color: #fcd34d; }
+
+    code { background: #1a1a1a; border-radius: 5px; padding: 2px 6px; color: #f97316; font-family: inherit; font-size: 0.85em; }
+
+    .action-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .action-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .action-table td { padding: 8px 8px; border-bottom: 1px solid #161616; color: #ccc; vertical-align: top; }
+    .action-table td:first-child { font-weight: 700; color: #fff; white-space: nowrap; }
+
+    .format-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.82rem; }
+    .format-table th { text-align: left; color: #666; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 6px 8px; border-bottom: 1px solid #222; }
+    .format-table td { padding: 7px 8px; border-bottom: 1px solid #161616; color: #ccc; }
+
+    .badge { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; background: #1a1a1a; color: #888; }
+    .footer-note { text-align: center; font-size: 0.76rem; color: #444; padding: 10px 0 30px; }
+    .note { font-size: 0.78rem; color: #555; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <div class="hero-title">🛠️ Staff Portal — Guide</div>
+    <div class="hero-sub">Creating your account and using the staff dashboard</div>
+  </div>
+
+  <div class="container">
+
+    <div class="toc">
+      <div class="toc-title">Jump to</div>
+      <a href="#overview">Overview</a>
+      <a href="#screen1">1. Creating Your Account</a>
+      <a href="#screen2">2. Signing In</a>
+      <a href="#screen3">3. The Staff Dashboard</a>
+      <a href="#screen4">4. Staff Chat</a>
+      <a href="#screen5">5. Add to Home Screen</a>
+      <a href="#tips">Tips &amp; Troubleshooting</a>
+      <a href="#cheatsheet">Tools Cheat Sheet</a>
+    </div>
+
+    <div class="section" id="overview">
+      <h2><span class="num">●</span>Overview</h2>
+      <p>The Staff Portal is the front door for everything you do at AADS — it's where you sign in and land on a personal dashboard of tools, based on whatever Matthew has assigned you. There are two pages involved:</p>
+      <ol>
+        <li><strong>Create Staff Account</strong> — a one-time sign-up where you pick a name and a private code.</li>
+        <li><strong>Staff Login / Dashboard</strong> — where you sign in every time after that, and where your assigned tools live.</li>
+      </ol>
+      <p>You only go through the account creation step once. After that, you'll always come straight back to the Sign In screen.</p>
+    </div>
+
+    <div class="section" id="screen1">
+      <h2><span class="num">1.</span>Creating Your Account</h2>
+      <p class="lede">This is the "Create Staff Account" page — use it the first time only.</p>
+
+      <p>Fill in four fields, in order:</p>
+      <ul>
+        <li><strong>First Name</strong> and <strong>Last Name</strong> — entered as separate fields, then combined into one name behind the scenes (e.g. "Jane" + "Doe" becomes "Jane Doe"). This is what staff and Matthew will see for you everywhere — in the dashboard header, activity logs, and Staff Chat.</li>
+        <li><strong>Choose a 4-Digit Code</strong> and <strong>Confirm 4-Digit Code</strong> — this is your sign-in code. It must be <strong>exactly 4 digits</strong>; the field will technically let you type up to 6 characters, but only an exact 4-digit code passes validation, so stick to 4 digits.</li>
+      </ul>
+      <p>Pressing <strong>Enter</strong> in any field jumps you to the next one automatically, so you can fill the whole form without touching the mouse — the last field (Confirm Code) submits the form when you hit Enter.</p>
+
+      <h3>What happens when you tap Create Account</h3>
+      <p>The app first checks whether your exact name is already registered. If it is, you'll be told to contact Matthew instead of creating a duplicate — this is how the system tells staff apart, so two different people can't share one name.</p>
+      <p>If your name is free and both codes match, your account is created and you'll see a green confirmation message. The form then clears itself and the button changes to <strong>Create Another</strong>, so a second person can register right away on the same device without you needing to reload the page.</p>
+
+      <div class="warn"><b>Codes don't match, or aren't 4 digits?</b> You'll get a red error message and nothing is submitted — just fix the field it's complaining about and tap Create Account again.</div>
+
+      <p>Once your account exists, tap <strong>Go to Staff Login</strong> at the bottom of the card to head to the sign-in screen.</p>
+    </div>
+
+    <div class="section" id="screen2">
+      <h2><span class="num">2.</span>Signing In</h2>
+      <p class="lede">This is the screen you land on every time you open the Staff Portal without an active session.</p>
+
+      <p>Enter your <strong>Staff Code</strong> (the 4-digit code you chose when registering) and tap <strong>Sign In</strong>. The field strips out anything that isn't a digit as you type, so you can't accidentally submit letters.</p>
+
+      <div class="warn"><b>"Code not recognized"?</b> Double check you're entering the same digits you registered with. If you're sure it's right, your account may not exist yet, or there's a typo from registration — contact Matthew.</div>
+      <div class="warn"><b>"This account is paused"?</b> Matthew has temporarily disabled your account. Contact him directly — there's nothing to fix on your end.</div>
+
+      <p>Once signed in, you're taken straight to your dashboard, and you'll stay signed in (the session is remembered on that device) until you tap Sign Out.</p>
+    </div>
+
+    <div class="section" id="screen3">
+      <h2><span class="num">3.</span>The Staff Dashboard</h2>
+      <p class="lede">Your home base after signing in — a grid of tiles for whatever tools you've been given access to.</p>
+
+      <p>What you see depends on your account type:</p>
+      <ul>
+        <li><strong>Regular staff</strong> see a plain "Staff Dashboard" header and only the tool tiles Matthew has specifically turned on for them. If nothing has been assigned yet, you'll see a message asking you to check with Matthew instead of an empty grid.</li>
+        <li><strong>Master Admins</strong> see an orange-tinted header with a "Master Admin" badge, their own name, and <strong>every tool</strong> in the portal automatically — plus an extra tile, <strong>Full Staff Dashboard</strong>, that opens the main admin dashboard for managing the whole event.</li>
+      </ul>
+
+      <p>Tap any tile to open that tool — most open in a new browser tab, so your dashboard stays open behind it and you can come straight back. Every tap is also quietly logged (which tool, by whom, and when) so Matthew can see who's using what.</p>
+
+      <h3>Signing out</h3>
+      <p>Tap <strong>Sign Out</strong> in the top-right of the dashboard header to end your session. You'll be dropped back at the Sign In screen and will need your code again next time.</p>
+
+      <div class="tip"><b>Shared device?</b> Always sign out when you're done if other staff use the same tablet or laptop — otherwise the next person who opens the portal lands straight on your dashboard.</div>
+    </div>
+
+    <div class="section" id="screen4">
+      <h2><span class="num">4.</span>Staff Chat</h2>
+      <p class="lede">A floating chat bubble in the bottom-right corner — only appears if you have access.</p>
+
+      <p>If you're a Master Admin, or your account has been given the <strong>Staff Chat</strong> tool specifically, a round 💬 button floats over every screen of the dashboard. Tap it to open a panel listing all other active staff, with a green dot next to anyone currently online (active in the last 90 seconds).</p>
+      <p>Tap a name to open a private one-on-one conversation. You can send text or tap the 📷 button to send a photo — photos are automatically compressed before upload so they send quickly. A small orange dot marks conversations with unread messages; it clears once you open that conversation.</p>
+      <p>Each message has a small 🗑 next to it to delete just that message, and each conversation row has a 🗑 to delete the entire thread with that person — you'll be asked to confirm first since this can't be undone.</p>
+      <p class="note">The chat checks for new messages every couple of seconds and refreshes the staff list periodically, so you don't need to close and reopen it to see new activity.</p>
+    </div>
+
+    <div class="section" id="screen5">
+      <h2><span class="num">5.</span>Add to Home Screen</h2>
+      <p>An orange <strong>📲 Add to Home Screen</strong> pill floats in the bottom-left on phones and tablets (it hides automatically once the portal is already installed as an app). Tapping it either triggers your browser's native install prompt, or — on iPhone/iPad, where that's not available — shows a quick reminder to use the Share icon and choose "Add to Home Screen" yourself.</p>
+      <p>Installing it this way gives you a proper full-screen app icon instead of a browser tab, which is faster to get to during a live event.</p>
+    </div>
+
+    <div class="section" id="tips">
+      <h2><span class="num">★</span>Tips &amp; Troubleshooting</h2>
+      <ul>
+        <li><strong>Forgot your code?</strong> There's no self-service reset — contact Matthew directly.</li>
+        <li><strong>No tools showing up?</strong> That's expected right after your account is created. Tool access is assigned individually by Matthew after the fact, not automatically at sign-up.</li>
+        <li><strong>Account paused?</strong> This is a deliberate admin action (e.g. someone left, or access needs a temporary hold), not a bug — contact Matthew to have it reactivated.</li>
+        <li><strong>Trying to register a name that's "already in use"?</strong> Someone (possibly you, earlier) already created an account under that exact name. Contact Matthew rather than trying slight variations of your name, so you don't end up with duplicate accounts.</li>
+        <li><strong>Staff Chat bubble missing?</strong> It only appears for Master Admins and staff specifically granted the Staff Chat tool — it's not visible to everyone by default.</li>
+        <li><strong>Switching devices?</strong> Your sign-in session lives on the device you signed in on, not in the cloud — you'll need to sign in again with your code on a new device or after clearing browser data.</li>
+      </ul>
+    </div>
+
+    <div class="section" id="cheatsheet">
+      <h2><span class="num">📋</span>Tools Cheat Sheet</h2>
+      <p class="lede">The tools that can appear on your dashboard, if Matthew has assigned them to you (Master Admins get all of these automatically).</p>
+      <table class="action-table">
+        <tr><th>Tile</th><th>What it's for</th></tr>
+        <tr><td>Denis Interview Assistant</td><td>Logging matches live and generating post-match interview questions for Denis to use on air.</td></tr>
+        <tr><td>Commentator</td><td>Opens the commentator tab inside the main event dashboard.</td></tr>
+        <tr><td>QR Scanner</td><td>Scans ticket QR codes at the door.</td></tr>
+        <tr><td>Ticket Check-in</td><td>Manual ticket check-in lookup for guests at the door.</td></tr>
+        <tr><td>Interview Admin</td><td>Admin-side view/management of the Interview Assistant data.</td></tr>
+        <tr><td>Ticket Sales</td><td>Dashboard for tracking ticket sales.</td></tr>
+        <tr><td>Shirt Admin</td><td>Admin tools for managing merch shirt orders.</td></tr>
+        <tr><td>Shirt Order</td><td>Staff-facing form for placing/recording shirt orders.</td></tr>
+        <tr><td>Merch Store</td><td>The merch storefront page.</td></tr>
+        <tr><td>Policy Docs</td><td>Opens the policy documents tab inside the main event dashboard.</td></tr>
+        <tr><td>Cue Light &amp; Schedule</td><td>The cue light system and match schedule for stage management.</td></tr>
+        <tr><td>Staff Chat</td><td>Opens the dedicated full-page Staff Chat tool (separate from the floating chat bubble).</td></tr>
+        <tr><td>Full Staff Dashboard <span class="badge">Master only</span></td><td>The full admin dashboard for running the entire event — only visible to Master Admins.</td></tr>
+      </table>
+      <p class="note">Tiles you don't have access to simply don't appear — there's no "locked" placeholder, so your grid only ever shows what you can actually use.</p>
+    </div>
+
+    <div class="footer-note">AADS War Room — Staff Portal Guide</div>
+  </div>
+
+</body>
+</html>

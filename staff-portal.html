@@ -131,6 +131,19 @@
       transition: border-color 0.15s, color 0.15s;
     }
     .btn-signout:hover { border-color: #555; color: #fff; }
+    .dash-header-actions { display: flex; align-items: center; gap: 8px; }
+    .btn-guide {
+      background: transparent;
+      border: 1px solid #333;
+      color: #999;
+      font-size: 0.8rem;
+      border-radius: 10px;
+      padding: 9px 16px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .btn-guide:hover { border-color: #555; color: #fff; }
     .tool-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -279,6 +292,7 @@
           </div>
           <div id="message" class="message" style="display:none"></div>
           <button type="button" class="btn-submit" id="submitBtn">Sign In</button>
+          <button type="button" class="btn-guide" onclick="window.open('staff-portal-guide.html', '_blank', 'noopener,noreferrer')">📖 Guide</button>
         </div>
       `
       const pinInput = document.getElementById('pinInput')
@@ -380,7 +394,10 @@
               <h2>${isMaster ? session.name : 'Staff Dashboard'}</h2>
               <p>${isMaster ? 'Full access · AADS War Room' : `Signed in as ${session.name}`}</p>
             </div>
-            <button type="button" class="btn-signout" id="signOutBtn">Sign Out</button>
+            <div class="dash-header-actions">
+              <button type="button" class="btn-guide" onclick="window.open('staff-portal-guide.html', '_blank', 'noopener,noreferrer')">📖 Guide</button>
+              <button type="button" class="btn-signout" id="signOutBtn">Sign Out</button>
+            </div>
           </div>
           <div id="toolGridHost"></div>
         </div>
