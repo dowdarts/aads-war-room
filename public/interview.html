@@ -591,6 +591,76 @@ async function updateCompletedMatchInState(matchId, updates) {
   await saveEventState(eventState)
 }
 
+/* ── Resolve bracket placeholders in the Cue Light / Score Keepers
+   schedule ────────────────────────────────────────────────────────────
+   cue-light.html's matches/scorekeeperShifts come from a CSV that uses
+   placeholder text for not-yet-decided knockout slots (1st Place, 2nd
+   Place, 3rd Place, 4th Place, Winner SF1, Winner SF2). Once a match
+   completes here, fill those in with real names on the one `events`
+   row cue-light.html/players-portal.html/score-keepers-portal.html all
+   already read. Position-based: relies on getMatchFormat()'s 1-15
+   round_robin / 16 tiebreak / 17-18 semifinal / 19+ final convention
+   lining up with the CSV's own Round Robin / TB / SF1 / SF2 / Final
+   rows, in that order — there's no shared match ID between this
+   schedule and that one. Best-effort and non-destructive: only
+   replaces fields that still exactly equal a known placeholder, so it
+   never overwrites a name Matthew already typed in by hand. */
+function placeholderNameMap() {
+  const map = {}
+  const standings = calculateStandings(eventState.completed_matches || [])
+  if (standings.length >= 4) {
+    map['1st Place'] = standings[0].name
+    map['2nd Place'] = standings[1].name
+    map['3rd Place'] = standings[2].name
+    map['4th Place'] = standings[3].name
+  }
+  const semis = (eventState.completed_matches || [])
+    .filter(m => m.stage === 'semifinal')
+    .sort((a, b) => a.matchNumber - b.matchNumber)
+  if (semis[0]) map['Winner SF1'] = semis[0].winnerName
+  if (semis[1]) map['Winner SF2'] = semis[1].winnerName
+  return map
+}
+
+function resolvePlaceholdersOnEntry(entry, map) {
+  let changed = false
+  for (const [placeholder, name] of Object.entries(map)) {
+    if (entry.playerA === placeholder) { entry.playerA = name; changed = true }
+    if (entry.playerB === placeholder) { entry.playerB = name; changed = true }
+    if (entry.match && entry.match.includes(placeholder)) {
+      entry.match = entry.match.split(placeholder).join(name)
+      changed = true
+    }
+  }
+  return changed
+}
+
+async function resolveBracketPlaceholders() {
+  try {
+    const map = placeholderNameMap()
+    if (!Object.keys(map).length) return
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/events?select=id,state&order=created_at.asc&limit=1`,
+      { headers: HDRS }
+    )
+    const rows = await res.json()
+    if (!Array.isArray(rows) || !rows.length) return
+    const eventRow = rows[0]
+    const state = typeof eventRow.state === 'string' ? JSON.parse(eventRow.state) : (eventRow.state || {})
+    let changed = false
+    for (const m of state.matches || []) if (resolvePlaceholdersOnEntry(m, map)) changed = true
+    for (const s of state.scorekeeperShifts || []) if (resolvePlaceholdersOnEntry(s, map)) changed = true
+    if (!changed) return
+    await fetch(`${SUPABASE_URL}/rest/v1/events?id=eq.${eventRow.id}`, {
+      method: 'PATCH',
+      headers: { ...HDRS, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ state }),
+    })
+  } catch (e) {
+    console.error('Bracket placeholder resolution failed', e)
+  }
+}
+
 /* ── Match format ────────────────────────────────────────────────────── */
 function getMatchFormat(idx) {
   const n = idx + 1
@@ -982,6 +1052,7 @@ function backToSelectFromLogger() {
 function transitionToWinnerScreen() {
   currentMatchResult = buildCompletedMatchResult()
   saveCompletedMatchToState(currentMatchResult)
+  resolveBracketPlaceholders()
   clearActiveMatchDraft()
 
   const m = schedule[currentMatchIndex]
