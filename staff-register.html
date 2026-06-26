@@ -65,12 +65,7 @@
       transition: border-color 0.15s;
     }
     .field input:focus { border-color: #f97316; }
-    .pin-row {
-      display: flex;
-      gap: 10px;
-    }
-    .pin-row input {
-      flex: 1;
+    input[inputmode="numeric"] {
       text-align: center;
       letter-spacing: 0.4em;
       font-size: 1.1rem;
@@ -114,17 +109,23 @@
     </div>
 
     <div class="field">
-      <label>Full Name</label>
-      <input type="text" id="nameInput" placeholder="Your name" autocomplete="name" />
+      <label>First Name</label>
+      <input type="text" id="firstNameInput" placeholder="First name" autocomplete="given-name" autofocus />
     </div>
 
     <div class="field">
-      <label>Choose a 4-Digit PIN</label>
-      <div class="pin-row">
-        <input type="password" inputmode="numeric" maxlength="6" id="pinInput" placeholder="••••" />
-        <input type="password" inputmode="numeric" maxlength="6" id="pinConfirm" placeholder="••••" />
-      </div>
-      <span style="font-size:0.7rem;color:#555;">Enter PIN · Confirm PIN</span>
+      <label>Last Name</label>
+      <input type="text" id="lastNameInput" placeholder="Last name" autocomplete="family-name" />
+    </div>
+
+    <div class="field">
+      <label>Choose a 4-Digit Code</label>
+      <input type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" id="pinInput" placeholder="••••" autocomplete="new-password" />
+    </div>
+
+    <div class="field">
+      <label>Confirm 4-Digit Code</label>
+      <input type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" id="pinConfirm" placeholder="••••" autocomplete="new-password" />
     </div>
 
     <div id="message" class="message" style="display:none"></div>
@@ -146,13 +147,15 @@
     }
 
     async function register() {
-      const name = document.getElementById('nameInput').value.trim()
+      const firstName = document.getElementById('firstNameInput').value.trim()
+      const lastName = document.getElementById('lastNameInput').value.trim()
       const pin = document.getElementById('pinInput').value.trim()
       const confirm = document.getElementById('pinConfirm').value.trim()
+      const name = `${firstName} ${lastName}`.trim()
 
-      if (!name) { showMsg('Please enter your full name.', 'error'); return }
-      if (!/^\d{4}$/.test(pin)) { showMsg('PIN must be exactly 4 digits.', 'error'); return }
-      if (pin !== confirm) { showMsg('PINs do not match. Try again.', 'error'); return }
+      if (!firstName || !lastName) { showMsg('Please enter your first and last name.', 'error'); return }
+      if (!/^\d{4}$/.test(pin)) { showMsg('Code must be exactly 4 digits.', 'error'); return }
+      if (pin !== confirm) { showMsg('Codes do not match. Try again.', 'error'); return }
 
       const btn = document.getElementById('submitBtn')
       btn.disabled = true
@@ -186,9 +189,11 @@
         if (!res.ok) throw new Error('Server error')
 
         showMsg(`Account created for ${name}! You can now sign in from the Staff tab.`, 'success')
-        document.getElementById('nameInput').value = ''
+        document.getElementById('firstNameInput').value = ''
+        document.getElementById('lastNameInput').value = ''
         document.getElementById('pinInput').value = ''
         document.getElementById('pinConfirm').value = ''
+        document.getElementById('firstNameInput').focus()
         btn.textContent = 'Create Another'
         btn.disabled = false
       } catch {
@@ -198,7 +203,17 @@
       }
     }
 
-    document.addEventListener('keydown', e => { if (e.key === 'Enter') register() })
+    // Enter advances to the next field instead of submitting early with
+    // the rest of the form still empty; only the last field submits.
+    const fieldOrder = ['firstNameInput', 'lastNameInput', 'pinInput', 'pinConfirm']
+    fieldOrder.forEach((id, i) => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key !== 'Enter') return
+        const nextId = fieldOrder[i + 1]
+        if (nextId) document.getElementById(nextId).focus()
+        else register()
+      })
+    })
   </script>
 </body>
 </html>
