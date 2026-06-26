@@ -473,12 +473,30 @@
     /* ══ ACTIONS ══ */
     function setLight(value) {
       state.light = value
+      // Wait/red always calls whichever match is earliest-incomplete — the
+      // complete checkbox is a separate manual step Matthew controls
+      // himself, so re-pressing Wait before checking a match complete just
+      // re-sends the same call (harmless reminder), and the schedule can
+      // never get out of sync with which match is actually "current."
+      // Resolved (and saved) before any push fires below so a reload mid-
+      // sequence sees the right currentMatchId, not a stale one.
+      var calledMatch = null
+      if (value === 'wait') {
+        calledMatch = state.matches.find(function (m) { return !m.complete })
+        if (calledMatch) state.currentMatchId = calledMatch.id
+      }
       lastServerJSON = JSON.stringify(state)
       renderAll()
       saveState(state)
       if (state.alertsEnabled !== false) sendPushAlert(value)
-      if (value === 'start') notifyLive()
-      if (value === 'start') notifyScorekeepersLive()
+      if (calledMatch) {
+        notifyCalled(calledMatch)
+        notifyScorekeepersCalled(calledMatch)
+      }
+      if (value === 'start') {
+        notifyLive()
+        notifyScorekeepersLive()
+      }
     }
 
     // Master kill switches, controlled from the Controller view: when off,
@@ -525,12 +543,7 @@
     function toggleComplete(id, complete) {
       var m = state.matches.find(function (x) { return x.id === id })
       if (!m) return
-      var wasComplete = m.complete
       m.complete = complete
-      if (complete && !wasComplete) {
-        state.currentMatchId = m.id
-        notifyCalled(m)
-      }
       lastServerJSON = JSON.stringify(state)
       renderAll()
       saveState(state)
@@ -617,6 +630,22 @@
       var nextNames = namesForMatch(next)
       if (!liveNames.length && !nextNames.length) return
       scorekeeperPortalPush({ action: 'live', liveNames: liveNames, nextNames: nextNames })
+    }
+
+    // Fired when red/Wait calls a match — tells everyone assigned to it
+    // (caller, scorekeeper, both backups, floor control, etc) who's up and
+    // the full lineup, not just their own role.
+    function notifyScorekeepersCalled(m) {
+      if (state.scorekeeperAlertsEnabled === false) return
+      var shifts = (state.scorekeeperShifts || []).filter(function (s) { return shiftHasSamePlayers(m, s) })
+      if (!shifts.length) return
+      var roles = shifts.map(function (s) { return { role: s.role, name: s.name } }).filter(function (r) { return r.name })
+      if (!roles.length) return
+      scorekeeperPortalPush({
+        action: 'called',
+        match: { playerA: m.playerA, playerB: m.playerB },
+        roles: roles
+      })
     }
 
     function uploadSchedule(file) {
