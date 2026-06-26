@@ -286,6 +286,15 @@ export default function StaffDashboard({ onSelect }) {
             <span className="text-lg font-bold text-white">Players Dashboard</span>
             <span className="text-gray-500 text-sm">Sign in to your event schedule &amp; alerts</span>
           </button>
+          <button
+            type="button"
+            onClick={() => { window.location.href = base + 'score-keepers-portal.html' }}
+            className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-2xl p-8 flex flex-col items-center gap-2 text-center transition-all cursor-pointer"
+          >
+            <span className="text-3xl">🗒️</span>
+            <span className="text-lg font-bold text-white">Score Keepers Portal</span>
+            <span className="text-gray-500 text-sm">Sign in to your shift schedule &amp; alerts</span>
+          </button>
         </div>
       </div>
     )

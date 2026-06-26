@@ -174,6 +174,12 @@
         <span class="upload-hint">Columns: Time, Round, Match, Player A, Province A, Player B, Province B, Format, Notes</span>
       </div>
 
+      <div class="upload-row">
+        <label class="file-label" for="scorekeeperCsvInput">Upload Score Keeper Schedule (CSV)</label>
+        <input type="file" id="scorekeeperCsvInput" accept=".csv" />
+        <span class="upload-hint">Columns: Time, Match, Role, Name, Notes &mdash; Match should match the player schedule's Match column for shifts tied to a specific match; leave blank for general standby/backup rows.</span>
+      </div>
+
       <div class="schedule-heading">Event Schedule</div>
       <div class="schedule-list" id="ctrlSchedule"></div>
     </div>
@@ -228,7 +234,7 @@
        One row per event in the `events` table (id, name, state) — replaces
        the old single app_settings row keyed 'cue_light_event'. Lets the
        Controller/Display pick which event's schedule they're working on. */
-    function defaultState() { return { light: 'off', matches: [], updatedAt: null, alertsEnabled: true, portalAlertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
+    function defaultState() { return { light: 'off', matches: [], scorekeeperShifts: [], updatedAt: null, alertsEnabled: true, portalAlertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
 
     function parseEventStateRows(rows) {
       if (!Array.isArray(rows) || !rows.length) return null
@@ -315,6 +321,29 @@
           format: (row[iFormat] || '').trim(),
           notes: (row[iNotes] || '').trim(),
           complete: false
+        })
+      }
+      return out
+    }
+
+    function shiftsFromCSV(text) {
+      var rows = parseCSV(text.replace(/^﻿/, ''))
+      if (!rows.length) return []
+      var header = rows[0].map(function (h) { return h.trim().toLowerCase() })
+      function idx(name) { return header.indexOf(name) }
+      var iTime = idx('time'), iMatch = idx('match'), iRole = idx('role')
+      var iName = idx('name'), iNotes = idx('notes')
+      var out = []
+      for (var r = 1; r < rows.length; r++) {
+        var row = rows[r]
+        if (!row || row.every(function (c) { return c.trim() === '' })) continue
+        out.push({
+          id: 's_' + r + '_' + Date.now().toString(36),
+          time: (row[iTime] || '').trim(),
+          match: (row[iMatch] || '').trim(),
+          role: (row[iRole] || '').trim(),
+          name: (row[iName] || '').trim(),
+          notes: (row[iNotes] || '').trim()
         })
       }
       return out
@@ -418,6 +447,7 @@
       saveState(state)
       if (state.alertsEnabled !== false) sendPushAlert(value)
       if (value === 'start') notifyLive()
+      if (value === 'start') notifyScorekeepersLive()
     }
 
     // Master kill switches, controlled from the Controller view: when off,
@@ -480,6 +510,18 @@
       }).catch(function () {})
     }
 
+    // Score Keepers Portal notifications — same idea as playersPortalPush
+    // above, but targets whoever is assigned (by name) to score/call the
+    // match in question, resolved against scorekeeperShifts instead of
+    // playerA/playerB.
+    function scorekeeperPortalPush(payload) {
+      fetch(SUPABASE_URL + '/functions/v1/send-scorekeeper-portal-push', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
+        body: JSON.stringify(payload)
+      }).catch(function () {})
+    }
+
     function doorsOpen() {
       if (!window.confirm('Notify every signed-in player that doors are open and the event has started?')) return
       state.doorsOpenedAt = new Date().toISOString()
@@ -509,6 +551,28 @@
       playersPortalPush({ action: 'live', liveNames: liveNames, nextNames: nextNames })
     }
 
+    // Mirrors notifyLive() above, but resolves against scorekeeperShifts
+    // (matched by the shift's `match` field) instead of playerA/playerB.
+    function notifyScorekeepersLive() {
+      if (!state.currentMatchId) return
+      var idx = state.matches.findIndex(function (x) { return x.id === state.currentMatchId })
+      if (idx === -1) return
+      var live = state.matches[idx]
+      var next = state.matches[idx + 1]
+      var shifts = state.scorekeeperShifts || []
+      function namesForMatch(m) {
+        if (!m || !m.match) return []
+        var label = m.match.trim().toLowerCase()
+        return shifts.filter(function (s) {
+          return s.match && s.match.trim().toLowerCase() === label
+        }).map(function (s) { return s.name }).filter(Boolean)
+      }
+      var liveNames = namesForMatch(live)
+      var nextNames = namesForMatch(next)
+      if (!liveNames.length && !nextNames.length) return
+      scorekeeperPortalPush({ action: 'live', liveNames: liveNames, nextNames: nextNames })
+    }
+
     function uploadCSV(file) {
       var reader = new FileReader()
       reader.onload = function () {
@@ -519,6 +583,21 @@
         lastServerJSON = JSON.stringify(state)
         renderAll()
         saveState(state)
+      }
+      reader.readAsText(file)
+    }
+
+    function uploadScorekeeperCSV(file) {
+      var reader = new FileReader()
+      reader.onload = function () {
+        var shifts = shiftsFromCSV(String(reader.result))
+        if (!shifts.length) { alert('No rows found in that CSV.'); return }
+        if (state.scorekeeperShifts.length && !window.confirm('Replace the existing ' + state.scorekeeperShifts.length + '-shift schedule with ' + shifts.length + ' shifts from this file?')) return
+        state.scorekeeperShifts = shifts
+        lastServerJSON = JSON.stringify(state)
+        renderAll()
+        saveState(state)
+        scorekeeperPortalPush({ action: 'schedule_updated' })
       }
       reader.readAsText(file)
     }
@@ -916,6 +995,10 @@
       })
       document.getElementById('csvInput').addEventListener('change', function (e) {
         if (e.target.files && e.target.files[0]) uploadCSV(e.target.files[0])
+        e.target.value = ''
+      })
+      document.getElementById('scorekeeperCsvInput').addEventListener('change', function (e) {
+        if (e.target.files && e.target.files[0]) uploadScorekeeperCSV(e.target.files[0])
         e.target.value = ''
       })
     }
