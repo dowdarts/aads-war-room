@@ -184,7 +184,7 @@
             'Content-Type': 'application/json',
             Prefer: 'return=minimal',
           },
-          body: JSON.stringify({ name, pin }),
+          body: JSON.stringify({ name, pin, tool_permissions: ['merch', 'scanner'] }),
         })
 
         if (!res.ok) throw new Error('Server error')

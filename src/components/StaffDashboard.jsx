@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getBaseUrl } from '../utils/baseUrl.js'
+import AccountGate from './AccountGate.jsx'
 
 const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
@@ -48,11 +49,6 @@ function clearSession() { localStorage.removeItem(SESSION_KEY) }
 
 export default function StaffDashboard({ onSelect }) {
   const [session, setSession] = useState(() => loadSession())
-  const [mode, setMode] = useState('choice')
-  const [staffList, setStaffList] = useState([])
-  const [pin, setPin] = useState('')
-  const [error, setError] = useState('')
-  const [loggingIn, setLoggingIn] = useState(false)
   const [activityLog, setActivityLog] = useState([])
   const [logLoading, setLogLoading] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
@@ -70,13 +66,6 @@ export default function StaffDashboard({ onSelect }) {
   const [showManageStaff, setShowManageStaff] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const base = getBaseUrl()
-
-  useEffect(() => {
-    fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&is_active=eq.true&order=name.asc`, { headers: hdrs })
-      .then(r => r.json())
-      .then(rows => setStaffList(Array.isArray(rows) ? rows.map(r => r.name) : []))
-      .catch(() => {})
-  }, [])
 
   useEffect(() => {
     if (session?.isMaster) {
@@ -143,7 +132,6 @@ export default function StaffDashboard({ onSelect }) {
     const payload = { name: trimmed, pin: draftPin, is_active: draftActive, tool_permissions: draftTools }
 
     setAllStaff(prev => prev.map(s => (s.id === editingStaff.id ? { ...s, ...payload } : s)))
-    setStaffList(prev => [...prev.filter(n => n !== editingStaff.name), trimmed].sort())
     fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${editingStaff.id}`, {
       method: 'PATCH',
       headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
@@ -160,7 +148,6 @@ export default function StaffDashboard({ onSelect }) {
     }
     if (!window.confirm(`Remove ${editingStaff.name}? This cannot be undone.`)) return
     setAllStaff(prev => prev.filter(s => s.id !== editingStaff.id))
-    setStaffList(prev => prev.filter(n => n !== editingStaff.name))
     fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${editingStaff.id}`, {
       method: 'DELETE',
       headers: hdrs,
@@ -183,12 +170,11 @@ export default function StaffDashboard({ onSelect }) {
       const r = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts`, {
         method: 'POST',
         headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=representation' },
-        body: JSON.stringify({ name, pin: newStaffPin, is_master: false, is_active: true, tool_permissions: [] }),
+        body: JSON.stringify({ name, pin: newStaffPin, is_master: false, is_active: true, tool_permissions: ['merch', 'scanner'] }),
       })
       const rows = await r.json()
       if (!r.ok || !Array.isArray(rows) || !rows.length) { setAddStaffError(rows?.message || 'Could not add staff member.'); return }
       setAllStaff(prev => [...prev, rows[0]].sort((a, b) => a.name.localeCompare(b.name)))
-      setStaffList(prev => [...prev, name].sort())
       setNewStaffName('')
       setNewStaffPin('')
     } catch {
@@ -207,28 +193,6 @@ export default function StaffDashboard({ onSelect }) {
       setActivityLog(Array.isArray(rows) ? rows : [])
     } catch {}
     setLogLoading(false)
-  }
-
-  async function handleLogin() {
-    if (pin.length < 4) { setError('Enter your staff code.'); return }
-    setLoggingIn(true)
-    setError('')
-    try {
-      const r = await fetch(
-        `${SUPABASE_URL}/rest/v1/staff_accounts?pin=eq.${pin}&select=id,name,is_master,is_active`,
-        { headers: hdrs }
-      )
-      const rows = await r.json()
-      if (!Array.isArray(rows)) { setError('Connection error. Try again.'); setLoggingIn(false); return }
-      if (!rows.length) { setError('Code not recognized. Try again.'); setLoggingIn(false); return }
-      if (rows[0].is_active === false) { setError('This account is paused. Contact Matthew.'); setLoggingIn(false); return }
-      const s = { id: rows[0].id, name: rows[0].name, isMaster: rows[0].is_master, loginAt: Date.now() }
-      saveSession(s)
-      setSession(s)
-    } catch {
-      setError('Connection error. Try again.')
-    }
-    setLoggingIn(false)
   }
 
   function logToolAccess(label) {
@@ -259,99 +223,14 @@ export default function StaffDashboard({ onSelect }) {
   function signOut() {
     clearSession()
     setSession(null)
-    setMode('choice')
-    setPin('')
-    setError('')
     setActivityLog([])
-  }
-
-  if (!session && mode === 'choice') {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md flex flex-col gap-4">
-          <button
-            type="button"
-            onClick={() => setMode('login')}
-            className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-2xl p-8 flex flex-col items-center gap-2 text-center transition-all cursor-pointer"
-          >
-            <span className="text-3xl">🛠️</span>
-            <span className="text-lg font-bold text-white">Staff Login</span>
-            <span className="text-gray-500 text-sm">Staff &amp; tool access</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { window.location.href = base + 'players-portal.html' }}
-            className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-2xl p-8 flex flex-col items-center gap-2 text-center transition-all cursor-pointer"
-          >
-            <span className="text-3xl">🎯</span>
-            <span className="text-lg font-bold text-white">Players Dashboard</span>
-            <span className="text-gray-500 text-sm">Sign in to your event schedule &amp; alerts</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { window.location.href = base + 'score-keepers-portal.html' }}
-            className="bg-[#111] hover:bg-[#1a1a1a] border border-[#222] hover:border-orange-600/40 rounded-2xl p-8 flex flex-col items-center gap-2 text-center transition-all cursor-pointer"
-          >
-            <span className="text-3xl">🗒️</span>
-            <span className="text-lg font-bold text-white">Score Keepers Portal</span>
-            <span className="text-gray-500 text-sm">Sign in to your shift schedule &amp; alerts</span>
-          </button>
-        </div>
-      </div>
-    )
   }
 
   if (!session) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-sm bg-[#111] border border-[#222] rounded-2xl p-8 flex flex-col gap-5">
-          <div className="text-center">
-            <div className="text-3xl mb-2">🛠️</div>
-            <h2 className="text-xl font-bold text-white tracking-wide">Staff Login</h2>
-            <p className="text-gray-500 text-sm mt-1">AADS War Room</p>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Staff Code</label>
-            <input
-              type="password"
-              inputMode="numeric"
-              maxLength={6}
-              value={pin}
-              onChange={e => { setPin(e.target.value.replace(/\D/g, '').slice(0, 6)); setError('') }}
-              onKeyDown={e => e.key === 'Enter' && handleLogin()}
-              placeholder="Enter your staff code"
-              autoFocus
-              className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm text-center tracking-[0.5em] focus:outline-none focus:border-orange-500 placeholder:tracking-normal placeholder:text-gray-600"
-            />
-          </div>
-
-          {error && <p className="text-red-400 text-sm text-center">{error}</p>}
-
-          <button
-            type="button"
-            onClick={handleLogin}
-            disabled={loggingIn}
-            className="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white font-bold rounded-lg py-2.5 text-sm transition-colors"
-          >
-            {loggingIn ? 'Verifying…' : 'Sign In'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setMode('choice')}
-            className="text-gray-500 hover:text-gray-300 text-xs text-center transition-colors"
-          >
-            ← Back
-          </button>
-
-          {staffList.length === 0 && (
-            <p className="text-yellow-600 text-xs text-center">
-              No staff accounts found. Run the Supabase setup SQL first.
-            </p>
-          )}
-        </div>
-      </div>
+      <AccountGate
+        onStaffSession={s => { saveSession(s); setSession(s) }}
+      />
     )
   }
 

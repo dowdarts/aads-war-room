@@ -36,6 +36,33 @@ async function subscriptionsForNames(supabase: ReturnType<typeof createClient>, 
   return subs ?? [];
 }
 
+// Accounts with notify_all=true (e.g. Matthew Dow, who's always the admin)
+// get every "live"/"up next" push regardless of whose name the schedule
+// matched — mirrors send-players-portal-push's alwaysNotifySubs.
+async function alwaysNotifySubs(supabase: ReturnType<typeof createClient>) {
+  const { data: accounts, error: accountsError } = await supabase
+    .from("scorekeeper_portal_accounts")
+    .select("id")
+    .eq("notify_all", true);
+  if (accountsError) throw accountsError;
+  const ids = (accounts ?? []).map((a) => a.id);
+  if (!ids.length) return [];
+  const { data: subs, error: subsError } = await supabase
+    .from("scorekeeper_portal_push_subscriptions")
+    .select("id, endpoint, p256dh, auth")
+    .in("scorekeeper_id", ids);
+  if (subsError) throw subsError;
+  return subs ?? [];
+}
+
+function mergeSubs(
+  ...lists: { id: string; endpoint: string; p256dh: string; auth: string }[][]
+) {
+  const byId = new Map<string, { id: string; endpoint: string; p256dh: string; auth: string }>();
+  for (const list of lists) for (const sub of list) byId.set(sub.id, sub);
+  return [...byId.values()];
+}
+
 async function sendToSubs(
   supabase: ReturnType<typeof createClient>,
   subs: { id: string; endpoint: string; p256dh: string; auth: string }[],
@@ -105,9 +132,10 @@ Deno.serve(async (req) => {
         "The score keeper schedule has been updated — check your shifts.",
       );
     } else if (body.action === "live") {
-      const liveSubs = await subscriptionsForNames(supabase, body.liveNames);
+      const always = await alwaysNotifySubs(supabase);
+      const liveSubs = mergeSubs(await subscriptionsForNames(supabase, body.liveNames), always);
       sent += await sendToSubs(supabase, liveSubs, "🟢 You're Up", "Your match is live now.");
-      const nextSubs = await subscriptionsForNames(supabase, body.nextNames);
+      const nextSubs = mergeSubs(await subscriptionsForNames(supabase, body.nextNames), always);
       sent += await sendToSubs(
         supabase,
         nextSubs,

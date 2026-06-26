@@ -375,13 +375,15 @@
       if (!selected) { el.innerHTML = '<p class="empty-note">Pick an event from the Events tab to see your matches.</p>'; return }
       var session = getSession()
       var matches = selected.state.matches || []
-      var mine = matches.filter(function (m) {
+      var mine = (session && session.notifyAll) ? matches : matches.filter(function (m) {
         return session && (m.playerA === session.displayName || m.playerB === session.displayName)
       })
       el.innerHTML = ''
       if (!mine.length) { el.innerHTML = '<p class="empty-note">No matches found for you on the schedule yet.</p>'; return }
       mine.forEach(function (m) {
-        var opponent = (m.playerA === session.displayName) ? m.playerB : m.playerA
+        var headline = (session && session.notifyAll)
+          ? (escapeHtml(m.playerA || 'TBD') + ' vs ' + escapeHtml(m.playerB || 'TBD'))
+          : ('vs ' + escapeHtml(((m.playerA === session.displayName) ? m.playerB : m.playerA) || 'TBD'))
         var st = statusForMatch(selected.state, m)
         var row = document.createElement('div')
         row.className = 'sched-row'
@@ -390,7 +392,7 @@
         if (m.round) subParts.push(escapeHtml(m.round))
         row.innerHTML =
           '<div class="sched-info">' +
-            '<div class="sched-headline">vs ' + escapeHtml(opponent || 'TBD') + '</div>' +
+            '<div class="sched-headline">' + headline + '</div>' +
             (subParts.length ? '<div class="sched-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
           '</div>' +
           '<span class="status-pill ' + st.cls + '">' + st.label + '</span>'
@@ -452,7 +454,7 @@
       if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
       setAuthMsg('Checking...', '')
 
-      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id,pin', { headers: hdrs })
+      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id,pin,notify_all', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
           if (!Array.isArray(rows) || !rows.length) {
@@ -461,7 +463,7 @@
           }
           var account = rows[0]
           if (account.pin !== pin) { setAuthMsg('That code is incorrect for ' + name + '.', 'error'); return }
-          saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+          saveSession({ id: account.id, displayName: name, notifyAll: !!account.notify_all, loginAt: Date.now() })
           fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?id=eq.' + account.id, {
             method: 'PATCH',
             headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
@@ -500,7 +502,7 @@
             return res.json()
           }).then(function (created) {
             var account = created[0]
-            saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+            saveSession({ id: account.id, displayName: name, notifyAll: !!account.notify_all, loginAt: Date.now() })
             afterAuth()
           })
         })

@@ -322,7 +322,7 @@
     function renderMyShifts() {
       var el = document.getElementById('myShiftsTab')
       var session = getSession()
-      var shifts = (eventState.scorekeeperShifts || []).filter(function (s) {
+      var shifts = (session && session.notifyAll) ? (eventState.scorekeeperShifts || []) : (eventState.scorekeeperShifts || []).filter(function (s) {
         return session && s.name === session.displayName
       })
       el.innerHTML = ''
@@ -376,7 +376,7 @@
       if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
       setAuthMsg('Checking...', '')
 
-      fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id,pin', { headers: hdrs })
+      fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_accounts?display_name=eq.' + encodeURIComponent(name) + '&select=id,pin,notify_all', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
           if (!Array.isArray(rows) || !rows.length) {
@@ -385,7 +385,7 @@
           }
           var account = rows[0]
           if (account.pin !== pin) { setAuthMsg('That code is incorrect for ' + name + '.', 'error'); return }
-          saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+          saveSession({ id: account.id, displayName: name, notifyAll: !!account.notify_all, loginAt: Date.now() })
           fetch(SUPABASE_URL + '/rest/v1/scorekeeper_portal_accounts?id=eq.' + account.id, {
             method: 'PATCH',
             headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
@@ -424,7 +424,7 @@
             return res.json()
           }).then(function (created) {
             var account = created[0]
-            saveSession({ id: account.id, displayName: name, loginAt: Date.now() })
+            saveSession({ id: account.id, displayName: name, notifyAll: !!account.notify_all, loginAt: Date.now() })
             afterAuth()
           })
         })
