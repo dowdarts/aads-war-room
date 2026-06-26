@@ -111,6 +111,11 @@
       font-size: 0.68rem; color: #4ade80; font-weight: 700;
       background: #052010; border: 1px solid #166534; border-radius: 6px; padding: 3px 7px;
     }
+    .match-edit-btn {
+      font-size: 0.68rem; color: #999; font-weight: 700; cursor: pointer;
+      background: #171717; border: 1px solid #2a2a2a; border-radius: 6px; padding: 3px 8px;
+    }
+    .match-edit-btn:hover { color: #f97316; border-color: #f97316; }
 
     /* ── Standings overlay ── */
     .overlay {
@@ -399,6 +404,7 @@
       <button type="button" class="btn-secondary" onclick="undoLastEvent()">↩ Undo Event</button>
       <button type="button" class="btn-secondary" onclick="undoLastLeg()">↩ Undo Leg</button>
       <button type="button" class="btn-secondary" onclick="saveDraftManual()">💾 Save</button>
+      <button type="button" class="btn-secondary hidden" id="saveEditedResultBtn" onclick="saveEditedResult()">✅ Save Result</button>
     </div>
 
     <!-- Leg history -->
@@ -488,6 +494,7 @@ let selectedPlayer = null
 let selectedLegWinner = null
 let pendingPromptAction = null
 let currentMatchResult = null
+let isEditingCompleted = false  // revisiting an already-saved match from the completed list
 
 let generatedQuestions = []
 let interviewTimer = null
@@ -728,7 +735,8 @@ function renderMatchSelect() {
           ${cm.playerAName} vs ${cm.playerBName}
           <div class="match-players-sub">${cm.formatLabel}</div>
         </div>
-        <span class="match-result-badge">✓ ${cm.winnerName} ${cm.finalScore}</span>`
+        <span class="match-result-badge">✓ ${cm.winnerName} ${cm.finalScore}</span>
+        <button type="button" class="match-edit-btn" onclick="editCompletedMatch(${cm.matchIndex})">✎ Edit</button>`
       completedList.appendChild(div)
     })
   }
@@ -828,6 +836,7 @@ function enterLogger() {
   renderScoreAndLeg()
   renderEventLog()
   renderHistory()
+  document.getElementById('saveEditedResultBtn').classList.toggle('hidden', !isEditingCompleted)
   showScreen('screen-logger')
 }
 
@@ -836,6 +845,47 @@ function resetMatchState() {
   legs = []; currentEvents = []
   selectedPlayer = null; matchComplete = false; matchWinner = null
   currentMatchResult = null
+  isEditingCompleted = false
+}
+
+// Reopens an already-completed match's logger so Denis can fix a score
+// or leg — e.g. testing the app before event day, or correcting a
+// mis-tap mid-event. Loads that match's saved legs/score back into the
+// live editing state rather than starting fresh.
+function editCompletedMatch(matchIndex) {
+  const m = schedule[matchIndex]
+  const result = (eventState.completed_matches || []).find(r => r.matchId === m.id)
+  if (!result) return
+  currentMatchIndex = matchIndex
+  scoreA = result.scoreA
+  scoreB = result.scoreB
+  legs = (result.legs || []).map(l => ({ legNumber: l.legNumber, winner: l.winner, events: l.events.map(e => ({ ...e })) }))
+  currentEvents = []
+  selectedPlayer = null
+  matchComplete = false
+  matchWinner = null
+  currentMatchResult = result
+  isEditingCompleted = true
+  enterLogger()
+}
+
+// Manual save for edit mode: persists the current score/legs as the
+// match result without needing to "win" a leg to re-trigger the normal
+// completion flow (e.g. after undoing a leg and deciding not to redo
+// one, or fixing a duplicate entry that legitimately lowers the leg
+// count below the format's target).
+function saveEditedResult() {
+  if (scoreA === scoreB) { showToast('Scores are tied — undo or redo a leg before saving'); return }
+  matchWinner = scoreA > scoreB ? 'A' : 'B'
+  matchComplete = true
+  currentMatchResult = buildCompletedMatchResult()
+  saveCompletedMatchToState(currentMatchResult)
+  resolveBracketPlaceholders()
+  clearActiveMatchDraft()
+  isEditingCompleted = false
+  showScreen('screen-select')
+  renderMatchSelect()
+  showToast('✅ Result updated')
 }
 
 /* ══ SCREEN 2 — Logger ════════════════════════════════════════════════ */
@@ -1044,6 +1094,7 @@ function backToSelectFromLogger() {
     if (!confirm('Go back to match list? Current match progress will be saved as a draft.')) return
     saveActiveMatchDraft()
   }
+  isEditingCompleted = false
   showScreen('screen-select')
   renderMatchSelect()
 }
@@ -1079,6 +1130,11 @@ function buildCompletedMatchResult() {
   const loser  = wSide === 'A' ? pB : pA
   const wScore = wSide === 'A' ? scoreA : scoreB
   const lScore = wSide === 'A' ? scoreB : scoreA
+  // Editing an already-completed match (editCompletedMatch/
+  // saveEditedResult, or re-confirming via the normal winLeg() flow)
+  // rebuilds this whole object — carry forward any interview progress
+  // already done on the original result instead of discarding it.
+  const existing = (eventState.completed_matches || []).find(r => r.matchId === m.id)
   return {
     matchId: m.id,
     matchIndex: currentMatchIndex,
@@ -1093,20 +1149,22 @@ function buildCompletedMatchResult() {
     finalScore: `${wScore}-${lScore}`,
     legs,
     keyMoments: analyzeMatchMoments(legs, wSide, lSide),
-    generatedQuestions: [],
-    interviewStartedAt: null,
-    interviewCompletedAt: null,
-    interviewDurationSeconds: null,
-    status: 'awaiting_interview',
-    completedAt: new Date().toISOString(),
+    generatedQuestions: existing ? existing.generatedQuestions : [],
+    interviewStartedAt: existing ? existing.interviewStartedAt : null,
+    interviewCompletedAt: existing ? existing.interviewCompletedAt : null,
+    interviewDurationSeconds: existing ? existing.interviewDurationSeconds : null,
+    status: existing ? existing.status : 'awaiting_interview',
+    completedAt: existing ? existing.completedAt : new Date().toISOString(),
   }
 }
 
 function editResult() {
   matchComplete = false
   matchWinner = null
+  isEditingCompleted = true
   loggerCard_show()
   renderScoreAndLeg()
+  document.getElementById('saveEditedResultBtn').classList.remove('hidden')
   showScreen('screen-logger')
 }
 
