@@ -18,6 +18,7 @@ const ALL_TOOLS = [
   { id: 'policy', label: 'Policy Docs', icon: '📋', tabId: 'policy' },
   { id: 'cue-light', label: 'Cue Light & Schedule', icon: '🚦', path: 'cue-light.html' },
   { id: 'staff-chat', label: 'Staff Chat', icon: '💬', path: 'staff-chat.html' },
+  { id: 'score-keepers', label: 'Score Keepers Portal', icon: '🗒️', path: 'score-keepers-portal.html' },
 ]
 
 const hdrs = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
