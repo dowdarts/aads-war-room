@@ -699,6 +699,23 @@
       })
     }
 
+    // A cached session's notifyAll can go stale — e.g. it was saved before
+    // an admin flag flipped to true server-side. Refresh it from the
+    // account row on every load instead of trusting whatever was true at
+    // sign-in time.
+    function refreshSessionNotifyAll(session) {
+      return fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?id=eq.' + session.id + '&select=notify_all', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (Array.isArray(rows) && rows.length) {
+            session.notifyAll = !!rows[0].notify_all
+            saveSession(session)
+          }
+          return session
+        })
+        .catch(function () { return session })
+    }
+
     function init() {
       wireButtons()
       loadAllEvents().then(function (fresh) {
@@ -710,7 +727,7 @@
         }
         var session = getSession()
         if (session) {
-          afterAuth()
+          refreshSessionNotifyAll(session).then(afterAuth)
         } else {
           setAuthMode('signin')
           showOnly('authView')
