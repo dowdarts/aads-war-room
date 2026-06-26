@@ -159,6 +159,20 @@ Deno.serve(async (req) => {
         "🗒️ Schedule Updated",
         "The score keeper schedule has been updated — check your shifts.",
       );
+    } else if (body.action === "called") {
+      // Fired when the cue light turns red for this match — everyone
+      // assigned to it (caller, scorekeeper, backups, floor control, etc)
+      // gets the same message naming the full lineup, not just their own
+      // role, so backups know who's primary and can follow along.
+      const roles: { role: string; name: string }[] = (body.roles ?? []).filter(
+        (r: { role: string; name: string }) => r?.name,
+      );
+      const names = roles.map((r) => r.name);
+      const always = await alwaysNotifySubs(supabase);
+      const subs = mergeSubs(await subscriptionsForNames(supabase, names), always);
+      const lineup = roles.map((r) => `${r.role}: ${r.name}`).join(" · ");
+      const matchLabel = body.match ? `${body.match.playerA} vs ${body.match.playerB} — ` : "";
+      sent += await sendToSubs(supabase, subs, "🔴 Next Match Called", `${matchLabel}${lineup}`);
     } else if (body.action === "live") {
       const always = await alwaysNotifySubs(supabase);
       const liveSubs = mergeSubs(await subscriptionsForNames(supabase, body.liveNames), always);
