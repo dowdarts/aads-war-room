@@ -99,6 +99,14 @@
     .sched-headline { font-weight: 800; font-size: 14px; }
     .sched-sub, .sched-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
 
+    .bio-search { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
+    .bio-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+    .bio-name { font-weight: 800; font-size: 15px; }
+    .bio-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .bio-field { margin-top: 8px; }
+    .bio-field-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
+    .bio-field-value { font-size: 13px; margin-top: 2px; }
+
     .up-next-badge, .status-pill { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
     .up-next-badge, .status-next { color: var(--accent); background: rgba(255,122,0,0.15); border: 1px solid rgba(255,122,0,0.4); }
     .status-live { color: #8cffb0; background: rgba(45,168,90,0.15); border: 1px solid rgba(45,168,90,0.4); }
@@ -169,9 +177,11 @@
         <div class="tab-bar">
           <button type="button" class="tab-btn active" data-tab="mine">My Shifts</button>
           <button type="button" class="tab-btn" data-tab="full">Full Schedule</button>
+          <button type="button" class="tab-btn" data-tab="cheatsheet">Player Info</button>
         </div>
         <div id="myShiftsTab" class="tab-panel"></div>
         <div id="fullScheduleTab" class="tab-panel hidden"></div>
+        <div id="cheatSheetTab" class="tab-panel hidden"></div>
       </div>
     </div>
 
@@ -195,6 +205,8 @@
     var lastServerJSON = ''
     var pollTimer = null
     var activeTab = 'mine'
+    var playersData = []
+    var bioSearchTerm = ''
 
     /* ══ SESSION ══ */
     function getSession() {
@@ -251,6 +263,111 @@
           return parseEventStateField(rows[0].state)
         })
         .catch(function () { return defaultEventState() })
+    }
+
+    /* ══ PLAYER CHEAT SHEET ══
+       players.json is generated at build/dev time from the same player CSVs
+       the React app uses (see scripts/export-players-json.mjs) — this static
+       portal has no other way to read them. */
+    function loadPlayersJson() {
+      return fetch('players.json')
+        .then(function (r) { return r.json() })
+        .catch(function () { return [] })
+    }
+
+    function findPlayerProfile(name) {
+      if (!name) return null
+      for (var i = 0; i < playersData.length; i++) {
+        if (namesMatch(playersData[i].fullName, name)) return playersData[i]
+      }
+      return null
+    }
+
+    var ANNOUNCER_FIELDS = [
+      ['achievements', 'Career Achievements'],
+      ['strengths', 'Strengths as a Player'],
+      ['currentForm', 'Current Form'],
+      ['mentalApproach', 'Mental Approach'],
+      ['stagePresence', 'Stage Presence'],
+      ['preMatchRituals', 'Pre-Match Rituals'],
+      ['hobbies', 'Life Outside Darts'],
+    ]
+
+    function renderBioCard(name) {
+      var profile = findPlayerProfile(name)
+      var card = document.createElement('div')
+      card.className = 'bio-card'
+      if (!profile) {
+        card.innerHTML = '<div class="bio-name">' + escapeHtml(name) + '</div>' +
+          '<div class="bio-sub">No profile on file.</div>'
+        return card
+      }
+      var sub = []
+      if (profile.hometown) sub.push(escapeHtml(profile.hometown) + (profile.province ? ' (' + escapeHtml(profile.province) + ')' : ''))
+      if (profile.yearsPlaying) sub.push(escapeHtml(profile.yearsPlaying) + ' yrs playing')
+      var fieldsHtml = ANNOUNCER_FIELDS
+        .filter(function (f) { return (profile[f[0]] || '').trim() })
+        .map(function (f) {
+          return '<div class="bio-field"><div class="bio-field-label">' + escapeHtml(f[1]) + '</div>' +
+            '<div class="bio-field-value">' + escapeHtml(profile[f[0]]) + '</div></div>'
+        }).join('')
+      card.innerHTML = '<div class="bio-name">' + escapeHtml(profile.fullName) + '</div>' +
+        (sub.length ? '<div class="bio-sub">' + sub.join(' &middot; ') + '</div>' : '') +
+        fieldsHtml
+      return card
+    }
+
+    function currentAndUpNextMatches() {
+      var matches = eventState.matches || []
+      var result = []
+      var current = matches.find(function (m) { return eventState.currentMatchId === m.id })
+      if (current && eventState.light !== 'off') result.push(current)
+      var nextIdx = matches.findIndex(function (m) { return !m.complete })
+      if (nextIdx !== -1 && matches[nextIdx] !== current) result.push(matches[nextIdx])
+      return result
+    }
+
+    function renderCheatSheet() {
+      var el = document.getElementById('cheatSheetTab')
+      el.innerHTML = ''
+
+      var searchBox = document.createElement('input')
+      searchBox.type = 'text'
+      searchBox.className = 'bio-search'
+      searchBox.placeholder = 'Search any player by name…'
+      searchBox.value = bioSearchTerm
+      searchBox.addEventListener('input', function (e) {
+        bioSearchTerm = e.target.value
+        renderCheatSheet()
+      })
+      el.appendChild(searchBox)
+
+      if (bioSearchTerm.trim()) {
+        var term = bioSearchTerm.trim().toLowerCase()
+        var matches = playersData.filter(function (p) { return (p.fullName || '').toLowerCase().indexOf(term) !== -1 })
+        if (!matches.length) {
+          var none = document.createElement('p')
+          none.className = 'empty-note'
+          none.textContent = 'No players match "' + bioSearchTerm + '".'
+          el.appendChild(none)
+        } else {
+          matches.forEach(function (p) { el.appendChild(renderBioCard(p.fullName)) })
+        }
+        return
+      }
+
+      var upcoming = currentAndUpNextMatches()
+      if (!upcoming.length) {
+        var empty = document.createElement('p')
+        empty.className = 'empty-note'
+        empty.textContent = 'No live or upcoming match yet. Search above to look someone up ahead of time.'
+        el.appendChild(empty)
+        return
+      }
+      upcoming.forEach(function (m) {
+        if (m.playerA) el.appendChild(renderBioCard(m.playerA))
+        if (m.playerB) el.appendChild(renderBioCard(m.playerB))
+      })
     }
 
     function escapeHtml(s) {
@@ -337,13 +454,15 @@
       })
       document.getElementById('myShiftsTab').classList.toggle('hidden', tab !== 'mine')
       document.getElementById('fullScheduleTab').classList.toggle('hidden', tab !== 'full')
+      document.getElementById('cheatSheetTab').classList.toggle('hidden', tab !== 'cheatsheet')
       renderActiveTab()
     }
 
     function renderActiveTab() {
       if (!eventState) return
       if (activeTab === 'mine') renderMyShifts()
-      else renderFullSchedule()
+      else if (activeTab === 'full') renderFullSchedule()
+      else renderCheatSheet()
     }
 
     function renderMyShifts() {
@@ -638,6 +757,7 @@
 
     function init() {
       wireButtons()
+      loadPlayersJson().then(function (players) { playersData = players })
       loadEventState().then(function (fresh) {
         eventState = fresh
         lastServerJSON = JSON.stringify(eventState)
