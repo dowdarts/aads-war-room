@@ -5,7 +5,9 @@
   "type": "module",
   "homepage": "https://wiki.aadsdarts.com/",
   "scripts": {
+    "predev": "node scripts/export-players-json.mjs",
     "dev": "vite",
+    "prebuild": "node scripts/export-players-json.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "predeploy": "vite build",
