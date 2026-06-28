@@ -24,6 +24,10 @@
       --green: #2da85a;
       --green-2: #5dd88a;
       --danger-text: #ffb3b3;
+      --role-main: #5dd88a;
+      --role-backup: #6aa8ff;
+      --role-caller: #ff7a00;
+      --role-backup-caller: #ffd35c;
     }
     body {
       min-height: 100vh;
@@ -98,6 +102,27 @@
     .sched-info { min-width: 0; }
     .sched-headline { font-weight: 800; font-size: 14px; }
     .sched-sub, .sched-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+    .match-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+    .match-card.up-next { background: rgba(255,122,0,0.08); }
+    .match-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+    .match-title { font-weight: 800; font-size: 14px; }
+    .match-sub, .match-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    @media (max-width: 380px) { .role-grid { grid-template-columns: 1fr; } }
+    .role-chip { border-radius: 8px; padding: 8px 10px; border-left: 3px solid; background: var(--panel-2); }
+    .role-chip-main { border-left-color: var(--role-main); }
+    .role-chip-backup { border-left-color: var(--role-backup); }
+    .role-chip-caller { border-left-color: var(--role-caller); }
+    .role-chip-backupcaller { border-left-color: var(--role-backup-caller); }
+    .role-chip-label { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .role-chip-main .role-chip-label { color: var(--role-main); }
+    .role-chip-backup .role-chip-label { color: var(--role-backup); }
+    .role-chip-caller .role-chip-label { color: var(--role-caller); }
+    .role-chip-backupcaller .role-chip-label { color: var(--role-backup-caller); }
+    .role-chip-name { font-size: 13px; font-weight: 700; margin-top: 2px; }
+    .role-chip-name .unassigned { color: var(--muted); font-weight: 400; font-style: italic; }
+    .match-other { margin-top: 10px; color: var(--muted); font-size: 11px; }
 
     .bio-search { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
     .bio-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
@@ -409,12 +434,10 @@
       return (mA === sA && mB === sB) || (mA === sB && mB === sA)
     }
 
-    function statusForShift(shift) {
-      if (!shift.playerA || !shift.playerB) {
-        return shift.role === 'On Break' ? { label: 'On Break', cls: 'status-standby' } : { label: 'Scheduled', cls: 'status-scheduled' }
-      }
+    function statusForPlayers(playerA, playerB) {
+      if (!playerA || !playerB) return { label: 'Scheduled', cls: 'status-scheduled' }
       var matches = eventState.matches || []
-      var m = matches.find(function (x) { return shiftHasSamePlayers(x, shift) })
+      var m = matches.find(function (x) { return shiftHasSamePlayers(x, { playerA: playerA, playerB: playerB }) })
       if (!m) return { label: 'Scheduled', cls: 'status-scheduled' }
       var nextIdx = matches.findIndex(function (x) { return !x.complete })
       var idx = matches.indexOf(m)
@@ -424,6 +447,13 @@
       if (idx === nextIdx && !m.complete) return { label: 'Up Next', cls: 'status-next' }
       if (m.complete) return { label: 'Done', cls: 'status-done' }
       return { label: 'Scheduled', cls: 'status-scheduled' }
+    }
+
+    function statusForShift(shift) {
+      if (!shift.playerA || !shift.playerB) {
+        return shift.role === 'On Break' ? { label: 'On Break', cls: 'status-standby' } : { label: 'Scheduled', cls: 'status-scheduled' }
+      }
+      return statusForPlayers(shift.playerA, shift.playerB)
     }
 
     function renderShiftRow(shift) {
@@ -480,12 +510,87 @@
       shifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
     }
 
+    /* ══ FULL SCHEDULE — GROUPED BY MATCH ══
+       cue-light.html's scheduleFromCSV() emits one shift object per role
+       column filled in on a CSV row, all sharing the same
+       time/matchNo/match/playerA/playerB (see SHIFT_ROLE_COLUMNS there).
+       Group them back into one card per match so the four roles that
+       matter for calling a match — Main/Backup Scorekeeper, Caller/Backup
+       Caller — read as a single staffing snapshot instead of four
+       separate flat rows repeating the same match label. */
+    var ROLE_BUCKETS = {
+      'Main Scorekeeper': 'main',
+      'Tablet Backup Scorekeeper': 'backup',
+      'Second Backup Scorekeeper': 'backup',
+      'Caller': 'caller',
+      'Backup Caller': 'backupCaller',
+    }
+    var ROLE_CHIP_DEFS = [
+      ['main', 'Main Scorekeeper', 'role-chip-main'],
+      ['backup', 'Backup Scorekeeper', 'role-chip-backup'],
+      ['caller', 'Caller', 'role-chip-caller'],
+      ['backupCaller', 'Backup Caller', 'role-chip-backupcaller'],
+    ]
+
+    function groupShiftsByMatch(shifts) {
+      var groups = []
+      var byKey = {}
+      shifts.forEach(function (s) {
+        if (!s.playerA || !s.playerB) return
+        var key = [s.matchNo, s.time, s.match, s.playerA, s.playerB].join('|')
+        var g = byKey[key]
+        if (!g) {
+          g = { time: s.time, match: s.match, playerA: s.playerA, playerB: s.playerB, notes: s.notes,
+            roles: { main: [], backup: [], caller: [], backupCaller: [] }, other: [] }
+          byKey[key] = g
+          groups.push(g)
+        }
+        var bucket = ROLE_BUCKETS[s.role]
+        if (bucket) g.roles[bucket].push(s.name)
+        else if (s.role !== 'On Break') g.other.push(s.role + ': ' + s.name)
+      })
+      return groups
+    }
+
+    function renderMatchCard(group) {
+      var st = statusForPlayers(group.playerA, group.playerB)
+      var card = document.createElement('div')
+      card.className = 'match-card' + (st.label === 'Up Next' ? ' up-next' : '')
+      var subParts = []
+      if (group.time) subParts.push(escapeHtml(group.time))
+      if (group.match) subParts.push(escapeHtml(group.match))
+      var chipsHtml = ROLE_CHIP_DEFS.map(function (def) {
+        var names = group.roles[def[0]]
+        var nameHtml = names.length
+          ? escapeHtml(names.join(', '))
+          : '<span class="unassigned">Unassigned</span>'
+        return '<div class="role-chip ' + def[2] + '">' +
+          '<div class="role-chip-label">' + escapeHtml(def[1]) + '</div>' +
+          '<div class="role-chip-name">' + nameHtml + '</div>' +
+        '</div>'
+      }).join('')
+      card.innerHTML =
+        '<div class="match-head">' +
+          '<div>' +
+            '<div class="match-title">' + escapeHtml(group.playerA) + ' vs ' + escapeHtml(group.playerB) + '</div>' +
+            (subParts.length ? '<div class="match-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
+          '</div>' +
+          '<span class="status-pill ' + st.cls + '">' + st.label + '</span>' +
+        '</div>' +
+        '<div class="role-grid">' + chipsHtml + '</div>' +
+        (group.other.length ? '<div class="match-other">' + escapeHtml(group.other.join(' &middot; ')) + '</div>' : '')
+      return card
+    }
+
     function renderFullSchedule() {
       var el = document.getElementById('fullScheduleTab')
       var shifts = eventState.scorekeeperShifts || []
       el.innerHTML = ''
       if (!shifts.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
-      shifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
+      var matchGroups = groupShiftsByMatch(shifts)
+      var nonMatchShifts = shifts.filter(function (s) { return !s.playerA || !s.playerB })
+      matchGroups.forEach(function (g) { el.appendChild(renderMatchCard(g)) })
+      nonMatchShifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
     }
 
     /* ══ VIEW SWITCHING ══ */
