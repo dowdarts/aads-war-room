@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getBaseUrl } from '../utils/baseUrl.js'
 
 const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
@@ -21,11 +21,43 @@ export default function AccountGate({ onStaffSession }) {
   const [busy, setBusy] = useState(false)
   const [formError, setFormError] = useState('')
   const [results, setResults] = useState(null) // { staffSession: {...}|null, player: bool, scorekeeper: bool, notes: {role: msg} }
+  const [accountNames, setAccountNames] = useState([])
+  const [selectedName, setSelectedName] = useState('')
   const base = getBaseUrl()
+
+  // Sign-in picks an existing name from a dropdown instead of retyping it —
+  // load the union of every account name across the three tables once, up
+  // front, so the dropdown is ready by the time someone reaches the sign-in
+  // screen. Names are deduped case-insensitively (the same person can have
+  // case-variant rows across tables — see unify_accounts_across_systems.sql).
+  useEffect(() => {
+    async function loadAccountNames() {
+      try {
+        const [staffRows, playerRows, scorekeeperRows] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&order=name.asc`, { headers: hdrs }).then(r => r.json()),
+          fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?select=display_name&order=display_name.asc`, { headers: hdrs }).then(r => r.json()),
+          fetch(`${SUPABASE_URL}/rest/v1/scorekeeper_portal_accounts?select=display_name&order=display_name.asc`, { headers: hdrs }).then(r => r.json()),
+        ])
+        const seen = new Map() // lowercased name -> display casing to show
+        const add = (n) => {
+          const key = (n || '').trim().toLowerCase()
+          if (key && !seen.has(key)) seen.set(key, n.trim())
+        }
+        ;(staffRows || []).forEach(r => add(r.name))
+        ;(playerRows || []).forEach(r => add(r.display_name))
+        ;(scorekeeperRows || []).forEach(r => add(r.display_name))
+        setAccountNames(Array.from(seen.values()).sort((a, b) => a.localeCompare(b)))
+      } catch {
+        setAccountNames([])
+      }
+    }
+    loadAccountNames()
+  }, [])
 
   function resetForm() {
     setFirstName('')
     setLastName('')
+    setSelectedName('')
     setPin('')
     setPinConfirm('')
     setFormError('')
@@ -75,8 +107,8 @@ export default function AccountGate({ onStaffSession }) {
   }
 
   async function handleSignIn() {
-    const name = fullName()
-    if (!firstName.trim() || !lastName.trim()) { setFormError('Enter your first and last name.'); return }
+    const name = selectedName
+    if (!name) { setFormError('Select your name from the list.'); return }
     if (!/^\d{4}$/.test(pin)) { setFormError('Code must be exactly 4 digits.'); return }
     setBusy(true)
     setFormError('')
@@ -175,27 +207,42 @@ export default function AccountGate({ onStaffSession }) {
             </p>
           </div>
 
-          <div className="flex gap-2">
-            <div className="flex flex-col gap-1 flex-1">
-              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">First Name</label>
-              <input
-                type="text"
-                value={firstName}
-                onChange={e => { setFirstName(e.target.value); setFormError('') }}
+          {isCreate ? (
+            <div className="flex gap-2">
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">First Name</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={e => { setFirstName(e.target.value); setFormError('') }}
+                  autoFocus
+                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
+                />
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Name</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={e => { setLastName(e.target.value); setFormError('') }}
+                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Name</label>
+              <select
+                value={selectedName}
+                onChange={e => { setSelectedName(e.target.value); setFormError('') }}
                 autoFocus
                 className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
-              />
+              >
+                <option value="">{accountNames.length ? 'Select your name…' : 'Loading…'}</option>
+                {accountNames.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
             </div>
-            <div className="flex flex-col gap-1 flex-1">
-              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Name</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={e => { setLastName(e.target.value); setFormError('') }}
-                className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
-              />
-            </div>
-          </div>
+          )}
 
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{isCreate ? 'Choose a 4-Digit Code' : 'Your 4-Digit Code'}</label>
