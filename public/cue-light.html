@@ -173,7 +173,7 @@
       <div class="upload-row">
         <label class="file-label" for="scheduleCsvInput">Upload Event Schedule (CSV)</label>
         <input type="file" id="scheduleCsvInput" accept=".csv" />
-        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Section, MatchNo, StartTime, Match, PlayerA, PlayerB, MatchFormat, Caller, MainScorekeeper, TabletBackupScorekeeper, SecondBackupScorekeeper, BackupCaller, FloorPlayerControl, ReliefEquipmentSupport, OnBreak, Notes. Rows with both PlayerA and PlayerB become matches; every named official becomes a score keeper shift &mdash; one file drives both schedules, so they can never drift out of sync.</span>
+        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Section, MatchNo, StartTime, Match, PlayerA, PlayerB, MatchFormat, Main Caller, Main Score Keeper, Back Up Score Keeper, Back Up Caller, Floor/Player Control, Relief/Equipment Support, OnBreak, Notes. Headers can have spaces (e.g. "Main Caller") or not. Rows with both PlayerA and PlayerB become matches; every named official becomes a score keeper shift &mdash; one file drives both schedules, so they can never drift out of sync.</span>
       </div>
 
       <div class="schedule-heading">Event Schedule</div>
@@ -308,11 +308,10 @@
     // never match a live match — they still show up in the portal's
     // personal schedule by time, just without a live/next push.
     var SHIFT_ROLE_COLUMNS = [
-      { key: 'caller', label: 'Caller' },
-      { key: 'mainscorekeeper', label: 'Main Scorekeeper' },
-      { key: 'tabletbackupscorekeeper', label: 'Tablet Backup Scorekeeper' },
-      { key: 'secondbackupscorekeeper', label: 'Second Backup Scorekeeper' },
-      { key: 'backupcaller', label: 'Backup Caller' },
+      { key: 'maincaller', label: 'Main Caller' },
+      { key: 'mainscorekeeper', label: 'Main Score Keeper' },
+      { key: 'backupscorekeeper', label: 'Back Up Score Keeper' },
+      { key: 'backupcaller', label: 'Back Up Caller' },
       { key: 'floorplayercontrol', label: 'Floor/Player Control' },
       { key: 'reliefequipmentsupport', label: 'Relief/Equipment Support' }
     ]
@@ -320,7 +319,10 @@
     function scheduleFromCSV(text) {
       var rows = parseCSV(text.replace(/^﻿/, ''))
       if (!rows.length) return { matches: [], shifts: [] }
-      var header = rows[0].map(function (h) { return h.trim().toLowerCase() })
+      // Strip spaces too, not just case, so a friendly header like "Main
+      // Caller" matches the 'maincaller' key below just as well as a
+      // squished one would.
+      var header = rows[0].map(function (h) { return h.trim().toLowerCase().replace(/\s+/g, '') })
       function idx(name) { return header.indexOf(name) }
       var iTime = idx('starttime'), iSection = idx('section'), iMatchNo = idx('matchno')
       var iMatch = idx('match'), iPA = idx('playera'), iPB = idx('playerb')
