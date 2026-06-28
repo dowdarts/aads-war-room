@@ -519,17 +519,16 @@
        Caller — read as a single staffing snapshot instead of four
        separate flat rows repeating the same match label. */
     var ROLE_BUCKETS = {
-      'Main Scorekeeper': 'main',
-      'Tablet Backup Scorekeeper': 'backup',
-      'Second Backup Scorekeeper': 'backup',
-      'Caller': 'caller',
-      'Backup Caller': 'backupCaller',
+      'Main Score Keeper': 'main',
+      'Back Up Score Keeper': 'backup',
+      'Main Caller': 'caller',
+      'Back Up Caller': 'backupCaller',
     }
     var ROLE_CHIP_DEFS = [
-      ['main', 'Main Scorekeeper', 'role-chip-main'],
-      ['backup', 'Backup Scorekeeper', 'role-chip-backup'],
-      ['caller', 'Caller', 'role-chip-caller'],
-      ['backupCaller', 'Backup Caller', 'role-chip-backupcaller'],
+      ['main', 'Main Score Keeper', 'role-chip-main'],
+      ['backup', 'Back Up Score Keeper', 'role-chip-backup'],
+      ['caller', 'Main Caller', 'role-chip-caller'],
+      ['backupCaller', 'Back Up Caller', 'role-chip-backupcaller'],
     ]
 
     function groupShiftsByMatch(shifts) {
