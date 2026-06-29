@@ -497,19 +497,40 @@
       else renderCheatSheet()
     }
 
+    // A signed-in person's own assignment is only one line of a match's
+    // staffing — they also need to know who else is on with them (e.g.
+    // Steve as Backup Caller needs to see who's Main Caller for that same
+    // slot). So "My Shifts" groups by match exactly like Full Schedule,
+    // just filtered down to the matches/slots that actually involve this
+    // person, rendered as the same full team card rather than a single
+    // role line.
+    function groupHasPerson(group, name) {
+      return ['main', 'backup', 'caller', 'backupCaller'].some(function (bucket) {
+        return group.roles[bucket].some(function (n) { return namesMatch(n, name) })
+      })
+    }
+
     function renderMyShifts() {
       var el = document.getElementById('myShiftsTab')
       var session = getSession()
-      var shifts = (session && session.notifyAll) ? (eventState.scorekeeperShifts || []) : (eventState.scorekeeperShifts || []).filter(function (s) {
+      var shifts = eventState.scorekeeperShifts || []
+      var matchGroups = groupShiftsByMatch(shifts)
+      var onBreakShifts = shifts.filter(function (s) { return s.role === 'On Break' })
+      var showAll = session && session.notifyAll
+      var myGroups = showAll ? matchGroups : matchGroups.filter(function (g) {
+        return session && groupHasPerson(g, session.displayName)
+      })
+      var myBreaks = showAll ? onBreakShifts : onBreakShifts.filter(function (s) {
         return session && namesMatch(s.name, session.displayName)
       })
       el.innerHTML = ''
-      if (!shifts.length) { el.innerHTML = '<p class="empty-note">No shifts found for you on the schedule yet.</p>'; return }
+      if (!myGroups.length && !myBreaks.length) { el.innerHTML = '<p class="empty-note">No shifts found for you on the schedule yet.</p>'; return }
       // No re-sort by time string — trust the CSV's row order, same as
       // cue-light.html/players-portal.html do for matches (a naive string
       // sort mis-orders "9:00 AM" after "10:00 AM"; the export is already
       // chronological).
-      shifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
+      myGroups.forEach(function (g) { el.appendChild(renderMatchCard(g)) })
+      myBreaks.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
     }
 
     /* ══ FULL SCHEDULE — GROUPED BY MATCH ══
@@ -520,11 +541,22 @@
        matter for calling a match — Main/Backup Scorekeeper, Caller/Backup
        Caller — read as a single staffing snapshot instead of four
        separate flat rows repeating the same match label. */
+    // Includes pre-rename label strings too (Caller, Main Scorekeeper,
+    // Tablet/Second Backup Scorekeeper, Backup Caller) — schedules
+    // uploaded before that rename still have shifts stored under the old
+    // names, and would otherwise show as "Unassigned" here forever until
+    // re-uploaded.
     var ROLE_BUCKETS = {
       'Main Score Keeper': 'main',
+      'Main Scorekeeper': 'main',
       'Back Up Score Keeper': 'backup',
+      'Backup Scorekeeper': 'backup',
+      'Tablet Backup Scorekeeper': 'backup',
+      'Second Backup Scorekeeper': 'backup',
       'Main Caller': 'caller',
+      'Caller': 'caller',
       'Back Up Caller': 'backupCaller',
+      'Backup Caller': 'backupCaller',
     }
     var ROLE_CHIP_DEFS = [
       ['main', 'Main Score Keeper', 'role-chip-main'],
