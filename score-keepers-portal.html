@@ -143,9 +143,7 @@
     .bio-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
     .bio-name { font-weight: 800; font-size: 15px; }
     .bio-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
-    .bio-field { margin-top: 8px; }
     .bio-field-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
-    .bio-field-value { font-size: 13px; margin-top: 2px; }
     .intro-script { background: rgba(255,122,0,0.08); border: 1px solid rgba(255,122,0,0.3); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
     .intro-script .bio-field-label { margin-bottom: 6px; }
     .intro-script-text { font-size: 14px; line-height: 1.6; white-space: pre-line; }
@@ -330,16 +328,6 @@
       return null
     }
 
-    var ANNOUNCER_FIELDS = [
-      ['achievements', 'Career Achievements'],
-      ['strengths', 'Strengths as a Player'],
-      ['currentForm', 'Current Form'],
-      ['mentalApproach', 'Mental Approach'],
-      ['stagePresence', 'Stage Presence'],
-      ['preMatchRituals', 'Pre-Match Rituals'],
-      ['hobbies', 'Life Outside Darts'],
-    ]
-
     // Full announcer scripts (e.g. Tournament of Champions player intros)
     // use **bold** for emphasis and blank lines between beats for reading
     // pace — escape first, then convert markdown bold, and let CSS
@@ -365,15 +353,9 @@
         ? '<div class="intro-script"><div class="bio-field-label">🎤 Introduction Script</div>' +
           '<div class="intro-script-text">' + formatScript(profile.introScript) + '</div></div>'
         : ''
-      var fieldsHtml = ANNOUNCER_FIELDS
-        .filter(function (f) { return (profile[f[0]] || '').trim() })
-        .map(function (f) {
-          return '<div class="bio-field"><div class="bio-field-label">' + escapeHtml(f[1]) + '</div>' +
-            '<div class="bio-field-value">' + escapeHtml(profile[f[0]]) + '</div></div>'
-        }).join('')
       card.innerHTML = '<div class="bio-name">' + escapeHtml(profile.fullName) + '</div>' +
         (sub.length ? '<div class="bio-sub">' + sub.join(' &middot; ') + '</div>' : '') +
-        introHtml + fieldsHtml
+        introHtml
       return card
     }
 
