@@ -123,6 +123,8 @@
     .role-chip-name { font-size: 13px; font-weight: 700; margin-top: 2px; }
     .role-chip-name .unassigned { color: var(--muted); font-weight: 400; font-style: italic; }
     .match-other { margin-top: 10px; color: var(--muted); font-size: 11px; }
+    .mc-cue { background: rgba(255,122,0,0.08); border: 1px solid rgba(255,122,0,0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 13px; line-height: 1.4; }
+    .mc-cue-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
 
     .bio-search { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
     .bio-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
@@ -531,34 +533,46 @@
       ['backupCaller', 'Back Up Caller', 'role-chip-backupcaller'],
     ]
 
+    // MC-cue-only rows (an announcement like "explain crossover, announce
+    // semifinal matchups" with no actual match) come through with blank
+    // Player A/B (see cleanCell()'s "N/A" handling in cue-light.html) but
+    // still carry a real Caller/Backup Caller assignment and an mcCue
+    // script — group them the same as real matches, just rendered
+    // without a "vs" header, status pill, or scorekeeper chips. Only
+    // "On Break" shifts are excluded here; they're personal rest shifts,
+    // not schedule slots, and stay in the flat list below.
     function groupShiftsByMatch(shifts) {
       var groups = []
       var byKey = {}
       shifts.forEach(function (s) {
-        if (!s.playerA || !s.playerB) return
+        if (s.role === 'On Break') return
         var key = [s.matchNo, s.time, s.match, s.playerA, s.playerB].join('|')
         var g = byKey[key]
         if (!g) {
-          g = { time: s.time, match: s.match, playerA: s.playerA, playerB: s.playerB, notes: s.notes,
+          g = { time: s.time, match: s.match, playerA: s.playerA, playerB: s.playerB,
+            notes: s.notes, scheduleType: s.scheduleType, mcCue: s.mcCue,
             roles: { main: [], backup: [], caller: [], backupCaller: [] }, other: [] }
           byKey[key] = g
           groups.push(g)
         }
         var bucket = ROLE_BUCKETS[s.role]
         if (bucket) g.roles[bucket].push(s.name)
-        else if (s.role !== 'On Break') g.other.push(s.role + ': ' + s.name)
+        else g.other.push(s.role + ': ' + s.name)
       })
       return groups
     }
 
     function renderMatchCard(group) {
-      var st = statusForPlayers(group.playerA, group.playerB)
+      var isMatch = !!(group.playerA && group.playerB)
       var card = document.createElement('div')
-      card.className = 'match-card' + (st.label === 'Up Next' ? ' up-next' : '')
+      var chipDefs = isMatch ? ROLE_CHIP_DEFS : ROLE_CHIP_DEFS.filter(function (def) { return def[0] === 'caller' || def[0] === 'backupCaller' })
+      var st = isMatch ? statusForPlayers(group.playerA, group.playerB) : null
+      card.className = 'match-card' + (st && st.label === 'Up Next' ? ' up-next' : '')
       var subParts = []
       if (group.time) subParts.push(escapeHtml(group.time))
       if (group.match) subParts.push(escapeHtml(group.match))
-      var chipsHtml = ROLE_CHIP_DEFS.map(function (def) {
+      var ifNeeded = /if needed/i.test(group.scheduleType || '')
+      var chipsHtml = chipDefs.map(function (def) {
         var names = group.roles[def[0]]
         var nameHtml = names.length
           ? escapeHtml(names.join(', '))
@@ -571,11 +585,15 @@
       card.innerHTML =
         '<div class="match-head">' +
           '<div>' +
-            '<div class="match-title">' + escapeHtml(group.playerA) + ' vs ' + escapeHtml(group.playerB) + '</div>' +
+            '<div class="match-title">' +
+              (isMatch ? escapeHtml(group.playerA) + ' vs ' + escapeHtml(group.playerB) : escapeHtml(group.match || 'Announcement')) +
+              (ifNeeded ? ' <span class="status-pill status-scheduled">If Needed</span>' : '') +
+            '</div>' +
             (subParts.length ? '<div class="match-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
           '</div>' +
-          '<span class="status-pill ' + st.cls + '">' + st.label + '</span>' +
+          (st ? '<span class="status-pill ' + st.cls + '">' + st.label + '</span>' : '') +
         '</div>' +
+        (group.mcCue ? '<div class="mc-cue"><div class="mc-cue-label">🎤 MC Cue</div>' + escapeHtml(group.mcCue) + '</div>' : '') +
         '<div class="role-grid">' + chipsHtml + '</div>' +
         (group.other.length ? '<div class="match-other">' + escapeHtml(group.other.join(' &middot; ')) + '</div>' : '')
       return card
@@ -587,9 +605,9 @@
       el.innerHTML = ''
       if (!shifts.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
       var matchGroups = groupShiftsByMatch(shifts)
-      var nonMatchShifts = shifts.filter(function (s) { return !s.playerA || !s.playerB })
+      var onBreakShifts = shifts.filter(function (s) { return s.role === 'On Break' })
       matchGroups.forEach(function (g) { el.appendChild(renderMatchCard(g)) })
-      nonMatchShifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
+      onBreakShifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
     }
 
     /* ══ VIEW SWITCHING ══ */
