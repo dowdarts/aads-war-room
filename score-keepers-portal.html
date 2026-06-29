@@ -133,6 +133,9 @@
     .bio-field { margin-top: 8px; }
     .bio-field-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
     .bio-field-value { font-size: 13px; margin-top: 2px; }
+    .intro-script { background: rgba(255,122,0,0.08); border: 1px solid rgba(255,122,0,0.3); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+    .intro-script .bio-field-label { margin-bottom: 6px; }
+    .intro-script-text { font-size: 14px; line-height: 1.6; white-space: pre-line; }
 
     .up-next-badge, .status-pill { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
     .up-next-badge, .status-next { color: var(--accent); background: rgba(255,122,0,0.15); border: 1px solid rgba(255,122,0,0.4); }
@@ -320,6 +323,14 @@
       ['hobbies', 'Life Outside Darts'],
     ]
 
+    // Full announcer scripts (e.g. Tournament of Champions player intros)
+    // use **bold** for emphasis and blank lines between beats for reading
+    // pace — escape first, then convert markdown bold, and let CSS
+    // white-space:pre-line turn the \n\n's back into paragraph breaks.
+    function formatScript(text) {
+      return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    }
+
     function renderBioCard(name) {
       var profile = findPlayerProfile(name)
       var card = document.createElement('div')
@@ -330,8 +341,13 @@
         return card
       }
       var sub = []
+      if (profile.eventChampion) sub.push(escapeHtml(profile.eventChampion))
       if (profile.hometown) sub.push(escapeHtml(profile.hometown) + (profile.province ? ' (' + escapeHtml(profile.province) + ')' : ''))
       if (profile.yearsPlaying) sub.push(escapeHtml(profile.yearsPlaying) + ' yrs playing')
+      var introHtml = profile.introScript
+        ? '<div class="intro-script"><div class="bio-field-label">🎤 Introduction Script</div>' +
+          '<div class="intro-script-text">' + formatScript(profile.introScript) + '</div></div>'
+        : ''
       var fieldsHtml = ANNOUNCER_FIELDS
         .filter(function (f) { return (profile[f[0]] || '').trim() })
         .map(function (f) {
@@ -340,7 +356,7 @@
         }).join('')
       card.innerHTML = '<div class="bio-name">' + escapeHtml(profile.fullName) + '</div>' +
         (sub.length ? '<div class="bio-sub">' + sub.join(' &middot; ') + '</div>' : '') +
-        fieldsHtml
+        introHtml + fieldsHtml
       return card
     }
 
