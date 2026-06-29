@@ -23,8 +23,8 @@ export default function AccountGate({ onStaffSession }) {
   const [results, setResults] = useState(null) // { staffSession: {...}|null, player: bool, scorekeeper: bool, notes: {role: msg} }
   const [accountNames, setAccountNames] = useState([])
   const [selectedName, setSelectedName] = useState('')
-  const [unclaimedRoster, setUnclaimedRoster] = useState([]) // [{id, name}] — pre-seeded staff who haven't set a PIN yet
-  const [claimId, setClaimId] = useState('')
+  const [unclaimedRoster, setUnclaimedRoster] = useState([]) // [name, ...] — pre-seeded roster who haven't set a PIN yet
+  const [claimName, setClaimName] = useState('')
   const [createMode, setCreateMode] = useState('select') // 'select' (pick from roster) | 'manual' (type a new name)
   const base = getBaseUrl()
 
@@ -42,7 +42,7 @@ export default function AccountGate({ onStaffSession }) {
       try {
         const [staffRows, playerRows, scorekeeperRows] = await Promise.all([
           fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,is_claimed&order=name.asc`, { headers: hdrs }).then(r => r.json()),
-          fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?select=display_name&order=display_name.asc`, { headers: hdrs }).then(r => r.json()),
+          fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?select=id,display_name,is_claimed&order=display_name.asc`, { headers: hdrs }).then(r => r.json()),
           fetch(`${SUPABASE_URL}/rest/v1/scorekeeper_portal_accounts?select=display_name&order=display_name.asc`, { headers: hdrs }).then(r => r.json()),
         ])
         const seen = new Map() // lowercased name -> display casing to show
@@ -50,12 +50,23 @@ export default function AccountGate({ onStaffSession }) {
           const key = (n || '').trim().toLowerCase()
           if (key && !seen.has(key)) seen.set(key, n.trim())
         }
-        const unclaimed = (staffRows || []).filter(r => r.is_claimed === false)
+        // A person can have an unclaimed row in both staff_accounts and
+        // player_portal_accounts (the unify trigger creates siblings
+        // everywhere) — dedupe to one roster entry per name; claiming
+        // patches every table that has a matching row, not just one.
+        const unclaimedSeen = new Map()
+        const addUnclaimed = (n) => {
+          const key = (n || '').trim().toLowerCase()
+          if (key && !unclaimedSeen.has(key)) unclaimedSeen.set(key, n.trim())
+        }
+        ;(staffRows || []).filter(r => r.is_claimed === false).forEach(r => addUnclaimed(r.name))
+        ;(playerRows || []).filter(r => r.is_claimed === false).forEach(r => addUnclaimed(r.display_name))
+        const unclaimedKeys = new Set(unclaimedSeen.keys())
         ;(staffRows || []).filter(r => r.is_claimed !== false).forEach(r => add(r.name))
-        ;(playerRows || []).forEach(r => add(r.display_name))
-        ;(scorekeeperRows || []).forEach(r => add(r.display_name))
+        ;(playerRows || []).filter(r => r.is_claimed !== false).forEach(r => add(r.display_name))
+        ;(scorekeeperRows || []).forEach(r => { if (!unclaimedKeys.has((r.display_name || '').trim().toLowerCase())) add(r.display_name) })
         setAccountNames(Array.from(seen.values()).sort((a, b) => a.localeCompare(b)))
-        setUnclaimedRoster(unclaimed.map(r => ({ id: r.id, name: r.name })).sort((a, b) => a.name.localeCompare(b.name)))
+        setUnclaimedRoster(Array.from(unclaimedSeen.values()).sort((a, b) => a.localeCompare(b)))
       } catch {
         setAccountNames([])
         setUnclaimedRoster([])
@@ -68,7 +79,7 @@ export default function AccountGate({ onStaffSession }) {
     setFirstName('')
     setLastName('')
     setSelectedName('')
-    setClaimId('')
+    setClaimName('')
     setCreateMode(unclaimedRoster.length ? 'select' : 'manual')
     setPin('')
     setPinConfirm('')
@@ -140,28 +151,35 @@ export default function AccountGate({ onStaffSession }) {
   }
 
   // Claiming a pre-seeded roster name (is_claimed = false, placeholder pin)
-  // just sets a real PIN on that same row — the PIN-sync trigger then
-  // propagates it to the matching player/scorekeeper rows the same way a
-  // normal PIN change does, so nothing else needs updating by hand.
+  // sets a real PIN. A person can have an unclaimed row in both
+  // staff_accounts and player_portal_accounts (the unify trigger creates
+  // siblings everywhere), and the PIN-sync trigger only fires on an actual
+  // pin change on whichever row gets PATCHed — it doesn't update
+  // is_claimed on siblings. So PATCH both tables by name match rather
+  // than a single row id; a table with no matching name just no-ops.
   async function handleClaim() {
-    const roster = unclaimedRoster.find(r => r.id === claimId)
-    if (!roster) { setFormError('Select your name from the list.'); return }
+    const name = claimName
+    if (!name) { setFormError('Select your name from the list.'); return }
     if (!/^\d{4}$/.test(pin)) { setFormError('Code must be exactly 4 digits.'); return }
     if (pin !== pinConfirm) { setFormError('Codes do not match.'); return }
     setBusy(true)
     setFormError('')
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${roster.id}`, {
-        method: 'PATCH',
-        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ pin, is_claimed: true }),
-      })
-      if (!res.ok) {
+      const body = JSON.stringify({ pin, is_claimed: true })
+      const [staffRes, playerRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=ilike.${encodeURIComponent(name)}`, {
+          method: 'PATCH', headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body,
+        }),
+        fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?display_name=ilike.${encodeURIComponent(name)}`, {
+          method: 'PATCH', headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body,
+        }),
+      ])
+      if (!staffRes.ok || !playerRes.ok) {
         setFormError('Could not set your code. Try again.')
         setBusy(false)
         return
       }
-      const resolved = await resolveSessions(roster.name, pin)
+      const resolved = await resolveSessions(name, pin)
       setResults(resolved)
       setMode('result')
     } catch {
@@ -255,13 +273,13 @@ export default function AccountGate({ onStaffSession }) {
             <div className="flex flex-col gap-1">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Name</label>
               <select
-                value={claimId}
-                onChange={e => { setClaimId(e.target.value); setFormError('') }}
+                value={claimName}
+                onChange={e => { setClaimName(e.target.value); setFormError('') }}
                 autoFocus
                 className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
               >
                 <option value="">Select your name…</option>
-                {unclaimedRoster.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                {unclaimedRoster.map(n => <option key={n} value={n}>{n}</option>)}
               </select>
               <button
                 type="button"
