@@ -173,7 +173,7 @@
       <div class="upload-row">
         <label class="file-label" for="scheduleCsvInput">Upload Event Schedule (CSV)</label>
         <input type="file" id="scheduleCsvInput" accept=".csv" />
-        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Section, MatchNo, StartTime, Match, PlayerA, PlayerB, MatchFormat, Main Caller, Main Score Keeper, Back Up Score Keeper, Back Up Caller, Floor/Player Control, Relief/Equipment Support, OnBreak, Notes. Headers can have spaces (e.g. "Main Caller") or not. Rows with both PlayerA and PlayerB become matches; every named official becomes a score keeper shift &mdash; one file drives both schedules, so they can never drift out of sync.</span>
+        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Time/StartTime, Section, MatchNo, Schedule Type, Match, Player A, Player B, Format/MatchFormat, MC Cue, Main Caller, Backup Caller, Main Scorekeeper, Backup Scorekeeper, Floor/Player Control, Relief/Equipment Support, OnBreak, Notes. Headers can have spaces or not, and use "Backup" or "Back Up" interchangeably. "N/A" in Player A/B or a role column means it doesn't apply to that row (e.g. an MC-only announcement); "TBD" means a real match with players not yet decided. Rows with real names in both Player A and Player B become matches; every named official becomes a score keeper shift &mdash; one file drives both schedules, so they can never drift out of sync.</span>
       </div>
 
       <div class="schedule-heading">Event Schedule</div>
@@ -324,12 +324,30 @@
       // squished one would.
       var header = rows[0].map(function (h) { return h.trim().toLowerCase().replace(/\s+/g, '') })
       function idx(name) { return header.indexOf(name) }
-      var iTime = idx('starttime'), iSection = idx('section'), iMatchNo = idx('matchno')
+      function idxAny(names) {
+        for (var i = 0; i < names.length; i++) { var found = idx(names[i]); if (found !== -1) return found }
+        return -1
+      }
+      // "TOC officials schedule export" CSVs vary slightly in header
+      // naming between events (StartTime vs Time, MatchFormat vs Format) —
+      // accept either.
+      var iTime = idxAny(['starttime', 'time']), iSection = idx('section'), iMatchNo = idx('matchno')
       var iMatch = idx('match'), iPA = idx('playera'), iPB = idx('playerb')
-      var iFormat = idx('matchformat'), iNotes = idx('notes'), iOnBreak = idx('onbreak')
+      var iFormat = idxAny(['matchformat', 'format']), iNotes = idx('notes'), iOnBreak = idx('onbreak')
+      var iScheduleType = idx('scheduletype'), iMcCue = idx('mccue')
       var roleCols = SHIFT_ROLE_COLUMNS.map(function (rc) {
         return { idx: idx(rc.key), label: rc.label }
       }).filter(function (rc) { return rc.idx !== -1 })
+
+      // "N/A" shows up in MC-cue-only rows (Player A/B, and role columns
+      // that don't apply, e.g. no scorekeeper needed for an announcement)
+      // — treat it as blank rather than a literal name/player. "TBD" is
+      // left alone since it represents a real but not-yet-decided match
+      // (e.g. a tie-breaker), not "not applicable".
+      function cleanCell(v) {
+        v = (v || '').trim()
+        return v.toLowerCase() === 'n/a' ? '' : v
+      }
 
       var matches = []
       var shifts = []
@@ -341,10 +359,12 @@
         var section = iSection !== -1 ? (row[iSection] || '').trim() : ''
         var matchNo = iMatchNo !== -1 ? (row[iMatchNo] || '').trim() : ''
         var matchLabel = (row[iMatch] || '').trim()
-        var playerA = (row[iPA] || '').trim()
-        var playerB = (row[iPB] || '').trim()
+        var playerA = cleanCell(row[iPA])
+        var playerB = cleanCell(row[iPB])
         var format = iFormat !== -1 ? (row[iFormat] || '').trim() : ''
         var notes = (row[iNotes] || '').trim()
+        var scheduleType = iScheduleType !== -1 ? (row[iScheduleType] || '').trim() : ''
+        var mcCue = iMcCue !== -1 ? (row[iMcCue] || '').trim() : ''
 
         if (playerA && playerB) {
           matches.push({
@@ -356,12 +376,13 @@
         }
 
         roleCols.forEach(function (rc) {
-          var name = (row[rc.idx] || '').trim()
+          var name = cleanCell(row[rc.idx])
           if (!name) return
           shifts.push({
             id: 's_' + (n++) + '_' + Date.now().toString(36),
             time: time, section: section, matchNo: matchNo, match: matchLabel,
-            playerA: playerA, playerB: playerB, role: rc.label, name: name, notes: notes
+            playerA: playerA, playerB: playerB, role: rc.label, name: name, notes: notes,
+            scheduleType: scheduleType, mcCue: mcCue
           })
         })
 
