@@ -23,6 +23,9 @@ export default function AccountGate({ onStaffSession }) {
   const [results, setResults] = useState(null) // { staffSession: {...}|null, player: bool, scorekeeper: bool, notes: {role: msg} }
   const [accountNames, setAccountNames] = useState([])
   const [selectedName, setSelectedName] = useState('')
+  const [unclaimedRoster, setUnclaimedRoster] = useState([]) // [{id, name}] — pre-seeded staff who haven't set a PIN yet
+  const [claimId, setClaimId] = useState('')
+  const [createMode, setCreateMode] = useState('select') // 'select' (pick from roster) | 'manual' (type a new name)
   const base = getBaseUrl()
 
   // Sign-in picks an existing name from a dropdown instead of retyping it —
@@ -30,11 +33,15 @@ export default function AccountGate({ onStaffSession }) {
   // front, so the dropdown is ready by the time someone reaches the sign-in
   // screen. Names are deduped case-insensitively (the same person can have
   // case-variant rows across tables — see unify_accounts_across_systems.sql).
+  //
+  // Pre-seeded staff roster rows (is_claimed = false) are deliberately left
+  // out of this list — they don't have a real PIN yet, so they belong on
+  // the Create Account "claim your name" dropdown instead, not Sign In.
   useEffect(() => {
     async function loadAccountNames() {
       try {
         const [staffRows, playerRows, scorekeeperRows] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&order=name.asc`, { headers: hdrs }).then(r => r.json()),
+          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,is_claimed&order=name.asc`, { headers: hdrs }).then(r => r.json()),
           fetch(`${SUPABASE_URL}/rest/v1/player_portal_accounts?select=display_name&order=display_name.asc`, { headers: hdrs }).then(r => r.json()),
           fetch(`${SUPABASE_URL}/rest/v1/scorekeeper_portal_accounts?select=display_name&order=display_name.asc`, { headers: hdrs }).then(r => r.json()),
         ])
@@ -43,12 +50,15 @@ export default function AccountGate({ onStaffSession }) {
           const key = (n || '').trim().toLowerCase()
           if (key && !seen.has(key)) seen.set(key, n.trim())
         }
-        ;(staffRows || []).forEach(r => add(r.name))
+        const unclaimed = (staffRows || []).filter(r => r.is_claimed === false)
+        ;(staffRows || []).filter(r => r.is_claimed !== false).forEach(r => add(r.name))
         ;(playerRows || []).forEach(r => add(r.display_name))
         ;(scorekeeperRows || []).forEach(r => add(r.display_name))
         setAccountNames(Array.from(seen.values()).sort((a, b) => a.localeCompare(b)))
+        setUnclaimedRoster(unclaimed.map(r => ({ id: r.id, name: r.name })).sort((a, b) => a.name.localeCompare(b.name)))
       } catch {
         setAccountNames([])
+        setUnclaimedRoster([])
       }
     }
     loadAccountNames()
@@ -58,6 +68,8 @@ export default function AccountGate({ onStaffSession }) {
     setFirstName('')
     setLastName('')
     setSelectedName('')
+    setClaimId('')
+    setCreateMode(unclaimedRoster.length ? 'select' : 'manual')
     setPin('')
     setPinConfirm('')
     setFormError('')
@@ -127,7 +139,39 @@ export default function AccountGate({ onStaffSession }) {
     setBusy(false)
   }
 
+  // Claiming a pre-seeded roster name (is_claimed = false, placeholder pin)
+  // just sets a real PIN on that same row — the PIN-sync trigger then
+  // propagates it to the matching player/scorekeeper rows the same way a
+  // normal PIN change does, so nothing else needs updating by hand.
+  async function handleClaim() {
+    const roster = unclaimedRoster.find(r => r.id === claimId)
+    if (!roster) { setFormError('Select your name from the list.'); return }
+    if (!/^\d{4}$/.test(pin)) { setFormError('Code must be exactly 4 digits.'); return }
+    if (pin !== pinConfirm) { setFormError('Codes do not match.'); return }
+    setBusy(true)
+    setFormError('')
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${roster.id}`, {
+        method: 'PATCH',
+        headers: { ...hdrs, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ pin, is_claimed: true }),
+      })
+      if (!res.ok) {
+        setFormError('Could not set your code. Try again.')
+        setBusy(false)
+        return
+      }
+      const resolved = await resolveSessions(roster.name, pin)
+      setResults(resolved)
+      setMode('result')
+    } catch {
+      setFormError('Connection error. Try again.')
+    }
+    setBusy(false)
+  }
+
   async function handleCreate() {
+    if (createMode === 'select') return handleClaim()
     const name = fullName()
     if (!firstName.trim() || !lastName.trim()) { setFormError('Enter your first and last name.'); return }
     if (!/^\d{4}$/.test(pin)) { setFormError('Code must be exactly 4 digits.'); return }
@@ -207,27 +251,58 @@ export default function AccountGate({ onStaffSession }) {
             </p>
           </div>
 
-          {isCreate ? (
-            <div className="flex gap-2">
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">First Name</label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={e => { setFirstName(e.target.value); setFormError('') }}
-                  autoFocus
-                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
-                />
+          {isCreate && createMode === 'select' ? (
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Your Name</label>
+              <select
+                value={claimId}
+                onChange={e => { setClaimId(e.target.value); setFormError('') }}
+                autoFocus
+                className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
+              >
+                <option value="">Select your name…</option>
+                {unclaimedRoster.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={() => { setCreateMode('manual'); setFormError('') }}
+                className="text-gray-500 hover:text-gray-300 text-xs text-left mt-1 underline"
+              >
+                Not on this list? Enter your name manually
+              </button>
+            </div>
+          ) : isCreate ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">First Name</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={e => { setFirstName(e.target.value); setFormError('') }}
+                    autoFocus
+                    className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
+                  />
+                </div>
+                <div className="flex flex-col gap-1 flex-1">
+                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={e => { setLastName(e.target.value); setFormError('') }}
+                    className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
+                  />
+                </div>
               </div>
-              <div className="flex flex-col gap-1 flex-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Last Name</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={e => { setLastName(e.target.value); setFormError('') }}
-                  className="bg-[#1a1a1a] border border-[#333] rounded-lg px-3 py-2.5 text-white text-sm focus:outline-none focus:border-orange-500"
-                />
-              </div>
+              {unclaimedRoster.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { setCreateMode('select'); setFormError('') }}
+                  className="text-gray-500 hover:text-gray-300 text-xs text-left underline"
+                >
+                  Choose from the staff list instead
+                </button>
+              )}
             </div>
           ) : (
             <div className="flex flex-col gap-1">
