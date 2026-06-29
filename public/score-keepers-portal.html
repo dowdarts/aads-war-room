@@ -526,6 +526,21 @@
       })
     }
 
+    function isGroupDone(group) {
+      if (!group.playerA || !group.playerB) return false
+      return statusForPlayers(group.playerA, group.playerB).label === 'Done'
+    }
+
+    // Finished matches drop to the bottom (in their own chronological
+    // order among themselves) so the schedule reads as "what's left,
+    // soonest first" instead of making you scroll past everything
+    // that's already been played. Announcement-only cards have no
+    // complete/incomplete state, so they're never moved.
+    function sortGroupsCompletedLast(groups) {
+      return groups.filter(function (g) { return !isGroupDone(g) })
+        .concat(groups.filter(isGroupDone))
+    }
+
     function renderMyShifts() {
       var el = document.getElementById('myShiftsTab')
       var session = getSession()
@@ -536,6 +551,7 @@
       var myGroups = showAll ? matchGroups : matchGroups.filter(function (g) {
         return session && groupHasPerson(g, session.displayName)
       })
+      myGroups = sortGroupsCompletedLast(myGroups)
       var myBreaks = showAll ? onBreakShifts : onBreakShifts.filter(function (s) {
         return session && namesMatch(s.name, session.displayName)
       })
@@ -652,7 +668,7 @@
       var shifts = eventState.scorekeeperShifts || []
       el.innerHTML = ''
       if (!shifts.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
-      var matchGroups = groupShiftsByMatch(shifts)
+      var matchGroups = sortGroupsCompletedLast(groupShiftsByMatch(shifts))
       var onBreakShifts = shifts.filter(function (s) { return s.role === 'On Break' })
       matchGroups.forEach(function (g) { el.appendChild(renderMatchCard(g)) })
       onBreakShifts.forEach(function (s) { el.appendChild(renderShiftRow(s)) })
