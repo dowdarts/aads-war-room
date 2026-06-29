@@ -446,8 +446,17 @@
       matches.forEach(function (m, i) {
         var row = document.createElement('div')
         row.className = 'sched-row' + (m.complete ? ' complete' : '') + (i === nextIdx ? ' up-next' : '')
+        // The headline used to just be m.match, which worked by accident
+        // when schedule exports wrote player names straight into the
+        // Match column (e.g. "Tom Holden vs Rob Sibbick"). Newer exports
+        // use a generic label there instead (e.g. "Round Robin Match 1"),
+        // so show who's actually playing whenever both players are known,
+        // and keep the match label as context underneath.
+        var hasPlayers = !!(m.playerA && m.playerB)
+        var headline = hasPlayers ? (m.playerA + ' vs ' + m.playerB) : (m.match || '(untitled)')
         var subParts = []
         if (m.time) subParts.push(escapeHtml(m.time))
+        if (hasPlayers && m.match) subParts.push(escapeHtml(m.match))
         if (m.round) subParts.push(escapeHtml(m.round))
         var metaParts = []
         if (m.format) metaParts.push(escapeHtml(m.format))
@@ -455,7 +464,7 @@
         row.innerHTML =
           '<label class="sched-check"><input type="checkbox" ' + (m.complete ? 'checked' : '') + ' data-id="' + m.id + '" /></label>' +
           '<div class="sched-info">' +
-            '<div class="sched-headline">' + escapeHtml(m.match || '(untitled)') + '</div>' +
+            '<div class="sched-headline">' + escapeHtml(headline) + '</div>' +
             (subParts.length ? '<div class="sched-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
             (metaParts.length ? '<div class="sched-meta">' + metaParts.join(' &middot; ') + '</div>' : '') +
           '</div>' +
