@@ -155,6 +155,28 @@
     .status-done, .status-scheduled, .status-standby { color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); }
 
     .launcher-note { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 16px; }
+
+    /* ══ EVENT CHAT ══ */
+    .chat-fab {
+      position: fixed; bottom: 20px; right: 20px; z-index: 999;
+      width: 52px; height: 52px; border-radius: 50%; border: none;
+      background: var(--accent); color: #1a0a00; font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4); cursor: pointer;
+    }
+    .chat-fab:hover { background: var(--accent-2); }
+    .chat-unread-dot {
+      position: absolute; top: 2px; right: 2px; width: 12px; height: 12px;
+      border-radius: 50%; background: #ef4444; border: 2px solid #050505;
+    }
+    .chat-overlay {
+      position: fixed; inset: 0; z-index: 1000; background: var(--bg);
+      display: flex; flex-direction: column;
+    }
+    .chat-overlay-bar { padding: 10px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: flex-end; }
+    .chat-close-btn { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); font-size: 13px; font-weight: 700; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
+    .chat-close-btn:hover { border-color: var(--accent); }
+    .chat-iframe { flex: 1; border: none; width: 100%; }
   </style>
 </head>
 <body>
@@ -232,6 +254,17 @@
 
   </div>
 
+  <button type="button" id="chatFab" class="chat-fab hidden" title="AADS Event Chat">
+    💬
+    <span id="chatUnreadDot" class="chat-unread-dot hidden"></span>
+  </button>
+  <div id="chatOverlay" class="chat-overlay hidden">
+    <div class="chat-overlay-bar">
+      <button type="button" id="chatCloseBtn" class="chat-close-btn">✕ Close</button>
+    </div>
+    <iframe id="chatFrame" class="chat-iframe" src="" title="AADS Event Chat"></iframe>
+  </div>
+
   <script>
     /* ══ CONSTANTS ══ */
     var SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
@@ -240,6 +273,9 @@
     var VAPID_PUBLIC_KEY = 'BPIESfNBbD2RClDErwjAvB0j-PVya6bFBves1iLElnl17vmvuF3V1PymOPgAHt7KD0tE3gV944mWZeKrztR1_38'
     var SESSION_KEY = 'aads_scorekeeper_session'
     var POLL_MS = 4000
+    var CHAT_LASTREAD_PREFIX = 'aads_chat_lastread_'
+    var CHAT_UNREAD_POLL_MS = 15000
+    var chatAccountId = null
 
     /* ══ STATE ══
        Single current event only — no picker. We always read/poll the
@@ -830,6 +866,7 @@
 
     function afterAuth() {
       setAuthMsg('', '')
+      initChatWidget()
       if (('Notification' in window) && Notification.permission === 'granted') {
         subscribeToPush().then(showStatusView)
       } else {
@@ -837,9 +874,77 @@
       }
     }
 
+    /* ══ EVENT CHAT ══
+       Chat is keyed to staff_accounts.id everywhere (every claimed account
+       gets a matching staff_accounts row via the unify trigger, regardless
+       of which portal they signed in through), so resolve this scorekeeper's
+       chat id once by name and use it just for the unread badge — the
+       embedded staff-chat.html iframe resolves its own identity the same
+       way and shares localStorage with this page since it's same-origin. */
+    var chatWidgetInitialized = false
+
+    function resolveChatAccountId() {
+      var session = getSession()
+      if (!session) return Promise.resolve(null)
+      var url = SUPABASE_URL + '/rest/v1/staff_accounts?name=ilike.' + encodeURIComponent(session.displayName) + '&select=id&limit=1'
+      return fetch(url, { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) { return (Array.isArray(rows) && rows.length) ? rows[0].id : null })
+        .catch(function () { return null })
+    }
+
+    function pollChatUnread() {
+      if (!chatAccountId) return
+      var url = SUPABASE_URL + '/rest/v1/staff_messages?recipient_id=eq.' + chatAccountId + '&select=created_at,sender_id&order=created_at.desc&limit=50'
+      fetch(url, { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (!Array.isArray(rows)) return
+          var unread = rows.some(function (m) {
+            var lastRead = localStorage.getItem(CHAT_LASTREAD_PREFIX + m.sender_id)
+            return !lastRead || new Date(m.created_at) > new Date(lastRead)
+          })
+          document.getElementById('chatUnreadDot').classList.toggle('hidden', !unread)
+        })
+        .catch(function () {})
+    }
+
+    function openChat() {
+      var frame = document.getElementById('chatFrame')
+      if (!frame.src) frame.src = 'staff-chat.html'
+      document.getElementById('chatOverlay').classList.remove('hidden')
+      document.getElementById('chatUnreadDot').classList.add('hidden')
+    }
+
+    function closeChat() {
+      document.getElementById('chatOverlay').classList.add('hidden')
+      pollChatUnread()
+    }
+
+    function initChatWidget() {
+      if (!chatWidgetInitialized) {
+        chatWidgetInitialized = true
+        document.getElementById('chatFab').addEventListener('click', openChat)
+        document.getElementById('chatCloseBtn').addEventListener('click', closeChat)
+        setInterval(pollChatUnread, CHAT_UNREAD_POLL_MS)
+      }
+      // Re-resolve every call (not just the first) so signing out and back
+      // in as someone else, without a page reload, still picks up the
+      // right identity instead of leaving the previous person's badge state.
+      document.getElementById('chatFrame').src = ''
+      resolveChatAccountId().then(function (id) {
+        chatAccountId = id
+        document.getElementById('chatFab').classList.toggle('hidden', !id)
+        if (id) pollChatUnread()
+      })
+    }
+
     function signOut() {
       stopPolling()
       clearSession()
+      chatAccountId = null
+      document.getElementById('chatFab').classList.add('hidden')
+      document.getElementById('chatOverlay').classList.add('hidden')
       document.getElementById('signinName').value = ''
       document.getElementById('signinPin').value = ''
       document.getElementById('createFirstName').value = ''

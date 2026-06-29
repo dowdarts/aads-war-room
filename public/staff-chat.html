@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#050505" />
   <link rel="manifest" href="staff-chat.webmanifest" />
-  <link rel="icon" href="icon-staff-chat.png" />
-  <link rel="apple-touch-icon" href="icon-staff-chat.png" />
+  <link rel="icon" href="icon-event-chat.png" />
+  <link rel="apple-touch-icon" href="icon-event-chat.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>AADS Staff Chat</title>
+  <title>AADS Event Chat</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -46,6 +46,12 @@
       font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: border-color 0.15s;
     }
     .hero-install-btn:hover { border-color: var(--accent); }
+    .hero-alerts-btn {
+      margin-top: 8px; background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+      font-size: 12px; font-weight: 700; padding: 8px 16px; border-radius: 999px; cursor: pointer; transition: border-color 0.15s;
+    }
+    .hero-alerts-btn:hover { border-color: var(--accent); }
+    .hero-alerts-btn.on { border-color: #22c55e; color: #22c55e; }
 
     /* ══ SIGN-IN NEEDED ══ */
     .sign-in-needed { max-width: 360px; margin: 60px auto; padding: 28px; text-align: center; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; }
@@ -124,17 +130,18 @@
 <body>
 
   <div class="hero">
-    <img class="hero-logo" src="icon-staff-chat.png" alt="AADS Staff Chat" />
+    <img class="hero-logo" src="icon-event-chat.png" alt="AADS Event Chat" />
     <div class="hero-eyebrow">AADS War Room</div>
-    <h1 class="hero-title">Staff <em>Chat</em></h1>
+    <h1 class="hero-title">Event <em>Chat</em></h1>
     <br />
     <button type="button" id="installBtn" class="hero-install-btn hidden">📲 Add to Home Screen</button>
+    <button type="button" id="alertsBtn" class="hero-alerts-btn hidden">🔔 Enable Alerts</button>
   </div>
 
   <div id="signInNeeded" class="sign-in-needed hidden">
     <div class="login-field">
-      <label>Staff Code</label>
-      <input type="password" inputmode="numeric" maxlength="6" id="pinInput" placeholder="Enter your staff code" autofocus />
+      <label>Account Code</label>
+      <input type="password" inputmode="numeric" maxlength="6" id="pinInput" placeholder="Enter your code" autofocus />
     </div>
     <div id="loginMsg" class="login-msg"></div>
     <button type="button" class="login-submit-btn" id="loginSubmitBtn">Sign In</button>
@@ -143,7 +150,7 @@
   <div id="chatApp" class="chat-app hidden">
     <div class="chat-layout" id="chatLayout">
       <div class="contact-pane">
-        <div class="pane-header">Staff<span id="meLabel" class="me-label"></span></div>
+        <div class="pane-header">Event<span id="meLabel" class="me-label"></span></div>
         <div class="contact-list" id="contactList"></div>
       </div>
       <div class="thread-pane">
@@ -173,6 +180,8 @@
     var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
     var hdrs = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
     var SESSION_KEY = 'aads_staff_session'
+    var PLAYER_SESSION_KEY = 'aads_player_session'
+    var SCOREKEEPER_SESSION_KEY = 'aads_scorekeeper_session'
     var LASTREAD_PREFIX = 'aads_chat_lastread_'
     var POLL_MS = 2000
     var HEARTBEAT_MS = 30000
@@ -200,9 +209,41 @@
     }
     function saveSession(s) { localStorage.setItem(SESSION_KEY, JSON.stringify(s)) }
 
+    // A player/scorekeeper who never explicitly clicked "Continue as Staff"
+    // has no aads_staff_session, even though their staff_accounts row exists
+    // (every claimed account gets one via the unify trigger). Resolve their
+    // chat identity from whichever portal session they DO have, without
+    // writing to aads_staff_session — that key also unlocks the full Staff
+    // Dashboard elsewhere in the app, which is a lot more than just chat.
+    function loadFallbackDisplayName() {
+      try {
+        var p = JSON.parse(localStorage.getItem(PLAYER_SESSION_KEY))
+        if (p && p.displayName) return p.displayName
+      } catch (e) {}
+      try {
+        var s = JSON.parse(localStorage.getItem(SCOREKEEPER_SESSION_KEY))
+        if (s && s.displayName) return s.displayName
+      } catch (e) {}
+      return null
+    }
+
+    function resolveFallbackSession(displayName) {
+      var url = SUPABASE_URL + '/rest/v1/staff_accounts?name=ilike.' + encodeURIComponent(displayName) +
+        '&select=id,name,is_active,is_claimed&limit=1'
+      return fetch(url, { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (!Array.isArray(rows) || !rows.length) return null
+          var row = rows[0]
+          if (row.is_active === false || row.is_claimed === false) return null
+          return { id: row.id, name: row.name, isMaster: false, loginAt: Date.now() }
+        })
+        .catch(function () { return null })
+    }
+
     /* ══ DATA ══ */
     function loadContacts() {
-      var url = SUPABASE_URL + '/rest/v1/staff_accounts?select=id,name,last_seen_at&is_active=eq.true&order=name.asc'
+      var url = SUPABASE_URL + '/rest/v1/staff_accounts?select=id,name,last_seen_at&is_active=eq.true&is_claimed=eq.true&order=name.asc'
       fetch(url, { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
@@ -391,6 +432,16 @@
     }
 
     /* ══ ACTIONS ══ */
+    // Sent right after a message insert succeeds — not via a DB hook, same
+    // pattern cue-light.html uses for its own portal push calls.
+    function notifyChatPush(recipientId, preview) {
+      fetch(SUPABASE_URL + '/functions/v1/send-staff-chat-push', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ recipientId: recipientId, senderName: me.name, preview: preview })
+      }).catch(function () {})
+    }
+
     function sendMessage() {
       var input = document.getElementById('msgInput')
       var body = input.value.trim()
@@ -418,7 +469,7 @@
           recipient_id: contact.id, recipient_name: contact.name,
           body: body
         })
-      }).catch(function () {})
+      }).then(function () { notifyChatPush(contact.id, body) }).catch(function () {})
     }
 
     function compressImage(file) {
@@ -483,7 +534,7 @@
               recipient_id: contact.id, recipient_name: contact.name,
               body: '', image_url: imageUrl
             })
-          })
+          }).then(function () { notifyChatPush(contact.id, '') })
         })
       }).catch(function () {
         allMessages = allMessages.filter(function (m) { return m.id !== tempId })
@@ -548,6 +599,84 @@
       if (!isStandalone()) btn.classList.remove('hidden')
     }
 
+    /* ══ NOTIFICATIONS ══ */
+    var VAPID_PUBLIC_KEY = 'BPIESfNBbD2RClDErwjAvB0j-PVya6bFBves1iLElnl17vmvuF3V1PymOPgAHt7KD0tE3gV944mWZeKrztR1_38'
+
+    function registerChatSW() {
+      if (!('serviceWorker' in navigator)) return Promise.resolve(null)
+      return navigator.serviceWorker.register('staff-chat-sw.js', { scope: '/staff-chat.html' }).catch(function () { return null })
+    }
+
+    function urlBase64ToUint8Array(base64String) {
+      var padding = '='.repeat((4 - base64String.length % 4) % 4)
+      var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+      var rawData = window.atob(base64)
+      var outputArray = new Uint8Array(rawData.length)
+      for (var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i)
+      return outputArray
+    }
+
+    function saveChatSubscription(sub) {
+      var json = sub.toJSON()
+      return fetch(SUPABASE_URL + '/rest/v1/staff_chat_push_subscriptions?on_conflict=endpoint', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify({ account_id: me.id, endpoint: json.endpoint, p256dh: json.keys.p256dh, auth: json.keys.auth })
+      }).then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (body) {
+            throw new Error('Save subscription failed (' + res.status + '): ' + body)
+          })
+        }
+      })
+    }
+
+    function subscribeToChatPush() {
+      return registerChatSW().then(function (registration) {
+        if (!registration || !registration.pushManager) {
+          throw new Error('Push is not supported in this browser/mode.')
+        }
+        return registration.pushManager.getSubscription().then(function (existing) {
+          return existing || registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+          })
+        })
+      }).then(function (sub) {
+        if (sub) return saveChatSubscription(sub)
+      })
+    }
+
+    function setAlertsBtnState(on) {
+      var btn = document.getElementById('alertsBtn')
+      btn.textContent = on ? '🔔 Alerts On' : '🔔 Enable Alerts'
+      btn.classList.toggle('on', on)
+    }
+
+    function enableChatAlerts() {
+      if (!('Notification' in window)) { alert('Notifications are not supported in this browser.'); return }
+      if (isIOSDevice() && !isStandalone()) {
+        alert('On iPhone, notifications only work once this page is added to the Home Screen — tap 📲 Add to Home Screen first, then open it from that icon and try again.')
+        return
+      }
+      Notification.requestPermission().then(function (perm) {
+        if (perm !== 'granted') { alert('Notifications were not enabled.'); return }
+        subscribeToChatPush().then(function () {
+          setAlertsBtnState(true)
+        }).catch(function (e) {
+          console.error('Push subscribe failed', e)
+          alert('Push setup failed: ' + (e && e.message ? e.message : e))
+        })
+      })
+    }
+
+    function wireAlertsButton() {
+      var btn = document.getElementById('alertsBtn')
+      btn.classList.remove('hidden')
+      btn.addEventListener('click', enableChatAlerts)
+      setAlertsBtnState(('Notification' in window) && Notification.permission === 'granted')
+    }
+
     /* ══ LOGIN ══ */
     function showLoginMsg(text) {
       var el = document.getElementById('loginMsg')
@@ -565,12 +694,13 @@
       var btn = document.getElementById('loginSubmitBtn')
       btn.disabled = true
       btn.textContent = 'Verifying…'
-      fetch(SUPABASE_URL + '/rest/v1/staff_accounts?pin=eq.' + pin + '&select=id,name,is_master,is_active', { headers: hdrs })
+      fetch(SUPABASE_URL + '/rest/v1/staff_accounts?pin=eq.' + pin + '&select=id,name,is_master,is_active,is_claimed', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
           if (!Array.isArray(rows)) { showLoginMsg('Connection error. Try again.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
           if (!rows.length) { showLoginMsg('Code not recognized. Try again.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
           if (rows[0].is_active === false) { showLoginMsg('This account is paused. Contact Matthew.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
+          if (rows[0].is_claimed === false) { showLoginMsg('Set up your account first from the main sign-in page.'); btn.disabled = false; btn.textContent = 'Sign In'; return }
           saveSession({ id: rows[0].id, name: rows[0].name, isMaster: rows[0].is_master, loginAt: Date.now() })
           me = loadSession()
           document.getElementById('signInNeeded').classList.add('hidden')
@@ -599,6 +729,7 @@
       document.getElementById('chatApp').classList.remove('hidden')
       document.getElementById('meLabel').textContent = me.name
       wireUI()
+      wireAlertsButton()
       loadContacts()
       setInterval(loadContacts, CONTACTS_POLL_MS)
       tick()
@@ -607,15 +738,23 @@
       setInterval(heartbeat, HEARTBEAT_MS)
     }
 
+    function showSignInNeeded() {
+      document.getElementById('signInNeeded').classList.remove('hidden')
+      wireLogin()
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
       wireInstallButton()
       me = loadSession()
-      if (!me || !me.id) {
-        document.getElementById('signInNeeded').classList.remove('hidden')
-        wireLogin()
-        return
-      }
-      startChatApp()
+      if (me && me.id) { startChatApp(); return }
+
+      var fallbackName = loadFallbackDisplayName()
+      if (!fallbackName) { showSignInNeeded(); return }
+      resolveFallbackSession(fallbackName).then(function (s) {
+        if (!s) { showSignInNeeded(); return }
+        me = s
+        startChatApp()
+      })
     })
   </script>
 </body>

@@ -20,6 +20,11 @@ supabase/.temp
 .env.*.local
 *.local
 
+# VIP/door check-in data and ticket images — guest PII and scannable QR
+# codes; live data lives in Supabase, these are local generation artifacts
+generated_tickets/
+public/vip table one/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

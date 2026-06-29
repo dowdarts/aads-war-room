@@ -6,7 +6,7 @@ const hdrs = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
 const SESSION_KEY = 'aads_staff_session'
 const LASTREAD_PREFIX = 'aads_chat_lastread_'
 const MESSAGE_POLL_MS = 2000
-const ELIGIBILITY_POLL_MS = 4000
+const SESSION_POLL_MS = 4000
 const HEARTBEAT_MS = 30000
 const CONTACTS_POLL_MS = 15000
 const ONLINE_THRESHOLD_MS = 90000
@@ -52,9 +52,18 @@ function formatTime(iso) {
   try { return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) } catch { return '' }
 }
 
+// Sent right after a message insert succeeds — not via a DB hook, same
+// pattern cue-light.html uses for its own portal push calls.
+function notifyChatPush(recipientId, senderName, preview) {
+  fetch(`${SUPABASE_URL}/functions/v1/send-staff-chat-push`, {
+    method: 'POST',
+    headers: { ...hdrs, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ recipientId, senderName, preview }),
+  }).catch(() => {})
+}
+
 export default function StaffChatWidget() {
   const [session, setSession] = useState(() => loadSession())
-  const [eligible, setEligible] = useState(false)
   const [open, setOpen] = useState(false)
   const [contacts, setContacts] = useState([])
   const [messages, setMessages] = useState([])
@@ -65,21 +74,14 @@ export default function StaffChatWidget() {
   const inputRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  // Re-check session + tool permission periodically — covers sign in/out and
-  // permission changes Matthew makes while this tab stays open.
+  // Re-check session periodically — covers sign in/out while this tab stays
+  // open. Every claimed account gets chat now, no permission gate needed.
   useEffect(() => {
-    function checkEligibility() {
-      const s = loadSession()
-      setSession(s)
-      if (!s) { setEligible(false); return }
-      if (s.isMaster) { setEligible(true); return }
-      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?id=eq.${s.id}&select=tool_permissions`, { headers: hdrs })
-        .then(r => r.json())
-        .then(rows => setEligible(Array.isArray(rows) && !!rows[0]?.tool_permissions?.includes('staff-chat')))
-        .catch(() => setEligible(false))
+    function checkSession() {
+      setSession(loadSession())
     }
-    checkEligibility()
-    const t = setInterval(checkEligibility, ELIGIBILITY_POLL_MS)
+    checkSession()
+    const t = setInterval(checkSession, SESSION_POLL_MS)
     return () => clearInterval(t)
   }, [])
 
@@ -101,9 +103,9 @@ export default function StaffChatWidget() {
   }, [session?.id])
 
   useEffect(() => {
-    if (!eligible || !session) { setContacts([]); return }
+    if (!session) { setContacts([]); return }
     function loadContacts() {
-      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,last_seen_at&is_active=eq.true&order=name.asc`, { headers: hdrs })
+      fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=id,name,last_seen_at&is_active=eq.true&is_claimed=eq.true&order=name.asc`, { headers: hdrs })
         .then(r => r.json())
         .then(rows => setContacts(Array.isArray(rows) ? rows.filter(c => c.id !== session.id) : []))
         .catch(() => {})
@@ -111,10 +113,10 @@ export default function StaffChatWidget() {
     loadContacts()
     const t = setInterval(loadContacts, CONTACTS_POLL_MS)
     return () => clearInterval(t)
-  }, [eligible, session])
+  }, [session])
 
   useEffect(() => {
-    if (!eligible || !session) { setMessages([]); return }
+    if (!session) { setMessages([]); return }
     let lastJSON = ''
     function poll() {
       fetch(`${SUPABASE_URL}/rest/v1/staff_messages?or=(sender_id.eq.${session.id},recipient_id.eq.${session.id})&order=created_at.asc`, { headers: hdrs })
@@ -129,7 +131,7 @@ export default function StaffChatWidget() {
     poll()
     const t = setInterval(poll, MESSAGE_POLL_MS)
     return () => clearInterval(t)
-  }, [eligible, session])
+  }, [session])
 
   useEffect(() => {
     if (open) {
@@ -194,7 +196,7 @@ export default function StaffChatWidget() {
         recipient_id: contact.id, recipient_name: contact.name,
         body,
       }),
-    }).catch(() => {})
+    }).then(() => notifyChatPush(contact.id, session.name, body)).catch(() => {})
   }
 
   function handleKey(e) {
@@ -242,6 +244,7 @@ export default function StaffChatWidget() {
           body: '', image_url: imageUrl,
         }),
       })
+      notifyChatPush(contact.id, session.name, '')
     } catch {
       setMessages(prev => prev.filter(m => m.id !== tempId))
       window.alert('Could not send image. Try again.')
@@ -274,7 +277,7 @@ export default function StaffChatWidget() {
     }).catch(() => {})
   }
 
-  if (!eligible) return null
+  if (!session) return null
 
   const activeContact = contacts.find(c => c.id === activeContactId)
   const thread = activeContactId ? conversationWith(activeContactId) : []
@@ -286,7 +289,7 @@ export default function StaffChatWidget() {
         className="fixed bottom-5 right-5 z-50 w-12 h-12 rounded-full bg-orange shadow-lg
                    flex items-center justify-center text-black text-xl font-black
                    hover:scale-105 active:scale-95 transition-transform"
-        title="Staff Chat"
+        title="AADS Event Chat"
       >
         {open ? '✕' : '🧑'}
         {!open && hasUnread && (
@@ -311,7 +314,7 @@ export default function StaffChatWidget() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-bold text-white truncate flex items-center gap-1.5">
-                {activeContact ? activeContact.name : 'Staff Chat'}
+                {activeContact ? activeContact.name : 'AADS Event Chat'}
                 {activeContact && isOnline(activeContact) && (
                   <span className="w-2 h-2 rounded-full bg-green-500 shrink-0" title="Online now" />
                 )}
@@ -328,7 +331,7 @@ export default function StaffChatWidget() {
           {!activeContactId ? (
             <div className="flex-1 overflow-y-auto min-h-0">
               {contacts.length === 0 ? (
-                <p className="text-gray-600 text-sm text-center py-8 px-4">No other staff yet.</p>
+                <p className="text-gray-600 text-sm text-center py-8 px-4">No one else yet.</p>
               ) : (
                 contacts.map(c => {
                   const conv = conversationWith(c.id)
