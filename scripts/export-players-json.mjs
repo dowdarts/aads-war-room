@@ -50,5 +50,29 @@ const exported = allPlayers.map(p => {
   return out
 })
 
+// MC introduction scripts (e.g. Tournament of Champions player intros) are
+// event-specific, full-paragraph announcer scripts — kept separate from the
+// general player questionnaire CSVs rather than stuffed into a cell there.
+// Attach onto the matching player if one exists; for a finalist with no
+// questionnaire record on file (e.g. a late qualifier), add a minimal entry
+// so the cheat sheet can still surface their script.
+const introScripts = JSON.parse(read('mc-intro-scripts.json'))
+const byLowerName = new Map(exported.map(p => [p.fullName.toLowerCase(), p]))
+for (const script of introScripts) {
+  const existing = byLowerName.get(script.fullName.toLowerCase())
+  if (existing) {
+    existing.introScript = script.introScript
+    existing.eventChampion = script.eventChampion
+  } else {
+    exported.push({
+      fullName: script.fullName,
+      nickname: script.nickname || '',
+      hometown: '', province: '', age: '', yearsPlaying: '',
+      introScript: script.introScript,
+      eventChampion: script.eventChampion,
+    })
+  }
+}
+
 writeFileSync(outFile, JSON.stringify(exported, null, 2))
 console.log(`Wrote ${exported.length} player profiles to ${path.relative(process.cwd(), outFile)}`)
