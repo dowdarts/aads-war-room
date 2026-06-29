@@ -1,11 +1,11 @@
 {
-  "name": "AADS Staff Chat",
-  "short_name": "Staff Chat",
+  "name": "AADS Event Chat",
+  "short_name": "Event Chat",
   "start_url": "staff-chat.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
   "icons": [
-    { "src": "icon-staff-chat.png", "sizes": "any", "type": "image/png" }
+    { "src": "icon-event-chat.png", "sizes": "any", "type": "image/png" }
   ]
 }
