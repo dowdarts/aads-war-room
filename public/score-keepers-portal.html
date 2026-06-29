@@ -756,7 +756,15 @@
       }).then(function (res) {
         if (!res.ok) {
           return res.text().then(function (body) {
-            throw new Error('Save subscription failed (' + res.status + '): ' + body)
+            // 23503 here means session.id points at a scorekeeper_portal_accounts
+            // row that no longer exists — a stale cached session from before an
+            // account was deleted/merged on the backend, not a real failure.
+            var staleAccount = body.indexOf('23503') !== -1 && body.indexOf('scorekeeper_portal_accounts') !== -1
+            var err = new Error(staleAccount
+              ? 'Your saved sign-in is out of date. Signing you out — please sign back in and try again.'
+              : 'Save subscription failed (' + res.status + '): ' + body)
+            err.staleAccount = staleAccount
+            throw err
           })
         }
       })
@@ -778,6 +786,7 @@
       }).catch(function (e) {
         console.error('Push subscribe failed', e)
         alert('Push setup failed: ' + (e && e.message ? e.message : e))
+        if (e && e.staleAccount) signOut()
       })
     }
 
