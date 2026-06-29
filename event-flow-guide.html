@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AADS Tournament of Champions — Event Flow & Run Sheet</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+            cinzel: ['Cinzel', 'serif'],
+          },
+          colors: {
+            gold: { DEFAULT: '#d4af37', light: '#f3e5ab', dark: '#aa800e', deep: '#8a660a' },
+            brand: { carbon: '#121212', slate: '#1a1a1a', navy: '#050a12', red: '#ef4444' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0d0d0d; }
+    ::-webkit-scrollbar-thumb { background: #d4af37; border: 2px solid #0d0d0d; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #aa800e; }
+
+    .carbon-fiber {
+      background-color: #0d0d0d;
+      background-image:
+        radial-gradient(rgba(212,175,55,.12) 15%, transparent 16%),
+        radial-gradient(rgba(0,0,0,.6) 15%, transparent 16%),
+        linear-gradient(45deg,rgba(20,20,20,.9) 24%,#121212 24%,#121212 26%,rgba(20,20,20,.9) 26%,rgba(20,20,20,.9) 74%,#121212 74%,#121212 76%,rgba(20,20,20,.9) 76%),
+        linear-gradient(45deg,rgba(20,20,20,.9) 24%,#121212 24%,#121212 26%,rgba(20,20,20,.9) 26%,rgba(20,20,20,.9) 74%,#121212 74%,#121212 76%,rgba(20,20,20,.9) 76%);
+      background-size: 4px 4px, 4px 4px, 12px 12px, 12px 12px;
+      background-position: 0 0, 2px 2px, 0 0, 6px 6px;
+    }
+
+    .phase-connector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      color: #d4af37;
+      opacity: 0.5;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .phase-connector::before,
+    .phase-connector::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #d4af37, transparent);
+    }
+
+    .flow-step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .flow-step-dot {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #d4af37;
+      background: #121212;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 900;
+      color: #d4af37;
+      position: relative;
+      z-index: 1;
+    }
+    .flow-step-line {
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: -16px;
+      width: 2px;
+      background: linear-gradient(to bottom, #d4af37 0%, transparent 100%);
+      opacity: 0.2;
+      z-index: 0;
+    }
+
+    .phase-block {
+      background: linear-gradient(135deg, #0f0f0f 0%, #121212 100%);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .phase-header {
+      background: linear-gradient(90deg, rgba(212,175,55,0.1) 0%, transparent 100%);
+      border-bottom: 1px solid rgba(212,175,55,0.15);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .role-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .print-break { page-break-after: always; }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff !important; color: #000 !important; }
+      .phase-block { border: 1px solid #ccc !important; background: #fff !important; }
+    }
+
+    /* Sticky progress bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #aa800e, #d4af37, #f3e5ab);
+      z-index: 100;
+      transition: width 0.1s ease;
+      width: 0%;
+    }
+  </style>
+</head>
+<body class="carbon-fiber text-slate-100 font-sans antialiased min-h-screen">
+
+  <div id="progress-bar"></div>
+
+  <!-- Header -->
+  <header class="no-print bg-black/90 border-b border-gold/30 sticky top-0 z-40 backdrop-blur-md">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <img src="Untitled-20-AADS Logo.jpg" alt="AADS" class="h-10 w-auto object-contain opacity-90" onerror="this.style.display='none'">
+        <div>
+          <div class="font-cinzel text-sm font-black text-gold tracking-wide">Event Flow & Run Sheet</div>
+          <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-widest">Tournament of Champions · July 25, 2026</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="current-time-display" class="hidden md:flex items-center gap-2 text-[11px] font-mono font-bold text-gold/70 bg-black/60 px-3 py-1.5 rounded-lg border border-gold/20">
+          <i class="fa-regular fa-clock text-gold/40"></i>
+          <span id="live-clock">--:-- --</span>
+        </div>
+        <button onclick="window.print()" class="hidden md:flex items-center gap-2 text-[11px] font-bold px-3 py-1.5 rounded-lg border border-gold/30 text-gold hover:bg-gold hover:text-black transition-all duration-200">
+          <i class="fa-solid fa-print"></i> Print Run Sheet
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Page Content -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-8 flex gap-8">
+
+    <!-- Sidebar TOC -->
+    <aside class="no-print w-60 shrink-0 hidden xl:flex flex-col gap-4 sticky top-24 self-start h-[calc(100vh-7rem)] overflow-y-auto pb-4">
+      <div class="bg-black/80 rounded-xl p-4 border border-gold/25">
+        <div class="text-[10px] font-black text-gold uppercase tracking-widest mb-3">Phase Navigation</div>
+        <nav class="space-y-0.5" id="toc-nav">
+          <a href="#phase-pre" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">0</span>
+            Pre-Event Setup
+          </a>
+          <a href="#phase-doors" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">1</span>
+            Doors Open · 8:00 AM
+          </a>
+          <a href="#phase-walkouts" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">2</span>
+            Player Walkouts · 9:00 AM
+          </a>
+          <a href="#phase-roundrobin" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">3</span>
+            Round Robin · 9:00–1:40
+          </a>
+          <a href="#phase-tabulation" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">4</span>
+            Standings · 2:00 PM
+          </a>
+          <a href="#phase-bracket" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">5</span>
+            Bracket Reveal · 2:15 PM
+          </a>
+          <a href="#phase-semis" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">6</span>
+            Semifinals · 2:30–3:45
+          </a>
+          <a href="#phase-final-walkouts" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">7</span>
+            Final Walkouts · 3:50 PM
+          </a>
+          <a href="#phase-final" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">8</span>
+            Grand Final · 4:00 PM
+          </a>
+          <a href="#phase-awards" class="toc-link flex items-center gap-2 text-xs text-slate-400 hover:text-gold px-2 py-1.5 rounded-lg hover:bg-gold/5 transition-all">
+            <span class="w-5 h-5 rounded-full bg-slate-800 border border-gold/20 text-[9px] flex items-center justify-center font-black text-gold">9</span>
+            Awards & Closing
+          </a>
+        </nav>
+      </div>
+
+      <!-- Role Legend -->
+      <div class="bg-black/80 rounded-xl p-4 border border-gold/25">
+        <div class="text-[10px] font-black text-gold uppercase tracking-widest mb-3">Role Legend</div>
+        <div class="space-y-1.5 text-[11px]">
+          <div class="flex items-center gap-2"><span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Director</span></div>
+          <div class="flex items-center gap-2"><span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> MC</span></div>
+          <div class="flex items-center gap-2"><span class="role-chip bg-emerald-900/60 text-emerald-300 border border-emerald-700/40"><i class="fa-solid fa-tablet"></i> Scorekeeper</span></div>
+          <div class="flex items-center gap-2"><span class="role-chip bg-amber-900/60 text-amber-300 border border-amber-700/40"><i class="fa-solid fa-bullhorn"></i> Caller</span></div>
+          <div class="flex items-center gap-2"><span class="role-chip bg-red-900/60 text-red-300 border border-red-700/40"><i class="fa-solid fa-shield"></i> Security</span></div>
+          <div class="flex items-center gap-2"><span class="role-chip bg-slate-800 text-slate-300 border border-slate-600/40"><i class="fa-solid fa-door-open"></i> Door Team</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 min-w-0 space-y-6">
+
+      <!-- Title Block -->
+      <div class="text-center py-8 border-b border-gold/20 mb-2">
+        <div class="inline-flex items-center gap-2 text-[10px] font-black text-gold bg-gold/10 border border-gold/25 px-4 py-1.5 rounded-full uppercase tracking-widest mb-4">
+          <i class="fa-solid fa-circle-dot text-red-500 animate-pulse"></i>
+          Official Operations Document — Confidential Staff Use Only
+        </div>
+        <h1 class="font-cinzel text-3xl sm:text-4xl font-black text-gold-light tracking-tight mb-2">Event Flow & Run Sheet</h1>
+        <p class="text-sm text-slate-400 font-semibold uppercase tracking-widest">AADS Tournament of Champions · Series 1 Finale</p>
+        <p class="text-xs text-slate-600 mt-1">Scoudouc Golden Age Club, NB · Friday, July 25, 2026</p>
+      </div>
+
+      <!-- Quick Reference Bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-black/70 border border-gold/20 rounded-xl p-3 text-center">
+          <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Doors Open</div>
+          <div class="font-cinzel font-black text-gold text-lg">8:00 AM</div>
+        </div>
+        <div class="bg-black/70 border border-gold/20 rounded-xl p-3 text-center">
+          <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Play Starts</div>
+          <div class="font-cinzel font-black text-gold text-lg">9:00 AM</div>
+        </div>
+        <div class="bg-black/70 border border-gold/20 rounded-xl p-3 text-center">
+          <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Grand Final</div>
+          <div class="font-cinzel font-black text-gold text-lg">4:00 PM</div>
+        </div>
+        <div class="bg-black/70 border border-gold/20 rounded-xl p-3 text-center">
+          <div class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">Players</div>
+          <div class="font-cinzel font-black text-gold text-lg">6</div>
+        </div>
+      </div>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 0 — PRE-EVENT SETUP -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <section id="phase-pre" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-gear text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 0</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Pre-Event Setup</div>
+            <div class="text-[11px] text-slate-500">Arrival & staging before doors open at 8:00 AM</div>
+          </div>
+          <div class="ml-auto hidden sm:flex items-center gap-2">
+            <span class="text-[10px] font-black text-slate-500 bg-slate-800/60 px-2 py-1 rounded border border-slate-700/40">Target: 6:30–7:45 AM</span>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="warn text-xs p-3 rounded-xl border border-amber-700/30 bg-amber-900/10">
+            <b class="text-amber-400">All staff must arrive no later than 7:00 AM.</b> Matthew Dow (Event Director) leads setup walk-through at 7:15 AM.
+          </div>
+
+          <div class="space-y-3 relative">
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">1</div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Venue Walk-Through & Oche Setup</span>
+                  <span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Matthew Dow</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">Confirm oche tape, board heights, lighting rigs, and stage positions are correct. Verify CueLight system is online and boards 1 & 2 are calibrated.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">2</div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Audio / Stream & Microphone Check</span>
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Dana Moss</span>
+                  <span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Matthew Dow</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">Test PA / handheld mic levels in the venue. Confirm stream encoder is live and lower-third graphics overlay is loading correctly.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">3</div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Scorekeeper Tablet Verification</span>
+                  <span class="role-chip bg-emerald-900/60 text-emerald-300 border border-emerald-700/40"><i class="fa-solid fa-tablet"></i> All Scorekeepers</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">Each scorekeeper (Aubrey Holland, Zach Davis, Tyler Stewart, Cecil Dow, Steve Rushton, Cory Wallace) logs into Score Keepers Portal and verifies the match schedule is loaded and accessible.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">4</div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Door Station Setup</span>
+                  <span class="role-chip bg-slate-800 text-slate-300 border border-slate-600/40"><i class="fa-solid fa-door-open"></i> Door Team</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">Kayla Melanson, Tanya Holland, Marie-Therese, and Dawn LeBlanc set up entry table: wristband stock, ticket scanner access, and cash float. Connie Dow opens Staff Portal for digital ticket verification.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">5</div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Security Brief & Perimeter Check</span>
+                  <span class="role-chip bg-red-900/60 text-red-300 border border-red-700/40"><i class="fa-solid fa-shield"></i> Jason Cole</span>
+                </div>
+                <p class="text-xs text-slate-400 leading-relaxed">Jason Cole confirms alcohol service boundary zones, emergency exit access, and reviews crowd control plan with Matthew Dow.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-green-900/10 border border-green-700/30 rounded-xl p-3 text-xs text-green-300">
+            <b class="text-green-400">Go/No-Go Check at 7:45 AM:</b> Matthew Dow confirms all stations are live. If any system is not ready, play schedule may be delayed — director call only.
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 1 — DOORS OPEN -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Doors Open</div>
+
+      <section id="phase-doors" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-door-open text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 1</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Doors Open & Audience Admission</div>
+            <div class="text-[11px] text-slate-500">8:00 AM — Wristband handout, ticket check, bar opens</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="bg-brand-carbon rounded-xl p-3 border border-gold/15">
+              <div class="text-[10px] text-gold font-black uppercase tracking-wider mb-1.5">Entry · Door Team</div>
+              <ul class="space-y-1 text-slate-400">
+                <li>• Collect $10 admission (cash only)</li>
+                <li>• Apply wristband (Marie-Therese lead)</li>
+                <li>• Scan or verify ticket pass (Dawn LeBlanc)</li>
+                <li>• Connie Dow — digital Staff Portal check</li>
+              </ul>
+            </div>
+            <div class="bg-brand-carbon rounded-xl p-3 border border-gold/15">
+              <div class="text-[10px] text-gold font-black uppercase tracking-wider mb-1.5">50/50 & VIP · Support</div>
+              <ul class="space-y-1 text-slate-400">
+                <li>• Tanya Holland leads 50/50 ticket sales</li>
+                <li>• Kayla Melanson manages VIP table</li>
+                <li>• Announce no ATM on-site at entry</li>
+              </ul>
+            </div>
+            <div class="bg-brand-carbon rounded-xl p-3 border border-gold/15">
+              <div class="text-[10px] text-gold font-black uppercase tracking-wider mb-1.5">Security · Jason Cole</div>
+              <ul class="space-y-1 text-slate-400">
+                <li>• Monitor entrance line flow</li>
+                <li>• Enforce alcohol boundary zones</li>
+                <li>• Handle any entry disputes</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="warn text-xs p-3 rounded-xl border border-amber-700/30 bg-amber-900/10">
+            <b>CASH ONLY.</b> No Interac, no credit. No ATM on site. All door staff must actively inform every guest on arrival.
+          </div>
+
+          <div class="bg-brand-carbon border border-gold/15 rounded-xl p-3 text-xs">
+            <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Dana Moss — House Music & Crowd Warm-Up</div>
+            <p class="text-slate-400">During the 8:00–9:00 AM window, Dana Moss manages ambient atmosphere and may address the room with welcome remarks. No formal MC script until 9:00 AM walkouts begin.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 2 — OPENING PLAYER WALKOUTS -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Opening Ceremonies</div>
+
+      <section id="phase-walkouts" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-person-walking text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 2</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Opening Player Walkouts</div>
+            <div class="text-[11px] text-slate-500">9:00–9:55 AM — First debut match for each champion</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Each of the 6 champions receives one full official walkout presentation during their first Round Robin appearance. Dana Moss delivers the live MC script for every player.
+            <span class="text-yellow-400 font-bold"> After these three opening fixtures, no further walkouts occur until the Grand Final.</span>
+          </p>
+
+          <div class="space-y-3">
+            <!-- Walkout 1 -->
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="font-cinzel text-gold font-black text-sm">9:00 AM</span>
+                  <span class="text-white font-bold text-sm">Tom Holden vs Rob Sibbick</span>
+                </div>
+                <span class="text-[10px] text-slate-500 font-bold bg-slate-800 px-2 py-0.5 rounded border border-slate-700/50">First to 4 legs</span>
+              </div>
+              <div class="space-y-2 text-xs">
+                <div class="flex gap-3 items-start">
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40 mt-0.5 flex-shrink-0"><i class="fa-solid fa-microphone"></i> Dana</span>
+                  <div>
+                    <p class="text-slate-300 font-semibold mb-0.5">Walkout #1 — Tom "Power House" Holden (Event 1 Champion)</p>
+                    <p class="text-slate-500 italic">"Ladies and gentlemen, we begin with the man who started the road to the Tournament of Champions… Your Event 1 Champion — Tom "Power House" Holden!"</p>
+                  </div>
+                </div>
+                <div class="flex gap-3 items-start">
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40 mt-0.5 flex-shrink-0"><i class="fa-solid fa-microphone"></i> Dana</span>
+                  <div>
+                    <p class="text-slate-300 font-semibold mb-0.5">Walkout #2 — Rob "The Final Boss" Sibbick (Event 6 Champion)</p>
+                    <p class="text-slate-500 italic">"He was the last one in — but he is looking to be the last one standing… Rob "The Final Boss" Sibbick!"</p>
+                  </div>
+                </div>
+                <div class="flex gap-3 items-start">
+                  <span class="role-chip bg-amber-900/60 text-amber-300 border border-amber-700/40 mt-0.5 flex-shrink-0"><i class="fa-solid fa-bullhorn"></i> Caller</span>
+                  <p class="text-slate-400">Assigned caller begins match. Bull-off called by Jayme (CueLight Director).</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Walkout 2 -->
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="font-cinzel text-gold font-black text-sm">9:20 AM</span>
+                  <span class="text-white font-bold text-sm">Kyle Gray vs Drake Berry</span>
+                </div>
+                <span class="text-[10px] text-slate-500 font-bold bg-slate-800 px-2 py-0.5 rounded border border-slate-700/50">First to 4 legs</span>
+              </div>
+              <div class="space-y-2 text-xs">
+                <div class="flex gap-3 items-start">
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40 mt-0.5 flex-shrink-0"><i class="fa-solid fa-microphone"></i> Dana</span>
+                  <div>
+                    <p class="text-slate-300 font-semibold mb-0.5">Walkout #3 — Kyle "The Animal" Gray (Event 2 Champion)</p>
+                    <p class="text-slate-500 italic">"Known as "The Animal," he brings intensity… Your Event 2 Champion — Kyle "The Animal" Gray!"</p>
+                  </div>
+                </div>
+                <div class="flex gap-3 items-start">
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40 mt-0.5 flex-shrink-0"><i class="fa-solid fa-microphone"></i> Dana</span>
+                  <div>
+                    <p class="text-slate-300 font-semibold mb-0.5">Walkout #4 — Drake Berry (Event 5 Champion)</p>
+                    <p class="text-slate-500 italic">"Your Event 5 Champion — Drake Berry!"</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Walkout 3 -->
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <span class="font-cinzel text-gold font-black text-sm">9:40 AM</span>
+                  <span class="text-white font-bold text-sm">Tyler Cyr vs Darrell "Dee" Cormier</span>
+                </div>
+                <span class="text-[10px] text-slate-500 font-bold bg-slate-800 px-2 py-0.5 rounded border border-slate-700/50">First to 4 legs</span>
+              </div>
+              <div class="space-y-2 text-xs">
+                <div class="flex gap-3 items-start">
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40 mt-0.5 flex-shrink-0"><i class="fa-solid fa-microphone"></i> Dana</span>
+                  <div>
+                    <p class="text-slate-300 font-semibold mb-0.5">Walkout #5 — Tyler "The Sniper" Cyr (Event 3 Champion)</p>
+                    <p class="text-slate-500 italic">"Your Event 3 Champion — Tyler "The Sniper" Cyr!"</p>
+                  </div>
+                </div>
+                <div class="flex gap-3 items-start">
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40 mt-0.5 flex-shrink-0"><i class="fa-solid fa-microphone"></i> Dana</span>
+                  <div>
+                    <p class="text-slate-300 font-semibold mb-0.5">Walkout #6 — Darrell "Dee" Cormier (Event 4 Champion)</p>
+                    <p class="text-slate-500 italic">"On the international stage at the Korea Open, he recorded a WDF 9-dart game… Your Event 4 Champion — Darrell "Dee" Cormier!"</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-yellow-900/10 border border-yellow-700/30 rounded-xl p-3 text-xs text-yellow-300">
+            <b>Operational Rule:</b> After all 6 walkouts are complete, players transition directly to the board for subsequent Round Robin matches — no additional walkout staging until the Grand Final at 3:50 PM.
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 3 — ROUND ROBIN -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Round Robin Stage</div>
+
+      <section id="phase-roundrobin" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-arrows-spin text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 3</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Round Robin — Group Stage</div>
+            <div class="text-[11px] text-slate-500">9:00 AM – 1:40 PM · 15 matches · First to 4 legs each</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="overflow-x-auto rounded-xl border border-gold/20">
+            <table class="w-full text-left text-[11px]">
+              <thead class="bg-brand-carbon text-gold font-black uppercase tracking-wider border-b border-gold/20">
+                <tr>
+                  <th class="p-3">Time</th>
+                  <th class="p-3">Fixture</th>
+                  <th class="p-3 hidden sm:table-cell">Caller</th>
+                  <th class="p-3 hidden sm:table-cell">Scorer</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gold/5">
+                <tr class="bg-gold/5">
+                  <td class="p-3 font-black text-gold">9:00</td>
+                  <td class="p-3 font-bold text-white">Tom Holden vs Rob Sibbick</td>
+                  <td class="p-3 text-slate-400 hidden sm:table-cell">Dana Moss</td>
+                  <td class="p-3 text-slate-400 hidden sm:table-cell">Zach Davis</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-black text-gold">9:20</td>
+                  <td class="p-3 font-bold text-white">Kyle Gray vs Drake Berry</td>
+                  <td class="p-3 text-slate-400 hidden sm:table-cell">Cory Wallace</td>
+                  <td class="p-3 text-slate-400 hidden sm:table-cell">Aubrey Holland</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-black text-gold">9:40</td>
+                  <td class="p-3 font-bold text-white">Tyler Cyr vs Darrell "Dee" Cormier</td>
+                  <td class="p-3 text-slate-400 hidden sm:table-cell">Steve Rushton</td>
+                  <td class="p-3 text-slate-400 hidden sm:table-cell">Tyler Stewart</td>
+                </tr>
+                <tr class="bg-white/5">
+                  <td class="p-3 font-bold text-gold/80">10:00</td>
+                  <td class="p-3 text-slate-300">Tom Holden vs Drake Berry</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Dana Moss</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Cecil Dow</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">10:20</td>
+                  <td class="p-3 text-slate-300">Rob Sibbick vs Darrell "Dee" Cormier</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Cory Wallace</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Aubrey Holland</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">10:40</td>
+                  <td class="p-3 text-slate-300">Kyle Gray vs Tyler Cyr</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Steve Rushton</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Zach Davis</td>
+                </tr>
+                <tr class="bg-white/5">
+                  <td class="p-3 font-bold text-gold/80">11:00</td>
+                  <td class="p-3 text-slate-300">Tom Holden vs Darrell "Dee" Cormier</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Dana Moss</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Tyler Stewart</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">11:20</td>
+                  <td class="p-3 text-slate-300">Drake Berry vs Tyler Cyr</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Cory Wallace</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Cecil Dow</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">11:40</td>
+                  <td class="p-3 text-slate-300">Rob Sibbick vs Kyle Gray</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Steve Rushton</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Aubrey Holland</td>
+                </tr>
+                <tr class="bg-white/5">
+                  <td class="p-3 font-bold text-gold/80">12:00</td>
+                  <td class="p-3 text-slate-300">Tom Holden vs Tyler Cyr</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Dana Moss</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Zach Davis</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">12:20</td>
+                  <td class="p-3 text-slate-300">Darrell "Dee" Cormier vs Kyle Gray</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Cory Wallace</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Tyler Stewart</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">12:40</td>
+                  <td class="p-3 text-slate-300">Drake Berry vs Rob Sibbick</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Steve Rushton</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Cecil Dow</td>
+                </tr>
+                <tr class="bg-white/5">
+                  <td class="p-3 font-bold text-gold/80">1:00</td>
+                  <td class="p-3 text-slate-300">Tom Holden vs Kyle Gray</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Dana Moss</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Aubrey Holland</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">1:20</td>
+                  <td class="p-3 text-slate-300">Tyler Cyr vs Rob Sibbick</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Cory Wallace</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Zach Davis</td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-gold/80">1:40</td>
+                  <td class="p-3 text-slate-300">Darrell "Dee" Cormier vs Drake Berry</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Steve Rushton</td>
+                  <td class="p-3 text-slate-500 hidden sm:table-cell">Tyler Stewart</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="bg-brand-carbon border border-gold/15 rounded-xl p-3">
+              <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Between-Match Transitions</div>
+              <ul class="space-y-1 text-slate-400">
+                <li>• 20-minute slots include match + changeover</li>
+                <li>• Players walk directly to oche — no walkout staging</li>
+                <li>• Caller announces fixture and starts bull-off</li>
+                <li>• Scorekeeper confirms players on portal before first dart</li>
+              </ul>
+            </div>
+            <div class="bg-brand-carbon border border-gold/15 rounded-xl p-3">
+              <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Denis Commentary Coverage</div>
+              <ul class="space-y-1 text-slate-400">
+                <li>• Denis Leblanc — lead stats & storylines</li>
+                <li>• Denis Cormier — color commentary</li>
+                <li>• Maintain running points tally on stream</li>
+                <li>• Flag 180s, checkouts ≤32 darts for graphics team</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-red-900/10 border border-red-700/30 rounded-xl p-3 text-xs text-red-300">
+            <b>Dispute Protocol:</b> Any match dispute → Assigned Caller → Dana Moss → Matthew Dow (final authority). No match result is official until scorekeeper submits in the portal.
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 4 — STANDINGS TABULATION -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Standings Calculation</div>
+
+      <section id="phase-tabulation" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-calculator text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 4</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Standings Tabulation</div>
+            <div class="text-[11px] text-slate-500">2:00 PM · 4th-Place Tiebreaker if required</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="space-y-3 relative">
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">1</div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Final Round Robin Results Lock</span>
+                  <span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Matthew Dow</span>
+                  <span class="role-chip bg-emerald-900/60 text-emerald-300 border border-emerald-700/40"><i class="fa-solid fa-tablet"></i> Scorekeepers</span>
+                </div>
+                <p class="text-xs text-slate-400">All scorekeepers submit final Round Robin match results simultaneously. Matthew Dow locks the scoring portal to freeze the standings snapshot.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">2</div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Standings Verification (2-minute window)</span>
+                  <span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Matthew Dow</span>
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Dana Moss</span>
+                </div>
+                <p class="text-xs text-slate-400">Confirm top 4 positions. Check for any tie at 4th place. Director and MC align on bracket seedings before any public announcement.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot">3</div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">4th-Place Playoff (If Required)</span>
+                  <span class="role-chip bg-amber-900/60 text-amber-300 border border-amber-700/40"><i class="fa-solid fa-bullhorn"></i> Caller</span>
+                </div>
+                <p class="text-xs text-slate-400">If two players are tied for 4th, a Best-of-3 tiebreaker match is played immediately — <b class="text-white">First to 2 legs.</b> No walkout staging. Result determines the 4th qualifier.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-brand-carbon border border-gold/20 rounded-xl p-3 text-xs">
+            <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Tiebreaker Format</div>
+            <p class="text-slate-400">Best of 3 legs · First to 2 · No walkout · Assigned caller only · Scorekeeper submits result immediately upon completion.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 5 — BRACKET REVEAL -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Bracket Announcement</div>
+
+      <section id="phase-bracket" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-sitemap text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 5</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Knockout Bracket Reveal</div>
+            <div class="text-[11px] text-slate-500">2:15 PM · Dana Moss MC announcement</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-3">
+              <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-2">Dana Moss — Live Announcement</div>
+              <ul class="space-y-1.5 text-slate-400">
+                <li>• Announce final Round Robin standings (1st through 6th)</li>
+                <li>• Reveal the 4 qualifiers advancing to knockout stage</li>
+                <li>• Announce semifinal crossovers: 1st vs 4th, 2nd vs 3rd</li>
+                <li>• Thank the 2 eliminated players by name</li>
+              </ul>
+            </div>
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-3">
+              <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-2">Stream / Graphics Cue</div>
+              <ul class="space-y-1.5 text-slate-400">
+                <li>• Push bracket graphic on stream overlay</li>
+                <li>• Lower-thirds for each qualified player</li>
+                <li>• Denis Leblanc delivers bracket commentary</li>
+                <li>• Allow ~5 min for crowd reaction before Semifinal prep</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="border border-gold/20 rounded-xl overflow-hidden text-xs">
+            <div class="bg-gold/10 px-4 py-2 font-black text-gold uppercase tracking-wider text-[10px]">Semifinal Seeding Template</div>
+            <div class="grid grid-cols-2 divide-x divide-gold/15">
+              <div class="p-3">
+                <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Semifinal 1 · 2:30 PM</div>
+                <p class="text-slate-300"><span class="text-gold font-black">1st Place</span> vs <span class="text-gold font-black">4th Place</span></p>
+                <p class="text-slate-500 mt-0.5">First to 6 legs</p>
+              </div>
+              <div class="p-3">
+                <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Semifinal 2 · 3:15 PM</div>
+                <p class="text-slate-300"><span class="text-gold font-black">2nd Place</span> vs <span class="text-gold font-black">3rd Place</span></p>
+                <p class="text-slate-500 mt-0.5">First to 6 legs</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 6 — SEMIFINALS -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Knockout Stage</div>
+
+      <section id="phase-semis" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-bolt text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 6</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Knockout Semifinals</div>
+            <div class="text-[11px] text-slate-500">2:30 PM & 3:15 PM · First to 6 legs each</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="space-y-3">
+            <!-- Semi 1 -->
+            <div class="border border-gold/25 rounded-xl overflow-hidden">
+              <div class="bg-gradient-to-r from-gold/10 to-transparent p-3 border-b border-gold/15 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="font-cinzel text-gold font-black">2:30 PM</span>
+                  <span class="text-white font-bold">Semifinal 1 — 1st vs 4th</span>
+                </div>
+                <span class="text-[10px] font-black text-gold bg-gold/10 border border-gold/25 px-2 py-0.5 rounded">First to 6 legs</span>
+              </div>
+              <div class="p-3 text-xs space-y-2">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div class="text-slate-400"><span class="text-gold font-bold">Caller:</span> Dana Moss</div>
+                  <div class="text-slate-400"><span class="text-gold font-bold">Scorer:</span> Assigned scorekeeper</div>
+                  <div class="text-slate-400"><span class="text-gold font-bold">CueLight:</span> Jayme active</div>
+                </div>
+                <div class="bg-brand-carbon rounded-lg p-2.5 text-slate-400">
+                  No walkout — players approach oche on Dana's call. Bull-off determines first throw. Denis Leblanc & Denis Cormier deliver full match commentary.
+                </div>
+              </div>
+            </div>
+
+            <!-- Semi 2 -->
+            <div class="border border-gold/25 rounded-xl overflow-hidden">
+              <div class="bg-gradient-to-r from-gold/10 to-transparent p-3 border-b border-gold/15 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="font-cinzel text-gold font-black">3:15 PM</span>
+                  <span class="text-white font-bold">Semifinal 2 — 2nd vs 3rd</span>
+                </div>
+                <span class="text-[10px] font-black text-gold bg-gold/10 border border-gold/25 px-2 py-0.5 rounded">First to 6 legs</span>
+              </div>
+              <div class="p-3 text-xs space-y-2">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div class="text-slate-400"><span class="text-gold font-bold">Caller:</span> Dana Moss</div>
+                  <div class="text-slate-400"><span class="text-gold font-bold">Scorer:</span> Assigned scorekeeper</div>
+                  <div class="text-slate-400"><span class="text-gold font-bold">CueLight:</span> Jayme active</div>
+                </div>
+                <div class="bg-brand-carbon rounded-lg p-2.5 text-slate-400">
+                  Denis Cormier conducts brief winner interview after Semifinal 1 conclusion while Semifinal 2 preps. Estimated start ~3:15–3:20 PM depending on Semi 1 duration.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-brand-carbon border border-gold/15 rounded-xl p-3 text-xs">
+            <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Between Semifinals — Denis Cormier Interview Window</div>
+            <p class="text-slate-400">After Semifinal 1 concludes, Denis Cormier conducts a brief on-camera winner interview. This bridges to Semifinal 2 and keeps the broadcast live and engaged. Duration: 3–5 minutes max.</p>
+          </div>
+
+          <div class="bg-green-900/10 border border-green-700/30 rounded-xl p-3 text-xs text-green-300">
+            <b>Preparation Cue:</b> While Semifinal 2 is in progress, Matthew Dow and Dana Moss begin Grand Final setup — music cues loaded, walkout order confirmed, trophy staged.
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 7 — FINAL WALKOUTS -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Championship Ceremonies</div>
+
+      <section id="phase-final-walkouts" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-star text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 7</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Championship Grand Walkouts</div>
+            <div class="text-[11px] text-slate-500">3:50 PM · Full production walkout for both finalists</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="warn text-xs p-3 rounded-xl border border-amber-700/30 bg-amber-900/10">
+            <b>This is the marquee moment of the broadcast.</b> Full theatrical production. Music, lighting, crowd hype. Dana Moss delivers elevated championship-tier scripts for both finalists.
+          </div>
+
+          <div class="space-y-3">
+            <div class="bg-brand-carbon border border-gold/25 rounded-xl p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Dana Moss</span>
+                <span class="text-xs text-slate-400 font-semibold">Finalist 1 — Champion Script</span>
+              </div>
+              <p class="text-xs text-slate-500 italic leading-relaxed">
+                "From [hometown]… Your AADS [Event X] Champion — [Player Nickname] [Player Name]!"
+              </p>
+              <p class="text-[10px] text-slate-600 mt-2">Full championship script sourced from the Official Event Handbook Chapter 8–13. Use the designated Championship Walkout line for each player.</p>
+            </div>
+
+            <div class="bg-brand-carbon border border-gold/25 rounded-xl p-4">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Dana Moss</span>
+                <span class="text-xs text-slate-400 font-semibold">Finalist 2 — Champion Script</span>
+              </div>
+              <p class="text-xs text-slate-500 italic leading-relaxed">
+                "From [hometown]… Your AADS [Event X] Champion — [Player Nickname] [Player Name]!"
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="bg-brand-carbon border border-gold/15 rounded-xl p-3">
+              <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">CueLight & Staging</div>
+              <ul class="space-y-1 text-slate-400">
+                <li>• Jayme activates full CueLight sequence</li>
+                <li>• Stream overlay transitions to Final graphic</li>
+                <li>• Walkout music for each player queued separately</li>
+              </ul>
+            </div>
+            <div class="bg-brand-carbon border border-gold/15 rounded-xl p-3">
+              <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Commentary Pre-Final</div>
+              <ul class="space-y-1 text-slate-400">
+                <li>• Denis Leblanc previews both finalists' paths</li>
+                <li>• Denis Cormier delivers match stakes breakdown</li>
+                <li>• ~5 minute broadcast build-up window</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 8 — GRAND FINAL -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Championship Final</div>
+
+      <section id="phase-final" class="phase-block scroll-mt-24" style="border-color: rgba(212,175,55,0.5);">
+        <div class="phase-header" style="background: linear-gradient(90deg, rgba(212,175,55,0.15) 0%, transparent 100%); border-bottom-color: rgba(212,175,55,0.3);">
+          <div class="w-10 h-10 rounded-xl bg-gold/20 border border-gold/50 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-crown text-gold"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-gold/60 font-black uppercase tracking-widest">Phase 8 — The Main Event</div>
+            <div class="font-cinzel font-black text-gold text-xl">Championship Grand Final</div>
+            <div class="text-[11px] text-gold/50">4:00 PM · First to 9 legs · Champion of Champions</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="border-2 border-gold/30 rounded-xl p-4 bg-gold/5 text-center">
+            <div class="font-cinzel text-gold font-black text-2xl mb-1">First to 9 Legs</div>
+            <p class="text-xs text-slate-400">The definitive match. Winner receives the AADS Champion of Champions trophy.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-3">
+              <div class="text-[10px] text-gold font-black uppercase tracking-wider mb-1.5">Officials</div>
+              <ul class="space-y-1 text-slate-400">
+                <li><b class="text-white">Caller:</b> Dana Moss</li>
+                <li><b class="text-white">CueLight:</b> Jayme</li>
+                <li><b class="text-white">Scorekeeper:</b> TBD (Matthew Dow assigns)</li>
+              </ul>
+            </div>
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-3">
+              <div class="text-[10px] text-gold font-black uppercase tracking-wider mb-1.5">Broadcast</div>
+              <ul class="space-y-1 text-slate-400">
+                <li><b class="text-white">Lead Commentary:</b> Denis Leblanc</li>
+                <li><b class="text-white">Color:</b> Denis Cormier</li>
+                <li>Full stream graphic overlays active</li>
+              </ul>
+            </div>
+            <div class="bg-brand-carbon border border-gold/20 rounded-xl p-3">
+              <div class="text-[10px] text-gold font-black uppercase tracking-wider mb-1.5">Security & Crowd</div>
+              <ul class="space-y-1 text-slate-400">
+                <li><b class="text-white">Security:</b> Jason Cole on floor</li>
+                <li>Audience crowd control max priority</li>
+                <li>No oche boundary crossings</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-brand-carbon border border-gold/15 rounded-xl p-3 text-xs">
+            <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Dana Moss — Match Commencement</div>
+            <p class="text-slate-400 italic">"Ladies and gentlemen — this is the moment we've all been waiting for. The Championship Grand Final of the AADS Tournament of Champions. One Champion will stand above all others — let's play darts!"</p>
+          </div>
+
+          <div class="bg-red-900/10 border border-red-700/30 rounded-xl p-3 text-xs text-red-300">
+            <b>No stoppages.</b> The Grand Final runs uninterrupted. Matthew Dow holds final authority on any dispute — all other officials defer immediately. Match result is submitted to portal by scorekeeper within 60 seconds of final dart.
+          </div>
+        </div>
+      </section>
+
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <!-- PHASE 9 — AWARDS & CLOSING -->
+      <!-- ───────────────────────────────────────────────────────────── -->
+      <div class="phase-connector">Awards & Ceremony</div>
+
+      <section id="phase-awards" class="phase-block scroll-mt-24">
+        <div class="phase-header">
+          <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-gold/30 flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-trophy text-gold text-sm"></i>
+          </div>
+          <div>
+            <div class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Phase 9</div>
+            <div class="font-cinzel font-bold text-gold-light text-lg">Awards, Trophy & Closing</div>
+            <div class="text-[11px] text-slate-500">Post-Final · Trophy presentation, interviews, farewell</div>
+          </div>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="space-y-3 relative">
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot"><i class="fa-solid fa-trophy text-[9px]"></i></div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Trophy Presentation</span>
+                  <span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Matthew Dow</span>
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Dana Moss</span>
+                </div>
+                <p class="text-xs text-slate-400">Matthew Dow presents the AADS Champion of Champions trophy on the floor. Dana Moss announces the champion to the crowd. Stream continues live.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot"><i class="fa-solid fa-microphone text-[9px]"></i></div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Champion Interview</span>
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Denis Cormier</span>
+                </div>
+                <p class="text-xs text-slate-400">Denis Cormier conducts the official post-championship winner interview on camera. 3–5 minutes. Denis Leblanc provides broadcast wrap commentary simultaneously.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot"><i class="fa-solid fa-users text-[9px]"></i></div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">50/50 Draw Announcement</span>
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Dana Moss</span>
+                  <span class="role-chip bg-slate-800 text-slate-300 border border-slate-600/40"><i class="fa-solid fa-door-open"></i> Tanya Holland</span>
+                </div>
+                <p class="text-xs text-slate-400">Dana Moss draws and announces the 50/50 raffle winner on the PA. Tanya Holland coordinates the ticket reconciliation and payout.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot"><i class="fa-solid fa-hand-holding-heart text-[9px]"></i></div>
+                <div class="flow-step-line"></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Sponsor & Volunteer Acknowledgements</span>
+                  <span class="role-chip bg-blue-900/60 text-blue-300 border border-blue-700/40"><i class="fa-solid fa-microphone"></i> Dana Moss</span>
+                  <span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Matthew Dow</span>
+                </div>
+                <p class="text-xs text-slate-400">Dana Moss thanks Amherst PharmaChoice (presenting sponsor), the Scoudouc Golden Age Club, all volunteers, and the 6 competing champions. Matthew Dow delivers any closing director remarks.</p>
+              </div>
+            </div>
+
+            <div class="flow-step">
+              <div class="relative">
+                <div class="flow-step-dot"><i class="fa-solid fa-broadcast-tower text-[9px]"></i></div>
+              </div>
+              <div class="pb-4 flex-1">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span class="text-sm font-bold text-white">Stream Sign-Off</span>
+                  <span class="role-chip bg-purple-900/60 text-purple-300 border border-purple-700/40"><i class="fa-solid fa-crown"></i> Matthew Dow</span>
+                </div>
+                <p class="text-xs text-slate-400">Matthew Dow gives the signal to end the live stream. Denis Leblanc delivers the final broadcast sign-off. Stream closes on the trophy / champion shot.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-brand-carbon border border-gold/20 rounded-xl p-3 text-xs">
+            <div class="text-gold font-black uppercase tracking-wider text-[10px] mb-1.5">Post-Event Teardown</div>
+            <p class="text-slate-400">All staff assist with venue restore. Scorekeeping tablets are collected and signed out. All event data (match results, ticket records) confirmed saved to cloud before departure. Matthew Dow signs off final operational completion.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <div class="text-center py-6 text-[11px] text-slate-600 space-y-1 border-t border-gold/10 mt-4">
+        <p class="font-cinzel text-gold/30 font-bold tracking-widest uppercase">AADS Tournament of Champions · Series 1 Finale</p>
+        <p>Official Event Flow & Run Sheet — Confidential Staff Operations Document</p>
+        <p>Scoudouc Golden Age Club · July 25, 2026 · Presented by Amherst PharmaChoice</p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Live clock
+    function updateClock() {
+      const now = new Date();
+      let h = now.getHours(), m = now.getMinutes(), ampm = 'AM';
+      if (h >= 12) { ampm = 'PM'; if (h > 12) h -= 12; }
+      if (h === 0) h = 12;
+      document.getElementById('live-clock').textContent =
+        String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ' ' + ampm;
+      document.getElementById('current-time-display').classList.remove('hidden');
+      document.getElementById('current-time-display').classList.add('flex');
+    }
+    updateClock();
+    setInterval(updateClock, 10000);
+
+    // Scroll progress bar
+    window.addEventListener('scroll', () => {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
+      document.getElementById('progress-bar').style.width = pct + '%';
+    });
+
+    // Active TOC highlight
+    const sections = document.querySelectorAll('section[id]');
+    const tocLinks = document.querySelectorAll('.toc-link');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(l => {
+            l.classList.remove('text-gold', 'bg-gold/10');
+            l.classList.add('text-slate-400');
+          });
+          const active = document.querySelector('.toc-link[href="#' + entry.target.id + '"]');
+          if (active) {
+            active.classList.add('text-gold', 'bg-gold/10');
+            active.classList.remove('text-slate-400');
+          }
+        }
+      });
+    }, { rootMargin: '-20% 0px -60% 0px' });
+    sections.forEach(s => observer.observe(s));
+  </script>
+</body>
+</html>
