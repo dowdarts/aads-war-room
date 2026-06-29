@@ -126,6 +126,19 @@
     .mc-cue { background: rgba(255,122,0,0.08); border: 1px solid rgba(255,122,0,0.3); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 13px; line-height: 1.4; }
     .mc-cue-label { color: var(--accent); font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
 
+    .live-cue { display: flex; align-items: center; gap: 14px; padding: 6px; }
+    .live-cue-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 10px currentColor; }
+    .live-cue-dot.pulse { animation: live-cue-pulse 1.4s ease-in-out infinite; }
+    @keyframes live-cue-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+    .live-cue-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .live-cue-role { font-size: 22px; font-weight: 900; }
+    .live-cue-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .live-cue-main .live-cue-role, .live-cue-main .live-cue-dot { color: var(--role-main); }
+    .live-cue-backup .live-cue-role, .live-cue-backup .live-cue-dot { color: var(--role-backup); }
+    .live-cue-caller .live-cue-role, .live-cue-caller .live-cue-dot { color: var(--role-caller); }
+    .live-cue-backupcaller .live-cue-role, .live-cue-backupcaller .live-cue-dot { color: var(--role-backup-caller); }
+    .live-cue-break .live-cue-role, .live-cue-break .live-cue-dot { color: var(--muted); }
+
     .bio-search { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
     .bio-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
     .bio-name { font-weight: 800; font-size: 15px; }
@@ -201,6 +214,10 @@
         <button type="button" class="btn hidden" id="installBtn">📲 Add to Home Screen</button>
         <button type="button" class="btn" onclick="window.open('score-keepers-portal-guide.html', '_blank', 'noopener,noreferrer')">📖 Guide</button>
         <button type="button" class="btn" id="signOutBtn">Sign Out</button>
+      </div>
+
+      <div id="liveCueCard" class="card hidden">
+        <div id="liveCueBanner"></div>
       </div>
 
       <div class="card">
@@ -494,6 +511,68 @@
       return row
     }
 
+    /* ══ LIVE CUE ══
+       A big "what am I doing right now" indicator: whoever's signed in
+       sees their own role for whichever match is currently live (the one
+       cue-light has lit "Go" on), color-coded the same as the role chips
+       elsewhere. Anyone not assigned a role on the live match — or when
+       nothing is live yet — shows "On Break", since that's literally true
+       right now regardless of what they're assigned to later. */
+    var LIVE_CUE_ROLES = [
+      ['main', 'Score Keeper', 'live-cue-main'],
+      ['backup', 'Backup Score Keeper', 'live-cue-backup'],
+      ['caller', 'Caller', 'live-cue-caller'],
+      ['backupCaller', 'Backup Caller', 'live-cue-backupcaller'],
+    ]
+
+    function getLiveMatch() {
+      var matches = eventState.matches || []
+      if (eventState.light !== 'start') return null
+      return matches.find(function (m) { return m.id === eventState.currentMatchId }) || null
+    }
+
+    function renderLiveCue() {
+      var liveCard = document.getElementById('liveCueCard')
+      var el = document.getElementById('liveCueBanner')
+      var session = getSession()
+      if (!session) { liveCard.classList.add('hidden'); return }
+      liveCard.classList.remove('hidden')
+
+      var liveMatch = getLiveMatch()
+      var roleDef = null
+      var matchLabel = ''
+      if (liveMatch) {
+        matchLabel = liveMatch.playerA + ' vs ' + liveMatch.playerB
+        var shifts = (eventState.scorekeeperShifts || []).filter(function (s) {
+          return shiftHasSamePlayers(liveMatch, s) && namesMatch(s.name, session.displayName)
+        })
+        for (var i = 0; i < shifts.length && !roleDef; i++) {
+          var bucket = ROLE_BUCKETS[shifts[i].role]
+          roleDef = LIVE_CUE_ROLES.find(function (d) { return d[0] === bucket })
+        }
+      }
+
+      if (roleDef) {
+        el.className = 'live-cue ' + roleDef[2]
+        el.innerHTML =
+          '<div class="live-cue-dot pulse"></div>' +
+          '<div>' +
+            '<div class="live-cue-label">You Are</div>' +
+            '<div class="live-cue-role">' + escapeHtml(roleDef[1]) + '</div>' +
+            '<div class="live-cue-sub">' + escapeHtml(matchLabel) + '</div>' +
+          '</div>'
+      } else {
+        el.className = 'live-cue live-cue-break'
+        el.innerHTML =
+          '<div class="live-cue-dot"></div>' +
+          '<div>' +
+            '<div class="live-cue-label">You Are</div>' +
+            '<div class="live-cue-role">On Break</div>' +
+            (liveMatch ? '<div class="live-cue-sub">' + escapeHtml(matchLabel) + ' is live</div>' : '<div class="live-cue-sub">No match live right now</div>') +
+          '</div>'
+      }
+    }
+
     /* ══ TABS ══ */
     function setActiveTab(tab) {
       activeTab = tab
@@ -508,6 +587,7 @@
 
     function renderActiveTab() {
       if (!eventState) return
+      renderLiveCue()
       if (activeTab === 'mine') renderMyShifts()
       else if (activeTab === 'full') renderFullSchedule()
       else renderCheatSheet()
