@@ -419,9 +419,12 @@
       matches.forEach(function (m, i) {
         var row = document.createElement('div')
         row.className = 'sched-row' + (m.complete ? ' complete' : '') + (i === nextIdx ? ' up-next' : '')
-        var headline = m.match || ([m.playerA, m.playerB].filter(Boolean).join(' vs ')) || '(untitled)'
+        var headline = (m.playerA && m.playerB)
+          ? (escapeHtml(m.playerA) + ' vs ' + escapeHtml(m.playerB))
+          : (escapeHtml(m.match || m.playerA || m.playerB || '(untitled)'))
 
         var subParts = []
+        if (m.match) subParts.push(escapeHtml(m.match))
         if (m.round) subParts.push(escapeHtml(m.round))
         if (m.format) subParts.push(escapeHtml(m.format))
 
@@ -467,14 +470,16 @@
       el.innerHTML = ''
       if (!mine.length) { el.innerHTML = '<p class="empty-note">No matches found for you on the schedule yet.</p>'; return }
       mine.forEach(function (m) {
+        var opponent = namesMatch(m.playerA, session.displayName) ? m.playerB : m.playerA
         var headline = (session && session.notifyAll)
           ? (escapeHtml(m.playerA || 'TBD') + ' vs ' + escapeHtml(m.playerB || 'TBD'))
-          : ('vs ' + escapeHtml((namesMatch(m.playerA, session.displayName) ? m.playerB : m.playerA) || 'TBD'))
+          : ('vs ' + escapeHtml(opponent || 'TBD'))
         var st = statusForMatch(selected.state, m)
         var row = document.createElement('div')
         row.className = 'sched-row'
         var subParts = []
         if (m.time) subParts.push(escapeHtml(m.time))
+        if (m.match) subParts.push(escapeHtml(m.match))
         if (m.round) subParts.push(escapeHtml(m.round))
         row.innerHTML =
           '<div class="sched-info">' +
