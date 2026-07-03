@@ -3,218 +3,370 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AADS Staff — Create Account</title>
+  <meta name="theme-color" content="#050505" />
+  <title>My AADS Account</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #050505;
-      color: #fff;
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --green-2: #5dd88a;
+      --danger-text: #ffb3b3;
     }
-    .card {
-      width: 100%;
-      max-width: 400px;
-      background: #111;
-      border: 1px solid #222;
-      border-radius: 20px;
-      padding: 40px 32px;
+    body {
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
       display: flex;
       flex-direction: column;
-      gap: 20px;
     }
+    .hidden { display: none !important; }
+
     .hero {
+      background: linear-gradient(180deg, #0e0805 0%, #050505 100%);
+      border-bottom: 1px solid #1a1a1a;
+      padding: 28px 24px 22px;
       text-align: center;
     }
-    .hero-icon { font-size: 2.5rem; margin-bottom: 10px; }
-    .hero h1 {
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.02em;
+    .hero-eyebrow {
+      font-size: 11px; font-weight: 900; letter-spacing: 0.38em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
     }
-    .hero p {
-      font-size: 0.8rem;
-      color: #666;
-      margin-top: 4px;
+    .hero-title {
+      font-size: clamp(26px, 5vw, 38px); font-weight: 900; letter-spacing: -0.03em;
     }
-    .field {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    .hero-title em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
     }
-    .field label {
-      font-size: 0.7rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #777;
+
+    .page { max-width: 440px; width: 100%; margin: 36px auto; padding: 0 20px 60px; }
+
+    .card {
+      background: var(--panel); border: 1px solid var(--line);
+      border-radius: 18px; padding: 28px;
     }
-    .field input {
-      background: #1a1a1a;
-      border: 1px solid #333;
-      border-radius: 10px;
-      padding: 11px 14px;
-      color: #fff;
-      font-size: 0.9rem;
-      outline: none;
+    .card-title { font-size: 20px; font-weight: 900; margin-bottom: 6px; }
+    .card-sub { color: var(--muted); font-size: 13px; line-height: 1.5; margin-bottom: 22px; }
+
+    label {
+      display: block; font-size: 11px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); margin-bottom: 6px;
+    }
+    select, input[type="password"] {
+      width: 100%; padding: 13px 14px; border-radius: 10px;
+      border: 1px solid var(--line); background: var(--panel-2);
+      color: var(--text); font-size: 15px; margin-bottom: 16px;
+      appearance: none; -webkit-appearance: none;
       transition: border-color 0.15s;
     }
-    .field input:focus { border-color: #f97316; }
-    input[inputmode="numeric"] {
-      text-align: center;
-      letter-spacing: 0.4em;
-      font-size: 1.1rem;
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 14px center;
+      padding-right: 36px; cursor: pointer;
     }
-    .btn-submit {
-      background: #ea580c;
-      color: #fff;
-      font-size: 0.9rem;
-      font-weight: 700;
-      border: none;
-      border-radius: 10px;
-      padding: 13px;
-      cursor: pointer;
-      transition: background 0.15s;
+    select:focus, input:focus { outline: none; border-color: var(--accent); }
+    select option { background: #1a1a1a; }
+
+    .btn {
+      display: block; width: 100%; padding: 14px; border-radius: 12px;
+      border: 1px solid var(--line); background: var(--panel-2);
+      color: var(--text); font-size: 15px; font-weight: 800;
+      cursor: pointer; transition: border-color 0.15s, opacity 0.15s;
+      text-align: center; text-decoration: none;
     }
-    .btn-submit:hover { background: #f97316; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-    .message {
-      font-size: 0.85rem;
-      text-align: center;
-      padding: 10px;
-      border-radius: 8px;
+    .btn:hover { border-color: var(--accent); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(180deg, #d96a00, var(--accent));
+      border-color: var(--accent); color: #1a0d00;
     }
-    .message.error { background: #3b1010; color: #f87171; }
-    .message.success { background: #0d2f1c; color: #4ade80; }
-    .back-link {
-      text-align: center;
-      font-size: 0.75rem;
-      color: #555;
+    .btn-primary:hover { border-color: var(--accent-2); }
+    .btn + .btn { margin-top: 10px; }
+    .link-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 13px; text-decoration: underline;
+      cursor: pointer; display: block; margin: 18px auto 0; padding: 0;
     }
-    .back-link a { color: #f97316; text-decoration: none; }
-    .back-link a:hover { text-decoration: underline; }
+    .link-btn:hover { color: var(--text); }
+
+    .msg { font-size: 13px; margin-bottom: 14px; min-height: 1em; line-height: 1.4; }
+    .msg.error { color: var(--danger-text); }
+    .msg.ok { color: var(--green-2); }
+
+    .portal-grid { display: flex; flex-direction: column; gap: 12px; margin-top: 24px; }
+    .portal-card {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--panel-2); border: 1px solid var(--line);
+      border-radius: 14px; padding: 18px 20px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      text-decoration: none; color: var(--text);
+    }
+    .portal-card:hover { border-color: var(--accent); background: rgba(255,122,0,0.05); }
+    .portal-icon { font-size: 28px; flex-shrink: 0; }
+    .portal-info { min-width: 0; }
+    .portal-name { font-size: 16px; font-weight: 900; }
+    .portal-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .portal-arrow { margin-left: auto; color: var(--muted); font-size: 20px; flex-shrink: 0; }
+
+    .welcome-row {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    .welcome-name { font-size: 22px; font-weight: 900; }
+    .signout-btn {
+      background: none; border: 1px solid var(--line); border-radius: 8px;
+      color: var(--muted); font-size: 12px; font-weight: 700;
+      padding: 6px 12px; cursor: pointer; transition: border-color 0.15s;
+    }
+    .signout-btn:hover { border-color: #666; color: var(--text); }
+    .welcome-sub { color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="hero">
-      <div class="hero-icon">🛠️</div>
-      <h1>Create Staff Account</h1>
-      <p>AADS War Room</p>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Atlantic Amateur Darts Series</div>
+    <h1 class="hero-title">My <em>AADS</em> Account</h1>
+  </div>
+
+  <div class="page">
+
+    <!-- Register -->
+    <div id="registerView" class="card">
+      <div class="card-title">Create Account</div>
+      <p class="card-sub">Select your name from the list, then choose a password to set up your account.</p>
+      <p id="registerMsg" class="msg"></p>
+
+      <label for="registerName">Your Name</label>
+      <select id="registerName">
+        <option value="">— Select your name —</option>
+      </select>
+
+      <label for="registerPass">Password</label>
+      <input type="password" id="registerPass" placeholder="Choose a password" autocomplete="new-password" />
+
+      <label for="registerConfirm">Confirm Password</label>
+      <input type="password" id="registerConfirm" placeholder="Re-enter password" autocomplete="new-password" />
+
+      <button type="button" class="btn btn-primary" id="registerBtn" onclick="doRegister()">Create Account</button>
+      <button type="button" class="link-btn" onclick="showLogin()">Already have an AADS Account? Sign in here</button>
     </div>
 
-    <div class="field">
-      <label>First Name</label>
-      <input type="text" id="firstNameInput" placeholder="First name" autocomplete="given-name" autofocus />
+    <!-- Login -->
+    <div id="loginView" class="card hidden">
+      <div class="card-title">Sign In</div>
+      <p class="card-sub">Select your name and enter your password to access your account.</p>
+      <p id="loginMsg" class="msg"></p>
+
+      <label for="loginName">Your Name</label>
+      <select id="loginName">
+        <option value="">— Select your name —</option>
+      </select>
+
+      <label for="loginPass">Password</label>
+      <input type="password" id="loginPass" placeholder="Your password" autocomplete="current-password" />
+
+      <button type="button" class="btn btn-primary" id="loginBtn" onclick="doLogin()">Sign In</button>
+      <button type="button" class="link-btn" onclick="showRegister()">Don't have an account? Create one</button>
     </div>
 
-    <div class="field">
-      <label>Last Name</label>
-      <input type="text" id="lastNameInput" placeholder="Last name" autocomplete="family-name" />
+    <!-- Dashboard -->
+    <div id="dashboardView" class="card hidden">
+      <div class="welcome-row">
+        <span class="welcome-name" id="welcomeName"></span>
+        <button class="signout-btn" onclick="doSignOut()">Sign Out</button>
+      </div>
+      <p class="welcome-sub">Where would you like to go?</p>
+
+      <div class="portal-grid">
+        <a class="portal-card" href="players-portal.html">
+          <span class="portal-icon">🎯</span>
+          <div class="portal-info">
+            <div class="portal-name">Player Portal</div>
+            <div class="portal-desc">View your schedule, match status &amp; event info</div>
+          </div>
+          <span class="portal-arrow">›</span>
+        </a>
+
+        <a class="portal-card" href="staff-portal.html">
+          <span class="portal-icon">🛠️</span>
+          <div class="portal-info">
+            <div class="portal-name">Staff Portal</div>
+            <div class="portal-desc">Access staff tools and event management</div>
+          </div>
+          <span class="portal-arrow">›</span>
+        </a>
+
+        <a class="portal-card" href="score-keepers-portal.html">
+          <span class="portal-icon">📋</span>
+          <div class="portal-info">
+            <div class="portal-name">Score Keepers Portal</div>
+            <div class="portal-desc">Enter and manage live match scores</div>
+          </div>
+          <span class="portal-arrow">›</span>
+        </a>
+      </div>
     </div>
 
-    <div class="field">
-      <label>Choose a 4-Digit Code</label>
-      <input type="password" inputmode="numeric" pattern="\d{4}" maxlength="6" id="pinInput" placeholder="••••" autocomplete="new-password" />
-    </div>
-
-    <div class="field">
-      <label>Confirm 4-Digit Code</label>
-      <input type="password" inputmode="numeric" pattern="\d{4}" maxlength="6" id="pinConfirm" placeholder="••••" autocomplete="new-password" />
-    </div>
-
-    <div id="message" class="message" style="display:none"></div>
-
-    <button type="button" class="btn-submit" id="submitBtn" onclick="register()">Create Account</button>
-
-    <p class="back-link">Already have an account? <a href="/">Go to Staff Login</a></p>
-    <p class="back-link"><a href="staff-portal-guide.html" target="_blank" rel="noopener noreferrer">📖 View the Staff Portal Guide</a></p>
   </div>
 
   <script>
     const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    const SESSION_KEY = 'myaads_session'
+    const hdrs = { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }
 
-    function showMsg(text, type) {
-      const el = document.getElementById('message')
-      el.textContent = text
-      el.className = 'message ' + type
-      el.style.display = 'block'
-    }
-
-    async function register() {
-      const firstName = document.getElementById('firstNameInput').value.trim()
-      const lastName = document.getElementById('lastNameInput').value.trim()
-      const pin = document.getElementById('pinInput').value.trim()
-      const confirm = document.getElementById('pinConfirm').value.trim()
-      const name = `${firstName} ${lastName}`.trim()
-
-      if (!firstName || !lastName) { showMsg('Please enter your first and last name.', 'error'); return }
-      if (!/^\d{4}$/.test(pin)) { showMsg('Code must be exactly 4 digits.', 'error'); return }
-      if (pin !== confirm) { showMsg('Codes do not match. Try again.', 'error'); return }
-
-      const btn = document.getElementById('submitBtn')
-      btn.disabled = true
-      btn.textContent = 'Creating account…'
+    async function init() {
+      const saved = sessionStorage.getItem(SESSION_KEY)
+      if (saved) { showDashboard(saved); return }
 
       try {
-        // Check if name already exists
-        const checkRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/staff_accounts?name=ilike.${encodeURIComponent(name)}&select=id`,
-          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-        )
-        const existing = await checkRes.json()
-        if (existing.length) {
-          showMsg('An account with that name already exists. Contact Matthew if you need a reset.', 'error')
-          btn.disabled = false
-          btn.textContent = 'Create Account'
-          return
-        }
-
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts`, {
-          method: 'POST',
-          headers: {
-            apikey: SUPABASE_KEY,
-            Authorization: `Bearer ${SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=minimal',
-          },
-          body: JSON.stringify({ name, pin, tool_permissions: [] }),
-        })
-
-        if (!res.ok) throw new Error('Server error')
-
-        showMsg(`Account created for ${name}! You can now sign in from the Staff tab.`, 'success')
-        document.getElementById('firstNameInput').value = ''
-        document.getElementById('lastNameInput').value = ''
-        document.getElementById('pinInput').value = ''
-        document.getElementById('pinConfirm').value = ''
-        document.getElementById('firstNameInput').focus()
-        btn.textContent = 'Create Another'
-        btn.disabled = false
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&order=name.asc`, { headers: hdrs })
+        const data = await res.json()
+        const names = data.map(r => r.name).filter(Boolean)
+        const opts = names.map(n => `<option value="${n}">${n}</option>`).join('')
+        document.getElementById('registerName').innerHTML = '<option value="">— Select your name —</option>' + opts
+        document.getElementById('loginName').innerHTML = '<option value="">— Select your name —</option>' + opts
       } catch {
-        showMsg('Connection error. Try again.', 'error')
-        btn.disabled = false
-        btn.textContent = 'Create Account'
+        showMsg('registerMsg', 'Could not load names. Check your connection.', 'error')
       }
     }
 
-    // Enter advances to the next field instead of submitting early with
-    // the rest of the form still empty; only the last field submits.
-    const fieldOrder = ['firstNameInput', 'lastNameInput', 'pinInput', 'pinConfirm']
-    fieldOrder.forEach((id, i) => {
-      document.getElementById(id).addEventListener('keydown', e => {
-        if (e.key !== 'Enter') return
-        const nextId = fieldOrder[i + 1]
-        if (nextId) document.getElementById(nextId).focus()
-        else register()
-      })
-    })
+    function showMsg(id, text, type) {
+      const el = document.getElementById(id)
+      el.textContent = text
+      el.className = 'msg ' + (type || '')
+    }
+
+    function showLogin() {
+      document.getElementById('registerView').classList.add('hidden')
+      document.getElementById('loginView').classList.remove('hidden')
+      const rName = document.getElementById('registerName').value
+      if (rName) document.getElementById('loginName').value = rName
+    }
+
+    function showRegister() {
+      document.getElementById('loginView').classList.add('hidden')
+      document.getElementById('registerView').classList.remove('hidden')
+    }
+
+    function showDashboard(name) {
+      document.getElementById('registerView').classList.add('hidden')
+      document.getElementById('loginView').classList.add('hidden')
+      document.getElementById('dashboardView').classList.remove('hidden')
+      document.getElementById('welcomeName').textContent = name
+      sessionStorage.setItem(SESSION_KEY, name)
+    }
+
+    async function doRegister() {
+      const name = document.getElementById('registerName').value
+      const pass = document.getElementById('registerPass').value.trim()
+      const confirm = document.getElementById('registerConfirm').value.trim()
+
+      if (!name) { showMsg('registerMsg', 'Please select your name.', 'error'); return }
+      if (!pass) { showMsg('registerMsg', 'Please enter a password.', 'error'); return }
+      if (pass.length < 4) { showMsg('registerMsg', 'Password must be at least 4 characters.', 'error'); return }
+      if (pass !== confirm) { showMsg('registerMsg', 'Passwords do not match. Try again.', 'error'); return }
+
+      const btn = document.getElementById('registerBtn')
+      btn.disabled = true; btn.textContent = 'Creating account…'
+      showMsg('registerMsg', '', '')
+
+      try {
+        const checkRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&select=id,pin`,
+          { headers: hdrs }
+        )
+        const existing = await checkRes.json()
+
+        if (existing.length && existing[0].pin) {
+          showMsg('registerMsg', 'An account already exists for this name. Please sign in instead.', 'error')
+          btn.disabled = false; btn.textContent = 'Create Account'
+          return
+        }
+
+        let ok
+        if (existing.length) {
+          const r = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}`, {
+            method: 'PATCH', headers: { ...hdrs, Prefer: 'return=minimal' },
+            body: JSON.stringify({ pin: pass }),
+          })
+          ok = r.ok
+        } else {
+          const r = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts`, {
+            method: 'POST', headers: { ...hdrs, Prefer: 'return=minimal' },
+            body: JSON.stringify({ name, pin: pass, tool_permissions: [] }),
+          })
+          ok = r.ok
+        }
+
+        if (!ok) throw new Error()
+        showDashboard(name)
+      } catch {
+        showMsg('registerMsg', 'Connection error. Please try again.', 'error')
+        btn.disabled = false; btn.textContent = 'Create Account'
+      }
+    }
+
+    async function doLogin() {
+      const name = document.getElementById('loginName').value
+      const pass = document.getElementById('loginPass').value.trim()
+
+      if (!name) { showMsg('loginMsg', 'Please select your name.', 'error'); return }
+      if (!pass) { showMsg('loginMsg', 'Please enter your password.', 'error'); return }
+
+      const btn = document.getElementById('loginBtn')
+      btn.disabled = true; btn.textContent = 'Signing in…'
+      showMsg('loginMsg', '', '')
+
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&select=name,pin`,
+          { headers: hdrs }
+        )
+        const data = await res.json()
+
+        if (!data.length || !data[0].pin) {
+          showMsg('loginMsg', 'No account found for this name. Please create one first.', 'error')
+          btn.disabled = false; btn.textContent = 'Sign In'
+          return
+        }
+
+        if (data[0].pin !== pass) {
+          showMsg('loginMsg', 'Incorrect password. Try again.', 'error')
+          btn.disabled = false; btn.textContent = 'Sign In'
+          return
+        }
+
+        showDashboard(name)
+      } catch {
+        showMsg('loginMsg', 'Connection error. Please try again.', 'error')
+        btn.disabled = false; btn.textContent = 'Sign In'
+      }
+    }
+
+    function doSignOut() {
+      sessionStorage.removeItem(SESSION_KEY)
+      document.getElementById('dashboardView').classList.add('hidden')
+      document.getElementById('registerView').classList.remove('hidden')
+      document.getElementById('loginPass').value = ''
+      document.getElementById('registerPass').value = ''
+      document.getElementById('registerConfirm').value = ''
+    }
+
+    document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin() })
+    document.getElementById('registerConfirm').addEventListener('keydown', e => { if (e.key === 'Enter') doRegister() })
+
+    init()
   </script>
 </body>
 </html>
