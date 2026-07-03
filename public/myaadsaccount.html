@@ -230,12 +230,18 @@
       if (saved) { showDashboard(saved); return }
 
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&order=name.asc`, { headers: hdrs })
-        const data = await res.json()
-        const names = data.map(r => r.name).filter(Boolean)
-        const opts = names.map(n => `<option value="${n}">${n}</option>`).join('')
-        document.getElementById('registerName').innerHTML = '<option value="">— Select your name —</option>' + opts
-        document.getElementById('loginName').innerHTML = '<option value="">— Select your name —</option>' + opts
+        const [allRes, activeRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&order=name.asc`, { headers: hdrs }),
+          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&pin=not.is.null&pin=neq.&order=name.asc`, { headers: hdrs }),
+        ])
+        const allData = await allRes.json()
+        const activeData = await activeRes.json()
+        const allNames = allData.map(r => r.name).filter(Boolean)
+        const activeNames = activeData.map(r => r.name).filter(Boolean)
+        document.getElementById('registerName').innerHTML =
+          '<option value="">— Select your name —</option>' + allNames.map(n => `<option value="${n}">${n}</option>`).join('')
+        document.getElementById('loginName').innerHTML =
+          '<option value="">— Select your name —</option>' + activeNames.map(n => `<option value="${n}">${n}</option>`).join('')
       } catch {
         showMsg('registerMsg', 'Could not load names. Check your connection.', 'error')
       }
