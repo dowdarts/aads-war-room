@@ -218,16 +218,16 @@
       if (saved) { showDashboard(saved); return }
 
       try {
-        const [allRes, activeRes] = await Promise.all([
-          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&order=name.asc`, { headers: hdrs }),
+        const [newRes, activeRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&or=(pin.is.null,pin.eq.)&order=name.asc`, { headers: hdrs }),
           fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&pin=not.is.null&pin=neq.&order=name.asc`, { headers: hdrs }),
         ])
-        const allData = await allRes.json()
+        const newData = await newRes.json()
         const activeData = await activeRes.json()
-        const allNames = allData.map(r => r.name).filter(Boolean)
+        const newNames = newData.map(r => r.name).filter(Boolean)
         const activeNames = activeData.map(r => r.name).filter(Boolean)
         document.getElementById('registerName').innerHTML =
-          '<option value="">— Select your name —</option>' + allNames.map(n => `<option value="${n}">${n}</option>`).join('')
+          '<option value="">— Select your name —</option>' + newNames.map(n => `<option value="${n}">${n}</option>`).join('')
         document.getElementById('loginName').innerHTML =
           '<option value="">— Select your name —</option>' + activeNames.map(n => `<option value="${n}">${n}</option>`).join('')
       } catch {
