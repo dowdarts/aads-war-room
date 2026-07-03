@@ -160,10 +160,8 @@
       <p id="authMsg" class="msg"></p>
 
       <div id="signinFields">
-        <label for="signinName">Your Name</label>
-        <input type="text" id="signinName" placeholder="First Last" />
-        <label for="signinPin">4-Digit Code</label>
-        <input type="password" id="signinPin" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" />
+        <label for="signinPin">Your 4-Digit Code</label>
+        <input type="password" id="signinPin" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="••••" autofocus />
         <button type="button" class="btn btn-primary" id="signInBtn">Sign In</button>
         <button type="button" class="link-btn" id="showCreateBtn">Don't have an account? Create one</button>
       </div>
@@ -533,27 +531,25 @@
       document.getElementById('createFields').classList.toggle('hidden', mode !== 'create')
       document.getElementById('authHeading').textContent = mode === 'signin' ? 'Sign In' : 'Create Account'
       document.getElementById('authSub').textContent = mode === 'signin'
-        ? 'Enter your name and 4-digit code to sign in.'
+        ? 'Enter your 4-digit code to sign in.'
         : 'Type your name and pick any 4-digit code — that becomes your sign-in code from now on.'
       setAuthMsg('', '')
     }
 
     function signIn() {
-      var name = document.getElementById('signinName').value.trim()
       var pin = document.getElementById('signinPin').value.trim()
-      if (!name) { setAuthMsg('Please enter your name.', 'error'); return }
       if (!/^\d{4}$/.test(pin)) { setAuthMsg('Code must be exactly 4 digits.', 'error'); return }
       setAuthMsg('Checking...', '')
 
-      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?display_name=ilike.' + encodeURIComponent(name) + '&select=id,pin,notify_all', { headers: hdrs })
+      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?pin=eq.' + encodeURIComponent(pin) + '&select=id,display_name,notify_all', { headers: hdrs })
         .then(function (r) { return r.json() })
         .then(function (rows) {
           if (!Array.isArray(rows) || !rows.length) {
-            setAuthMsg('No account found for that name. Create one below.', 'error')
+            setAuthMsg('Code not recognised. Check your code or create an account below.', 'error')
             return
           }
           var account = rows[0]
-          if (account.pin !== pin) { setAuthMsg('That code is incorrect for ' + name + '.', 'error'); return }
+          var name = account.display_name
           saveSession({ id: account.id, displayName: name, notifyAll: !!account.notify_all, loginAt: Date.now() })
           fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?id=eq.' + account.id, {
             method: 'PATCH',
@@ -686,7 +682,6 @@
       document.getElementById('chatOverlay').classList.add('hidden')
       selectedEventId = null
       localStorage.removeItem(SELECTED_EVENT_KEY)
-      document.getElementById('signinName').value = ''
       document.getElementById('signinPin').value = ''
       document.getElementById('createFirstName').value = ''
       document.getElementById('createLastName').value = ''
