@@ -91,13 +91,17 @@
     .tab-panel.hidden { display: none; }
     .empty-note { color: var(--muted); font-size: 13px; }
 
-    .sched-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .sched-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--line); }
     .sched-row:last-child { border-bottom: none; }
-    .sched-row.up-next { background: rgba(255,122,0,0.08); border-radius: 10px; padding: 12px 10px; border-bottom: none; }
+    .sched-row.up-next { background: rgba(255,122,0,0.08); border-radius: 10px; padding: 14px 10px; border-bottom: none; }
     .sched-row.complete .sched-headline { opacity: 0.45; text-decoration: line-through; }
-    .sched-info { min-width: 0; }
+    .sched-info { min-width: 0; flex: 1; }
     .sched-headline { font-weight: 800; font-size: 14px; }
-    .sched-sub, .sched-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .sched-time { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 3px; }
+    .sched-sub, .sched-meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .sched-officials { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .sched-official-chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: var(--muted); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+    .sched-official-chip .chip-label { color: #555; font-weight: 600; }
 
     .up-next-badge, .status-pill { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; padding: 4px 8px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
     .up-next-badge, .status-next { color: var(--accent); background: rgba(255,122,0,0.15); border: 1px solid rgba(255,122,0,0.4); }
@@ -398,22 +402,41 @@
       var matches = selected.state.matches || []
       el.innerHTML = ''
       if (!matches.length) { el.innerHTML = '<p class="empty-note">No schedule loaded yet.</p>'; return }
+
+      // Build a lookup of officials per match from scorekeeperShifts
+      var ROLE_BUCKETS = { 'Score Keeper': 'main', 'Main Scorekeeper': 'main', 'Scorekeeper': 'main', 'Tablet Score Keeper': 'main', 'Back Up Score Keeper': 'backup', 'Main Caller': 'caller', 'Caller': 'caller', 'Back Up Caller': 'backupCaller', 'Backup Caller': 'backupCaller' }
+      var shiftsLookup = {}
+      ;(selected.state.scorekeeperShifts || []).forEach(function (s) {
+        if (!s.playerA || !s.playerB) return
+        var key = (s.playerA + '|' + s.playerB).toLowerCase()
+        if (!shiftsLookup[key]) shiftsLookup[key] = { main: [], caller: [] }
+        var bucket = ROLE_BUCKETS[s.role]
+        if (bucket === 'main' && s.name) shiftsLookup[key].main.push(s.name)
+        if (bucket === 'caller' && s.name) shiftsLookup[key].caller.push(s.name)
+      })
+
       var nextIdx = matches.findIndex(function (m) { return !m.complete })
       matches.forEach(function (m, i) {
         var row = document.createElement('div')
         row.className = 'sched-row' + (m.complete ? ' complete' : '') + (i === nextIdx ? ' up-next' : '')
-        var subParts = []
-        if (m.time) subParts.push(escapeHtml(m.time))
-        if (m.round) subParts.push(escapeHtml(m.round))
-        var metaParts = []
-        if (m.format) metaParts.push(escapeHtml(m.format))
-        if (m.notes) metaParts.push(escapeHtml(m.notes))
         var headline = m.match || ([m.playerA, m.playerB].filter(Boolean).join(' vs ')) || '(untitled)'
+
+        var subParts = []
+        if (m.round) subParts.push(escapeHtml(m.round))
+        if (m.format) subParts.push(escapeHtml(m.format))
+
+        // Look up officials for this match
+        var officials = shiftsLookup[(((m.playerA || '') + '|' + (m.playerB || '')).toLowerCase())] || { main: [], caller: [] }
+        var chips = ''
+        if (officials.caller.length) chips += '<span class="sched-official-chip"><span class="chip-label">Caller</span>' + escapeHtml(officials.caller[0]) + '</span>'
+        if (officials.main.length) chips += '<span class="sched-official-chip"><span class="chip-label">Scorekeeper</span>' + escapeHtml(officials.main[0]) + '</span>'
+
         row.innerHTML =
           '<div class="sched-info">' +
+            (m.time ? '<div class="sched-time">' + escapeHtml(m.time) + '</div>' : '') +
             '<div class="sched-headline">' + escapeHtml(headline) + '</div>' +
             (subParts.length ? '<div class="sched-sub">' + subParts.join(' &middot; ') + '</div>' : '') +
-            (metaParts.length ? '<div class="sched-meta">' + metaParts.join(' &middot; ') + '</div>' : '') +
+            (chips ? '<div class="sched-officials">' + chips + '</div>' : '') +
           '</div>' +
           (i === nextIdx ? '<span class="up-next-badge">Up Next</span>' : '')
         el.appendChild(row)
