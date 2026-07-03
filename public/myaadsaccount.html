@@ -218,14 +218,18 @@
       if (saved) { showDashboard(saved); return }
 
       try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name,pin&order=name.asc`, { headers: hdrs })
-        const data = await res.json()
-        const noAccount = data.filter(r => r.name && (!r.pin || r.pin.trim() === '')).map(r => r.name)
-        const hasAccount = data.filter(r => r.name && r.pin && r.pin.trim() !== '').map(r => r.name)
+        const [unclaimedRes, claimedRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&is_claimed=eq.false&order=name.asc`, { headers: hdrs }),
+          fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?select=name&is_claimed=eq.true&order=name.asc`, { headers: hdrs }),
+        ])
+        const unclaimedData = await unclaimedRes.json()
+        const claimedData = await claimedRes.json()
+        const unclaimedNames = unclaimedData.map(r => r.name).filter(Boolean)
+        const claimedNames = claimedData.map(r => r.name).filter(Boolean)
         document.getElementById('registerName').innerHTML =
-          '<option value="">— Select your name —</option>' + noAccount.map(n => `<option value="${n}">${n}</option>`).join('')
+          '<option value="">— Select your name —</option>' + unclaimedNames.map(n => `<option value="${n}">${n}</option>`).join('')
         document.getElementById('loginName').innerHTML =
-          '<option value="">— Select your name —</option>' + hasAccount.map(n => `<option value="${n}">${n}</option>`).join('')
+          '<option value="">— Select your name —</option>' + claimedNames.map(n => `<option value="${n}">${n}</option>`).join('')
       } catch {
         showMsg('registerMsg', 'Could not load names. Check your connection.', 'error')
       }
@@ -273,12 +277,12 @@
 
       try {
         const checkRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&select=id,pin`,
+          `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&select=id,is_claimed`,
           { headers: hdrs }
         )
         const existing = await checkRes.json()
 
-        if (existing.length && existing[0].pin) {
+        if (existing.length && existing[0].is_claimed) {
           showMsg('registerMsg', 'An account already exists for this name. Please sign in instead.', 'error')
           btn.disabled = false; btn.textContent = 'Create Account'
           return
@@ -288,13 +292,13 @@
         if (existing.length) {
           const r = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}`, {
             method: 'PATCH', headers: { ...hdrs, Prefer: 'return=minimal' },
-            body: JSON.stringify({ pin: pass }),
+            body: JSON.stringify({ pin: pass, is_claimed: true }),
           })
           ok = r.ok
         } else {
           const r = await fetch(`${SUPABASE_URL}/rest/v1/staff_accounts`, {
             method: 'POST', headers: { ...hdrs, Prefer: 'return=minimal' },
-            body: JSON.stringify({ name, pin: pass, tool_permissions: [] }),
+            body: JSON.stringify({ name, pin: pass, is_claimed: true, tool_permissions: [] }),
           })
           ok = r.ok
         }
@@ -320,12 +324,12 @@
 
       try {
         const res = await fetch(
-          `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&select=name,pin`,
+          `${SUPABASE_URL}/rest/v1/staff_accounts?name=eq.${encodeURIComponent(name)}&select=name,pin,is_claimed`,
           { headers: hdrs }
         )
         const data = await res.json()
 
-        if (!data.length || !data[0].pin) {
+        if (!data.length || !data[0].is_claimed) {
           showMsg('loginMsg', 'No account found for this name. Please create one first.', 'error')
           btn.disabled = false; btn.textContent = 'Sign In'
           return
