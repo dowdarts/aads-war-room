@@ -319,7 +319,7 @@ export default function StaffDashboard({ onSelect }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => window.open(base + 'staff-register.html', '_blank', 'noopener,noreferrer')}
+                    onClick={() => window.open(base + 'myaadsaccount.html', '_blank', 'noopener,noreferrer')}
                     className="bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg px-4 py-2.5 transition-colors whitespace-nowrap"
                   >
                     Open Registration Page

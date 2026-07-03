@@ -92,7 +92,7 @@ Everything Staff have, plus:
 - **Master sign-in** unlocks every tool tile automatically — no per-tool permissions needed.
 - **Manage Staff** (in the Staff Dashboard, click the 👥 tile): add new staff accounts, edit names/PINs, pause or remove accounts, and check/uncheck exactly which tool tiles each person can see.
   - **Copy Login Link** — copies the `staff-portal.html` URL to your clipboard so you can text/Slack it to staff directly.
-  - **Open Registration Page** — sends a link to `staff-register.html` so a new hire can pick their own name + PIN instead of you typing it in for them.
+  - **Open Registration Page** — sends a link to `myaadsaccount.html` so a new hire can pick their own name + PIN instead of you typing it in for them.
 - **Staff Activity Log** — see who opened which tool and when.
 - **Data Manager** (`?tab=data` on the main site, behind its own separate admin PIN — not the staff code):
   - Upload live event result JSON files and override player data for the session.
@@ -107,5 +107,5 @@ Everything Staff have, plus:
 |---|---|
 | Players | `players-portal.html` |
 | Staff | `staff-portal.html` (or use the **Copy Login Link** button in Manage Staff) |
-| New staff registration | `staff-register.html` |
+| New staff registration | `myaadsaccount.html` |
 | Full admin dashboard (master only) | `index.html?tab=staff` |
