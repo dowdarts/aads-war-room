@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050505" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <link rel="icon" href="/vite.svg" />
+  <title>AADS Apps</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+    }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    .hero {
+      background: linear-gradient(180deg, #0e0805 0%, #050505 100%);
+      border-bottom: 1px solid #1a1a1a;
+      padding: 32px 24px 24px;
+      text-align: center;
+    }
+    .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .hero-title { font-size: clamp(26px, 4vw, 40px); font-weight: 900; letter-spacing: -0.03em; }
+    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.5; }
+
+    .page { max-width: 520px; margin: 0 auto; padding: 28px 20px 60px; display: flex; flex-direction: column; gap: 14px; }
+
+    .app-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px 20px;
+      text-decoration: none;
+      color: var(--text);
+      transition: border-color 0.15s ease, transform 0.15s ease;
+    }
+    .app-card:active { transform: scale(0.98); }
+    .app-card:hover { border-color: var(--accent); }
+
+    .app-icon { width: 56px; height: 56px; border-radius: 14px; flex-shrink: 0; object-fit: cover; border: 1px solid var(--line); }
+
+    .app-info { flex: 1; min-width: 0; }
+    .app-name { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+    .app-desc { font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+    .app-arrow { color: var(--muted); font-size: 20px; flex-shrink: 0; }
+
+    .hint {
+      margin-top: 8px;
+      padding: 14px 16px;
+      background: var(--panel-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    .hint strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-eyebrow">AADS</div>
+    <div class="hero-title">Get the <em>Apps</em></div>
+    <div class="hero-sub">Tap an app below, then add it to your home screen to install it.</div>
+  </div>
+
+  <div class="page">
+    <a class="app-card" href="players-portal.html">
+      <img class="app-icon" src="icon-players-portal.png" alt="" />
+      <div class="app-info">
+        <div class="app-name">Players Portal</div>
+        <div class="app-desc">Check your schedule, matches, and standings.</div>
+      </div>
+      <div class="app-arrow">&rsaquo;</div>
+    </a>
+
+    <a class="app-card" href="score-keepers-portal.html">
+      <img class="app-icon" src="AADS-ScoreKeeperPortal-Logo.png" alt="" />
+      <div class="app-info">
+        <div class="app-name">Score Keepers Portal</div>
+        <div class="app-desc">Enter live scores and manage matches you're keeping.</div>
+      </div>
+      <div class="app-arrow">&rsaquo;</div>
+    </a>
+
+    <a class="app-card" href="staff-portal.html">
+      <img class="app-icon" src="icon-staff-portal.png" alt="" />
+      <div class="app-info">
+        <div class="app-name">Staff Portal</div>
+        <div class="app-desc">Run the event: scheduling, callers, and admin tools.</div>
+      </div>
+      <div class="app-arrow">&rsaquo;</div>
+    </a>
+
+    <a class="app-card" href="staff-chat.html">
+      <img class="app-icon" src="icon-event-chat.png" alt="" />
+      <div class="app-info">
+        <div class="app-name">Event Chat</div>
+        <div class="app-desc">Message with staff during the event.</div>
+      </div>
+      <div class="app-arrow">&rsaquo;</div>
+    </a>
+
+    <a class="app-card" href="cue-light.html">
+      <img class="app-icon" src="icon-cue-light.png" alt="" />
+      <div class="app-info">
+        <div class="app-name">Cue Light</div>
+        <div class="app-desc">Signal players and callers when it's time to throw.</div>
+      </div>
+      <div class="app-arrow">&rsaquo;</div>
+    </a>
+
+    <div class="hint">
+      <strong>iPhone:</strong> open an app above, tap the Share icon, then "Add to Home Screen."<br />
+      <strong>Android:</strong> open an app above, tap the menu (&#8942;), then "Add to Home screen" / "Install app."
+    </div>
+  </div>
+</body>
+</html>
