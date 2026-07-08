@@ -2,6 +2,8 @@
   "name": "AADS Staff Portal",
   "short_name": "Staff Portal",
   "start_url": "staff-portal.html",
+  "scope": "/staff-portal.html",
+  "id": "/staff-portal.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",

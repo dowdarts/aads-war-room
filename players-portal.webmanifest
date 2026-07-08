@@ -2,6 +2,8 @@
   "name": "AADS Players Portal",
   "short_name": "Players Portal",
   "start_url": "players-portal.html",
+  "scope": "/players-portal.html",
+  "id": "/players-portal.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",

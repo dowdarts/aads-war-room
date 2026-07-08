@@ -2,6 +2,8 @@
   "name": "AADS Event Chat",
   "short_name": "Event Chat",
   "start_url": "staff-chat.html",
+  "scope": "/staff-chat.html",
+  "id": "/staff-chat.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",

@@ -2,6 +2,8 @@
   "name": "AADS Door Scanner",
   "short_name": "Door Scanner",
   "start_url": "AADSTickets-Scanner.html",
+  "scope": "/AADSTickets-Scanner.html",
+  "id": "/AADSTickets-Scanner.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
