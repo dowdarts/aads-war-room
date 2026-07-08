@@ -145,6 +145,8 @@
     .live-cue-break .live-cue-role, .live-cue-break .live-cue-dot { color: var(--muted); }
 
     .bio-search { width: 100%; box-sizing: border-box; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); padding: 10px 12px; font-size: 14px; margin-bottom: 14px; }
+    .bio-section-heading { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin: 18px 0 8px; }
+    .bio-section-heading:first-of-type { margin-top: 6px; }
     .bio-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
     .bio-name { font-weight: 800; font-size: 15px; }
     .bio-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
@@ -439,17 +441,32 @@
       }
 
       var upcoming = currentAndUpNextMatches()
-      if (!upcoming.length) {
+      if (upcoming.length) {
+        var upcomingHeading = document.createElement('h3')
+        upcomingHeading.className = 'bio-section-heading'
+        upcomingHeading.textContent = 'Current / Up Next'
+        el.appendChild(upcomingHeading)
+        upcoming.forEach(function (m) {
+          if (m.playerA) el.appendChild(renderBioCard(m.playerA))
+          if (m.playerB) el.appendChild(renderBioCard(m.playerB))
+        })
+      }
+
+      var finalists = playersData.filter(function (p) { return p.introScript })
+      if (finalists.length) {
+        var finalistsHeading = document.createElement('h3')
+        finalistsHeading.className = 'bio-section-heading'
+        finalistsHeading.textContent = 'Tournament of Champions Finalists'
+        el.appendChild(finalistsHeading)
+        finalists.forEach(function (p) { el.appendChild(renderBioCard(p.fullName)) })
+      }
+
+      if (!upcoming.length && !finalists.length) {
         var empty = document.createElement('p')
         empty.className = 'empty-note'
         empty.textContent = 'No live or upcoming match yet. Search above to look someone up ahead of time.'
         el.appendChild(empty)
-        return
       }
-      upcoming.forEach(function (m) {
-        if (m.playerA) el.appendChild(renderBioCard(m.playerA))
-        if (m.playerB) el.appendChild(renderBioCard(m.playerB))
-      })
     }
 
     function escapeHtml(s) {
