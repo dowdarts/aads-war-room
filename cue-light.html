@@ -119,6 +119,23 @@
     .light-panel.light-off { background: #0a0a0a; }
     .light-label { font-size: clamp(40px, 11vw, 120px); font-weight: 900; letter-spacing: 0.05em; color: #fff; text-shadow: 0 4px 30px rgba(0,0,0,0.5); }
     .display-schedule-wrap { max-width: 800px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    /* ══ BULL UP VIEW ══ */
+    .bullup-page { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .bullup-match-card { padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 24px; text-align: center; }
+    .bullup-match-title { font-size: clamp(22px, 5vw, 32px); font-weight: 900; margin-top: 6px; }
+    .bullup-section { margin-bottom: 28px; }
+    .bullup-flip-btn { width: 100%; font-size: 16px; }
+    .bullup-coin-result { text-align: center; font-size: clamp(32px, 8vw, 56px); font-weight: 900; letter-spacing: 0.04em; min-height: 1.4em; margin-top: 14px; color: var(--accent-2); }
+    .bullup-winner-row { display: flex; gap: 12px; margin-bottom: 14px; }
+    .bullup-winner-btn {
+      flex: 1; padding: 22px 10px; border-radius: 14px; border: 2px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.15s;
+    }
+    .bullup-winner-btn.sel { background: linear-gradient(180deg,#3a2408,#261405); border-color: var(--accent); box-shadow: 0 0 20px rgba(255,122,0,0.3); color: var(--accent-2); }
+    .bullup-confirm-btn { width: 100%; font-size: 16px; }
+    .bullup-confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .bullup-sent-note { text-align: center; font-size: 13px; color: var(--green-2); margin-top: 12px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -138,6 +155,10 @@
     <button type="button" class="role-btn" id="roleDisplayBtn">
       🚦 Display
       <span class="role-sub">Big light + schedule, for the floor</span>
+    </button>
+    <button type="button" class="role-btn" id="roleBullUpBtn">
+      🎯 Bull Up
+      <span class="role-sub">Coin toss + bull-off, for Jayme</span>
     </button>
   </div>
 
@@ -200,6 +221,39 @@
     <div class="display-schedule-wrap">
       <div class="schedule-heading">Event Schedule</div>
       <div class="schedule-list" id="dispSchedule"></div>
+    </div>
+  </div>
+
+  <div id="bullUpView" class="hidden">
+    <div class="top-bar">
+      <span class="top-bar-title">Bull Up</span>
+      <div class="top-bar-actions">
+        <button type="button" class="switch-role-link" onclick="window.open('cue-light-guide.html', '_blank', 'noopener,noreferrer')">📖 Guide</button>
+        <button type="button" class="switch-role-link" data-event-switch>Switch event</button>
+        <button type="button" class="switch-role-link" data-role-switch>Switch role</button>
+      </div>
+    </div>
+    <div class="bullup-page">
+      <div id="bullUpNoMatch" class="empty-note hidden">No match up right now.</div>
+      <div id="bullUpContent" class="hidden">
+        <div class="bullup-match-card">
+          <div class="schedule-heading">Bulling Up For</div>
+          <div class="bullup-match-title" id="bullUpMatchTitle">—</div>
+        </div>
+
+        <div class="bullup-section">
+          <div class="schedule-heading">Coin Toss</div>
+          <button type="button" class="ctrl-btn bullup-flip-btn" id="bullUpFlipBtn">🪙 Flip Coin</button>
+          <div class="bullup-coin-result" id="bullUpCoinResult"></div>
+        </div>
+
+        <div class="bullup-section">
+          <div class="schedule-heading">Who Won The Bull?</div>
+          <div class="bullup-winner-row" id="bullUpWinnerRow"></div>
+          <button type="button" class="ctrl-btn bullup-confirm-btn hidden" id="bullUpConfirmBtn" disabled>Confirm &amp; Notify</button>
+          <div class="bullup-sent-note hidden" id="bullUpSentNote"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -478,6 +532,80 @@
       })
     }
 
+    /* ══ BULL UP VIEW ══
+       Jayme's screen for running the bull-off: shows whichever match is
+       either currently called (state.currentMatchId, set by Wait/red in
+       setLight()) or, before that's happened yet, the next incomplete
+       match — same fallback setLight() itself uses, so there's always
+       something to look at instead of a blank screen. */
+    var bullUpSelectedWinner = null // 'A' or 'B', cleared on confirm or match change
+    var bullUpLastMatchId = null
+
+    function getBullUpMatch() {
+      if (!state) return null
+      var called = state.currentMatchId && state.matches.find(function (x) { return x.id === state.currentMatchId })
+      return called || state.matches.find(function (x) { return !x.complete }) || null
+    }
+
+    function renderBullUp() {
+      var m = getBullUpMatch()
+      var noMatchEl = document.getElementById('bullUpNoMatch')
+      var contentEl = document.getElementById('bullUpContent')
+      if (!m || !m.playerA || !m.playerB) {
+        noMatchEl.classList.remove('hidden')
+        contentEl.classList.add('hidden')
+        return
+      }
+      noMatchEl.classList.add('hidden')
+      contentEl.classList.remove('hidden')
+
+      if (m.id !== bullUpLastMatchId) {
+        bullUpLastMatchId = m.id
+        bullUpSelectedWinner = null
+        document.getElementById('bullUpCoinResult').textContent = ''
+        document.getElementById('bullUpSentNote').classList.add('hidden')
+      }
+
+      document.getElementById('bullUpMatchTitle').textContent = m.playerA + ' vs ' + m.playerB
+
+      var winnerRow = document.getElementById('bullUpWinnerRow')
+      winnerRow.innerHTML = ''
+      ;[['A', m.playerA], ['B', m.playerB]].forEach(function (pair) {
+        var btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'bullup-winner-btn' + (bullUpSelectedWinner === pair[0] ? ' sel' : '')
+        btn.textContent = pair[1]
+        btn.addEventListener('click', function () {
+          bullUpSelectedWinner = pair[0]
+          renderBullUp()
+        })
+        winnerRow.appendChild(btn)
+      })
+
+      var confirmBtn = document.getElementById('bullUpConfirmBtn')
+      confirmBtn.classList.toggle('hidden', !bullUpSelectedWinner)
+      confirmBtn.disabled = !bullUpSelectedWinner
+      if (bullUpSelectedWinner) {
+        confirmBtn.textContent = 'Confirm — ' + (bullUpSelectedWinner === 'A' ? m.playerA : m.playerB) + ' Won the Bull'
+      }
+    }
+
+    function flipCoin() {
+      document.getElementById('bullUpCoinResult').textContent = Math.random() < 0.5 ? 'HEADS' : 'TAILS'
+    }
+
+    function confirmBullWinner() {
+      var m = getBullUpMatch()
+      if (!m || !bullUpSelectedWinner) return
+      var winnerName = bullUpSelectedWinner === 'A' ? m.playerA : m.playerB
+      notifyScorekeepersBullWon(m, winnerName)
+      bullUpSelectedWinner = null
+      renderBullUp()
+      var note = document.getElementById('bullUpSentNote')
+      note.textContent = '✅ Notified — ' + winnerName + ' won the bull'
+      note.classList.remove('hidden')
+    }
+
     function renderAll() {
       if (!state) return
       if (role === 'controller') {
@@ -501,6 +629,8 @@
         renderLight(document.getElementById('displayLight'), state.light)
         drawPiPFrame(state.light)
         renderSchedule(document.getElementById('dispSchedule'), state.matches)
+      } else if (role === 'bullup') {
+        renderBullUp()
       }
     }
 
@@ -682,6 +812,29 @@
       })
     }
 
+    // Bull-off winner only concerns whoever is scoring/calling this match —
+    // unlike notifyScorekeepersCalled() above, MC/Floor/Relief shifts are
+    // deliberately left out here.
+    var SCOREKEEPER_CALLER_ROLES = [
+      'Main Score Keeper', 'Main Scorekeeper', 'Back Up Score Keeper', 'Backup Scorekeeper',
+      'Tablet Backup Scorekeeper', 'Second Backup Scorekeeper',
+      'Main Caller', 'Caller', 'Back Up Caller', 'Backup Caller'
+    ]
+
+    function notifyScorekeepersBullWon(m, winnerName) {
+      if (state.scorekeeperAlertsEnabled === false) return
+      var shifts = (state.scorekeeperShifts || []).filter(function (s) {
+        return shiftHasSamePlayers(m, s) && SCOREKEEPER_CALLER_ROLES.indexOf(s.role) !== -1
+      })
+      var roles = shifts.map(function (s) { return { role: s.role, name: s.name } }).filter(function (r) { return r.name })
+      scorekeeperPortalPush({
+        action: 'bull_won',
+        match: { playerA: m.playerA, playerB: m.playerB },
+        winner: winnerName,
+        roles: roles
+      })
+    }
+
     function uploadSchedule(file) {
       var reader = new FileReader()
       reader.onload = function () {
@@ -708,6 +861,7 @@
       document.getElementById('roleGate').classList.remove('hidden')
       document.getElementById('controllerView').classList.add('hidden')
       document.getElementById('displayView').classList.add('hidden')
+      document.getElementById('bullUpView').classList.add('hidden')
     }
 
     function showViewForRole() {
@@ -715,6 +869,7 @@
       document.getElementById('eventGate').classList.add('hidden')
       document.getElementById('controllerView').classList.toggle('hidden', role !== 'controller')
       document.getElementById('displayView').classList.toggle('hidden', role !== 'display')
+      document.getElementById('bullUpView').classList.toggle('hidden', role !== 'bullup')
     }
 
     function chooseRole(r) {
@@ -740,6 +895,7 @@
       document.getElementById('roleGate').classList.add('hidden')
       document.getElementById('controllerView').classList.add('hidden')
       document.getElementById('displayView').classList.add('hidden')
+      document.getElementById('bullUpView').classList.add('hidden')
       document.getElementById('eventGate').classList.remove('hidden')
       renderEventGate()
     }
@@ -1077,6 +1233,7 @@
     function wireButtons() {
       document.getElementById('roleControllerBtn').addEventListener('click', function () { chooseRole('controller') })
       document.getElementById('roleDisplayBtn').addEventListener('click', function () { chooseRole('display') })
+      document.getElementById('roleBullUpBtn').addEventListener('click', function () { chooseRole('bullup') })
       document.querySelectorAll('[data-role-switch]').forEach(function (el) {
         el.addEventListener('click', switchRole)
       })
@@ -1091,13 +1248,15 @@
       document.getElementById('portalAlertsToggleBtn').addEventListener('click', togglePortalAlertsEnabled)
       document.getElementById('scorekeeperAlertsToggleBtn').addEventListener('click', toggleScorekeeperAlertsEnabled)
       document.getElementById('doorsOpenBtn').addEventListener('click', doorsOpen)
-      document.querySelectorAll('.ctrl-btn').forEach(function (btn) {
+      document.querySelectorAll('.ctrl-buttons .ctrl-btn').forEach(function (btn) {
         btn.addEventListener('click', function () { setLight(btn.getAttribute('data-light')) })
       })
       document.getElementById('scheduleCsvInput').addEventListener('change', function (e) {
         if (e.target.files && e.target.files[0]) uploadSchedule(e.target.files[0])
         e.target.value = ''
       })
+      document.getElementById('bullUpFlipBtn').addEventListener('click', flipCoin)
+      document.getElementById('bullUpConfirmBtn').addEventListener('click', confirmBullWinner)
     }
 
     document.addEventListener('DOMContentLoaded', function () {
