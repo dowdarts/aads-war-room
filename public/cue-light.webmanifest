@@ -2,6 +2,8 @@
   "name": "AADS Cue Light",
   "short_name": "Cue Light",
   "start_url": "cue-light.html",
+  "scope": "/cue-light.html",
+  "id": "/cue-light.html",
   "display": "standalone",
   "background_color": "#050505",
   "theme_color": "#050505",
