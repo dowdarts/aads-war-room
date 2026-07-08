@@ -12,6 +12,8 @@ const TABS = [
   { id: 'data', label: 'Data Manager' },
 ]
 
+const SIGN_IN_URL = 'https://wiki.aadsdarts.com/apps.html'
+
 export default function Nav({ active, onSelect }) {
   return (
     <nav className="sticky top-0 z-50 bg-[#0a0a0a] border-b border-[#1a1a1a]">
@@ -29,7 +31,7 @@ export default function Nav({ active, onSelect }) {
         {TABS.map(tab => (
           <button
             key={tab.id}
-            onClick={() => onSelect(tab.id)}
+            onClick={() => tab.id === 'staff' ? window.location.assign(SIGN_IN_URL) : onSelect(tab.id)}
             className={`
               group relative shrink-0 px-5 py-3 text-xs font-bold uppercase tracking-wider
               min-w-25 h-10.5 flex items-center justify-center whitespace-nowrap
