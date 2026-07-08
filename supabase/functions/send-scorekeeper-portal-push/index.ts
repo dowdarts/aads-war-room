@@ -173,6 +173,24 @@ Deno.serve(async (req) => {
       const lineup = roles.map((r) => `${r.role}: ${r.name}`).join(" · ");
       const matchLabel = body.match ? `${body.match.playerA} vs ${body.match.playerB} — ` : "";
       sent += await sendToSubs(supabase, subs, "🔴 Next Match Called", `${matchLabel}${lineup}`);
+    } else if (body.action === "bull_won") {
+      // Fired manually by Jayme from cue-light.html's Bull Up screen once
+      // she's recorded who won the bull-off — only the match's assigned
+      // scorekeepers/callers (roles is pre-filtered client-side), not MC
+      // or floor/relief.
+      const roles: { role: string; name: string }[] = (body.roles ?? []).filter(
+        (r: { role: string; name: string }) => r?.name,
+      );
+      const names = roles.map((r) => r.name);
+      const always = await alwaysNotifySubs(supabase);
+      const subs = mergeSubs(await subscriptionsForNames(supabase, names), always);
+      const matchLabel = body.match ? `${body.match.playerA} vs ${body.match.playerB}` : "";
+      sent += await sendToSubs(
+        supabase,
+        subs,
+        "🎯 Bull Won",
+        `${body.winner} won the bull — throws first. ${matchLabel}`,
+      );
     } else if (body.action === "live") {
       const always = await alwaysNotifySubs(supabase);
       const liveSubs = mergeSubs(await subscriptionsForNames(supabase, body.liveNames), always);
