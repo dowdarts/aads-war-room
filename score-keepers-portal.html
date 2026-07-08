@@ -28,6 +28,7 @@
       --role-backup: #6aa8ff;
       --role-caller: #ff7a00;
       --role-backup-caller: #ffd35c;
+      --role-mc: #d68cff;
     }
     body {
       min-height: 100vh;
@@ -116,11 +117,13 @@
     .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     @media (max-width: 380px) { .role-grid { grid-template-columns: 1fr; } }
     .role-chip { border-radius: 8px; padding: 8px 10px; border-left: 3px solid; background: var(--panel-2); }
+    .role-chip-mc { border-left-color: var(--role-mc); }
     .role-chip-main { border-left-color: var(--role-main); }
     .role-chip-backup { border-left-color: var(--role-backup); }
     .role-chip-caller { border-left-color: var(--role-caller); }
     .role-chip-backupcaller { border-left-color: var(--role-backup-caller); }
     .role-chip-label { font-size: 9px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .role-chip-mc .role-chip-label { color: var(--role-mc); }
     .role-chip-main .role-chip-label { color: var(--role-main); }
     .role-chip-backup .role-chip-label { color: var(--role-backup); }
     .role-chip-caller .role-chip-label { color: var(--role-caller); }
@@ -138,6 +141,8 @@
     .live-cue-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
     .live-cue-role { font-size: 22px; font-weight: 900; }
     .live-cue-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .live-cue-mc .live-cue-role, .live-cue-mc .live-cue-dot { color: var(--role-mc); }
+    .live-cue-mc .live-cue-role { font-size: 16px; line-height: 1.4; }
     .live-cue-main .live-cue-role, .live-cue-main .live-cue-dot { color: var(--role-main); }
     .live-cue-backup .live-cue-role, .live-cue-backup .live-cue-dot { color: var(--role-backup); }
     .live-cue-caller .live-cue-role, .live-cue-caller .live-cue-dot { color: var(--role-caller); }
@@ -558,6 +563,7 @@
        nothing is live yet — shows "On Break", since that's literally true
        right now regardless of what they're assigned to later. */
     var LIVE_CUE_ROLES = [
+      ['mc', 'MC', 'live-cue-mc'],
       ['main', 'Score Keeper', 'live-cue-main'],
       ['backup', 'Backup Score Keeper', 'live-cue-backup'],
       ['caller', 'Caller', 'live-cue-caller'],
@@ -579,6 +585,7 @@
 
       var liveMatch = getLiveMatch()
       var roleDef = null
+      var matchedShift = null
       var matchLabel = ''
       if (liveMatch) {
         matchLabel = liveMatch.playerA + ' vs ' + liveMatch.playerB
@@ -588,16 +595,21 @@
         for (var i = 0; i < shifts.length && !roleDef; i++) {
           var bucket = ROLE_BUCKETS[shifts[i].role]
           roleDef = LIVE_CUE_ROLES.find(function (d) { return d[0] === bucket })
+          if (roleDef) matchedShift = shifts[i]
         }
       }
 
       if (roleDef) {
+        // For MC, the useful cue isn't the generic "MC" label — it's the
+        // actual intro script line (e.g. "Kyle Gray & Drake Berry intro")
+        // Dana needs to read for this specific match.
+        var roleText = (matchedShift.role === 'MC' && matchedShift.mcCue) ? matchedShift.mcCue : roleDef[1]
         el.className = 'live-cue ' + roleDef[2]
         el.innerHTML =
           '<div class="live-cue-dot pulse"></div>' +
           '<div>' +
             '<div class="live-cue-label">You Are</div>' +
-            '<div class="live-cue-role">' + escapeHtml(roleDef[1]) + '</div>' +
+            '<div class="live-cue-role">' + escapeHtml(roleText) + '</div>' +
             '<div class="live-cue-sub">' + escapeHtml(matchLabel) + '</div>' +
           '</div>'
       } else {
@@ -698,6 +710,7 @@
     // names, and would otherwise show as "Unassigned" here forever until
     // re-uploaded.
     var ROLE_BUCKETS = {
+      'MC': 'mc',
       'Main Score Keeper': 'main',
       'Main Scorekeeper': 'main',
       'Back Up Score Keeper': 'backup',
@@ -710,6 +723,7 @@
       'Backup Caller': 'backupCaller',
     }
     var ROLE_CHIP_DEFS = [
+      ['mc', 'MC', 'role-chip-mc'],
       ['main', 'Main Score Keeper', 'role-chip-main'],
       ['backup', 'Back Up Score Keeper', 'role-chip-backup'],
       ['caller', 'Main Caller', 'role-chip-caller'],
@@ -734,7 +748,7 @@
         if (!g) {
           g = { time: s.time, match: s.match, playerA: s.playerA, playerB: s.playerB,
             notes: s.notes, scheduleType: s.scheduleType, mcCue: s.mcCue,
-            roles: { main: [], backup: [], caller: [], backupCaller: [] }, other: [] }
+            roles: { mc: [], main: [], backup: [], caller: [], backupCaller: [] }, other: [] }
           byKey[key] = g
           groups.push(g)
         }
@@ -748,7 +762,7 @@
     function renderMatchCard(group) {
       var isMatch = !!(group.playerA && group.playerB)
       var card = document.createElement('div')
-      var chipDefs = isMatch ? ROLE_CHIP_DEFS : ROLE_CHIP_DEFS.filter(function (def) { return def[0] === 'caller' || def[0] === 'backupCaller' })
+      var chipDefs = isMatch ? ROLE_CHIP_DEFS : ROLE_CHIP_DEFS.filter(function (def) { return def[0] === 'mc' || def[0] === 'caller' || def[0] === 'backupCaller' })
       var st = isMatch ? statusForPlayers(group.playerA, group.playerB) : null
       card.className = 'match-card' + (st && st.label === 'Up Next' ? ' up-next' : '')
       var subParts = []

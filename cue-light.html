@@ -174,7 +174,7 @@
       <div class="upload-row">
         <label class="file-label" for="scheduleCsvInput">Upload Event Schedule (CSV)</label>
         <input type="file" id="scheduleCsvInput" accept=".csv" />
-        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Time/StartTime, Section, MatchNo, Schedule Type, Match, Player A, Player B, Format/MatchFormat, MC Cue, Main Caller, Backup Caller, Main Scorekeeper, Backup Scorekeeper, Floor/Player Control, Relief/Equipment Support, OnBreak, Notes. Headers can have spaces or not, and use "Backup" or "Back Up" interchangeably. "N/A" in Player A/B or a role column means it doesn't apply to that row (e.g. an MC-only announcement); "TBD" means a real match with players not yet decided. Rows with real names in both Player A and Player B become matches; every named official becomes a score keeper shift &mdash; one file drives both schedules, so they can never drift out of sync.</span>
+        <span class="upload-hint">Same format as the AADS TOC officials schedule export &mdash; Time/StartTime, Section, MatchNo, Schedule Type, Match, Player A, Player B, Format/MatchFormat, MC Cue, MC, Main Caller, Backup Caller, Main Scorekeeper, Backup Scorekeeper, Floor/Player Control, Relief/Equipment Support, OnBreak, Notes. Headers can have spaces or not, and use "Backup" or "Back Up" interchangeably. "N/A" in Player A/B or a role column means it doesn't apply to that row (e.g. an MC-only announcement); "TBD" means a real match with players not yet decided. Rows with real names in both Player A and Player B become matches; every named official becomes a score keeper shift &mdash; one file drives both schedules, so they can never drift out of sync.</span>
       </div>
 
       <div class="schedule-heading">Event Schedule</div>
@@ -309,6 +309,7 @@
     // never match a live match — they still show up in the portal's
     // personal schedule by time, just without a live/next push.
     var SHIFT_ROLE_COLUMNS = [
+      { key: 'mc', label: 'MC' },
       { key: 'maincaller', label: 'Main Caller' },
       { key: 'mainscorekeeper', label: 'Main Score Keeper' },
       { key: 'backupscorekeeper', label: 'Back Up Score Keeper' },
