@@ -171,6 +171,8 @@
       transition: all 0.12s;
     }
     .action-btn:hover { border-color: #555; color: #ccc; }
+    .action-btn-custom { border-color: #f97316; color: #f97316; }
+    .action-btn-custom:hover { border-color: #f97316; color: #fb923c; }
 
     /* ── Prompt input ── */
     .checkout-input-area {
@@ -949,6 +951,33 @@ function buildActionsGrid() {
     btn.onclick = () => logAction(a)
     grid.appendChild(btn)
   })
+  const customBtn = document.createElement('button')
+  customBtn.type = 'button'
+  customBtn.className = 'action-btn action-btn-custom'
+  customBtn.textContent = '+ Custom'
+  customBtn.onclick = () => openCustomNotePrompt()
+  grid.appendChild(customBtn)
+}
+
+// A free-text reminder for Denis to bring up during the interview — not
+// tied to a player or a dart stat, so it skips the selectedPlayer gate
+// that logAction() enforces for the fixed ACTIONS.
+function openCustomNotePrompt() {
+  pendingPromptAction = '__custom_note__'
+  document.getElementById('promptLabel').textContent = 'Personal Reminder — type anything to mention:'
+  const inp = document.getElementById('promptInput')
+  inp.type = 'text'
+  inp.placeholder = 'e.g. Ask about his new dart setup'
+  inp.value = ''
+  document.getElementById('promptPanel').classList.remove('hidden')
+  inp.focus()
+}
+
+function pushCustomNote(text) {
+  const legNumber = legs.length + 1
+  currentEvents.push({ player: null, playerName: null, action: `📝 ${text}`, legNumber })
+  renderEventLog()
+  saveActiveMatchDraft()
 }
 
 function logAction(action) {
@@ -993,6 +1022,11 @@ function pushEvent(action) {
 function confirmPrompt() {
   const val = document.getElementById('promptInput').value.trim()
   if (!val || !pendingPromptAction) return
+  if (pendingPromptAction === '__custom_note__') {
+    pushCustomNote(val)
+    cancelPrompt()
+    return
+  }
   const cfg = PROMPT_CONFIG[pendingPromptAction]
   pushEvent(cfg.build(val))
   cancelPrompt()
@@ -1018,7 +1052,7 @@ function renderEventLog() {
   }
   list.innerHTML = currentEvents.map((e, i) =>
     `<div class="event-log-entry">
-      <span>${e.playerName} — ${e.action}</span>
+      <span>${e.playerName ? `${e.playerName} — ${e.action}` : e.action}</span>
       <button type="button" class="event-del" onclick="removeEvent(${i})">✕</button>
     </div>`
   ).join('')
@@ -1140,7 +1174,7 @@ function renderHistory() {
     const eventsHtml = leg.events.length
       ? leg.events.map((e, i) => `
           <div class="event-log-entry">
-            <span>${e.playerName}: ${e.action}</span>
+            <span>${e.playerName ? `${e.playerName}: ${e.action}` : e.action}</span>
             <button type="button" class="event-del" onclick="removeHistoricalEvent(${leg.legNumber}, ${i})">✕</button>
           </div>`).join('')
       : '<div class="leg-history-events">No events logged</div>'
