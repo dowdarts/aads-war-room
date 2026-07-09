@@ -1,0 +1,13 @@
+{
+  "name": "AADS Bull Up",
+  "short_name": "Bull Up",
+  "start_url": "bull-up.html",
+  "scope": "/bull-up.html",
+  "id": "/bull-up.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "icon-cue-light.png", "sizes": "any", "type": "image/png" }
+  ]
+}

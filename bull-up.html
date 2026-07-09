@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="bull-up.webmanifest" />
+  <link rel="icon" href="icon-cue-light.png" />
+  <link rel="apple-touch-icon" href="icon-cue-light.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AADS Bull Up</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --green-2: #5dd88a;
+    }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+    .hidden { display: none !important; }
+
+    /* ══ HERO ══ */
+    .hero {
+      background: linear-gradient(180deg, #0e0805 0%, #050505 100%);
+      border-bottom: 1px solid #1a1a1a;
+      padding: 24px 24px 20px;
+      text-align: center;
+    }
+    .hero-logo { width: 220px; max-width: 100%; height: auto; margin-bottom: 12px; }
+    .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .hero-title { font-size: clamp(26px, 4vw, 40px); font-weight: 900; letter-spacing: -0.03em; }
+    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* ══ EVENT GATE ══ */
+    .role-gate { max-width: 480px; margin: 60px auto; padding: 0 20px; text-align: center; }
+    .role-gate p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .role-btn {
+      display: block; width: 100%; padding: 22px; border-radius: 14px;
+      border: 1px solid var(--line); background: var(--panel); color: var(--text);
+      font-size: 16px; font-weight: 800; cursor: pointer; margin-bottom: 14px; transition: 0.15s;
+    }
+    .role-btn:hover { border-color: var(--accent); }
+    .new-event-row { display: flex; gap: 8px; margin-top: 18px; }
+    .new-event-row input {
+      flex: 1; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 14px;
+    }
+    .new-event-row input:focus { outline: none; border-color: var(--accent); }
+    .new-event-row button { margin-bottom: 0; white-space: nowrap; }
+
+    /* ══ TOP BAR ══ */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+    .top-bar-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .top-bar-actions { display: flex; gap: 14px; align-items: center; }
+    .switch-role-link { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; background: none; border: none; }
+    .switch-role-link:hover { color: var(--text); }
+
+    .ctrl-btn {
+      padding: 22px 10px; border-radius: 14px; border: 2px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 16px; font-weight: 800;
+      cursor: pointer; transition: 0.15s;
+    }
+
+    .empty-note { color: var(--muted); font-size: 13px; text-align: center; padding: 30px 0; }
+
+    /* ══ BULL UP VIEW ══ */
+    .bullup-page { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .bullup-match-card { padding: 18px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; margin-bottom: 24px; text-align: center; }
+    .bullup-match-title { font-size: clamp(22px, 5vw, 32px); font-weight: 900; margin-top: 6px; }
+    .bullup-section { margin-bottom: 28px; }
+    .bullup-flip-btn { width: 100%; font-size: 16px; }
+    .bullup-coin-result { text-align: center; font-size: clamp(32px, 8vw, 56px); font-weight: 900; letter-spacing: 0.04em; min-height: 1.4em; margin-top: 14px; color: var(--accent-2); }
+    .bullup-winner-row { display: flex; gap: 12px; margin-bottom: 14px; }
+    .bullup-winner-btn {
+      flex: 1; padding: 22px 10px; border-radius: 14px; border: 2px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 16px; font-weight: 800; cursor: pointer; transition: 0.15s;
+    }
+    .bullup-winner-btn.sel { background: linear-gradient(180deg,#3a2408,#261405); border-color: var(--accent); box-shadow: 0 0 20px rgba(255,122,0,0.3); color: var(--accent-2); }
+    .bullup-confirm-btn { width: 100%; font-size: 16px; }
+    .bullup-confirm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .bullup-sent-note { text-align: center; font-size: 13px; color: var(--green-2); margin-top: 12px; font-weight: 700; }
+
+    .schedule-heading { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="hero">
+    <img class="hero-logo" src="icon-cue-light.png" alt="AADS Bull Up" />
+    <div class="hero-eyebrow">AADS Live Event</div>
+    <h1 class="hero-title">Bull <em>Up</em></h1>
+  </div>
+
+  <div id="eventGate" class="role-gate hidden">
+    <p>Which event?</p>
+    <div id="eventList"></div>
+    <div class="new-event-row">
+      <input type="text" id="newEventName" placeholder="New event name" />
+      <button type="button" class="role-btn" id="newEventBtn">+ Create New Event</button>
+    </div>
+  </div>
+
+  <div id="bullUpView" class="hidden">
+    <div class="top-bar">
+      <span class="top-bar-title">Bull Up</span>
+      <div class="top-bar-actions">
+        <button type="button" class="switch-role-link" onclick="window.open('cue-light-guide.html', '_blank', 'noopener,noreferrer')">📖 Guide</button>
+        <button type="button" class="switch-role-link hidden install-btn" id="installBtn">📲 Add to Home Screen</button>
+        <button type="button" class="switch-role-link" data-event-switch>Switch event</button>
+      </div>
+    </div>
+    <div class="bullup-page">
+      <div id="bullUpNoMatch" class="empty-note hidden">No match up right now.</div>
+      <div id="bullUpContent" class="hidden">
+        <div class="bullup-match-card">
+          <div class="schedule-heading">Bulling Up For</div>
+          <div class="bullup-match-title" id="bullUpMatchTitle">—</div>
+        </div>
+
+        <div class="bullup-section">
+          <div class="schedule-heading">Coin Toss</div>
+          <button type="button" class="ctrl-btn bullup-flip-btn" id="bullUpFlipBtn">🪙 Flip Coin</button>
+          <div class="bullup-coin-result" id="bullUpCoinResult"></div>
+        </div>
+
+        <div class="bullup-section">
+          <div class="schedule-heading">Who Won The Bull?</div>
+          <div class="bullup-winner-row" id="bullUpWinnerRow"></div>
+          <button type="button" class="ctrl-btn bullup-confirm-btn hidden" id="bullUpConfirmBtn" disabled>Confirm &amp; Notify</button>
+          <div class="bullup-sent-note hidden" id="bullUpSentNote"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ══ CONSTANTS ══ */
+    var SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    var hdrs = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+    var EVENT_ID_KEY = 'aads_bull_up_event_id'
+    var POLL_MS = 750
+
+    /* ══ STATE ══ */
+    var eventId = null
+    var allEvents = []
+    var state = null
+    var lastServerJSON = ''
+    var pollWorker = null
+    var pollIntervalId = null
+
+    /* ══ PERSISTENCE ══ (same events table/shape the Controller/Display use — see cue-light.html) */
+    function defaultState() { return { light: 'off', matches: [], scorekeeperShifts: [], updatedAt: null, alertsEnabled: true, portalAlertsEnabled: true, scorekeeperAlertsEnabled: true, currentMatchId: null, doorsOpenedAt: null } }
+
+    function parseEventStateRows(rows) {
+      if (!Array.isArray(rows) || !rows.length) return null
+      if (!rows[0].state) return defaultState()
+      try {
+        var parsed = typeof rows[0].state === 'string' ? JSON.parse(rows[0].state) : rows[0].state
+        return Object.assign(defaultState(), parsed)
+      } catch (e) {
+        return defaultState()
+      }
+    }
+
+    function loadState() {
+      return fetch(SUPABASE_URL + '/rest/v1/events?id=eq.' + eventId + '&select=state', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(parseEventStateRows)
+        .catch(function () { return null })
+    }
+
+    function loadEvents() {
+      return fetch(SUPABASE_URL + '/rest/v1/events?select=id,name,created_at&order=created_at.asc', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) { return Array.isArray(rows) ? rows : [] })
+        .catch(function () { return [] })
+    }
+
+    /* ══ BULL UP VIEW ══
+       Shows whichever match is either currently called (state.currentMatchId,
+       set by Wait/red on the Controller) or, before that's happened yet, the
+       next incomplete match — same fallback the Controller itself uses, so
+       there's always something to look at instead of a blank screen. */
+    var bullUpSelectedWinner = null // 'A' or 'B', cleared on confirm or match change
+    var bullUpLastMatchId = null
+
+    function getBullUpMatch() {
+      if (!state) return null
+      var called = state.currentMatchId && state.matches.find(function (x) { return x.id === state.currentMatchId })
+      return called || state.matches.find(function (x) { return !x.complete }) || null
+    }
+
+    function renderBullUp() {
+      var m = getBullUpMatch()
+      var noMatchEl = document.getElementById('bullUpNoMatch')
+      var contentEl = document.getElementById('bullUpContent')
+      if (!m || !m.playerA || !m.playerB) {
+        noMatchEl.classList.remove('hidden')
+        contentEl.classList.add('hidden')
+        return
+      }
+      noMatchEl.classList.add('hidden')
+      contentEl.classList.remove('hidden')
+
+      if (m.id !== bullUpLastMatchId) {
+        bullUpLastMatchId = m.id
+        bullUpSelectedWinner = null
+        document.getElementById('bullUpCoinResult').textContent = ''
+        document.getElementById('bullUpSentNote').classList.add('hidden')
+      }
+
+      document.getElementById('bullUpMatchTitle').textContent = m.playerA + ' vs ' + m.playerB
+
+      var winnerRow = document.getElementById('bullUpWinnerRow')
+      winnerRow.innerHTML = ''
+      ;[['A', m.playerA], ['B', m.playerB]].forEach(function (pair) {
+        var btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'bullup-winner-btn' + (bullUpSelectedWinner === pair[0] ? ' sel' : '')
+        btn.textContent = pair[1]
+        btn.addEventListener('click', function () {
+          bullUpSelectedWinner = pair[0]
+          renderBullUp()
+        })
+        winnerRow.appendChild(btn)
+      })
+
+      var confirmBtn = document.getElementById('bullUpConfirmBtn')
+      confirmBtn.classList.toggle('hidden', !bullUpSelectedWinner)
+      confirmBtn.disabled = !bullUpSelectedWinner
+      if (bullUpSelectedWinner) {
+        confirmBtn.textContent = 'Confirm — ' + (bullUpSelectedWinner === 'A' ? m.playerA : m.playerB) + ' Won the Bull'
+      }
+    }
+
+    function flipCoin() {
+      document.getElementById('bullUpCoinResult').textContent = Math.random() < 0.5 ? 'HEADS' : 'TAILS'
+    }
+
+    function confirmBullWinner() {
+      var m = getBullUpMatch()
+      if (!m || !bullUpSelectedWinner) return
+      var winnerName = bullUpSelectedWinner === 'A' ? m.playerA : m.playerB
+      notifyScorekeepersBullWon(m, winnerName)
+      bullUpSelectedWinner = null
+      renderBullUp()
+      var note = document.getElementById('bullUpSentNote')
+      note.textContent = '✅ Notified — ' + winnerName + ' won the bull'
+      note.classList.remove('hidden')
+    }
+
+    // Mirrors the equivalent helper in cue-light.html — resolves a scorekeeper
+    // shift to a match by playerA/playerB (order-independent).
+    function shiftHasSamePlayers(match, shift) {
+      if (!match || !shift.playerA || !shift.playerB) return false
+      var mA = (match.playerA || '').trim().toLowerCase(), mB = (match.playerB || '').trim().toLowerCase()
+      var sA = shift.playerA.trim().toLowerCase(), sB = shift.playerB.trim().toLowerCase()
+      return (mA === sA && mB === sB) || (mA === sB && mB === sA)
+    }
+
+    // Bull-off winner only concerns whoever is scoring/calling this match.
+    var SCOREKEEPER_CALLER_ROLES = [
+      'Main Score Keeper', 'Main Scorekeeper', 'Back Up Score Keeper', 'Backup Scorekeeper',
+      'Tablet Backup Scorekeeper', 'Second Backup Scorekeeper',
+      'Main Caller', 'Caller', 'Back Up Caller', 'Backup Caller'
+    ]
+
+    function notifyScorekeepersBullWon(m, winnerName) {
+      if (state.scorekeeperAlertsEnabled === false) return
+      var shifts = (state.scorekeeperShifts || []).filter(function (s) {
+        return shiftHasSamePlayers(m, s) && SCOREKEEPER_CALLER_ROLES.indexOf(s.role) !== -1
+      })
+      var roles = shifts.map(function (s) { return { role: s.role, name: s.name } }).filter(function (r) { return r.name })
+      fetch(SUPABASE_URL + '/functions/v1/send-scorekeeper-portal-push', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          eventId: eventId,
+          action: 'bull_won',
+          match: { playerA: m.playerA, playerB: m.playerB },
+          winner: winnerName,
+          roles: roles
+        })
+      }).catch(function () {})
+    }
+
+    /* ══ EVENT GATE ══
+       Auto-picks the only event with zero extra taps so a single-event night
+       needs no setup; only prompts when there's a real choice to make (none
+       yet, or more than one). */
+    function showEventGate() {
+      document.getElementById('bullUpView').classList.add('hidden')
+      document.getElementById('eventGate').classList.remove('hidden')
+      renderEventGate()
+    }
+
+    function renderEventGate() {
+      var list = document.getElementById('eventList')
+      list.innerHTML = ''
+      if (!allEvents.length) {
+        var p = document.createElement('p')
+        p.textContent = 'No events yet — create one below.'
+        list.appendChild(p)
+        return
+      }
+      allEvents.forEach(function (ev) {
+        var btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'role-btn'
+        btn.textContent = '📅 ' + ev.name
+        btn.addEventListener('click', function () { selectEvent(ev.id) })
+        list.appendChild(btn)
+      })
+    }
+
+    function initEventSelection() {
+      loadEvents().then(function (events) {
+        allEvents = events
+        var storedId = localStorage.getItem(EVENT_ID_KEY)
+        var match = events.find(function (e) { return e.id === storedId })
+        if (match) {
+          selectEvent(match.id)
+        } else if (events.length === 1) {
+          selectEvent(events[0].id)
+        } else {
+          showEventGate()
+        }
+      })
+    }
+
+    function selectEvent(id) {
+      eventId = id
+      localStorage.setItem(EVENT_ID_KEY, id)
+      document.getElementById('eventGate').classList.add('hidden')
+      document.getElementById('bullUpView').classList.remove('hidden')
+      startEventPolling()
+    }
+
+    function switchEvent() {
+      stopEventPolling()
+      eventId = null
+      localStorage.removeItem(EVENT_ID_KEY)
+      initEventSelection()
+    }
+
+    function createEvent() {
+      var name = document.getElementById('newEventName').value.trim()
+      if (!name) { alert('Enter an event name.'); return }
+      fetch(SUPABASE_URL + '/rest/v1/events', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'return=representation' }),
+        body: JSON.stringify({ name: name })
+      }).then(function (res) { return res.json() })
+        .then(function (rows) {
+          if (Array.isArray(rows) && rows.length) {
+            allEvents.push({ id: rows[0].id, name: rows[0].name, created_at: rows[0].created_at })
+            document.getElementById('newEventName').value = ''
+            selectEvent(rows[0].id)
+          }
+        }).catch(function () { alert('Could not create event. Try again.') })
+    }
+
+    /* ══ INSTALL (Add to Home Screen) ══
+       Bull Up only ever sends notifications (to scorekeepers/callers), it
+       never needs to receive any itself, so unlike Controller/Display there's
+       no push-subscribe flow here — just enough to be installable as its own
+       home screen app. */
+    var deferredInstallPrompt = null
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault()
+      deferredInstallPrompt = e
+    })
+
+    function isIOSDevice() {
+      return /iP(hone|od|ad)/.test(navigator.platform) ||
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+    }
+
+    function registerBullUpSW() {
+      if (!('serviceWorker' in navigator)) return Promise.resolve(null)
+      return navigator.serviceWorker.register('bull-up-sw.js', { scope: '/bull-up.html' }).catch(function () { return null })
+    }
+
+    function installApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt()
+        deferredInstallPrompt = null
+        return
+      }
+      if (isIOSDevice()) {
+        alert('Tap the Share icon, then choose "Add to Home Screen".')
+      } else {
+        alert('Use your browser menu and choose "Add to Home Screen" or "Install app".')
+      }
+    }
+
+    function wireInstall() {
+      document.querySelectorAll('.install-btn').forEach(function (btn) {
+        btn.classList.remove('hidden')
+        btn.addEventListener('click', installApp)
+      })
+      registerBullUpSW()
+    }
+
+    /* ══ POLLING ══ */
+    function applyFreshState(fresh) {
+      var freshJSON = fresh ? JSON.stringify(fresh) : ''
+      if (fresh && freshJSON !== lastServerJSON) {
+        lastServerJSON = freshJSON
+        state = fresh
+      } else if (!state) {
+        state = fresh || defaultState()
+        lastServerJSON = JSON.stringify(state)
+      }
+      renderBullUp()
+    }
+
+    function tick() {
+      loadState().then(applyFreshState)
+    }
+
+    function stopEventPolling() {
+      if (pollWorker) { pollWorker.terminate(); pollWorker = null }
+      if (pollIntervalId) { clearInterval(pollIntervalId); pollIntervalId = null }
+      state = null
+      lastServerJSON = ''
+    }
+
+    function startEventPolling() {
+      stopEventPolling()
+      tick()
+      if (!startPollWorker()) {
+        pollIntervalId = setInterval(tick, POLL_MS)
+      }
+    }
+
+    // Polling on the main thread gets throttled once the tab is backgrounded —
+    // a dedicated Worker isn't subject to that clamp, so poll there and just
+    // hand the result back to redraw. Mirrors cue-light.html's implementation.
+    function startPollWorker() {
+      if (typeof Worker === 'undefined') return false
+      try {
+        var src = [
+          'var SB_URL = ' + JSON.stringify(SUPABASE_URL) + ';',
+          'var SB_KEY = ' + JSON.stringify(SUPABASE_KEY) + ';',
+          'var SB_EVENT_ID = ' + JSON.stringify(eventId) + ';',
+          'function poll() {',
+          '  fetch(SB_URL + "/rest/v1/events?id=eq." + SB_EVENT_ID + "&select=state", { headers: { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY } })',
+          '    .then(function (r) { return r.json() })',
+          '    .then(function (rows) { postMessage({ ok: true, rows: rows }) })',
+          '    .catch(function () { postMessage({ ok: false }) })',
+          '}',
+          'poll();',
+          'setInterval(poll, ' + POLL_MS + ');'
+        ].join('\n')
+        var blob = new Blob([src], { type: 'application/javascript' })
+        pollWorker = new Worker(URL.createObjectURL(blob))
+        pollWorker.onmessage = function (e) {
+          if (e.data && e.data.ok) applyFreshState(parseEventStateRows(e.data.rows))
+        }
+        return true
+      } catch (e) {
+        return false
+      }
+    }
+
+    /* ══ INIT ══ */
+    function wireButtons() {
+      document.querySelectorAll('[data-event-switch]').forEach(function (el) {
+        el.addEventListener('click', switchEvent)
+      })
+      document.getElementById('newEventBtn').addEventListener('click', createEvent)
+      document.getElementById('newEventName').addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') createEvent()
+      })
+      document.getElementById('bullUpFlipBtn').addEventListener('click', flipCoin)
+      document.getElementById('bullUpConfirmBtn').addEventListener('click', confirmBullWinner)
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      wireButtons()
+      wireInstall()
+      initEventSelection()
+    })
+  </script>
+</body>
+</html>
