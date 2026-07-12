@@ -149,21 +149,31 @@
   <script>
     const SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
-    const CORRECT_PIN = '40783'
     const HDR = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
 
-    function unlock() {
+    // Anyone with the "Ticket Sales" tool granted in Staff Management (or
+    // a master admin) can unlock with their own PIN, rather than everyone
+    // sharing one hardcoded code — access follows whatever Matthew toggles.
+    async function unlock() {
       const val = document.getElementById('pinInput').value
-      if (val === CORRECT_PIN) {
-        document.getElementById('pinWrap').classList.add('hidden')
-        document.getElementById('dash').classList.remove('hidden')
-        loadStats()
-      } else {
-        document.getElementById('pinInput').classList.add('err')
-        document.getElementById('pinErr').classList.remove('hidden')
-        document.getElementById('pinInput').value = ''
-        document.getElementById('pinInput').focus()
-      }
+      try {
+        const res = await fetch(
+          `${SUPABASE_URL}/rest/v1/staff_accounts?pin=eq.${encodeURIComponent(val)}&is_active=eq.true&select=is_master,tool_permissions`,
+          { headers: HDR }
+        )
+        const rows = await res.json()
+        const authorized = rows.some(r => r.is_master || (r.tool_permissions || []).includes('ticket-sales'))
+        if (authorized) {
+          document.getElementById('pinWrap').classList.add('hidden')
+          document.getElementById('dash').classList.remove('hidden')
+          loadStats()
+          return
+        }
+      } catch (e) {}
+      document.getElementById('pinInput').classList.add('err')
+      document.getElementById('pinErr').classList.remove('hidden')
+      document.getElementById('pinInput').value = ''
+      document.getElementById('pinInput').focus()
     }
     function clearErr() {
       document.getElementById('pinInput').classList.remove('err')
