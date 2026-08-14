@@ -8,6 +8,7 @@ const TABS = [
   { id: 'h2h', label: 'H2H Match-Up' },
   { id: 'staff', label: '🔑 Sign In' },
   { id: 'ack', label: '📋 Acknowledgements' },
+  { id: 'policy', label: '📄 Policy Docs' },
   { id: 'form', label: '📝 Competition Form' },
   { id: 'data', label: 'Data Manager' },
 ]

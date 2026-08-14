@@ -22,7 +22,7 @@ function AppShell() {
   const [uploadedPolicies, setUploadedPolicies] = useState([])
   const [selectedPlayerName, setSelectedPlayerName] = useState(null)
   const wakeLockRef = useRef(null)
-  const LOCKED_TABS = ['data']
+  const LOCKED_TABS = ['data', 'policy']
   const [unlockedTabs, setUnlockedTabs] = useState(new Set())
   const [pendingTab, setPendingTab] = useState(null)
 
