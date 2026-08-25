@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#050505" />
+  <link rel="manifest" href="training.webmanifest" />
+  <link rel="icon" href="icon-players-portal.png" />
+  <link rel="apple-touch-icon" href="icon-players-portal.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AADS Training</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #050505;
+      --panel: #111111;
+      --panel-2: #161616;
+      --line: #242424;
+      --text: #f5f5f5;
+      --muted: #999;
+      --accent: #ff7a00;
+      --accent-2: #ffb347;
+      --green-2: #5dd88a;
+      --red: #ff5a4d;
+      --amber: #ffc44d;
+      --blue: #6db3ff;
+    }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hidden { display: none !important; }
+
+    /* ══ HERO ══ */
+    .hero {
+      background: linear-gradient(180deg, #0e0805 0%, #050505 100%);
+      border-bottom: 1px solid #1a1a1a;
+      padding: 24px 24px 20px;
+      text-align: center;
+    }
+    .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .hero-title { font-size: clamp(26px, 4vw, 40px); font-weight: 900; letter-spacing: -0.03em; }
+    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.5; }
+
+    /* ══ TOP BAR ══ */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+    .top-bar-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .top-bar-actions { display: flex; gap: 14px; align-items: center; }
+    .switch-role-link { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
+    .switch-role-link:hover { color: var(--text); }
+
+    .page { max-width: 560px; margin: 0 auto; padding: 22px 18px 60px; }
+    .section-heading { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 26px 0 10px; }
+    .section-heading:first-child { margin-top: 0; }
+
+    .ctrl-btn {
+      padding: 18px 10px; border-radius: 14px; border: 2px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 16px; font-weight: 800;
+      cursor: pointer; transition: 0.15s; font-family: inherit;
+    }
+    .ctrl-btn:hover { border-color: var(--accent); }
+    .ctrl-btn:active { transform: scale(0.98); }
+    .ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+    .ctrl-btn.primary { background: linear-gradient(180deg,#3a2408,#261405); border-color: var(--accent); color: var(--accent-2); }
+    .full { width: 100%; }
+    .btn-row { display: flex; gap: 10px; }
+    .btn-row > * { flex: 1; }
+
+    /* ══ HOME: METRICS ══ */
+    .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+    }
+    .metric-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); line-height: 1.35; }
+    .metric-value { font-size: clamp(24px, 7vw, 30px); font-weight: 900; margin-top: 6px; letter-spacing: -0.02em; }
+    .metric-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .metric.wide { grid-column: 1 / -1; }
+    .window-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+    .window-toggle button {
+      flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--muted); font-size: 12px; font-weight: 800; cursor: pointer; font-family: inherit;
+    }
+    .window-toggle button.sel { border-color: var(--accent); color: var(--accent-2); background: var(--panel-2); }
+
+    /* ══ HOME: DRILL CARDS ══ */
+    .drill-card {
+      display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      padding: 16px 18px; color: var(--text); cursor: pointer; font-family: inherit;
+      transition: border-color 0.15s ease, transform 0.15s ease; margin-bottom: 12px;
+    }
+    .drill-card:hover { border-color: var(--accent); }
+    .drill-card:active { transform: scale(0.985); }
+    .drill-num {
+      width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--panel-2); border: 1px solid var(--line);
+      font-size: 18px; font-weight: 900; color: var(--accent);
+    }
+    .drill-info { flex: 1; min-width: 0; }
+    .drill-name { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
+    .drill-desc { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+    .drill-arrow { color: var(--muted); font-size: 20px; flex-shrink: 0; }
+
+    .hint {
+      margin-top: 18px; padding: 14px 16px; background: var(--panel-2);
+      border: 1px solid var(--line); border-radius: 12px;
+      font-size: 12.5px; color: var(--muted); line-height: 1.6;
+    }
+    .hint strong { color: var(--text); }
+    .empty-note { color: var(--muted); font-size: 13px; text-align: center; padding: 26px 0; line-height: 1.6; }
+
+    /* ══ DRILL SHELL ══ */
+    .drill-head { text-align: center; margin-bottom: 18px; }
+    .drill-head h2 { font-size: clamp(20px, 5vw, 26px); font-weight: 900; letter-spacing: -0.02em; }
+    .drill-progress { font-size: 12px; color: var(--muted); margin-top: 6px; letter-spacing: 0.04em; }
+
+    .big-readout {
+      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      padding: 20px; text-align: center; margin-bottom: 16px;
+    }
+    .big-readout-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+    .big-readout-value { font-size: clamp(48px, 16vw, 76px); font-weight: 900; line-height: 1.05; margin-top: 4px; letter-spacing: -0.04em; }
+    .big-readout-note { font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+    .stat-strip { display: flex; gap: 8px; margin-bottom: 16px; }
+    .stat-chip {
+      flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      padding: 10px 8px; text-align: center;
+    }
+    .stat-chip-label { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .stat-chip-value { font-size: 18px; font-weight: 900; margin-top: 3px; }
+
+    /* ══ KEYPAD ══ */
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .keypad button {
+      padding: 20px 0; border-radius: 12px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 24px; font-weight: 800;
+      cursor: pointer; font-family: inherit; transition: 0.1s;
+    }
+    .keypad button:active { background: var(--panel-2); transform: scale(0.97); }
+    .keypad button.util { font-size: 15px; color: var(--muted); }
+    .keypad button.enter { background: linear-gradient(180deg,#3a2408,#261405); border-color: var(--accent); color: var(--accent-2); font-size: 16px; }
+    .quick-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
+    .quick-row button {
+      padding: 12px 0; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--panel-2); color: var(--muted); font-size: 14px; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+    }
+    .quick-row button:active { transform: scale(0.97); }
+
+    /* ══ BANDS ══ */
+    .band-red { color: var(--red); }
+    .band-ok { color: var(--amber); }
+    .band-good { color: var(--green-2); }
+    .band-great { color: var(--accent-2); }
+
+    .visit-log { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+    .visit-pill {
+      min-width: 42px; text-align: center; padding: 6px 8px; border-radius: 9px;
+      background: var(--panel); border: 1px solid var(--line);
+      font-size: 14px; font-weight: 800;
+    }
+    .visit-pill.is-red { border-color: rgba(255,90,77,0.5); }
+    .visit-pill.is-bust { opacity: 0.5; text-decoration: line-through; }
+
+    /* ══ RESET INTERSTITIAL ══ */
+    .reset-panel {
+      background: linear-gradient(180deg, #2a0d0a 0%, #140705 100%);
+      border: 1px solid rgba(255,90,77,0.45); border-radius: 16px;
+      padding: 26px 22px; text-align: center;
+    }
+    .reset-title { font-size: clamp(28px, 8vw, 38px); font-weight: 900; color: var(--red); letter-spacing: -0.02em; }
+    .reset-sub { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.7; }
+    .reset-steps { list-style: none; margin: 18px auto 22px; max-width: 240px; text-align: left; }
+    .reset-steps li { font-size: 14px; font-weight: 700; padding: 7px 0; color: var(--text); }
+    .reset-steps li span { color: var(--red); font-weight: 900; margin-right: 10px; }
+
+    /* ══ SEGMENT / CHOICE GRIDS ══ */
+    .seg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .seg-btn {
+      padding: 18px 8px; border-radius: 12px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--text); font-size: 17px; font-weight: 800;
+      cursor: pointer; font-family: inherit;
+    }
+    .seg-btn:active { transform: scale(0.97); }
+    .seg-btn small { display: block; font-size: 10.5px; font-weight: 700; color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
+    .seg-btn.hot { border-color: var(--accent); color: var(--accent-2); }
+    .seg-btn.wide { grid-column: 1 / -1; }
+
+    .choice-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .choice-row.three { grid-template-columns: repeat(3, 1fr); }
+
+    /* ══ DOUBLES ══ */
+    .dart-dots { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
+    .dart-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); }
+    .dart-dot.miss { background: var(--red); border-color: var(--red); }
+    .dart-dot.hit { background: var(--green-2); border-color: var(--green-2); }
+    .seq-track { display: flex; gap: 6px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
+    .seq-node {
+      padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line);
+      background: var(--panel); font-size: 13px; font-weight: 800; color: var(--muted);
+    }
+    .seq-node.done { border-color: var(--green-2); color: var(--green-2); }
+    .seq-node.now { border-color: var(--accent); color: var(--accent-2); background: var(--panel-2); }
+    .danger-banner {
+      background: linear-gradient(180deg,#2a0d0a,#140705); border: 1px solid rgba(255,90,77,0.45);
+      border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
+      font-size: 12.5px; color: var(--amber); text-align: center; font-weight: 700; line-height: 1.5;
+    }
+
+    /* ══ SUMMARY ══ */
+    .summary-row {
+      display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--line);
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-key { font-size: 13px; color: var(--muted); }
+    .summary-val { font-size: 17px; font-weight: 900; }
+    .summary-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 6px 18px; }
+    .verdict {
+      border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 16px;
+      border: 1px solid var(--line); background: var(--panel);
+    }
+    .verdict.win { border-color: rgba(93,216,138,0.5); background: linear-gradient(180deg,#0c2114,#050f09); }
+    .verdict.loss { border-color: rgba(255,90,77,0.4); background: linear-gradient(180deg,#2a0d0a,#140705); }
+    .verdict-title { font-size: clamp(26px, 7vw, 34px); font-weight: 900; letter-spacing: -0.02em; }
+    .verdict-sub { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+    /* ══ TOAST ══ */
+    .toast {
+      position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+      background: var(--panel-2); border: 1px solid var(--accent); color: var(--accent-2);
+      padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 800;
+      z-index: 50; box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══════════ HOME ══════════ -->
+  <div id="homeView">
+    <div class="hero">
+      <div class="hero-eyebrow">AADS</div>
+      <h1 class="hero-title">Training <em>Room</em></h1>
+      <div class="hero-sub">Four drills. One rule: you're allowed one bad visit — never two.</div>
+    </div>
+
+    <div class="top-bar">
+      <span class="top-bar-title">Practice</span>
+      <div class="top-bar-actions">
+        <button type="button" class="switch-role-link hidden install-btn" id="installBtn">📲 Add to Home Screen</button>
+      </div>
+    </div>
+
+    <div class="page">
+      <div id="resumeWrap" class="hidden">
+        <div class="section-heading">Unfinished Session</div>
+        <div class="btn-row" style="margin-bottom: 6px;">
+          <button type="button" class="ctrl-btn primary" id="resumeBtn">Resume</button>
+          <button type="button" class="ctrl-btn" id="discardBtn">Discard</button>
+        </div>
+        <div class="metric-sub" id="resumeNote"></div>
+      </div>
+
+      <div class="section-heading">Your Numbers</div>
+      <div class="window-toggle">
+        <button type="button" data-window="7" class="sel">Last 7 days</button>
+        <button type="button" data-window="28">Last 28 days</button>
+      </div>
+      <div class="metric-grid" id="metricGrid"></div>
+
+      <div class="section-heading">Drills</div>
+
+      <button type="button" class="drill-card" data-drill="floor45">
+        <div class="drill-num">1</div>
+        <div class="drill-info">
+          <div class="drill-name">45-Floor Drill</div>
+          <div class="drill-desc">15 visits at T20. Never two REDs in a row.</div>
+        </div>
+        <div class="drill-arrow">&rsaquo;</div>
+      </button>
+
+      <button type="button" class="drill-card" data-drill="firstdart">
+        <div class="drill-num">2</div>
+        <div class="drill-info">
+          <div class="drill-name">First-Dart Scoring</div>
+          <div class="drill-desc">30 visits. Log dart #1 only — find your bias.</div>
+        </div>
+        <div class="drill-arrow">&rsaquo;</div>
+      </button>
+
+      <button type="button" class="drill-card" data-drill="doubles">
+        <div class="drill-num">3</div>
+        <div class="drill-info">
+          <div class="drill-name">Pressure Doubles</div>
+          <div class="drill-desc">D20 down to D2, with consequences.</div>
+        </div>
+        <div class="drill-arrow">&rsaquo;</div>
+      </button>
+
+      <button type="button" class="drill-card" data-drill="ghost">
+        <div class="drill-num">4</div>
+        <div class="drill-info">
+          <div class="drill-name">501 Ghost</div>
+          <div class="drill-desc">Straight in, double out, against a fixed-dart ghost.</div>
+        </div>
+        <div class="drill-arrow">&rsaquo;</div>
+      </button>
+
+      <div class="section-heading">Session Log</div>
+      <div class="summary-card" id="recentList"></div>
+
+      <div class="btn-row" style="margin-top: 16px;">
+        <button type="button" class="ctrl-btn primary" id="shareBtn">📤 Share Report</button>
+        <button type="button" class="ctrl-btn" id="clearBtn">Clear Data</button>
+      </div>
+
+      <div class="hint">
+        <strong>One Bad Visit Rule.</strong> Throw a 26? Step back, exhale, get your eyes on the target, set your feet, throw normally. Don't chase it with a ton — that's how the second bad visit happens.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ DRILL ══════════ -->
+  <div id="drillView" class="hidden">
+    <div class="top-bar">
+      <span class="top-bar-title" id="drillBarTitle">Drill</span>
+      <div class="top-bar-actions">
+        <button type="button" class="switch-role-link" id="undoBtn">↶ Undo</button>
+        <button type="button" class="switch-role-link" id="quitBtn">Quit</button>
+      </div>
+    </div>
+    <div class="page" id="drillBody"></div>
+  </div>
+
+  <!-- ══════════ SUMMARY ══════════ -->
+  <div id="summaryView" class="hidden">
+    <div class="top-bar">
+      <span class="top-bar-title">Session Complete</span>
+    </div>
+    <div class="page" id="summaryBody"></div>
+  </div>
+
+  <script>
+    /* ══════════════════════════════════════════════════════════
+       CONSTANTS
+       ══════════════════════════════════════════════════════════ */
+    var SESSIONS_KEY = 'aads_training_sessions'
+    var ACTIVE_KEY = 'aads_training_active'
+
+    var FLOOR_ROUNDS = 15
+    var FIRSTDART_VISITS = 30
+    var DOUBLE_SEQ = [20, 16, 10, 8, 4, 2]
+
+    var DRILL_NAMES = {
+      floor45: '45-Floor Drill',
+      firstdart: 'First-Dart Scoring',
+      doubles: 'Pressure Doubles',
+      ghost: '501 Ghost'
+    }
+
+    // Dart #1 landing zones. `side` maps a miss to which neighbour of the 20
+    // bed it drifted into — 5 sits left of 20, 1 sits right — so a run of
+    // same-side misses reads as a setup fault rather than a bad night.
+    var FIRST_DART_ZONES = [
+      { key: 'T20', label: 'T20', note: 'treble', value: 60, side: null, bed: true },
+      { key: 'S20', label: 'S20', note: 'in the bed', value: 20, side: null, bed: true },
+      { key: 'T5', label: 'T5', note: 'left', value: 15, side: 'left', bed: false },
+      { key: 'T1', label: 'T1', note: 'right', value: 3, side: 'right', bed: false },
+      { key: 'S5', label: 'S5', note: 'left', value: 5, side: 'left', bed: false },
+      { key: 'S1', label: 'S1', note: 'right', value: 1, side: 'right', bed: false },
+      { key: 'OFF', label: 'Off board', note: 'no score', value: 0, side: null, bed: false }
+    ]
+
+    /* ══════════════════════════════════════════════════════════
+       STORAGE
+       ══════════════════════════════════════════════════════════ */
+    function readJSON(key, fallback) {
+      try {
+        var raw = localStorage.getItem(key)
+        if (!raw) return fallback
+        var parsed = JSON.parse(raw)
+        return parsed === null ? fallback : parsed
+      } catch (e) {
+        return fallback
+      }
+    }
+
+    function writeJSON(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)) } catch (e) { /* private mode / quota */ }
+    }
+
+    function loadSessions() {
+      var list = readJSON(SESSIONS_KEY, [])
+      return Array.isArray(list) ? list : []
+    }
+
+    function saveSession(session) {
+      var list = loadSessions()
+      list.push(session)
+      writeJSON(SESSIONS_KEY, list)
+    }
+
+    // The active-session snapshot exists purely so a phone lock or an accidental
+    // back-swipe mid-drill doesn't throw away the visits already thrown.
+    function persistActive() {
+      if (active) writeJSON(ACTIVE_KEY, active)
+    }
+
+    function clearActive() {
+      active = null
+      try { localStorage.removeItem(ACTIVE_KEY) } catch (e) { /* ignore */ }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SHARED HELPERS
+       ══════════════════════════════════════════════════════════ */
+    function el(id) { return document.getElementById(id) }
+    function show(id) { el(id).classList.remove('hidden') }
+    function hide(id) { el(id).classList.add('hidden') }
+
+    function esc(str) {
+      return String(str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      })
+    }
+
+    function newId() {
+      return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7)
+    }
+
+    function round1(n) { return Math.round(n * 10) / 10 }
+
+    function pct(hit, total) {
+      if (!total) return null
+      return Math.round((hit / total) * 100)
+    }
+
+    function fmt(value, suffix) {
+      if (value === null || value === undefined || (typeof value === 'number' && !isFinite(value))) return '—'
+      return value + (suffix || '')
+    }
+
+    function bandOf(score) {
+      if (score < 45) return 'red'
+      if (score < 60) return 'ok'
+      if (score < 100) return 'good'
+      return 'great'
+    }
+
+    function bandClass(score) { return 'band-' + bandOf(score) }
+
+    // Longest run of consecutive sub-45 visits — the plan's headline number.
+    function longestRedRun(scores) {
+      var best = 0
+      var run = 0
+      for (var i = 0; i < scores.length; i++) {
+        if (scores[i] < 45) { run++; if (run > best) best = run } else { run = 0 }
+      }
+      return best
+    }
+
+    function countBackToBackReds(scores) {
+      var n = 0
+      for (var i = 1; i < scores.length; i++) {
+        if (scores[i] < 45 && scores[i - 1] < 45) n++
+      }
+      return n
+    }
+
+    // Of every sub-45 visit that had a next visit, how often did the next one
+    // clear 45? This is the number that shows the reset actually working.
+    function resetSuccess(scores) {
+      var chances = 0
+      var saved = 0
+      for (var i = 0; i < scores.length - 1; i++) {
+        if (scores[i] < 45) { chances++; if (scores[i + 1] >= 45) saved++ }
+      }
+      return { chances: chances, saved: saved, pct: pct(saved, chances) }
+    }
+
+    function toast(message) {
+      var node = document.createElement('div')
+      node.className = 'toast'
+      node.textContent = message
+      document.body.appendChild(node)
+      setTimeout(function () { node.remove() }, 2200)
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       VIEW ROUTING
+       ══════════════════════════════════════════════════════════ */
+    var active = null          // in-progress session
+    var pendingSummary = null  // finished session awaiting save
+    var keypadBuffer = ''
+    var metricWindow = 7
+
+    function goHome() {
+      hide('drillView'); hide('summaryView'); show('homeView')
+      renderHome()
+      window.scrollTo(0, 0)
+    }
+
+    function goDrill() {
+      hide('homeView'); hide('summaryView'); show('drillView')
+      renderDrill()
+    }
+
+    function goSummary(session) {
+      pendingSummary = session
+      hide('homeView'); hide('drillView'); show('summaryView')
+      renderSummary()
+      window.scrollTo(0, 0)
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DRILL LIFECYCLE
+       ══════════════════════════════════════════════════════════ */
+    function startDrill(drill, config) {
+      active = {
+        id: newId(),
+        drill: drill,
+        startedAt: new Date().toISOString(),
+        config: config || {},
+        visits: [],
+        phase: 'input'
+      }
+      if (drill === 'doubles') {
+        active.idx = 0
+        active.darts = []
+        active.restarts = 0
+      }
+      if (drill === 'ghost') {
+        active.remaining = 501
+        active.dartsThrown = 0
+      }
+      keypadBuffer = ''
+      persistActive()
+      goDrill()
+    }
+
+    function finishDrill() {
+      var session = active
+      session.stats = computeStats(session)
+      session.finishedAt = new Date().toISOString()
+      delete session.phase
+      clearActive()
+      goSummary(session)
+    }
+
+    function quitDrill() {
+      if (active && active.visits.length && !confirm('Quit this drill? Nothing will be saved.')) return
+      clearActive()
+      goHome()
+    }
+
+    function renderDrill() {
+      el('drillBarTitle').textContent = DRILL_NAMES[active.drill]
+      var body = el('drillBody')
+      if (active.drill === 'floor45') renderFloor45(body)
+      else if (active.drill === 'firstdart') renderFirstDart(body)
+      else if (active.drill === 'doubles') renderDoubles(body)
+      else if (active.drill === 'ghost') renderGhost(body)
+      el('undoBtn').classList.toggle('hidden', !canUndo())
+    }
+
+    function canUndo() {
+      if (!active) return false
+      if (active.drill === 'doubles') return active.darts.length > 0 || active.visits.length > 0
+      return active.visits.length > 0
+    }
+
+    function undoLast() {
+      if (!active) return
+      if (active.drill === 'doubles') {
+        // Mid-double darts unwind one at a time; otherwise step back a whole
+        // double. Level penalties already applied aren't replayed — this is a
+        // slip-correction, not a time machine.
+        if (active.darts.length) { active.darts.pop() }
+        else if (active.visits.length) {
+          var prev = active.visits.pop()
+          active.idx = DOUBLE_SEQ.indexOf(prev.double)
+          if (active.idx < 0) active.idx = Math.max(0, active.idx)
+          active.darts = []
+        }
+      } else if (active.drill === 'ghost') {
+        // Mid-prompt, undo just cancels the visit awaiting its darts-at-a-double
+        // count rather than reaching back into an already-committed visit.
+        if (active.phase === 'checkout') {
+          active.phase = 'input'
+          active.pendingScore = null
+          persistActive()
+          renderDrill()
+          return
+        }
+        var last = active.visits.pop()
+        if (!last) return
+        active.dartsThrown -= last.dartsUsed
+        if (!last.bust) active.remaining += last.score
+        active.phase = 'input'
+        active.pendingScore = null
+      } else {
+        active.visits.pop()
+        active.phase = 'input'
+      }
+      keypadBuffer = ''
+      persistActive()
+      renderDrill()
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       KEYPAD
+       ══════════════════════════════════════════════════════════ */
+    function keypadHTML(quickValues) {
+      var quick = (quickValues || []).map(function (v) {
+        return '<button type="button" data-quick="' + v + '">' + v + '</button>'
+      }).join('')
+      var keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
+      var digits = keys.map(function (k) {
+        return '<button type="button" data-key="' + k + '">' + k + '</button>'
+      }).join('')
+      return '' +
+        (quick ? '<div class="quick-row">' + quick + '</div>' : '') +
+        '<div class="keypad">' + digits +
+        '<button type="button" class="util" data-key="clear">CLR</button>' +
+        '<button type="button" data-key="0">0</button>' +
+        '<button type="button" class="enter" data-key="enter">ENTER</button>' +
+        '</div>'
+    }
+
+    function wireKeypad(container, onSubmit) {
+      container.querySelectorAll('[data-key]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var key = btn.getAttribute('data-key')
+          if (key === 'clear') keypadBuffer = ''
+          else if (key === 'enter') {
+            if (keypadBuffer === '') return
+            var value = parseInt(keypadBuffer, 10)
+            keypadBuffer = ''
+            onSubmit(value)
+            return
+          } else if (keypadBuffer.length < 3) {
+            keypadBuffer += key
+          }
+          renderDrill()
+        })
+      })
+      container.querySelectorAll('[data-quick]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          keypadBuffer = ''
+          onSubmit(parseInt(btn.getAttribute('data-quick'), 10))
+        })
+      })
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DRILL 1 — 45-FLOOR
+       ══════════════════════════════════════════════════════════ */
+    function renderFloor45(body) {
+      var scores = active.visits
+      var done = scores.length
+      var total = scores.reduce(function (a, b) { return a + b }, 0)
+      var avg = done ? round1(total / done) : null
+      var streak = longestRedRun(scores)
+
+      if (active.phase === 'reset') {
+        body.innerHTML = '' +
+          '<div class="drill-head"><h2>45-Floor</h2>' +
+          '<div class="drill-progress">Visit ' + done + ' of ' + FLOOR_ROUNDS + '</div></div>' +
+          '<div class="reset-panel">' +
+            '<div class="reset-title">Gone.</div>' +
+            '<div class="reset-sub">' + scores[done - 1] + ' is spent. It is not coming back, and you are not getting it back with a 140.</div>' +
+            '<ul class="reset-steps">' +
+              '<li><span>1</span>Step back off the oche</li>' +
+              '<li><span>2</span>Exhale</li>' +
+              '<li><span>3</span>Set your feet</li>' +
+              '<li><span>4</span>One tiny target</li>' +
+            '</ul>' +
+            '<button type="button" class="ctrl-btn primary full" id="resetAckBtn">Next three</button>' +
+          '</div>' +
+          visitLogHTML(scores)
+        el('resetAckBtn').addEventListener('click', function () {
+          active.phase = 'input'
+          persistActive()
+          renderDrill()
+        })
+        return
+      }
+
+      body.innerHTML = '' +
+        '<div class="drill-head"><h2>45-Floor</h2>' +
+        '<div class="drill-progress">Visit ' + (done + 1) + ' of ' + FLOOR_ROUNDS + ' &middot; three darts at T20</div></div>' +
+        '<div class="big-readout">' +
+          '<div class="big-readout-label">This Visit</div>' +
+          '<div class="big-readout-value ' + (keypadBuffer ? bandClass(parseInt(keypadBuffer, 10)) : '') + '">' +
+            (keypadBuffer === '' ? '—' : keypadBuffer) + '</div>' +
+          '<div class="big-readout-note">0–44 red &middot; 45–59 acceptable &middot; 60–99 good &middot; 100+ excellent</div>' +
+        '</div>' +
+        '<div class="stat-strip">' +
+          chipHTML('Avg', fmt(avg)) +
+          chipHTML('Total', total) +
+          chipHTML('Worst Run', streak + (streak === 1 ? ' red' : ' reds')) +
+        '</div>' +
+        keypadHTML([26, 41, 45, 60]) +
+        visitLogHTML(scores)
+
+      wireKeypad(body, function (score) {
+        if (score > 180) { toast('Max is 180'); renderDrill(); return }
+        active.visits.push(score)
+        if (active.visits.length >= FLOOR_ROUNDS) { finishDrill(); return }
+        active.phase = score < 45 ? 'reset' : 'input'
+        persistActive()
+        renderDrill()
+      })
+    }
+
+    function chipHTML(label, value) {
+      return '<div class="stat-chip"><div class="stat-chip-label">' + esc(label) + '</div>' +
+        '<div class="stat-chip-value">' + esc(String(value)) + '</div></div>'
+    }
+
+    function visitLogHTML(scores) {
+      if (!scores.length) return ''
+      var pills = scores.map(function (s) {
+        return '<div class="visit-pill is-' + bandOf(s) + ' ' + bandClass(s) + '">' + s + '</div>'
+      }).join('')
+      return '<div class="section-heading">Visits</div><div class="visit-log">' + pills + '</div>'
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DRILL 2 — FIRST-DART SCORING
+       ══════════════════════════════════════════════════════════ */
+    function renderFirstDart(body) {
+      var darts = active.visits
+      var done = darts.length
+      var counts = tallyFirstDart(darts)
+
+      var buttons = FIRST_DART_ZONES.map(function (z) {
+        return '<button type="button" class="seg-btn' + (z.bed ? ' hot' : '') + (z.key === 'OFF' ? ' wide' : '') + '" data-zone="' + z.key + '">' +
+          z.label + '<small>' + z.note + '</small></button>'
+      }).join('')
+
+      body.innerHTML = '' +
+        '<div class="drill-head"><h2>First-Dart Scoring</h2>' +
+        '<div class="drill-progress">Dart ' + Math.min(done + 1, FIRSTDART_VISITS) + ' of ' + FIRSTDART_VISITS + ' &middot; log dart #1 only</div></div>' +
+        '<div class="big-readout">' +
+          '<div class="big-readout-label">Where did dart 1 land?</div>' +
+          '<div class="big-readout-value">' + fmt(pct(counts.T20, done), '%') + '</div>' +
+          '<div class="big-readout-note">T20 rate so far. Dart #1 is information — its job is to leave darts 2 and 3 a target, not to be a treble.</div>' +
+        '</div>' +
+        '<div class="stat-strip">' +
+          chipHTML('In Bed', fmt(pct(counts.bed, done), '%')) +
+          chipHTML('Left (5)', counts.left) +
+          chipHTML('Right (1)', counts.right) +
+        '</div>' +
+        '<div class="seg-grid">' + buttons + '</div>' +
+        firstDartLogHTML(darts)
+
+      body.querySelectorAll('[data-zone]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          active.visits.push(btn.getAttribute('data-zone'))
+          if (active.visits.length >= FIRSTDART_VISITS) { finishDrill(); return }
+          persistActive()
+          renderDrill()
+        })
+      })
+    }
+
+    function tallyFirstDart(darts) {
+      var counts = { T20: 0, bed: 0, left: 0, right: 0, off: 0 }
+      darts.forEach(function (key) {
+        var zone = zoneByKey(key)
+        if (!zone) return
+        if (zone.key === 'T20') counts.T20++
+        if (zone.bed) counts.bed++
+        if (zone.side === 'left') counts.left++
+        if (zone.side === 'right') counts.right++
+        if (zone.key === 'OFF') counts.off++
+      })
+      return counts
+    }
+
+    function zoneByKey(key) {
+      for (var i = 0; i < FIRST_DART_ZONES.length; i++) {
+        if (FIRST_DART_ZONES[i].key === key) return FIRST_DART_ZONES[i]
+      }
+      return null
+    }
+
+    function firstDartLogHTML(darts) {
+      if (!darts.length) return ''
+      var pills = darts.map(function (key) {
+        var zone = zoneByKey(key)
+        var cls = zone && zone.key === 'T20' ? 'band-great' : (zone && zone.bed ? 'band-good' : 'band-red')
+        return '<div class="visit-pill ' + cls + '">' + esc(key) + '</div>'
+      }).join('')
+      return '<div class="section-heading">Darts</div><div class="visit-log">' + pills + '</div>'
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DRILL 3 — PRESSURE DOUBLES
+       ══════════════════════════════════════════════════════════ */
+    function renderDoubles(body) {
+      var level = active.config.level
+      var idx = active.idx
+      var target = DOUBLE_SEQ[idx]
+      var thrown = active.darts.length
+
+      var track = DOUBLE_SEQ.map(function (d, i) {
+        var cls = i < idx ? 'done' : (i === idx ? 'now' : '')
+        return '<div class="seq-node ' + cls + '">D' + d + '</div>'
+      }).join('')
+
+      var dots = [0, 1, 2].map(function (i) {
+        var state = i < thrown ? (active.darts[i] ? 'hit' : 'miss') : ''
+        return '<div class="dart-dot ' + state + '"></div>'
+      }).join('')
+
+      var banner = ''
+      if (level === 3) {
+        banner = '<div class="danger-banner">Level 3 — miss all three and the whole sequence restarts from D20. ' +
+          'Restarts so far: ' + active.restarts + '</div>'
+      } else if (level === 2) {
+        banner = '<div class="danger-banner">Level 2 — miss all three and you drop back a double.</div>'
+      }
+
+      body.innerHTML = '' +
+        '<div class="drill-head"><h2>Pressure Doubles</h2>' +
+        '<div class="drill-progress">Level ' + level + ' &middot; dart ' + Math.min(thrown + 1, 3) + ' of 3</div></div>' +
+        banner +
+        '<div class="big-readout">' +
+          '<div class="big-readout-label">Target</div>' +
+          '<div class="big-readout-value band-great">D' + target + '</div>' +
+          '<div class="dart-dots">' + dots + '</div>' +
+        '</div>' +
+        '<div class="btn-row">' +
+          '<button type="button" class="ctrl-btn primary" data-dart="hit">✓ Hit</button>' +
+          '<button type="button" class="ctrl-btn" data-dart="miss">✕ Miss</button>' +
+        '</div>' +
+        '<div class="seq-track">' + track + '</div>' +
+        '<div class="stat-strip" style="margin-top:16px;">' +
+          chipHTML('Darts', totalDoublesDarts()) +
+          chipHTML('Hit', active.visits.filter(function (v) { return v.hit }).length) +
+          chipHTML('Restarts', active.restarts) +
+        '</div>'
+
+      body.querySelectorAll('[data-dart]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          recordDoubleDart(btn.getAttribute('data-dart') === 'hit')
+        })
+      })
+    }
+
+    function totalDoublesDarts() {
+      return active.visits.reduce(function (a, v) { return a + v.darts.length }, 0) + active.darts.length
+    }
+
+    function recordDoubleDart(isHit) {
+      active.darts.push(isHit)
+
+      if (!isHit && active.darts.length < 3) { persistActive(); renderDrill(); return }
+
+      active.visits.push({
+        double: DOUBLE_SEQ[active.idx],
+        darts: active.darts.slice(),
+        hit: isHit,
+        dartsUsed: active.darts.length
+      })
+      active.darts = []
+
+      if (isHit) {
+        active.idx++
+        if (active.idx >= DOUBLE_SEQ.length) { finishDrill(); return }
+      } else {
+        var level = active.config.level
+        if (level === 2) { active.idx = Math.max(0, active.idx - 1) }
+        else if (level === 3) {
+          if (active.idx > 0) active.restarts++
+          active.idx = 0
+        }
+        // Level 1 just advances — attempt logged, sequence moves on.
+        else {
+          active.idx++
+          if (active.idx >= DOUBLE_SEQ.length) { finishDrill(); return }
+        }
+      }
+      persistActive()
+      renderDrill()
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DRILL 4 — 501 GHOST
+       ══════════════════════════════════════════════════════════ */
+    function renderGhost(body) {
+      var ghostDarts = active.config.ghostDarts
+      var remaining = active.remaining
+      var ghostLeft = ghostDarts - active.dartsThrown
+      var scores = ghostVisitScores(active.visits)
+
+      if (active.phase === 'checkout') {
+        renderGhostCheckoutPrompt(body)
+        return
+      }
+
+      var atDoubleWarning = remaining <= 170 && remaining > 1
+        ? '<div class="big-readout-note" style="color:var(--amber)">You\'re in checkout range — the app will ask how many darts you threw at a double.</div>'
+        : ''
+
+      body.innerHTML = '' +
+        '<div class="drill-head"><h2>501 Ghost</h2>' +
+        '<div class="drill-progress">Straight in, double out &middot; ' + ghostDarts + '-dart ghost</div></div>' +
+        '<div class="big-readout">' +
+          '<div class="big-readout-label">Remaining</div>' +
+          '<div class="big-readout-value">' + remaining + '</div>' +
+          '<div class="big-readout-note">' + checkoutHintFor(remaining) + '</div>' +
+          atDoubleWarning +
+        '</div>' +
+        '<div class="stat-strip">' +
+          chipHTML('Your Darts', active.dartsThrown) +
+          chipHTML('Ghost Needs', ghostLeft) +
+          chipHTML('Avg', fmt(ghostAverage(active))) +
+        '</div>' +
+        '<div class="big-readout" style="padding:14px;">' +
+          '<div class="big-readout-label">This Visit</div>' +
+          '<div class="big-readout-value" style="font-size:clamp(32px,10vw,46px)">' + (keypadBuffer === '' ? '—' : keypadBuffer) + '</div>' +
+        '</div>' +
+        keypadHTML([26, 45, 60, 100]) +
+        visitLogHTML2(active.visits)
+
+      wireKeypad(body, function (score) { submitGhostVisit(score) })
+    }
+
+    function ghostVisitScores(visits) {
+      return visits.filter(function (v) { return !v.bust }).map(function (v) { return v.score })
+    }
+
+    function ghostAverage(session) {
+      if (!session.dartsThrown) return null
+      var scored = 501 - session.remaining
+      return round1((scored / session.dartsThrown) * 3)
+    }
+
+    function visitLogHTML2(visits) {
+      if (!visits.length) return ''
+      var pills = visits.map(function (v) {
+        if (v.bust) return '<div class="visit-pill is-bust">' + v.score + '</div>'
+        return '<div class="visit-pill is-' + bandOf(v.score) + ' ' + bandClass(v.score) + '">' + v.score + '</div>'
+      }).join('')
+      return '<div class="section-heading">Visits</div><div class="visit-log">' + pills + '</div>'
+    }
+
+    function submitGhostVisit(score) {
+      if (score > 180) { toast('Max is 180'); renderDrill(); return }
+      var before = active.remaining
+      var after = before - score
+      var bust = score > before || after === 1 || after < 0
+
+      // In checkout range every visit needs the darts-at-a-double count, or
+      // checkout % is a guess. Outside it, three darts and move on.
+      if (before <= 170) {
+        active.pendingScore = { score: score, bust: bust, before: before }
+        active.phase = 'checkout'
+        persistActive()
+        renderDrill()
+        return
+      }
+
+      commitGhostVisit({ score: score, bust: bust, dartsUsed: 3, dartsAtDouble: 0, checkoutHit: false })
+    }
+
+    function renderGhostCheckoutPrompt(body) {
+      var pending = active.pendingScore
+      var isFinish = !pending.bust && (pending.before - pending.score) === 0
+
+      var dartChoices = [0, 1, 2, 3].map(function (n) {
+        return '<button type="button" class="seg-btn" data-atdouble="' + n + '">' + n + '</button>'
+      }).join('')
+
+      var finishChoices = [1, 2, 3].map(function (n) {
+        return '<button type="button" class="seg-btn" data-finishdarts="' + n + '">' + n + '</button>'
+      }).join('')
+
+      body.innerHTML = '' +
+        '<div class="drill-head"><h2>' + (isFinish ? 'Checked Out' : 'Visit Logged') + '</h2>' +
+        '<div class="drill-progress">' + pending.score + ' from ' + pending.before + (pending.bust ? ' — BUST' : '') + '</div></div>' +
+        '<div class="big-readout">' +
+          '<div class="big-readout-label">' + (isFinish ? 'Darts used to finish' : 'Darts thrown at a double') + '</div>' +
+          '<div class="big-readout-note">' + (isFinish
+            ? 'How many darts did that visit take? This sets your darts-per-winning-leg.'
+            : 'Count only darts actually aimed at a double. This is what makes checkout % real.') + '</div>' +
+        '</div>' +
+        '<div class="seg-grid">' + (isFinish ? finishChoices : dartChoices) + '</div>'
+
+      body.querySelectorAll('[data-atdouble]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var atDouble = parseInt(btn.getAttribute('data-atdouble'), 10)
+          commitGhostVisit({
+            score: pending.score, bust: pending.bust, dartsUsed: 3,
+            dartsAtDouble: atDouble, checkoutHit: false
+          })
+        })
+      })
+
+      body.querySelectorAll('[data-finishdarts]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var used = parseInt(btn.getAttribute('data-finishdarts'), 10)
+          commitGhostVisit({
+            score: pending.score, bust: false, dartsUsed: used,
+            dartsAtDouble: 1, checkoutHit: true
+          })
+        })
+      })
+    }
+
+    function commitGhostVisit(visit) {
+      active.visits.push(visit)
+      active.dartsThrown += visit.dartsUsed
+      if (!visit.bust) active.remaining -= visit.score
+      active.phase = 'input'
+      active.pendingScore = null
+
+      if (active.remaining === 0) { active.won = true; finishDrill(); return }
+      if (active.dartsThrown >= active.config.ghostDarts) { active.won = false; finishDrill(); return }
+
+      persistActive()
+      renderDrill()
+    }
+
+    // Small nudge, not a full checkout chart — enough to stop him standing
+    // there doing arithmetic mid-leg.
+    var CHECKOUTS = {
+      170: 'T20 T20 Bull', 167: 'T20 T19 Bull', 164: 'T20 T18 Bull', 161: 'T20 T17 Bull',
+      160: 'T20 T20 D20', 158: 'T20 T20 D19', 157: 'T20 T19 D20', 156: 'T20 T20 D18',
+      155: 'T20 T19 D19', 154: 'T20 T18 D20', 152: 'T20 T20 D16', 151: 'T20 T17 D20',
+      150: 'T20 T18 D18', 148: 'T20 T16 D20', 147: 'T20 T17 D18', 146: 'T20 T18 D16',
+      145: 'T20 T15 D20', 144: 'T20 T20 D12', 143: 'T20 T17 D16', 142: 'T20 T14 D20',
+      141: 'T20 T19 D12', 140: 'T20 T20 D10', 138: 'T20 T18 D12', 136: 'T20 T20 D8',
+      132: 'T20 T16 D12', 130: 'T20 T20 D5', 129: 'T19 T16 D12', 128: 'T18 T14 D16',
+      126: 'T19 T19 D6', 125: 'T20 T19 D4', 124: 'T20 T16 D8', 121: 'T20 T11 D14',
+      120: 'T20 20 D20', 118: 'T20 18 D20', 117: 'T20 17 D20', 116: 'T20 16 D20',
+      115: 'T20 15 D20', 114: 'T20 14 D20', 113: 'T20 13 D20', 112: 'T20 12 D20',
+      111: 'T20 11 D20', 110: 'T20 10 D20', 109: 'T20 9 D20', 108: 'T20 16 D16',
+      107: 'T19 18 D16', 106: 'T20 10 D18', 105: 'T20 13 D16', 104: 'T18 18 D16',
+      103: 'T19 10 D18', 102: 'T20 10 D16', 101: 'T17 18 D16', 100: 'T20 D20',
+      98: 'T20 D19', 97: 'T19 D20', 96: 'T20 D18', 95: 'T19 D19', 94: 'T18 D20',
+      93: 'T19 D18', 92: 'T20 D16', 91: 'T17 D20', 90: 'T20 D15', 89: 'T19 D16',
+      88: 'T20 D14', 87: 'T17 D18', 86: 'T18 D16', 85: 'T15 D20', 84: 'T20 D12',
+      83: 'T17 D16', 82: 'T14 D20', 81: 'T19 D12', 80: 'T20 D10', 79: 'T19 D11',
+      78: 'T18 D12', 77: 'T19 D10', 76: 'T20 D8', 75: 'T17 D12', 74: 'T14 D16',
+      72: 'T16 D12', 71: 'T13 D16', 70: 'T18 D8', 68: 'T20 D4', 66: 'T10 D18',
+      64: 'T16 D8', 62: 'T10 D16', 60: '20 D20', 58: '18 D20', 56: '16 D20',
+      52: '20 D16', 48: '16 D16', 44: '4 D20', 40: 'D20', 36: 'D18', 32: 'D16'
+    }
+
+    function checkoutHintFor(remaining) {
+      if (remaining > 170) return 'No checkout available — keep scoring.'
+      if (CHECKOUTS[remaining]) return 'Checkout: ' + CHECKOUTS[remaining]
+      if (remaining <= 40 && remaining % 2 === 0) return 'Checkout: D' + (remaining / 2)
+      return 'Leave yourself a double.'
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       STATS
+       ══════════════════════════════════════════════════════════ */
+    function computeStats(session) {
+      if (session.drill === 'floor45') return statsFloor45(session)
+      if (session.drill === 'firstdart') return statsFirstDart(session)
+      if (session.drill === 'doubles') return statsDoubles(session)
+      if (session.drill === 'ghost') return statsGhost(session)
+      return {}
+    }
+
+    function statsFloor45(session) {
+      var scores = session.visits
+      var total = scores.reduce(function (a, b) { return a + b }, 0)
+      var bands = { red: 0, ok: 0, good: 0, great: 0 }
+      scores.forEach(function (s) { bands[bandOf(s)]++ })
+      var reset = resetSuccess(scores)
+      return {
+        visits: scores.length,
+        dartsThrown: scores.length * 3,
+        totalScored: total,
+        avg3: round1(total / scores.length),
+        bands: bands,
+        longestRedRun: longestRedRun(scores),
+        backToBackReds: countBackToBackReds(scores),
+        resetChances: reset.chances,
+        resetSaved: reset.saved,
+        resetPct: reset.pct
+      }
+    }
+
+    function statsFirstDart(session) {
+      var darts = session.visits
+      var counts = tallyFirstDart(darts)
+      var bias = counts.left === counts.right
+        ? 'even'
+        : (counts.left > counts.right ? 'left' : 'right')
+      return {
+        darts: darts.length,
+        t20: counts.T20,
+        t20Pct: pct(counts.T20, darts.length),
+        bed: counts.bed,
+        bedPct: pct(counts.bed, darts.length),
+        left: counts.left,
+        right: counts.right,
+        off: counts.off,
+        bias: bias,
+        biasGap: Math.abs(counts.left - counts.right)
+      }
+    }
+
+    function statsDoubles(session) {
+      var attempts = session.visits
+      var hits = attempts.filter(function (v) { return v.hit })
+      var dartsThrown = attempts.reduce(function (a, v) { return a + v.darts.length }, 0)
+      var perDouble = {}
+      DOUBLE_SEQ.forEach(function (d) { perDouble['D' + d] = { attempts: 0, hits: 0 } })
+      attempts.forEach(function (v) {
+        var key = 'D' + v.double
+        if (!perDouble[key]) perDouble[key] = { attempts: 0, hits: 0 }
+        perDouble[key].attempts++
+        if (v.hit) perDouble[key].hits++
+      })
+      return {
+        level: session.config.level,
+        attempts: attempts.length,
+        hits: hits.length,
+        dartsThrown: dartsThrown,
+        hitPct: pct(hits.length, attempts.length),
+        dartsPerDouble: hits.length ? round1(dartsThrown / hits.length) : null,
+        restarts: session.restarts || 0,
+        perDouble: perDouble
+      }
+    }
+
+    function statsGhost(session) {
+      var scored = session.visits.reduce(function (a, v) { return a + (v.bust ? 0 : v.score) }, 0)
+      var scores = ghostVisitScores(session.visits)
+      var first3 = session.visits.slice(0, 3).reduce(function (a, v) { return a + (v.bust ? 0 : v.score) }, 0)
+      var attempts = session.visits.reduce(function (a, v) { return a + v.dartsAtDouble }, 0)
+      var checkoutHits = session.visits.filter(function (v) { return v.checkoutHit }).length
+      return {
+        won: !!session.won,
+        ghostDarts: session.config.ghostDarts,
+        dartsThrown: session.dartsThrown,
+        dartsToFinish: session.won ? session.dartsThrown : null,
+        totalScored: scored,
+        avg3: session.dartsThrown ? round1((scored / session.dartsThrown) * 3) : null,
+        first9: session.visits.length >= 3 ? round1(first3 / 3) : null,
+        checkoutAttempts: attempts,
+        checkoutHits: checkoutHits,
+        checkoutPct: pct(checkoutHits, attempts),
+        longestRedRun: longestRedRun(scores),
+        backToBackReds: countBackToBackReds(scores)
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       SUMMARY
+       ══════════════════════════════════════════════════════════ */
+    function rowHTML(key, value) {
+      return '<div class="summary-row"><span class="summary-key">' + esc(key) + '</span>' +
+        '<span class="summary-val">' + esc(String(value)) + '</span></div>'
+    }
+
+    function renderSummary() {
+      var session = pendingSummary
+      var s = session.stats
+      var head = ''
+      var rows = ''
+
+      if (session.drill === 'floor45') {
+        var clean = s.backToBackReds === 0
+        head = '<div class="verdict ' + (clean ? 'win' : 'loss') + '">' +
+          '<div class="verdict-title">' + (clean ? 'Rule held.' : s.backToBackReds + ' double-dip' + (s.backToBackReds === 1 ? '' : 's')) + '</div>' +
+          '<div class="verdict-sub">' + (clean
+            ? 'You never followed a sub-45 visit with another one. That is the whole drill.'
+            : 'That many times you followed a red visit with a second red visit. The score is not the problem — the response is.') +
+          '</div></div>'
+        rows =
+          rowHTML('3-dart average', fmt(s.avg3)) +
+          rowHTML('Total scored', s.totalScored) +
+          rowHTML('Longest sub-45 run', s.longestRedRun) +
+          rowHTML('Back-to-back reds', s.backToBackReds) +
+          rowHTML('Reset success', s.resetPct === null ? 'no reds' : s.resetSaved + '/' + s.resetChances + ' (' + s.resetPct + '%)') +
+          rowHTML('Red / Acceptable', s.bands.red + ' / ' + s.bands.ok) +
+          rowHTML('Good / Excellent', s.bands.good + ' / ' + s.bands.great)
+      } else if (session.drill === 'firstdart') {
+        var biasText = s.bias === 'even'
+          ? 'Misses are balanced either side of the bed.'
+          : 'Your misses lean ' + s.bias + ' by ' + s.biasGap + ' darts — that is a setup pattern, not a bad night.'
+        head = '<div class="verdict">' +
+          '<div class="verdict-title">' + fmt(s.bedPct, '%') + ' in the bed</div>' +
+          '<div class="verdict-sub">' + biasText + '</div></div>'
+        rows =
+          rowHTML('Darts logged', s.darts) +
+          rowHTML('T20', s.t20 + ' (' + fmt(s.t20Pct, '%') + ')') +
+          rowHTML('In the 20 bed', s.bed + ' (' + fmt(s.bedPct, '%') + ')') +
+          rowHTML('Left side (5)', s.left) +
+          rowHTML('Right side (1)', s.right) +
+          rowHTML('Off board', s.off)
+      } else if (session.drill === 'doubles') {
+        head = '<div class="verdict win">' +
+          '<div class="verdict-title">Sequence complete</div>' +
+          '<div class="verdict-sub">Level ' + s.level + ' &middot; ' + s.dartsThrown + ' darts thrown' +
+          (s.restarts ? ' &middot; ' + s.restarts + ' restart' + (s.restarts === 1 ? '' : 's') : '') +
+          '</div></div>'
+        var perDoubleRows = Object.keys(s.perDouble).map(function (k) {
+          var d = s.perDouble[k]
+          if (!d.attempts) return ''
+          return rowHTML(k, d.hits + '/' + d.attempts)
+        }).join('')
+        rows =
+          rowHTML('Doubles hit', s.hits + '/' + s.attempts + ' (' + fmt(s.hitPct, '%') + ')') +
+          rowHTML('Darts per double hit', fmt(s.dartsPerDouble)) +
+          rowHTML('Restarts', s.restarts) +
+          perDoubleRows
+      } else if (session.drill === 'ghost') {
+        head = '<div class="verdict ' + (s.won ? 'win' : 'loss') + '">' +
+          '<div class="verdict-title">' + (s.won ? 'Beat the ghost' : 'Ghost won') + '</div>' +
+          '<div class="verdict-sub">' + (s.won
+            ? 'Finished in ' + s.dartsToFinish + ' darts against a ' + s.ghostDarts + '-dart ghost.'
+            : 'Left on ' + (501 - s.totalScored) + ' after ' + s.ghostDarts + ' darts.') +
+          '</div></div>'
+        rows =
+          rowHTML('3-dart average', fmt(s.avg3)) +
+          rowHTML('First-9 average', fmt(s.first9)) +
+          rowHTML('Darts to finish', fmt(s.dartsToFinish)) +
+          rowHTML('Checkout', s.checkoutAttempts ? s.checkoutHits + '/' + s.checkoutAttempts + ' (' + fmt(s.checkoutPct, '%') + ')' : 'no attempts') +
+          rowHTML('Longest sub-45 run', s.longestRedRun) +
+          rowHTML('Back-to-back reds', s.backToBackReds)
+      }
+
+      el('summaryBody').innerHTML = '' +
+        '<div class="drill-head"><h2>' + esc(DRILL_NAMES[session.drill]) + '</h2></div>' +
+        head +
+        '<div class="summary-card">' + rows + '</div>' +
+        '<div class="btn-row" style="margin-top:18px;">' +
+          '<button type="button" class="ctrl-btn primary" id="saveFinishBtn">Save &amp; finish</button>' +
+          '<button type="button" class="ctrl-btn" id="runAgainBtn">Run again</button>' +
+        '</div>' +
+        '<button type="button" class="ctrl-btn full" id="discardSummaryBtn" style="margin-top:10px;">Discard this session</button>'
+
+      el('saveFinishBtn').addEventListener('click', function () {
+        saveSession(pendingSummary)
+        pendingSummary = null
+        toast('Session saved')
+        goHome()
+      })
+      el('runAgainBtn').addEventListener('click', function () {
+        saveSession(pendingSummary)
+        var drill = pendingSummary.drill
+        var config = pendingSummary.config
+        pendingSummary = null
+        startDrill(drill, config)
+      })
+      el('discardSummaryBtn').addEventListener('click', function () {
+        if (!confirm('Discard this session without saving?')) return
+        pendingSummary = null
+        goHome()
+      })
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       HOME — ROLLUP
+       ══════════════════════════════════════════════════════════ */
+    function sessionsInWindow(days) {
+      var cutoff = Date.now() - days * 24 * 60 * 60 * 1000
+      return loadSessions().filter(function (s) {
+        var t = Date.parse(s.startedAt)
+        return isFinite(t) && t >= cutoff
+      })
+    }
+
+    function rollup(sessions) {
+      var scored = 0
+      var darts = 0
+      var first9s = []
+      var checkoutHits = 0
+      var checkoutAttempts = 0
+      var doublesHits = 0
+      var doublesAttempts = 0
+      var winningLegDarts = []
+      var worstRun = 0
+      var legs = 0
+      var legWins = 0
+
+      sessions.forEach(function (s) {
+        var st = s.stats || {}
+        if (s.drill === 'floor45' || s.drill === 'ghost') {
+          scored += st.totalScored || 0
+          darts += st.dartsThrown || 0
+        }
+        if (typeof st.longestRedRun === 'number' && st.longestRedRun > worstRun) worstRun = st.longestRedRun
+        if (s.drill === 'ghost') {
+          legs++
+          if (st.won) { legWins++; if (st.dartsToFinish) winningLegDarts.push(st.dartsToFinish) }
+          if (typeof st.first9 === 'number') first9s.push(st.first9)
+          checkoutHits += st.checkoutHits || 0
+          checkoutAttempts += st.checkoutAttempts || 0
+        }
+        // Pressure Doubles attempts deliberately stay out of checkout % —
+        // mixing drill reps into the leg number makes it read better than the
+        // match reality it's supposed to measure.
+        if (s.drill === 'doubles') {
+          doublesHits += st.hits || 0
+          doublesAttempts += st.attempts || 0
+        }
+      })
+
+      return {
+        sessions: sessions.length,
+        avg3: darts ? round1((scored / darts) * 3) : null,
+        first9: first9s.length ? round1(first9s.reduce(function (a, b) { return a + b }, 0) / first9s.length) : null,
+        checkoutPct: pct(checkoutHits, checkoutAttempts),
+        checkoutHits: checkoutHits,
+        checkoutAttempts: checkoutAttempts,
+        doublesPct: pct(doublesHits, doublesAttempts),
+        doublesHits: doublesHits,
+        doublesAttempts: doublesAttempts,
+        dartsPerWinningLeg: winningLegDarts.length
+          ? round1(winningLegDarts.reduce(function (a, b) { return a + b }, 0) / winningLegDarts.length) : null,
+        worstRun: worstRun,
+        legs: legs,
+        legWins: legWins
+      }
+    }
+
+    function metricHTML(label, value, sub, wide) {
+      return '<div class="metric' + (wide ? ' wide' : '') + '">' +
+        '<div class="metric-label">' + esc(label) + '</div>' +
+        '<div class="metric-value">' + esc(String(value)) + '</div>' +
+        '<div class="metric-sub">' + esc(sub || '') + '</div></div>'
+    }
+
+    function renderMetrics() {
+      var r = rollup(sessionsInWindow(metricWindow))
+      if (!r.sessions) {
+        el('metricGrid').innerHTML = '<div class="metric wide"><div class="empty-note">' +
+          'No sessions in this window yet.<br />Run a drill and your numbers show up here.</div></div>'
+        return
+      }
+      el('metricGrid').innerHTML = '' +
+        metricHTML('Worst consecutive sub-45 run', r.worstRun, r.worstRun <= 1 ? 'Floor is holding.' : 'This is the number to move.', true) +
+        metricHTML('3-dart average', fmt(r.avg3), 'Target: make 55 your bad game') +
+        metricHTML('First-9 average', fmt(r.first9), r.legs + ' leg' + (r.legs === 1 ? '' : 's')) +
+        metricHTML('Checkout %', fmt(r.checkoutPct, '%'), r.checkoutHits + '/' + r.checkoutAttempts + ' attempts') +
+        metricHTML('Darts per winning leg', fmt(r.dartsPerWinningLeg), r.legWins + ' of ' + r.legs + ' legs won') +
+        metricHTML('Pressure doubles', fmt(r.doublesPct, '%'), r.doublesHits + '/' + r.doublesAttempts + ' in drill')
+    }
+
+    function renderRecent() {
+      var list = loadSessions().slice(-8).reverse()
+      if (!list.length) {
+        el('recentList').innerHTML = '<div class="empty-note">Nothing logged yet.</div>'
+        return
+      }
+      el('recentList').innerHTML = list.map(function (s) {
+        return rowHTML(shortDate(s.startedAt) + ' · ' + DRILL_NAMES[s.drill], sessionHeadline(s))
+      }).join('')
+    }
+
+    function shortDate(iso) {
+      var d = new Date(iso)
+      if (!isFinite(d.getTime())) return '—'
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    }
+
+    function sessionHeadline(s) {
+      var st = s.stats || {}
+      if (s.drill === 'floor45') return fmt(st.avg3) + ' avg · ' + st.backToBackReds + ' dip'
+      if (s.drill === 'firstdart') return fmt(st.bedPct, '%') + ' in bed'
+      if (s.drill === 'doubles') return st.hits + '/' + st.attempts + ' doubles'
+      if (s.drill === 'ghost') return (st.won ? 'W' : 'L') + ' · ' + fmt(st.avg3) + ' avg'
+      return ''
+    }
+
+    function renderResume() {
+      var saved = readJSON(ACTIVE_KEY, null)
+      if (!saved || !saved.drill || !DRILL_NAMES[saved.drill]) { hide('resumeWrap'); return }
+      show('resumeWrap')
+      var count = Array.isArray(saved.visits) ? saved.visits.length : 0
+      el('resumeNote').textContent = DRILL_NAMES[saved.drill] + ' — ' + count + ' logged, left unfinished.'
+    }
+
+    function renderHome() {
+      renderResume()
+      renderMetrics()
+      renderRecent()
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       DRILL CONFIG PROMPTS
+       ══════════════════════════════════════════════════════════ */
+    function promptDrillConfig(drill) {
+      if (drill === 'doubles') {
+        hide('homeView'); show('drillView')
+        el('drillBarTitle').textContent = DRILL_NAMES.doubles
+        el('undoBtn').classList.add('hidden')
+        el('drillBody').innerHTML = '' +
+          '<div class="drill-head"><h2>Pressure Doubles</h2>' +
+          '<div class="drill-progress">D20 · D16 · D10 · D8 · D4 · D2 — three darts each</div></div>' +
+          '<div class="section-heading">Consequence Level</div>' +
+          '<button type="button" class="drill-card" data-level="1"><div class="drill-num">1</div>' +
+            '<div class="drill-info"><div class="drill-name">Advance only</div>' +
+            '<div class="drill-desc">Hit or miss, you move on. Warm-up level.</div></div></button>' +
+          '<button type="button" class="drill-card" data-level="2"><div class="drill-num">2</div>' +
+            '<div class="drill-info"><div class="drill-name">Miss = back one</div>' +
+            '<div class="drill-desc">Miss all three and you drop back a double.</div></div></button>' +
+          '<button type="button" class="drill-card" data-level="3"><div class="drill-num">3</div>' +
+            '<div class="drill-info"><div class="drill-name">Miss = restart</div>' +
+            '<div class="drill-desc">Miss all three and the whole sequence resets. Now D2 matters.</div></div></button>' +
+          '<button type="button" class="ctrl-btn full" id="cfgBackBtn" style="margin-top:8px;">Back</button>'
+        el('drillBody').querySelectorAll('[data-level]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            startDrill('doubles', { level: parseInt(btn.getAttribute('data-level'), 10) })
+          })
+        })
+        el('cfgBackBtn').addEventListener('click', goHome)
+        return
+      }
+
+      if (drill === 'ghost') {
+        hide('homeView'); show('drillView')
+        el('drillBarTitle').textContent = DRILL_NAMES.ghost
+        el('undoBtn').classList.add('hidden')
+        var options = [27, 26, 25, 24, 23].map(function (n) {
+          return '<button type="button" class="seg-btn' + (n === 27 ? ' hot' : '') + '" data-ghost="' + n + '">' + n +
+            '<small>darts</small></button>'
+        }).join('')
+        el('drillBody').innerHTML = '' +
+          '<div class="drill-head"><h2>501 Ghost</h2>' +
+          '<div class="drill-progress">Straight in, double out. Finish before the ghost does.</div></div>' +
+          '<div class="section-heading">Ghost Speed</div>' +
+          '<div class="seg-grid">' + options + '</div>' +
+          '<div class="hint">Start at 27. Move down only once you are beating it consistently — a 24-dart ghost is roughly a 62.6 checkout-adjusted pace.</div>' +
+          '<button type="button" class="ctrl-btn full" id="cfgBackBtn" style="margin-top:14px;">Back</button>'
+        el('drillBody').querySelectorAll('[data-ghost]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            startDrill('ghost', { ghostDarts: parseInt(btn.getAttribute('data-ghost'), 10) })
+          })
+        })
+        el('cfgBackBtn').addEventListener('click', goHome)
+        return
+      }
+
+      startDrill(drill, {})
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       EXPORT
+       ══════════════════════════════════════════════════════════ */
+    function buildReport() {
+      var all = loadSessions()
+      if (!all.length) return null
+
+      var lines = []
+      lines.push('AADS TRAINING REPORT')
+      lines.push(new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }))
+      lines.push('')
+
+      ;[7, 28].forEach(function (days) {
+        var r = rollup(sessionsInWindow(days))
+        lines.push('— LAST ' + days + ' DAYS (' + r.sessions + ' sessions) —')
+        lines.push('3-dart average:        ' + fmt(r.avg3))
+        lines.push('First-9 average:       ' + fmt(r.first9))
+        lines.push('Checkout %:            ' + fmt(r.checkoutPct, '%') + ' (' + r.checkoutHits + '/' + r.checkoutAttempts + ')')
+        lines.push('Darts per winning leg: ' + fmt(r.dartsPerWinningLeg))
+        lines.push('Pressure doubles:      ' + fmt(r.doublesPct, '%') + ' (' + r.doublesHits + '/' + r.doublesAttempts + ')')
+        lines.push('Worst sub-45 run:      ' + r.worstRun)
+        lines.push('')
+      })
+
+      lines.push('— SESSIONS —')
+      all.slice(-20).reverse().forEach(function (s) {
+        var st = s.stats || {}
+        var detail = ''
+        if (s.drill === 'floor45') {
+          detail = fmt(st.avg3) + ' avg, ' + st.backToBackReds + ' back-to-back reds, worst run ' + st.longestRedRun +
+            ', reset ' + (st.resetPct === null ? 'n/a' : st.resetSaved + '/' + st.resetChances)
+        } else if (s.drill === 'firstdart') {
+          detail = fmt(st.t20Pct, '%') + ' T20, ' + fmt(st.bedPct, '%') + ' in bed, bias ' + st.bias +
+            ' (L' + st.left + '/R' + st.right + ')'
+        } else if (s.drill === 'doubles') {
+          detail = 'L' + st.level + ', ' + st.hits + '/' + st.attempts + ' doubles, ' + st.dartsThrown +
+            ' darts, ' + st.restarts + ' restarts'
+        } else if (s.drill === 'ghost') {
+          detail = (st.won ? 'WON in ' + st.dartsToFinish + ' darts' : 'LOST') + ' vs ' + st.ghostDarts +
+            '-dart ghost, ' + fmt(st.avg3) + ' avg, first-9 ' + fmt(st.first9) +
+            ', checkout ' + st.checkoutHits + '/' + st.checkoutAttempts
+        }
+        lines.push(shortDate(s.startedAt) + ' · ' + DRILL_NAMES[s.drill] + ' — ' + detail)
+      })
+
+      return lines.join('\n')
+    }
+
+    function shareReport() {
+      var text = buildReport()
+      if (!text) { toast('Nothing to share yet'); return }
+      if (navigator.share) {
+        navigator.share({ title: 'AADS Training Report', text: text }).catch(function () { copyReport(text) })
+        return
+      }
+      copyReport(text)
+    }
+
+    function copyReport(text) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+          .then(function () { toast('Report copied') })
+          .catch(function () { fallbackCopy(text) })
+        return
+      }
+      fallbackCopy(text)
+    }
+
+    function fallbackCopy(text) {
+      var area = document.createElement('textarea')
+      area.value = text
+      area.style.position = 'fixed'
+      area.style.opacity = '0'
+      document.body.appendChild(area)
+      area.select()
+      try { document.execCommand('copy'); toast('Report copied') } catch (e) { toast('Copy failed') }
+      area.remove()
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       INSTALL  (same approach as bull-up.html — no push flow here,
+       just enough to be installable as its own home screen app)
+       ══════════════════════════════════════════════════════════ */
+    var deferredInstallPrompt = null
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault()
+      deferredInstallPrompt = e
+    })
+
+    function isIOSDevice() {
+      return /iP(hone|od|ad)/.test(navigator.platform) ||
+        (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+    }
+
+    function registerTrainingSW() {
+      if (!('serviceWorker' in navigator)) return Promise.resolve(null)
+      return navigator.serviceWorker.register('training-sw.js', { scope: '/training.html' }).catch(function () { return null })
+    }
+
+    function installApp() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt()
+        deferredInstallPrompt = null
+        return
+      }
+      if (isIOSDevice()) {
+        alert('Tap the Share icon, then choose "Add to Home Screen".')
+      } else {
+        alert('Use your browser menu and choose "Add to Home Screen" or "Install app".')
+      }
+    }
+
+    function wireInstall() {
+      document.querySelectorAll('.install-btn').forEach(function (btn) {
+        btn.classList.remove('hidden')
+        btn.addEventListener('click', installApp)
+      })
+      registerTrainingSW()
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       INIT
+       ══════════════════════════════════════════════════════════ */
+    function wireButtons() {
+      document.querySelectorAll('[data-drill]').forEach(function (btn) {
+        btn.addEventListener('click', function () { promptDrillConfig(btn.getAttribute('data-drill')) })
+      })
+      document.querySelectorAll('[data-window]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          metricWindow = parseInt(btn.getAttribute('data-window'), 10)
+          document.querySelectorAll('[data-window]').forEach(function (b) { b.classList.remove('sel') })
+          btn.classList.add('sel')
+          renderMetrics()
+        })
+      })
+      el('quitBtn').addEventListener('click', quitDrill)
+      el('undoBtn').addEventListener('click', undoLast)
+      el('shareBtn').addEventListener('click', shareReport)
+      el('clearBtn').addEventListener('click', function () {
+        if (!confirm('Delete every saved session on this device? This cannot be undone.')) return
+        try { localStorage.removeItem(SESSIONS_KEY) } catch (e) { /* ignore */ }
+        clearActive()
+        toast('Data cleared')
+        renderHome()
+      })
+      el('resumeBtn').addEventListener('click', function () {
+        var saved = readJSON(ACTIVE_KEY, null)
+        if (!saved) { renderHome(); return }
+        active = saved
+        keypadBuffer = ''
+        goDrill()
+      })
+      el('discardBtn').addEventListener('click', function () {
+        clearActive()
+        renderHome()
+      })
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      wireButtons()
+      wireInstall()
+      goHome()
+    })
+  </script>
+</body>
+</html>

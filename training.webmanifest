@@ -1,0 +1,13 @@
+{
+  "name": "AADS Training",
+  "short_name": "Training",
+  "start_url": "training.html",
+  "scope": "/training.html",
+  "id": "/training.html",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "icons": [
+    { "src": "icon-players-portal.png", "sizes": "any", "type": "image/png" }
+  ]
+}
