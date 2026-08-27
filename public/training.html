@@ -3,7 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#050505" />
+  <meta name="theme-color" content="#0b0c0e" id="themeColorMeta" />
+  <script>
+    // Applied before the stylesheet paints so switching themes on another
+    // device doesn't cause a flash of the wrong palette on this one.
+    (function () {
+      var theme = 'performance-dark'
+      try {
+        var raw = localStorage.getItem('aads_training_theme_prefs')
+        var saved = raw && JSON.parse(raw).theme
+        if (saved) theme = saved
+      } catch (e) { /* ignore */ }
+      document.documentElement.setAttribute('data-theme', theme)
+    })()
+  </script>
   <link rel="manifest" href="training.webmanifest" />
   <link rel="icon" href="icon-players-portal.png" />
   <link rel="apple-touch-icon" href="icon-players-portal.png" />
@@ -12,61 +25,114 @@
   <title>AADS Training</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ══ THEME TOKENS ══
+       Three palettes, one interface. Every rule below reads colour only
+       through these variables — layout, spacing and font sizes never
+       change between themes. Status colours (red/gold/green) are defined
+       once, outside any [data-theme] block, and never overridden — a
+       missed target is red and a passed one is green in every theme. */
     :root {
-      --bg: #050505;
-      --panel: #111111;
-      --panel-2: #161616;
-      --line: #242424;
-      --text: #f5f5f5;
-      --muted: #999;
-      --accent: #ff7a00;
-      --accent-2: #ffb347;
-      --green-2: #5dd88a;
-      --red: #ff5a4d;
-      --amber: #ffc44d;
-      --blue: #6db3ff;
+      --background: #0b0c0e;
+      --surface: #17191d;
+      --surface-raised: #24272c;
+      --primary: #d4a64f;
+      --primary-light: #e8c47a;
+      --primary-text: #101113;
+      --text: #f5f1e8;
+      --text-muted: #a9adb3;
+      --border: #4b4029;
+      --accent: #c52b28;
+
+      --status-red: #ff5a4d;
+      --status-red-border: rgba(255,90,77,0.45);
+      --status-red-bg-a: #2a0d0a;
+      --status-red-bg-b: #140705;
+      --status-gold: #ffc44d;
+      --status-green: #5dd88a;
+      --status-green-border: rgba(93,216,138,0.5);
+      --status-green-bg-a: #0c2114;
+      --status-green-bg-b: #050f09;
     }
+    :root[data-theme="performance-dark"] {
+      --background: #0b0c0e;
+      --surface: #17191d;
+      --surface-raised: #24272c;
+      --primary: #d4a64f;
+      --primary-light: #e8c47a;
+      --primary-text: #101113;
+      --text: #f5f1e8;
+      --text-muted: #a9adb3;
+      --border: #4b4029;
+      --accent: #c52b28;
+    }
+    :root[data-theme="clean-hybrid"] {
+      --background: #f5f1e8;
+      --surface: #ffffff;
+      --surface-raised: #ebe5d9;
+      --primary: #c79535;
+      --primary-light: #e0b563;
+      --primary-text: #101113;
+      --text: #151619;
+      --text-muted: #666a70;
+      --border: #d3c4a3;
+      --accent: #b72825;
+    }
+    :root[data-theme="arena-red"] {
+      --background: #090909;
+      --surface: #171110;
+      --surface-raised: #281311;
+      --primary: #c52b28;
+      --primary-light: #e2564f;
+      --primary-text: #ffffff;
+      --text: #f5f1e8;
+      --text-muted: #b7aaaa;
+      --border: #74302a;
+      --accent: #d4a64f;
+    }
+
     body {
       min-height: 100vh;
-      background: var(--bg);
+      background: var(--background);
       color: var(--text);
       font-family: "Segoe UI", system-ui, sans-serif;
       -webkit-tap-highlight-color: transparent;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
     .hidden { display: none !important; }
 
     /* ══ HERO ══ */
     .hero {
-      background: linear-gradient(180deg, #0e0805 0%, #050505 100%);
-      border-bottom: 1px solid #1a1a1a;
+      background: linear-gradient(180deg, var(--surface-raised) 0%, var(--background) 100%);
+      border-bottom: 1px solid var(--border);
       padding: 24px 24px 20px;
       text-align: center;
     }
-    .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+    .hero-eyebrow { font-size: 11px; font-weight: 900; letter-spacing: 0.38em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
     .hero-title { font-size: clamp(26px, 4vw, 40px); font-weight: 900; letter-spacing: -0.03em; }
-    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .hero-sub { color: var(--muted); font-size: 13px; margin-top: 10px; line-height: 1.5; }
+    .hero-title em { font-style: normal; background: linear-gradient(90deg, var(--primary), var(--primary-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero-sub { color: var(--text-muted); font-size: 13px; margin-top: 10px; line-height: 1.5; }
 
     /* ══ TOP BAR ══ */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--line); }
-    .top-bar-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid var(--border); }
+    .top-bar-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
     .top-bar-actions { display: flex; gap: 14px; align-items: center; }
-    .switch-role-link { font-size: 11px; color: var(--muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
+    .switch-role-link { font-size: 11px; color: var(--text-muted); cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
     .switch-role-link:hover { color: var(--text); }
 
     .page { max-width: 560px; margin: 0 auto; padding: 22px 18px 60px; }
-    .section-heading { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 26px 0 10px; }
+    .section-heading { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin: 26px 0 10px; }
     .section-heading:first-child { margin-top: 0; }
 
     .ctrl-btn {
-      padding: 18px 10px; border-radius: 14px; border: 2px solid var(--line);
-      background: var(--panel); color: var(--text); font-size: 16px; font-weight: 800;
+      padding: 18px 10px; border-radius: 14px; border: 2px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 16px; font-weight: 800;
       cursor: pointer; transition: 0.15s; font-family: inherit;
     }
-    .ctrl-btn:hover { border-color: var(--accent); }
+    .ctrl-btn:hover { border-color: var(--primary); }
     .ctrl-btn:active { transform: scale(0.98); }
     .ctrl-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-    .ctrl-btn.primary { background: linear-gradient(180deg,#3a2408,#261405); border-color: var(--accent); color: var(--accent-2); }
+    .ctrl-btn.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-text); }
     .full { width: 100%; }
     .btn-row { display: flex; gap: 10px; }
     .btn-row > * { flex: 1; }
@@ -74,123 +140,125 @@
     /* ══ HOME: METRICS ══ */
     .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .metric {
-      background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px;
     }
-    .metric-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); line-height: 1.35; }
+    .metric-label { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); line-height: 1.35; }
     .metric-value { font-size: clamp(24px, 7vw, 30px); font-weight: 900; margin-top: 6px; letter-spacing: -0.02em; }
-    .metric-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
     .metric.wide { grid-column: 1 / -1; }
     .window-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
     .window-toggle button {
-      flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--line);
-      background: var(--panel); color: var(--muted); font-size: 12px; font-weight: 800; cursor: pointer; font-family: inherit;
+      flex: 1; padding: 9px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text-muted); font-size: 12px; font-weight: 800; cursor: pointer; font-family: inherit;
     }
-    .window-toggle button.sel { border-color: var(--accent); color: var(--accent-2); background: var(--panel-2); }
+    .window-toggle button.sel { border-color: var(--primary); color: var(--text); background: var(--surface-raised); }
 
     /* ══ HOME: DRILL CARDS ══ */
     .drill-card {
       display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
-      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
       padding: 16px 18px; color: var(--text); cursor: pointer; font-family: inherit;
       transition: border-color 0.15s ease, transform 0.15s ease; margin-bottom: 12px;
     }
-    .drill-card:hover { border-color: var(--accent); }
+    .drill-card:hover { border-color: var(--primary); }
     .drill-card:active { transform: scale(0.985); }
     .drill-num {
       width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      background: var(--panel-2); border: 1px solid var(--line);
-      font-size: 18px; font-weight: 900; color: var(--accent);
+      background: var(--surface-raised); border: 1px solid var(--border);
+      font-size: 18px; font-weight: 900; color: var(--primary);
     }
     .drill-info { flex: 1; min-width: 0; }
     .drill-name { font-size: 16px; font-weight: 800; margin-bottom: 3px; }
-    .drill-desc { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
-    .drill-arrow { color: var(--muted); font-size: 20px; flex-shrink: 0; }
+    .drill-desc { font-size: 12.5px; color: var(--text-muted); line-height: 1.4; }
+    .drill-arrow { color: var(--text-muted); font-size: 20px; flex-shrink: 0; }
 
     .hint {
-      margin-top: 18px; padding: 14px 16px; background: var(--panel-2);
-      border: 1px solid var(--line); border-radius: 12px;
-      font-size: 12.5px; color: var(--muted); line-height: 1.6;
+      margin-top: 18px; padding: 14px 16px; background: var(--surface-raised);
+      border: 1px solid var(--border); border-radius: 12px;
+      font-size: 12.5px; color: var(--text-muted); line-height: 1.6;
     }
     .hint strong { color: var(--text); }
-    .empty-note { color: var(--muted); font-size: 13px; text-align: center; padding: 26px 0; line-height: 1.6; }
+    .hint a { color: var(--primary); }
+    .empty-note { color: var(--text-muted); font-size: 13px; text-align: center; padding: 26px 0; line-height: 1.6; }
 
     /* ══ DRILL SHELL ══ */
     .drill-head { text-align: center; margin-bottom: 18px; }
     .drill-head h2 { font-size: clamp(20px, 5vw, 26px); font-weight: 900; letter-spacing: -0.02em; }
-    .drill-progress { font-size: 12px; color: var(--muted); margin-top: 6px; letter-spacing: 0.04em; }
+    .drill-progress { font-size: 12px; color: var(--text-muted); margin-top: 6px; letter-spacing: 0.04em; }
 
     .big-readout {
-      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
       padding: 20px; text-align: center; margin-bottom: 16px;
     }
-    .big-readout-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+    .big-readout-label { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted); }
     .big-readout-value { font-size: clamp(48px, 16vw, 76px); font-weight: 900; line-height: 1.05; margin-top: 4px; letter-spacing: -0.04em; }
-    .big-readout-note { font-size: 12.5px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+    .big-readout-note { font-size: 12.5px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
 
     .stat-strip { display: flex; gap: 8px; margin-bottom: 16px; }
     .stat-chip {
-      flex: 1; background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
       padding: 10px 8px; text-align: center;
     }
-    .stat-chip-label { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+    .stat-chip-label { font-size: 9.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
     .stat-chip-value { font-size: 18px; font-weight: 900; margin-top: 3px; }
 
     /* ══ KEYPAD ══ */
     .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .keypad button {
-      padding: 20px 0; border-radius: 12px; border: 1px solid var(--line);
-      background: var(--panel); color: var(--text); font-size: 24px; font-weight: 800;
+      padding: 20px 0; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 24px; font-weight: 800;
       cursor: pointer; font-family: inherit; transition: 0.1s;
     }
-    .keypad button:active { background: var(--panel-2); transform: scale(0.97); }
-    .keypad button.util { font-size: 15px; color: var(--muted); }
-    .keypad button.enter { background: linear-gradient(180deg,#3a2408,#261405); border-color: var(--accent); color: var(--accent-2); font-size: 16px; }
+    .keypad button:active { background: var(--surface-raised); transform: scale(0.97); }
+    .keypad button.util { font-size: 15px; color: var(--text-muted); }
+    .keypad button.enter { background: var(--primary); border-color: var(--primary); color: var(--primary-text); font-size: 16px; }
     .quick-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; }
     .quick-row button {
-      padding: 12px 0; border-radius: 10px; border: 1px solid var(--line);
-      background: var(--panel-2); color: var(--muted); font-size: 14px; font-weight: 800;
+      padding: 12px 0; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface-raised); color: var(--text-muted); font-size: 14px; font-weight: 800;
       cursor: pointer; font-family: inherit;
     }
     .quick-row button:active { transform: scale(0.97); }
+    .keypad-hint { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 10px; letter-spacing: 0.03em; }
 
-    /* ══ BANDS ══ */
-    .band-red { color: var(--red); }
-    .band-ok { color: var(--amber); }
-    .band-good { color: var(--green-2); }
-    .band-great { color: var(--accent-2); }
+    /* ══ BANDS — status meanings are fixed across every theme ══ */
+    .band-red { color: var(--status-red); }
+    .band-ok { color: var(--status-gold); }
+    .band-good { color: var(--status-green); }
+    .band-great { color: var(--status-green); }
 
     .visit-log { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
     .visit-pill {
       min-width: 42px; text-align: center; padding: 6px 8px; border-radius: 9px;
-      background: var(--panel); border: 1px solid var(--line);
+      background: var(--surface); border: 1px solid var(--border);
       font-size: 14px; font-weight: 800;
     }
-    .visit-pill.is-red { border-color: rgba(255,90,77,0.5); }
+    .visit-pill.is-red { border-color: var(--status-red-border); }
     .visit-pill.is-bust { opacity: 0.5; text-decoration: line-through; }
 
     /* ══ RESET INTERSTITIAL ══ */
     .reset-panel {
-      background: linear-gradient(180deg, #2a0d0a 0%, #140705 100%);
-      border: 1px solid rgba(255,90,77,0.45); border-radius: 16px;
+      background: linear-gradient(180deg, var(--status-red-bg-a) 0%, var(--status-red-bg-b) 100%);
+      border: 1px solid var(--status-red-border); border-radius: 16px;
       padding: 26px 22px; text-align: center;
     }
-    .reset-title { font-size: clamp(28px, 8vw, 38px); font-weight: 900; color: var(--red); letter-spacing: -0.02em; }
-    .reset-sub { font-size: 13px; color: var(--muted); margin-top: 10px; line-height: 1.7; }
+    .reset-title { font-size: clamp(28px, 8vw, 38px); font-weight: 900; color: var(--status-red); letter-spacing: -0.02em; }
+    .reset-sub { font-size: 13px; color: var(--text-muted); margin-top: 10px; line-height: 1.7; }
     .reset-steps { list-style: none; margin: 18px auto 22px; max-width: 240px; text-align: left; }
     .reset-steps li { font-size: 14px; font-weight: 700; padding: 7px 0; color: var(--text); }
-    .reset-steps li span { color: var(--red); font-weight: 900; margin-right: 10px; }
+    .reset-steps li span { color: var(--status-red); font-weight: 900; margin-right: 10px; }
 
     /* ══ SEGMENT / CHOICE GRIDS ══ */
     .seg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .seg-btn {
-      padding: 18px 8px; border-radius: 12px; border: 1px solid var(--line);
-      background: var(--panel); color: var(--text); font-size: 17px; font-weight: 800;
+      padding: 18px 8px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 17px; font-weight: 800;
       cursor: pointer; font-family: inherit;
     }
     .seg-btn:active { transform: scale(0.97); }
-    .seg-btn small { display: block; font-size: 10.5px; font-weight: 700; color: var(--muted); margin-top: 3px; letter-spacing: 0.04em; }
-    .seg-btn.hot { border-color: var(--accent); color: var(--accent-2); }
+    .seg-btn small { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-muted); margin-top: 3px; letter-spacing: 0.04em; }
+    .seg-btn.hot { border-color: var(--primary); }
     .seg-btn.wide { grid-column: 1 / -1; }
 
     .choice-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -198,44 +266,94 @@
 
     /* ══ DOUBLES ══ */
     .dart-dots { display: flex; gap: 10px; justify-content: center; margin-top: 12px; }
-    .dart-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--line); }
-    .dart-dot.miss { background: var(--red); border-color: var(--red); }
-    .dart-dot.hit { background: var(--green-2); border-color: var(--green-2); }
+    .dart-dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--border); }
+    .dart-dot.miss { background: var(--status-red); border-color: var(--status-red); }
+    .dart-dot.hit { background: var(--status-green); border-color: var(--status-green); }
     .seq-track { display: flex; gap: 6px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
     .seq-node {
-      padding: 6px 10px; border-radius: 9px; border: 1px solid var(--line);
-      background: var(--panel); font-size: 13px; font-weight: 800; color: var(--muted);
+      padding: 6px 10px; border-radius: 9px; border: 1px solid var(--border);
+      background: var(--surface); font-size: 13px; font-weight: 800; color: var(--text-muted);
     }
-    .seq-node.done { border-color: var(--green-2); color: var(--green-2); }
-    .seq-node.now { border-color: var(--accent); color: var(--accent-2); background: var(--panel-2); }
+    .seq-node.done { border-color: var(--status-green); color: var(--status-green); }
+    .seq-node.now { border-color: var(--primary); color: var(--text); background: var(--surface-raised); }
     .danger-banner {
-      background: linear-gradient(180deg,#2a0d0a,#140705); border: 1px solid rgba(255,90,77,0.45);
+      background: linear-gradient(180deg, var(--status-red-bg-a), var(--status-red-bg-b)); border: 1px solid var(--status-red-border);
       border-radius: 12px; padding: 12px 14px; margin-bottom: 14px;
-      font-size: 12.5px; color: var(--amber); text-align: center; font-weight: 700; line-height: 1.5;
+      font-size: 12.5px; color: var(--status-gold); text-align: center; font-weight: 700; line-height: 1.5;
     }
 
     /* ══ SUMMARY ══ */
     .summary-row {
       display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-      padding: 12px 0; border-bottom: 1px solid var(--line);
+      padding: 12px 0; border-bottom: 1px solid var(--border);
     }
     .summary-row:last-child { border-bottom: none; }
-    .summary-key { font-size: 13px; color: var(--muted); }
+    .summary-key { font-size: 13px; color: var(--text-muted); }
     .summary-val { font-size: 17px; font-weight: 900; }
-    .summary-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 6px 18px; }
+    .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 6px 18px; }
     .verdict {
       border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 16px;
-      border: 1px solid var(--line); background: var(--panel);
+      border: 1px solid var(--border); background: var(--surface);
     }
-    .verdict.win { border-color: rgba(93,216,138,0.5); background: linear-gradient(180deg,#0c2114,#050f09); }
-    .verdict.loss { border-color: rgba(255,90,77,0.4); background: linear-gradient(180deg,#2a0d0a,#140705); }
+    .verdict.win { border-color: var(--status-green-border); background: linear-gradient(180deg, var(--status-green-bg-a), var(--status-green-bg-b)); }
+    .verdict.loss { border-color: var(--status-red-border); background: linear-gradient(180deg, var(--status-red-bg-a), var(--status-red-bg-b)); }
     .verdict-title { font-size: clamp(26px, 7vw, 34px); font-weight: 900; letter-spacing: -0.02em; }
-    .verdict-sub { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+    .verdict-sub { font-size: 13px; color: var(--text-muted); margin-top: 8px; line-height: 1.5; }
+
+    /* ══ PROFILE / APPEARANCE ══ */
+    .profile-account { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; margin-bottom: 6px; }
+    .profile-account-name { font-size: 17px; font-weight: 900; margin-bottom: 2px; }
+    .profile-account a { color: var(--primary); }
+    .pin-input {
+      flex: 1; padding: 14px; border-radius: 12px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 20px; font-weight: 800;
+      letter-spacing: 0.3em; text-align: center; font-family: inherit;
+    }
+    .pin-input:focus { outline: none; border-color: var(--primary); }
+
+    .theme-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+    .theme-card {
+      display: flex; align-items: center; gap: 14px; background: var(--surface);
+      border: 2px solid var(--border); border-radius: 16px; padding: 14px 16px;
+      cursor: pointer; transition: 0.15s;
+    }
+    .theme-card:active { transform: scale(0.99); }
+    .theme-card.sel { border-color: var(--primary); background: var(--surface-raised); }
+    .theme-swatch { display: flex; flex-shrink: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .theme-swatch span { width: 14px; height: 40px; display: block; }
+    .theme-info { flex: 1; min-width: 0; }
+    .theme-name { font-size: 15px; font-weight: 800; }
+    .theme-current { font-size: 10px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.06em; margin-left: 6px; }
+    .theme-desc { font-size: 12px; color: var(--text-muted); margin-top: 3px; line-height: 1.4; }
+    .theme-preview-bar {
+      position: sticky; bottom: 12px; background: var(--surface-raised); border: 1px solid var(--primary);
+      border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; text-align: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    }
+    .theme-preview-bar span { display: block; font-size: 12px; font-weight: 800; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      padding: 14px 16px; margin-bottom: 14px;
+    }
+    .toggle-label { font-size: 14px; font-weight: 800; margin-bottom: 3px; }
+    .toggle-switch {
+      position: relative; width: 48px; height: 28px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface-raised);
+      flex-shrink: 0; cursor: pointer; padding: 0;
+    }
+    .toggle-switch::after {
+      content: ''; position: absolute; top: 2px; left: 2px; width: 22px; height: 22px;
+      border-radius: 50%; background: var(--text-muted); transition: 0.15s;
+    }
+    .toggle-switch.on { background: var(--primary); border-color: var(--primary); }
+    .toggle-switch.on::after { left: 22px; background: var(--primary-text); }
 
     /* ══ TOAST ══ */
     .toast {
       position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
-      background: var(--panel-2); border: 1px solid var(--accent); color: var(--accent-2);
+      background: var(--surface-raised); border: 1px solid var(--primary); color: var(--text);
       padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 800;
       z-index: 50; box-shadow: 0 8px 30px rgba(0,0,0,0.6);
     }
@@ -254,6 +372,7 @@
     <div class="top-bar">
       <span class="top-bar-title">Practice</span>
       <div class="top-bar-actions">
+        <button type="button" class="switch-role-link" id="profileNavBtn">⚙ Profile</button>
         <button type="button" class="switch-role-link hidden install-btn" id="installBtn">📲 Add to Home Screen</button>
       </div>
     </div>
@@ -347,12 +466,39 @@
     <div class="page" id="summaryBody"></div>
   </div>
 
+  <!-- ══════════ PROFILE ══════════ -->
+  <div id="profileView" class="hidden">
+    <div class="top-bar">
+      <span class="top-bar-title">Profile</span>
+      <div class="top-bar-actions">
+        <button type="button" class="switch-role-link" id="profileBackBtn">‹ Back</button>
+      </div>
+    </div>
+    <div class="page" id="profileBody"></div>
+  </div>
+
   <script>
     /* ══════════════════════════════════════════════════════════
        CONSTANTS
        ══════════════════════════════════════════════════════════ */
     var SESSIONS_KEY = 'aads_training_sessions'
     var ACTIVE_KEY = 'aads_training_active'
+    var THEME_PREFS_KEY = 'aads_training_theme_prefs'
+    var PLAYER_SESSION_KEY = 'aads_player_session'
+
+    // Same anon key already public in players-portal.html / cue-light.html /
+    // bull-up.html — RLS on the tables it touches enforces what it can do.
+    var SUPABASE_URL = 'https://gygwhznblajojwveikhg.supabase.co'
+    var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5Z3doem5ibGFqb2p3dmVpa2hnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjU5NzgsImV4cCI6MjA4ODk0MTk3OH0.BI9KlRsCxAvNnFHCGq6hjXfdsaNgo7afY4Xa5uxwjak'
+    var hdrs = { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+
+    var THEMES = [
+      { id: 'performance-dark', name: 'Performance Dark', desc: 'Black, charcoal and gold. The default competitive look.', swatch: ['#0b0c0e', '#24272c', '#d4a64f', '#c52b28'] },
+      { id: 'clean-hybrid', name: 'Clean Hybrid', desc: 'Warm light background with black and gold.', swatch: ['#f5f1e8', '#ebe5d9', '#c79535', '#b72825'] },
+      { id: 'arena-red', name: 'Arena Red', desc: 'Black, red and gold — the competitive event look.', swatch: ['#090909', '#281311', '#c52b28', '#d4a64f'] }
+    ]
+    var DEFAULT_THEME = 'performance-dark'
+    var PRESSURE_DRILL_ID = 'doubles' // "Pressure Doubles" — what auto Arena Red keys off
 
     var FLOOR_ROUNDS = 15
     var FIRSTDART_VISITS = 30
@@ -416,6 +562,153 @@
     function clearActive() {
       active = null
       try { localStorage.removeItem(ACTIVE_KEY) } catch (e) { /* ignore */ }
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ACCOUNT + THEME
+       Training Room reuses the same sign-in as Players Portal — same
+       localStorage session key, same player_portal_accounts table — so a
+       player who's already signed in on this device needs nothing extra,
+       and a theme choice made here is tied to their real AADS account and
+       follows them to any other device they sign into.
+       ══════════════════════════════════════════════════════════ */
+    var accountSession = null
+    var currentTheme = DEFAULT_THEME
+    var trainingModeThemeEnabled = false
+    var previewTheme = null       // theme id being previewed in Profile, or null
+    var themeAutoOverride = false // true while Arena Red is auto-applied for a pressure drill
+
+    function readAccountSession() {
+      try { return JSON.parse(localStorage.getItem(PLAYER_SESSION_KEY) || 'null') } catch (e) { return null }
+    }
+
+    function writeAccountSession(session) {
+      try { localStorage.setItem(PLAYER_SESSION_KEY, JSON.stringify(session)) } catch (e) { /* ignore */ }
+    }
+
+    function loadLocalThemePrefs() {
+      return readJSON(THEME_PREFS_KEY, { theme: DEFAULT_THEME, trainingModeThemeEnabled: false })
+    }
+
+    function saveLocalThemePrefs() {
+      writeJSON(THEME_PREFS_KEY, { theme: currentTheme, trainingModeThemeEnabled: trainingModeThemeEnabled })
+    }
+
+    function themeById(id) {
+      for (var i = 0; i < THEMES.length; i++) { if (THEMES[i].id === id) return THEMES[i] }
+      return null
+    }
+
+    function applyTheme(themeId) {
+      document.documentElement.setAttribute('data-theme', themeId)
+      var meta = el('themeColorMeta')
+      var t = themeById(themeId)
+      if (meta && t) meta.setAttribute('content', t.swatch[0])
+    }
+
+    function setCurrentTheme(themeId) {
+      currentTheme = themeId
+      applyTheme(themeId)
+      saveLocalThemePrefs()
+      syncThemePrefsToAccount()
+    }
+
+    function startThemePreview(themeId) {
+      previewTheme = themeId
+      applyTheme(themeId)
+      renderProfile()
+    }
+
+    function commitThemePreview() {
+      if (!previewTheme) return
+      setCurrentTheme(previewTheme)
+      previewTheme = null
+      renderProfile()
+      toast('Theme saved')
+    }
+
+    function cancelThemePreview() {
+      previewTheme = null
+      applyTheme(currentTheme)
+      renderProfile()
+    }
+
+    function setTrainingModeThemeEnabled(enabled) {
+      trainingModeThemeEnabled = enabled
+      saveLocalThemePrefs()
+      syncThemePrefsToAccount()
+    }
+
+    // Only visual, and only for the life of one Pressure Doubles session —
+    // never persisted, never touches the player's saved theme choice.
+    function applyPressureAutoTheme(drill) {
+      if (drill === PRESSURE_DRILL_ID && trainingModeThemeEnabled && currentTheme !== 'arena-red') {
+        themeAutoOverride = true
+        applyTheme('arena-red')
+      } else {
+        themeAutoOverride = false
+      }
+    }
+
+    function revertPressureAutoTheme() {
+      if (themeAutoOverride) {
+        applyTheme(currentTheme)
+        themeAutoOverride = false
+      }
+    }
+
+    function syncThemePrefsToAccount() {
+      if (!accountSession || !accountSession.id) return
+      fetch(SUPABASE_URL + '/rest/v1/training_prefs?on_conflict=player_id', {
+        method: 'POST',
+        headers: Object.assign({}, hdrs, { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }),
+        body: JSON.stringify({
+          player_id: accountSession.id,
+          theme: currentTheme,
+          training_mode_theme: trainingModeThemeEnabled,
+          updated_at: new Date().toISOString()
+        })
+      }).catch(function () { /* offline — local copy already saved */ })
+    }
+
+    function fetchThemePrefsFromAccount() {
+      if (!accountSession || !accountSession.id) return Promise.resolve(null)
+      return fetch(SUPABASE_URL + '/rest/v1/training_prefs?player_id=eq.' + accountSession.id + '&select=theme,training_mode_theme', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) { return (Array.isArray(rows) && rows[0]) ? rows[0] : null })
+        .catch(function () { return null })
+    }
+
+    function applyRemoteThemePrefs(remote) {
+      if (!remote) { syncThemePrefsToAccount(); return }
+      currentTheme = remote.theme || currentTheme
+      trainingModeThemeEnabled = !!remote.training_mode_theme
+      applyTheme(currentTheme)
+      saveLocalThemePrefs()
+      if (!el('profileView').classList.contains('hidden')) renderProfile()
+    }
+
+    function profileSignIn() {
+      var input = el('profilePinInput')
+      var pin = input ? input.value.trim() : ''
+      if (!/^\d{4}$/.test(pin)) { toast('Enter your 4-digit code'); return }
+      fetch(SUPABASE_URL + '/rest/v1/player_portal_accounts?pin=eq.' + encodeURIComponent(pin) + '&select=id,display_name,notify_all', { headers: hdrs })
+        .then(function (r) { return r.json() })
+        .then(function (rows) {
+          if (!Array.isArray(rows) || !rows.length) { toast('Code not recognised'); return }
+          var account = rows[0]
+          accountSession = { id: account.id, displayName: account.display_name, notifyAll: !!account.notify_all, loginAt: Date.now() }
+          writeAccountSession(accountSession)
+          toast('Signed in as ' + account.display_name)
+          fetchThemePrefsFromAccount().then(function (remote) { applyRemoteThemePrefs(remote); renderProfile() })
+        })
+        .catch(function () { toast('Something went wrong') })
+    }
+
+    function profileSignOut() {
+      accountSession = null
+      try { localStorage.removeItem(PLAYER_SESSION_KEY) } catch (e) { /* ignore */ }
+      renderProfile()
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -502,21 +795,35 @@
     var metricWindow = 7
 
     function goHome() {
-      hide('drillView'); hide('summaryView'); show('homeView')
+      hide('drillView'); hide('summaryView'); hide('profileView'); show('homeView')
       renderHome()
       window.scrollTo(0, 0)
     }
 
     function goDrill() {
-      hide('homeView'); hide('summaryView'); show('drillView')
+      hide('homeView'); hide('summaryView'); hide('profileView'); show('drillView')
       renderDrill()
     }
 
     function goSummary(session) {
       pendingSummary = session
-      hide('homeView'); hide('drillView'); show('summaryView')
+      hide('homeView'); hide('drillView'); hide('profileView'); show('summaryView')
       renderSummary()
       window.scrollTo(0, 0)
+    }
+
+    function goProfile() {
+      previewTheme = null
+      hide('homeView'); hide('drillView'); hide('summaryView'); show('profileView')
+      renderProfile()
+      window.scrollTo(0, 0)
+    }
+
+    function backFromProfile() {
+      if (previewTheme) applyTheme(currentTheme)
+      previewTheme = null
+      hide('profileView'); show('homeView')
+      renderHome()
     }
 
     /* ══════════════════════════════════════════════════════════
@@ -542,6 +849,7 @@
       }
       keypadBuffer = ''
       persistActive()
+      applyPressureAutoTheme(drill)
       goDrill()
     }
 
@@ -551,12 +859,14 @@
       session.finishedAt = new Date().toISOString()
       delete session.phase
       clearActive()
+      revertPressureAutoTheme()
       goSummary(session)
     }
 
     function quitDrill() {
       if (active && active.visits.length && !confirm('Quit this drill? Nothing will be saved.')) return
       clearActive()
+      revertPressureAutoTheme()
       goHome()
     }
 
@@ -684,6 +994,7 @@
             '</ul>' +
             '<button type="button" class="ctrl-btn primary full" id="resetAckBtn">Next three</button>' +
           '</div>' +
+          keyboardHintHTML('Keyboard: Enter continues') +
           visitLogHTML(scores)
         el('resetAckBtn').addEventListener('click', function () {
           active.phase = 'input'
@@ -708,16 +1019,23 @@
           chipHTML('Worst Run', streak + (streak === 1 ? ' red' : ' reds')) +
         '</div>' +
         keypadHTML([26, 41, 45, 60]) +
+        keyboardHintHTML() +
         visitLogHTML(scores)
 
-      wireKeypad(body, function (score) {
-        if (score > 180) { toast('Max is 180'); renderDrill(); return }
-        active.visits.push(score)
-        if (active.visits.length >= FLOOR_ROUNDS) { finishDrill(); return }
-        active.phase = score < 45 ? 'reset' : 'input'
-        persistActive()
-        renderDrill()
-      })
+      wireKeypad(body, submitFloor45Visit)
+    }
+
+    function submitFloor45Visit(score) {
+      if (score > 180) { toast('Max is 180'); renderDrill(); return }
+      active.visits.push(score)
+      if (active.visits.length >= FLOOR_ROUNDS) { finishDrill(); return }
+      active.phase = score < 45 ? 'reset' : 'input'
+      persistActive()
+      renderDrill()
+    }
+
+    function keyboardHintHTML(text) {
+      return '<div class="keypad-hint">' + esc(text || 'Keyboard: numbers to type, Enter to submit, Backspace to undo') + '</div>'
     }
 
     function chipHTML(label, value) {
@@ -760,6 +1078,7 @@
           chipHTML('Right (1)', counts.right) +
         '</div>' +
         '<div class="seg-grid">' + buttons + '</div>' +
+        keyboardHintHTML('Keyboard: 1–7 picks a zone, Backspace undoes the last dart') +
         firstDartLogHTML(darts)
 
       body.querySelectorAll('[data-zone]').forEach(function (btn) {
@@ -844,6 +1163,7 @@
           '<button type="button" class="ctrl-btn" data-dart="miss">✕ Miss</button>' +
         '</div>' +
         '<div class="seq-track">' + track + '</div>' +
+        keyboardHintHTML('Keyboard: Enter for Hit, Backspace for Miss') +
         '<div class="stat-strip" style="margin-top:16px;">' +
           chipHTML('Darts', totalDoublesDarts()) +
           chipHTML('Hit', active.visits.filter(function (v) { return v.hit }).length) +
@@ -909,7 +1229,7 @@
       }
 
       var atDoubleWarning = remaining <= 170 && remaining > 1
-        ? '<div class="big-readout-note" style="color:var(--amber)">You\'re in checkout range — the app will ask how many darts you threw at a double.</div>'
+        ? '<div class="big-readout-note" style="color:var(--status-gold)">You\'re in checkout range — the app will ask how many darts you threw at a double.</div>'
         : ''
 
       body.innerHTML = '' +
@@ -931,6 +1251,7 @@
           '<div class="big-readout-value" style="font-size:clamp(32px,10vw,46px)">' + (keypadBuffer === '' ? '—' : keypadBuffer) + '</div>' +
         '</div>' +
         keypadHTML([26, 45, 60, 100]) +
+        keyboardHintHTML() +
         visitLogHTML2(active.visits)
 
       wireKeypad(body, function (score) { submitGhostVisit(score) })
@@ -995,7 +1316,8 @@
             ? 'How many darts did that visit take? This sets your darts-per-winning-leg.'
             : 'Count only darts actually aimed at a double. This is what makes checkout % real.') + '</div>' +
         '</div>' +
-        '<div class="seg-grid">' + (isFinish ? finishChoices : dartChoices) + '</div>'
+        '<div class="seg-grid">' + (isFinish ? finishChoices : dartChoices) + '</div>' +
+        keyboardHintHTML('Keyboard: number to pick, Backspace to cancel')
 
       body.querySelectorAll('[data-atdouble]').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -1246,7 +1568,8 @@
           '<button type="button" class="ctrl-btn primary" id="saveFinishBtn">Save &amp; finish</button>' +
           '<button type="button" class="ctrl-btn" id="runAgainBtn">Run again</button>' +
         '</div>' +
-        '<button type="button" class="ctrl-btn full" id="discardSummaryBtn" style="margin-top:10px;">Discard this session</button>'
+        '<button type="button" class="ctrl-btn full" id="discardSummaryBtn" style="margin-top:10px;">Discard this session</button>' +
+        keyboardHintHTML('Keyboard: Enter saves and finishes')
 
       el('saveFinishBtn').addEventListener('click', function () {
         saveSession(pendingSummary)
@@ -1397,6 +1720,89 @@
     }
 
     /* ══════════════════════════════════════════════════════════
+       PROFILE — APPEARANCE + ACCOUNT
+       ══════════════════════════════════════════════════════════ */
+    function themeNameFor(id) {
+      var t = themeById(id)
+      return t ? t.name : id
+    }
+
+    function renderProfile() {
+      var accountHTML = accountSession
+        ? '<div class="profile-account">' +
+            '<div class="profile-account-name">' + esc(accountSession.displayName) + '</div>' +
+            '<div class="metric-sub">Signed in &middot; same account as Players Portal</div>' +
+            '<button type="button" class="switch-role-link" id="profileSignOutBtn" style="margin-top:10px;">Sign out</button>' +
+          '</div>'
+        : '<div class="profile-account">' +
+            '<div class="metric-sub">Sign in with your 4-digit AADS code to sync your theme across every device.</div>' +
+            '<div class="btn-row" style="margin-top:10px;">' +
+              '<input type="tel" inputmode="numeric" maxlength="4" placeholder="••••" id="profilePinInput" class="pin-input" />' +
+              '<button type="button" class="ctrl-btn primary" id="profileSignInBtn">Sign In</button>' +
+            '</div>' +
+            '<div class="metric-sub" style="margin-top:10px;">No code yet? Create one in the <a href="players-portal.html" target="_blank" rel="noopener">Players Portal</a>. Without signing in, your theme is saved on this device only.</div>' +
+          '</div>'
+
+      var activeThemeId = previewTheme || currentTheme
+      var themeCardsHTML = THEMES.map(function (t) {
+        var isSaved = !previewTheme && currentTheme === t.id
+        return '<div class="theme-card' + (activeThemeId === t.id ? ' sel' : '') + '" data-theme-card="' + t.id + '">' +
+          '<div class="theme-swatch">' + t.swatch.map(function (c) { return '<span style="background:' + c + '"></span>' }).join('') + '</div>' +
+          '<div class="theme-info">' +
+            '<div class="theme-name">' + esc(t.name) + (isSaved ? '<span class="theme-current">Current</span>' : '') + '</div>' +
+            '<div class="theme-desc">' + esc(t.desc) + '</div>' +
+          '</div>' +
+        '</div>'
+      }).join('')
+
+      var previewBarHTML = previewTheme
+        ? '<div class="theme-preview-bar">' +
+            '<span>Previewing ' + esc(themeNameFor(previewTheme)) + '</span>' +
+            '<div class="btn-row">' +
+              '<button type="button" class="ctrl-btn primary" id="useThemeBtn">Use This Theme</button>' +
+              '<button type="button" class="ctrl-btn" id="cancelPreviewBtn">Cancel</button>' +
+            '</div>' +
+          '</div>'
+        : ''
+
+      el('profileBody').innerHTML = '' +
+        '<div class="section-heading">Account</div>' +
+        accountHTML +
+        '<div class="section-heading">Appearance &middot; App Theme</div>' +
+        '<div class="metric-sub" style="margin-bottom:12px;">Tap a theme to preview it live. Layouts, buttons, navigation, charts and skill colours stay identical — only colours, shadows and borders change.</div>' +
+        '<div class="theme-grid">' + themeCardsHTML + '</div>' +
+        previewBarHTML +
+        '<div class="section-heading">Training</div>' +
+        '<div class="toggle-row">' +
+          '<div>' +
+            '<div class="toggle-label">Training Mode Theme Changes</div>' +
+            '<div class="metric-sub">Automatically switch to Arena Red during Pressure Doubles, then switch back after.</div>' +
+          '</div>' +
+          '<button type="button" class="toggle-switch' + (trainingModeThemeEnabled ? ' on' : '') + '" id="trainingModeToggle" role="switch" aria-checked="' + trainingModeThemeEnabled + '"></button>' +
+        '</div>'
+
+      el('profileBody').querySelectorAll('[data-theme-card]').forEach(function (card) {
+        card.addEventListener('click', function () { startThemePreview(card.getAttribute('data-theme-card')) })
+      })
+      if (previewTheme) {
+        el('useThemeBtn').addEventListener('click', commitThemePreview)
+        el('cancelPreviewBtn').addEventListener('click', cancelThemePreview)
+      }
+      el('trainingModeToggle').addEventListener('click', function () {
+        setTrainingModeThemeEnabled(!trainingModeThemeEnabled)
+        renderProfile()
+      })
+      if (accountSession) {
+        el('profileSignOutBtn').addEventListener('click', profileSignOut)
+      } else {
+        el('profileSignInBtn').addEventListener('click', profileSignIn)
+        el('profilePinInput').addEventListener('keydown', function (e) {
+          if (e.key === 'Enter') { e.preventDefault(); profileSignIn() }
+        })
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════
        DRILL CONFIG PROMPTS
        ══════════════════════════════════════════════════════════ */
     function promptDrillConfig(drill) {
@@ -1534,6 +1940,101 @@
     }
 
     /* ══════════════════════════════════════════════════════════
+       KEYBOARD CONTROL
+       Number keys type into the same buffer the on-screen keypad uses,
+       Enter submits, Backspace deletes a typed digit — or, once the buffer
+       is empty, falls through to Undo. Drills without a numeric score
+       (First-Dart's zones, Pressure Doubles' hit/miss) get the same three
+       keys mapped onto their own controls instead.
+       ══════════════════════════════════════════════════════════ */
+    function handleGlobalKeydown(e) {
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      var drillVisible = !el('drillView').classList.contains('hidden')
+      var summaryVisible = !el('summaryView').classList.contains('hidden')
+      if (!drillVisible && !summaryVisible) return
+
+      if (summaryVisible) {
+        if (e.key === 'Enter') { e.preventDefault(); var saveBtn = el('saveFinishBtn'); if (saveBtn) saveBtn.click() }
+        return
+      }
+
+      if (!active) {
+        // Pressure Doubles' level picker, shown before the drill starts.
+        if (/^[1-3]$/.test(e.key)) {
+          var levelBtn = document.querySelector('[data-level="' + e.key + '"]')
+          if (levelBtn) { e.preventDefault(); levelBtn.click() }
+        }
+        return
+      }
+
+      if (active.drill === 'floor45' && active.phase === 'reset') {
+        if (e.key === 'Enter') { e.preventDefault(); var ackBtn = el('resetAckBtn'); if (ackBtn) ackBtn.click() }
+        return
+      }
+
+      if (active.drill === 'ghost' && active.phase === 'checkout') {
+        if (e.key === 'Backspace') { e.preventDefault(); undoLast(); return }
+        if (/^[0-9]$/.test(e.key)) {
+          var choiceBtn = document.querySelector('[data-atdouble="' + e.key + '"]') || document.querySelector('[data-finishdarts="' + e.key + '"]')
+          if (choiceBtn) { e.preventDefault(); choiceBtn.click() }
+        }
+        return
+      }
+
+      if ((active.drill === 'floor45' || active.drill === 'ghost') && active.phase === 'input') {
+        if (/^[0-9]$/.test(e.key)) {
+          e.preventDefault()
+          if (keypadBuffer.length < 3) keypadBuffer += e.key
+          renderDrill()
+          return
+        }
+        if (e.key === 'Backspace') {
+          e.preventDefault()
+          if (keypadBuffer) { keypadBuffer = keypadBuffer.slice(0, -1); renderDrill() }
+          else if (canUndo()) { undoLast() }
+          return
+        }
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          if (!keypadBuffer) return
+          var score = parseInt(keypadBuffer, 10)
+          keypadBuffer = ''
+          if (active.drill === 'floor45') submitFloor45Visit(score)
+          else submitGhostVisit(score)
+        }
+        return
+      }
+
+      if (active.drill === 'firstdart') {
+        if (e.key === 'Backspace') { e.preventDefault(); if (canUndo()) undoLast(); return }
+        var zoneIdx = parseInt(e.key, 10) - 1
+        if (zoneIdx >= 0 && zoneIdx < FIRST_DART_ZONES.length) {
+          var zoneBtn = document.querySelector('[data-zone="' + FIRST_DART_ZONES[zoneIdx].key + '"]')
+          if (zoneBtn) { e.preventDefault(); zoneBtn.click() }
+        }
+        return
+      }
+
+      if (active.drill === 'doubles') {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          var hitBtn = document.querySelector('[data-dart="hit"]')
+          if (hitBtn) hitBtn.click()
+          return
+        }
+        if (e.key === 'Backspace') {
+          e.preventDefault()
+          if (active.darts.length) {
+            var missBtn = document.querySelector('[data-dart="miss"]')
+            if (missBtn) missBtn.click()
+          } else if (canUndo()) {
+            undoLast()
+          }
+        }
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════
        INSTALL  (same approach as bull-up.html — no push flow here,
        just enough to be installable as its own home screen app)
        ══════════════════════════════════════════════════════════ */
@@ -1592,6 +2093,8 @@
       el('quitBtn').addEventListener('click', quitDrill)
       el('undoBtn').addEventListener('click', undoLast)
       el('shareBtn').addEventListener('click', shareReport)
+      el('profileNavBtn').addEventListener('click', goProfile)
+      el('profileBackBtn').addEventListener('click', backFromProfile)
       el('clearBtn').addEventListener('click', function () {
         if (!confirm('Delete every saved session on this device? This cannot be undone.')) return
         try { localStorage.removeItem(SESSIONS_KEY) } catch (e) { /* ignore */ }
@@ -1604,6 +2107,7 @@
         if (!saved) { renderHome(); return }
         active = saved
         keypadBuffer = ''
+        applyPressureAutoTheme(active.drill)
         goDrill()
       })
       el('discardBtn').addEventListener('click', function () {
@@ -1612,9 +2116,23 @@
       })
     }
 
+    function initAccountAndTheme() {
+      var local = loadLocalThemePrefs()
+      currentTheme = local.theme || DEFAULT_THEME
+      trainingModeThemeEnabled = !!local.trainingModeThemeEnabled
+      applyTheme(currentTheme)
+
+      accountSession = readAccountSession()
+      if (accountSession) {
+        fetchThemePrefsFromAccount().then(applyRemoteThemePrefs)
+      }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
+      initAccountAndTheme()
       wireButtons()
       wireInstall()
+      document.addEventListener('keydown', handleGlobalKeydown)
       goHome()
     })
   </script>
