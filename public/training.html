@@ -427,7 +427,7 @@
         <div class="drill-num">4</div>
         <div class="drill-info">
           <div class="drill-name">501 Ghost</div>
-          <div class="drill-desc">Straight in, double out, against a fixed-dart ghost.</div>
+          <div class="drill-desc">Straight in, double out. 10 levels, 39 darts down to 12.</div>
         </div>
         <div class="drill-arrow">&rsaquo;</div>
       </button>
@@ -503,6 +503,22 @@
     var FLOOR_ROUNDS = 15
     var FIRSTDART_VISITS = 30
     var DOUBLE_SEQ = [20, 16, 10, 8, 4, 2]
+
+    // Level 1 is the easiest ghost (most darts to work with), Level 10 the
+    // hardest — 3 fewer darts per level, so climbing levels is a steady,
+    // legible progression rather than a jump straight to a scratch pace.
+    var GHOST_LEVELS = [
+      { level: 1, darts: 39 }, { level: 2, darts: 36 }, { level: 3, darts: 33 },
+      { level: 4, darts: 30 }, { level: 5, darts: 27 }, { level: 6, darts: 24 },
+      { level: 7, darts: 21 }, { level: 8, darts: 18 }, { level: 9, darts: 15 },
+      { level: 10, darts: 12 }
+    ]
+    var GHOST_DEFAULT_LEVEL = 5 // matches the plan's original 27-dart starting ghost
+
+    function ghostLevelInfo(level) {
+      for (var i = 0; i < GHOST_LEVELS.length; i++) { if (GHOST_LEVELS[i].level === level) return GHOST_LEVELS[i] }
+      return GHOST_LEVELS[0]
+    }
 
     var DRILL_NAMES = {
       floor45: '45-Floor Drill',
@@ -1234,7 +1250,7 @@
 
       body.innerHTML = '' +
         '<div class="drill-head"><h2>501 Ghost</h2>' +
-        '<div class="drill-progress">Straight in, double out &middot; ' + ghostDarts + '-dart ghost</div></div>' +
+        '<div class="drill-progress">Straight in, double out &middot; Level ' + active.config.ghostLevel + ' (' + ghostDarts + '-dart ghost)</div></div>' +
         '<div class="big-readout">' +
           '<div class="big-readout-label">Remaining</div>' +
           '<div class="big-readout-value">' + remaining + '</div>' +
@@ -1470,6 +1486,7 @@
       var checkoutHits = session.visits.filter(function (v) { return v.checkoutHit }).length
       return {
         won: !!session.won,
+        ghostLevel: session.config.ghostLevel,
         ghostDarts: session.config.ghostDarts,
         dartsThrown: session.dartsThrown,
         dartsToFinish: session.won ? session.dartsThrown : null,
@@ -1548,10 +1565,11 @@
         head = '<div class="verdict ' + (s.won ? 'win' : 'loss') + '">' +
           '<div class="verdict-title">' + (s.won ? 'Beat the ghost' : 'Ghost won') + '</div>' +
           '<div class="verdict-sub">' + (s.won
-            ? 'Finished in ' + s.dartsToFinish + ' darts against a ' + s.ghostDarts + '-dart ghost.'
-            : 'Left on ' + (501 - s.totalScored) + ' after ' + s.ghostDarts + ' darts.') +
+            ? 'Finished in ' + s.dartsToFinish + ' darts against a Level ' + s.ghostLevel + ' (' + s.ghostDarts + '-dart) ghost.'
+            : 'Left on ' + (501 - s.totalScored) + ' after ' + s.ghostDarts + ' darts &middot; Level ' + s.ghostLevel + '.') +
           '</div></div>'
         rows =
+          rowHTML('Ghost level', s.ghostLevel + ' (' + s.ghostDarts + ' darts)') +
           rowHTML('3-dart average', fmt(s.avg3)) +
           rowHTML('First-9 average', fmt(s.first9)) +
           rowHTML('Darts to finish', fmt(s.dartsToFinish)) +
@@ -1701,7 +1719,7 @@
       if (s.drill === 'floor45') return fmt(st.avg3) + ' avg · ' + st.backToBackReds + ' dip'
       if (s.drill === 'firstdart') return fmt(st.bedPct, '%') + ' in bed'
       if (s.drill === 'doubles') return st.hits + '/' + st.attempts + ' doubles'
-      if (s.drill === 'ghost') return (st.won ? 'W' : 'L') + ' · ' + fmt(st.avg3) + ' avg'
+      if (s.drill === 'ghost') return (st.won ? 'W' : 'L') + ' · L' + st.ghostLevel + ' · ' + fmt(st.avg3) + ' avg'
       return ''
     }
 
@@ -1837,20 +1855,21 @@
         hide('homeView'); show('drillView')
         el('drillBarTitle').textContent = DRILL_NAMES.ghost
         el('undoBtn').classList.add('hidden')
-        var options = [27, 26, 25, 24, 23].map(function (n) {
-          return '<button type="button" class="seg-btn' + (n === 27 ? ' hot' : '') + '" data-ghost="' + n + '">' + n +
-            '<small>darts</small></button>'
+        var options = GHOST_LEVELS.map(function (g) {
+          return '<button type="button" class="seg-btn' + (g.level === GHOST_DEFAULT_LEVEL ? ' hot' : '') + '" data-ghost-level="' + g.level + '">' +
+            'Level ' + g.level + '<small>' + g.darts + ' darts</small></button>'
         }).join('')
         el('drillBody').innerHTML = '' +
           '<div class="drill-head"><h2>501 Ghost</h2>' +
           '<div class="drill-progress">Straight in, double out. Finish before the ghost does.</div></div>' +
-          '<div class="section-heading">Ghost Speed</div>' +
+          '<div class="section-heading">Ghost Level</div>' +
           '<div class="seg-grid">' + options + '</div>' +
-          '<div class="hint">Start at 27. Move down only once you are beating it consistently — a 24-dart ghost is roughly a 62.6 checkout-adjusted pace.</div>' +
+          '<div class="hint">Level 1 is easiest (39 darts), Level 10 is hardest (12 darts) — each level up trims 3 darts. Start at Level ' + GHOST_DEFAULT_LEVEL + ' and only climb once you are beating the current level consistently.</div>' +
           '<button type="button" class="ctrl-btn full" id="cfgBackBtn" style="margin-top:14px;">Back</button>'
-        el('drillBody').querySelectorAll('[data-ghost]').forEach(function (btn) {
+        el('drillBody').querySelectorAll('[data-ghost-level]').forEach(function (btn) {
           btn.addEventListener('click', function () {
-            startDrill('ghost', { ghostDarts: parseInt(btn.getAttribute('data-ghost'), 10) })
+            var level = parseInt(btn.getAttribute('data-ghost-level'), 10)
+            startDrill('ghost', { ghostLevel: level, ghostDarts: ghostLevelInfo(level).darts })
           })
         })
         el('cfgBackBtn').addEventListener('click', goHome)
@@ -1898,8 +1917,8 @@
           detail = 'L' + st.level + ', ' + st.hits + '/' + st.attempts + ' doubles, ' + st.dartsThrown +
             ' darts, ' + st.restarts + ' restarts'
         } else if (s.drill === 'ghost') {
-          detail = (st.won ? 'WON in ' + st.dartsToFinish + ' darts' : 'LOST') + ' vs ' + st.ghostDarts +
-            '-dart ghost, ' + fmt(st.avg3) + ' avg, first-9 ' + fmt(st.first9) +
+          detail = (st.won ? 'WON in ' + st.dartsToFinish + ' darts' : 'LOST') + ' vs Level ' + st.ghostLevel +
+            ' (' + st.ghostDarts + '-dart) ghost, ' + fmt(st.avg3) + ' avg, first-9 ' + fmt(st.first9) +
             ', checkout ' + st.checkoutHits + '/' + st.checkoutAttempts
         }
         lines.push(shortDate(s.startedAt) + ' · ' + DRILL_NAMES[s.drill] + ' — ' + detail)
