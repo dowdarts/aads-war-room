@@ -898,22 +898,19 @@
 
     function canUndo() {
       if (!active) return false
-      if (active.drill === 'doubles') return active.darts.length > 0 || active.visits.length > 0
+      if (active.drill === 'doubles') return active.visits.length > 0
       return active.visits.length > 0
     }
 
     function undoLast() {
       if (!active) return
       if (active.drill === 'doubles') {
-        // Mid-double darts unwind one at a time; otherwise step back a whole
-        // double. Level penalties already applied aren't replayed — this is a
-        // slip-correction, not a time machine.
-        if (active.darts.length) { active.darts.pop() }
-        else if (active.visits.length) {
+        // Steps back a whole double. Level penalties already applied aren't
+        // replayed — this is a slip-correction, not a time machine.
+        if (active.visits.length) {
           var prev = active.visits.pop()
           active.idx = DOUBLE_SEQ.indexOf(prev.double)
           if (active.idx < 0) active.idx = Math.max(0, active.idx)
-          active.darts = []
         }
       } else if (active.drill === 'ghost') {
         // Mid-prompt, undo just cancels the visit awaiting its darts-at-a-double
@@ -1145,16 +1142,10 @@
       var level = active.config.level
       var idx = active.idx
       var target = DOUBLE_SEQ[idx]
-      var thrown = active.darts.length
 
       var track = DOUBLE_SEQ.map(function (d, i) {
         var cls = i < idx ? 'done' : (i === idx ? 'now' : '')
         return '<div class="seq-node ' + cls + '">D' + d + '</div>'
-      }).join('')
-
-      var dots = [0, 1, 2].map(function (i) {
-        var state = i < thrown ? (active.darts[i] ? 'hit' : 'miss') : ''
-        return '<div class="dart-dot ' + state + '"></div>'
       }).join('')
 
       var banner = ''
@@ -1167,48 +1158,55 @@
 
       body.innerHTML = '' +
         '<div class="drill-head"><h2>Pressure Doubles</h2>' +
-        '<div class="drill-progress">Level ' + level + ' &middot; dart ' + Math.min(thrown + 1, 3) + ' of 3</div></div>' +
+        '<div class="drill-progress">Level ' + level + ' &middot; which dart hit?</div></div>' +
         banner +
         '<div class="big-readout">' +
           '<div class="big-readout-label">Target</div>' +
           '<div class="big-readout-value band-great">D' + target + '</div>' +
-          '<div class="dart-dots">' + dots + '</div>' +
+          '<div class="big-readout-note">Tap the dart that hit it, or Miss if all three missed.</div>' +
         '</div>' +
         '<div class="btn-row">' +
-          '<button type="button" class="ctrl-btn primary" data-dart="hit">✓ Hit</button>' +
-          '<button type="button" class="ctrl-btn" data-dart="miss">✕ Miss</button>' +
+          '<button type="button" class="ctrl-btn primary" data-hit="1">1</button>' +
+          '<button type="button" class="ctrl-btn primary" data-hit="2">2</button>' +
+          '<button type="button" class="ctrl-btn primary" data-hit="3">3</button>' +
+          '<button type="button" class="ctrl-btn" data-hit="0">✕ Miss</button>' +
         '</div>' +
         '<div class="seq-track">' + track + '</div>' +
-        keyboardHintHTML('Keyboard: Enter for Hit, Backspace for Miss') +
+        keyboardHintHTML('Keyboard: 1/2/3 for which dart hit, Enter or 0 for miss') +
         '<div class="stat-strip" style="margin-top:16px;">' +
           chipHTML('Darts', totalDoublesDarts()) +
           chipHTML('Hit', active.visits.filter(function (v) { return v.hit }).length) +
           chipHTML('Restarts', active.restarts) +
         '</div>'
 
-      body.querySelectorAll('[data-dart]').forEach(function (btn) {
+      body.querySelectorAll('[data-hit]').forEach(function (btn) {
         btn.addEventListener('click', function () {
-          recordDoubleDart(btn.getAttribute('data-dart') === 'hit')
+          recordDoubleVisit(parseInt(btn.getAttribute('data-hit'), 10))
         })
       })
     }
 
     function totalDoublesDarts() {
-      return active.visits.reduce(function (a, v) { return a + v.darts.length }, 0) + active.darts.length
+      return active.visits.reduce(function (a, v) { return a + v.darts.length }, 0)
     }
 
-    function recordDoubleDart(isHit) {
-      active.darts.push(isHit)
-
-      if (!isHit && active.darts.length < 3) { persistActive(); renderDrill(); return }
+    // hitOn: 1/2/3 — the dart number that hit the double; 0 — missed all three.
+    function recordDoubleVisit(hitOn) {
+      var isHit = hitOn !== 0
+      var darts = []
+      if (isHit) {
+        for (var i = 1; i < hitOn; i++) darts.push(false)
+        darts.push(true)
+      } else {
+        darts = [false, false, false]
+      }
 
       active.visits.push({
         double: DOUBLE_SEQ[active.idx],
-        darts: active.darts.slice(),
+        darts: darts,
         hit: isHit,
-        dartsUsed: active.darts.length
+        dartsUsed: darts.length
       })
-      active.darts = []
 
       if (isHit) {
         active.idx++
@@ -2035,20 +2033,21 @@
       }
 
       if (active.drill === 'doubles') {
-        if (e.key === 'Enter') {
+        if (/^[123]$/.test(e.key)) {
           e.preventDefault()
-          var hitBtn = document.querySelector('[data-dart="hit"]')
+          var hitBtn = document.querySelector('[data-hit="' + e.key + '"]')
           if (hitBtn) hitBtn.click()
+          return
+        }
+        if (e.key === '0' || e.key === 'Enter') {
+          e.preventDefault()
+          var missBtn = document.querySelector('[data-hit="0"]')
+          if (missBtn) missBtn.click()
           return
         }
         if (e.key === 'Backspace') {
           e.preventDefault()
-          if (active.darts.length) {
-            var missBtn = document.querySelector('[data-dart="miss"]')
-            if (missBtn) missBtn.click()
-          } else if (canUndo()) {
-            undoLast()
-          }
+          if (canUndo()) undoLast()
         }
       }
     }
