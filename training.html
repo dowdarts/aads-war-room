@@ -1458,11 +1458,19 @@
       var dartsThrown = attempts.reduce(function (a, v) { return a + v.darts.length }, 0)
       var perDouble = {}
       DOUBLE_SEQ.forEach(function (d) { perDouble['D' + d] = { attempts: 0, hits: 0 } })
+      var dart1 = 0, dart2 = 0, dart3 = 0, missAll = 0
       attempts.forEach(function (v) {
         var key = 'D' + v.double
         if (!perDouble[key]) perDouble[key] = { attempts: 0, hits: 0 }
         perDouble[key].attempts++
-        if (v.hit) perDouble[key].hits++
+        if (v.hit) {
+          perDouble[key].hits++
+          if (v.dartsUsed === 1) dart1++
+          else if (v.dartsUsed === 2) dart2++
+          else if (v.dartsUsed === 3) dart3++
+        } else {
+          missAll++
+        }
       })
       return {
         level: session.config.level,
@@ -1472,7 +1480,15 @@
         hitPct: pct(hits.length, attempts.length),
         dartsPerDouble: hits.length ? round1(dartsThrown / hits.length) : null,
         restarts: session.restarts || 0,
-        perDouble: perDouble
+        perDouble: perDouble,
+        dart1: dart1,
+        dart1Pct: pct(dart1, attempts.length),
+        dart2: dart2,
+        dart2Pct: pct(dart2, attempts.length),
+        dart3: dart3,
+        dart3Pct: pct(dart3, attempts.length),
+        missAll: missAll,
+        missAllPct: pct(missAll, attempts.length)
       }
     }
 
@@ -1557,6 +1573,10 @@
         rows =
           rowHTML('Doubles hit', s.hits + '/' + s.attempts + ' (' + fmt(s.hitPct, '%') + ')') +
           rowHTML('Darts per double hit', fmt(s.dartsPerDouble)) +
+          rowHTML('1st dart', s.dart1 + ' (' + fmt(s.dart1Pct, '%') + ')') +
+          rowHTML('2nd dart', s.dart2 + ' (' + fmt(s.dart2Pct, '%') + ')') +
+          rowHTML('3rd dart', s.dart3 + ' (' + fmt(s.dart3Pct, '%') + ')') +
+          rowHTML('Miss', s.missAll + ' (' + fmt(s.missAllPct, '%') + ')') +
           rowHTML('Restarts', s.restarts) +
           perDoubleRows
       } else if (session.drill === 'ghost') {
