@@ -11,13 +11,18 @@
     "build": "vite build",
     "preview": "vite preview",
     "predeploy": "vite build",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "dev:shop": "vite --config vite.shop.config.js",
+    "build:shop": "vite build --config vite.shop.config.js",
+    "deploy:shop": "vite build --config vite.shop.config.js && gh-pages -d dist-shop -r https://github.com/dowdarts/cgc-shop.git --dotfiles",
+    "test:pricing": "node --test supabase/functions/_shared/pricing.test.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.99.1",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",

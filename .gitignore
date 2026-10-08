@@ -9,6 +9,7 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-shop
 dist-ssr
 
 # Supabase CLI local link/cache state, not project source
