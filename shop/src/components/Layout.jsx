@@ -103,6 +103,10 @@ export default function Layout() {
             {settings.contact_email && <a className="mt-1 block" href={`mailto:${settings.contact_email}`}>{settings.contact_email}</a>}
           </div>
         </div>
+        <div className="mx-auto flex max-w-7xl items-center justify-between border-t border-line px-4 py-4 text-xs text-muted">
+          <span>© {new Date().getFullYear()} CGC Darts × MD Studios</span>
+          <Link to="/admin" className="rounded-lg border border-line px-3 py-1.5 font-semibold hover:text-text">Admin sign in</Link>
+        </div>
       </footer>
     </div>
   )
