@@ -82,9 +82,13 @@ export default function Custom() {
 
   return (
     <div>
-      <PageTitle eyebrow="Custom & Team Apparel" title="Request a custom design">
-        Tell us about your team shirt. We’ll quote it, build your mockup, revise it with you by email, and send you a private order page once you approve the design.
-      </PageTitle>
+      <div className="mb-8 grid items-center gap-6 lg:grid-cols-[1fr_420px]">
+        <PageTitle eyebrow="Custom & Team Apparel" title="Request a custom design">
+          Teams, clubs, leagues and events — any colour, any theme. Tell us about your team shirt and we’ll quote it, build your mockup,
+          revise it with you by email, and send you a private order page once you approve the design.
+        </PageTitle>
+        <img src="/images/brand/custom-team-shirts-ad.webp" alt="CGC Darts Custom Apparel custom team shirts" className="w-full rounded-2xl border border-line" width="1254" height="1254" />
+      </div>
       <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
         <form onSubmit={submit} className="space-y-6">
           <section className="card space-y-4 p-5">

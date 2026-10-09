@@ -9,7 +9,11 @@ export default function Home() {
   return (
     <div className="space-y-14">
       <section className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-[#1a1008] via-panel to-ink px-6 py-12 sm:px-12 sm:py-16">
-        <div className="eyebrow">Fall 2026 · Now Available</div>
+        <div className="flex flex-wrap items-center gap-3">
+          <img src="/images/brand/aads-series.webp" alt="Atlantic Amateur Darts Series" className="h-10 w-auto" />
+          <span className="text-[11px] font-black uppercase tracking-[.2em] text-muted">Proud partners of the Atlantic Amateur Darts Series</span>
+        </div>
+        <div className="eyebrow mt-6">Fall 2026 · Now Available</div>
         <h1 className="mt-3 max-w-3xl text-4xl font-black leading-[1.02] tracking-tight sm:text-6xl">
           Official <span className="bg-gradient-to-r from-accent to-accent-2 bg-clip-text text-transparent">CGC Darts</span> apparel.
         </h1>
@@ -54,13 +58,17 @@ export default function Home() {
         </section>
       </>}
 
-      <section className="card grid gap-6 p-6 sm:grid-cols-[1fr_auto] sm:items-center sm:p-10">
-        <div>
-          <div className="eyebrow">Custom & Team Apparel</div>
-          <h2 className="mt-2 text-2xl font-black">Your team. Your design.</h2>
-          <p className="mt-2 max-w-xl text-muted">Send us your idea, logos and sponsors. We’ll mock it up, revise it with you, and set up a private order page once you approve.</p>
+      <section className="card grid items-center gap-6 overflow-hidden p-4 sm:p-6 lg:grid-cols-2">
+        <Link to="/custom" className="block overflow-hidden rounded-2xl">
+          <img src="/images/brand/custom-team-shirts-ad.webp" alt="CGC Darts Custom Apparel × MD Studios — custom team shirts: polo, zip polo or button-up, with or without pocket, any colour, any theme." className="w-full" loading="lazy" width="1254" height="1254" />
+        </Link>
+        <div className="p-2 sm:p-4">
+          <div className="eyebrow">Custom Team Shirts</div>
+          <h2 className="mt-2 text-3xl font-black">Bring your team’s ideas to reality.</h2>
+          <p className="mt-3 text-muted">Teams, clubs, leagues and events. Any colour, any theme — polo, zip polo or button-up, with or without pocket. High-quality sublimation print built for darts.</p>
+          <p className="mt-3 text-muted">Send us your idea, logos and sponsors. We’ll mock it up, revise it with you, and set up a private order page once you approve.</p>
+          <Link to="/custom" className="btn btn-primary mt-6">Get your quote today</Link>
         </div>
-        <Link to="/custom" className="btn btn-primary">Request a custom design</Link>
       </section>
     </div>
   )

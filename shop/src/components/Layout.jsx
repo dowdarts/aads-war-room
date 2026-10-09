@@ -16,13 +16,11 @@ const NAV = [
 function Logo() {
   const { settings } = useSettings()
   return (
-    <Link to="/" className="flex items-center gap-2" aria-label="CGC Darts Shop home">
-      {settings.logo_url
-        ? <img src={settings.logo_url} alt="CGC Darts" className="h-9 w-auto" />
-        : <span className="text-2xl font-black tracking-tight">CGC<span className="text-accent">.</span></span>}
+    <Link to="/" className="flex items-center gap-2.5" aria-label="CGC Darts Custom Apparel home">
+      <img src={settings.logo_url || '/images/brand/cgc-darts.webp'} alt="CGC Darts" className="h-9 w-auto sm:h-10" width="111" height="36" />
       <span className="hidden flex-col leading-none sm:flex">
-        <span className="text-[11px] font-black uppercase tracking-[.22em]">Darts Shop</span>
-        <span className="text-[10px] font-semibold uppercase tracking-[.18em] text-muted">by MD Studios</span>
+        <span className="text-[11px] font-black uppercase tracking-[.22em]">Custom Apparel</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[.18em] text-muted">× MD Studios</span>
       </span>
     </Link>
   )
@@ -88,10 +86,21 @@ export default function Layout() {
       </main>
 
       <footer className="border-t border-line">
+        <div className="mx-auto max-w-7xl px-4 pt-8">
+          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4">
+            <img src="/images/brand/cgc-darts.webp" alt="CGC Darts" className="h-12 w-auto" loading="lazy" />
+            <img src="/images/brand/md-studios.webp" alt="MD Studios" className="h-12 w-auto" loading="lazy" />
+            <img src="/images/brand/aads-series.webp" alt="Atlantic Amateur Darts Series" className="h-14 w-auto" loading="lazy" />
+          </div>
+          <p className="mx-auto mt-5 max-w-2xl text-center text-sm text-muted">
+            Proceeds from CGC Darts Custom Apparel go back into production equipment, dart boards, tablets, player prize funding
+            and growing the <span className="text-text">Atlantic Amateur Darts Series</span>. CGC Darts has funded the production of AADS from day one.
+          </p>
+        </div>
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 text-sm text-muted sm:grid-cols-3">
           <div>
-            <div className="font-black text-text">CGC Darts × MD Studios</div>
-            <p className="mt-1">Official CGC Darts apparel. Design & production by MD Studios.</p>
+            <div className="font-black text-text">CGC Darts Custom Apparel × MD Studios</div>
+            <p className="mt-1">Proud partners of the Atlantic Amateur Darts Series.</p>
           </div>
           <div className="grid gap-1">
             <Link to="/shop">Shop all shirts</Link>
@@ -104,7 +113,7 @@ export default function Layout() {
           </div>
         </div>
         <div className="mx-auto flex max-w-7xl items-center justify-between border-t border-line px-4 py-4 text-xs text-muted">
-          <span>© {new Date().getFullYear()} CGC Darts × MD Studios</span>
+          <span>© {new Date().getFullYear()} CGC Darts Custom Apparel × MD Studios</span>
           <Link to="/admin" className="rounded-lg border border-line px-3 py-1.5 font-semibold hover:text-text">Admin sign in</Link>
         </div>
       </footer>

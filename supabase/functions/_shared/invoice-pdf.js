@@ -33,6 +33,17 @@ function wrap(text, font, size, maxWidth) {
  * @param {object} snap  shop_invoices.snapshot
  * @returns {Promise<Uint8Array>}
  */
+const LOGO_URL = (Deno.env.get('SHOP_URL') || 'https://shop.aadsdarts.com') + '/images/brand/cgc-darts.png'
+let logoBytes = null
+async function loadLogo() {
+  if (logoBytes) return logoBytes
+  try {
+    const res = await fetch(LOGO_URL)
+    if (res.ok) logoBytes = new Uint8Array(await res.arrayBuffer())
+  } catch { /* fall back to the text wordmark */ }
+  return logoBytes
+}
+
 export async function renderInvoicePdf(snap) {
   const pdf = await PDFDocument.create()
   pdf.setTitle(`${snap.title} ${snap.number}`)
@@ -55,9 +66,15 @@ export async function renderInvoicePdf(snap) {
   // Header band
   page.drawRectangle({ x: 0, y: H - 78, width: W, height: 78, color: INK })
   page.drawRectangle({ x: 0, y: H - 82, width: W, height: 4, color: ACCENT })
-  text('CGC', M, H - 48, { f: bold, size: 26, color: rgb(1, 1, 1) })
-  text('.', M + bold.widthOfTextAtSize('CGC', 26), H - 48, { f: bold, size: 26, color: ACCENT })
-  text(snap.business?.name || 'CGC Darts x MD Studios', M, H - 64, { size: 9, color: rgb(0.75, 0.75, 0.78) })
+  const logo = await loadLogo().then(b => (b ? pdf.embedPng(b) : null)).catch(() => null)
+  if (logo) {
+    const lh = 40, lw = logo.width * (lh / logo.height)
+    page.drawImage(logo, { x: M, y: H - 60, width: lw, height: lh })
+  } else {
+    text('CGC', M, H - 48, { f: bold, size: 26, color: rgb(1, 1, 1) })
+    text('.', M + bold.widthOfTextAtSize('CGC', 26), H - 48, { f: bold, size: 26, color: ACCENT })
+  }
+  text(snap.business?.name || 'CGC Darts x MD Studios', M, H - 72, { size: 8, color: rgb(0.75, 0.75, 0.78) })
   right(snap.title.toUpperCase(), W - M, H - 46, { f: bold, size: 20, color: rgb(1, 1, 1) })
   right(`${snap.number}${snap.version > 1 ? `  (v${snap.version})` : ''}`, W - M, H - 64, { size: 10, color: rgb(0.85, 0.85, 0.88) })
   y = H - 112
