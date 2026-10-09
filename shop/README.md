@@ -13,8 +13,7 @@ Storefront + admin for **shop.aadsdarts.com**. Lives in this repo as a second Vi
 
 ```bash
 npm run dev:shop       # local dev at http://localhost:5174
-npm run build:shop     # builds to dist-shop/
-npm run deploy:shop    # builds + publishes to github.com/dowdarts/cgc-shop (GitHub Pages)
+npm run build:shop     # builds to dist-shop/ (Cloudflare Pages runs this on every push to master)
 npm run test:pricing   # pricing engine tests (spec §19 examples + replica/shipping rules)
 ```
 
@@ -27,9 +26,12 @@ npm run test:pricing   # pricing engine tests (spec §19 examples + replica/ship
    `supabase secrets set RESEND_API_KEY=re_xxx`. Until this is set, orders still work and emails are logged as *skipped*.
 4. **Admin login:** Supabase dashboard → Authentication → Add user (email + password), then in the SQL editor:
    `insert into shop_admins (user_id, email) select id, email from auth.users where email = 'you@example.com';`
-5. **Hosting:** create an empty GitHub repo `dowdarts/cgc-shop`, run `npm run deploy:shop`, then in that repo's
-   Settings → Pages choose the `gh-pages` branch and set the custom domain `shop.aadsdarts.com`.
-   DNS: add `CNAME shop → dowdarts.github.io`.
+5. **Hosting (Cloudflare Pages, this repo):** Cloudflare dashboard → Workers & Pages → Create → Pages →
+   Connect to Git → `dowdarts/aads-war-room`. Build settings: production branch `master`,
+   build command `npm run build:shop`, output directory `dist-shop`, root directory `/`,
+   environment variable `NODE_VERSION = 22`. Then Custom domains → add `shop.aadsdarts.com`
+   (automatic if aadsdarts.com's DNS is on Cloudflare; otherwise add `CNAME shop → <project>.pages.dev`
+   at your DNS provider). `shop/public/_redirects` makes deep links like `/admin` and `/custom-order/…` work.
 6. **Admin → Settings:** set the shipping charge for 1–2 shirt orders (checkout for fewer than 3 shirts is blocked until set),
    e-Transfer details, and the admin notification email.
 7. **Admin → Products → Bulk image upload:** load the collection artwork (`<product-slug>-front.jpg`, `-back.jpg`, `-gallery-1.jpg`).

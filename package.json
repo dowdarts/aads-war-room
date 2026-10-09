@@ -14,7 +14,6 @@
     "deploy": "gh-pages -d dist",
     "dev:shop": "vite --config vite.shop.config.js",
     "build:shop": "vite build --config vite.shop.config.js",
-    "deploy:shop": "vite build --config vite.shop.config.js && gh-pages -d dist-shop -r https://github.com/dowdarts/cgc-shop.git --dotfiles",
     "test:pricing": "node --test supabase/functions/_shared/pricing.test.mjs"
   },
   "dependencies": {
