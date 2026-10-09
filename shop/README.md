@@ -13,7 +13,8 @@ Storefront + admin for **shop.aadsdarts.com**. Lives in this repo as a second Vi
 
 ```bash
 npm run dev:shop       # local dev at http://localhost:5174
-npm run build:shop     # builds to dist-shop/ (Cloudflare Pages runs this on every push to master)
+npm run build:shop     # builds to dist-shop/
+npm run deploy:shop    # builds + publishes to Cloudflare Pages (project cgc-shop)
 npm run test:pricing   # pricing engine tests (spec §19 examples + replica/shipping rules)
 ```
 
@@ -26,11 +27,10 @@ npm run test:pricing   # pricing engine tests (spec §19 examples + replica/ship
    `supabase secrets set RESEND_API_KEY=re_xxx`. Until this is set, orders still work and emails are logged as *skipped*.
 4. **Admin login:** Supabase dashboard → Authentication → Add user (email + password), then in the SQL editor:
    `insert into shop_admins (user_id, email) select id, email from auth.users where email = 'you@example.com';`
-5. **Hosting (Cloudflare Workers, this repo):** Cloudflare dashboard → Workers & Pages → Create → import
-   `dowdarts/aads-war-room`. Project name `cgc-shop` (must match `wrangler.jsonc`), build command
-   `npm run build:shop`, deploy command `npx wrangler deploy`. Then Settings → Domains & Routes → add custom
-   domain `shop.aadsdarts.com`. `wrangler.jsonc` publishes `dist-shop` with single-page-app routing so deep
-   links like `/admin` and `/custom-order/…` work.
+5. **Hosting (Cloudflare Pages project `cgc-shop`, account dowdarts@gmail.com):** `npx wrangler login` once, then
+   `npm run deploy:shop`. Live at https://cgc-shop.pages.dev and **shop.aadsdarts.com** once DNS has
+   `CNAME shop → cgc-shop.pages.dev` (aadsdarts.com DNS is at Network Solutions). Pages serves index.html for
+   unknown paths, so deep links like `/admin` and `/custom-order/…` work.
 6. **Admin → Settings:** set the shipping charge for 1–2 shirt orders (checkout for fewer than 3 shirts is blocked until set),
    e-Transfer details, and the admin notification email.
 7. **Admin → Products → Bulk image upload:** load the collection artwork (`<product-slug>-front.jpg`, `-back.jpg`, `-gallery-1.jpg`).

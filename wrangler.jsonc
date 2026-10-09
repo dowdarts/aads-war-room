@@ -1,12 +1,9 @@
-// Cloudflare Workers (static assets) config for the CGC Darts shop at
-// shop.aadsdarts.com. Workers Builds runs `npm run build:shop`, then
-// `npx wrangler deploy` publishes dist-shop. Unknown paths (/admin,
-// /custom-order/<token>, …) fall back to index.html for client-side routing.
+// Cloudflare Pages config for the CGC Darts shop at shop.aadsdarts.com.
+// Deploy: `npm run build:shop && npx wrangler pages deploy`. Pages serves
+// index.html for unknown paths (/admin, /custom-order/<token>, …) because
+// the build has no 404.html, which gives client-side routing.
 {
   "name": "cgc-shop",
-  "compatibility_date": "2026-09-01",
-  "assets": {
-    "directory": "./dist-shop",
-    "not_found_handling": "single-page-application"
-  }
+  "pages_build_output_dir": "./dist-shop",
+  "compatibility_date": "2026-09-01"
 }

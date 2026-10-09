@@ -1,7 +1,6 @@
 // Build config for the CGC Darts apparel store (shop.aadsdarts.com).
 // Separate entry from the wiki app: `npm run dev:shop`, `npm run build:shop`.
-// Hosted on Cloudflare Pages, which builds dist-shop from this repo on every
-// push to master (see shop/README.md and wrangler.jsonc for SPA routing).
+// Hosted on Cloudflare Pages (`npm run deploy:shop`, config in wrangler.jsonc).
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'

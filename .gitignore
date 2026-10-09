@@ -36,3 +36,6 @@ public/vip table one/
 *.njsproj
 *.sln
 *.sw?
+
+# Cloudflare Wrangler local state
+.wrangler/
