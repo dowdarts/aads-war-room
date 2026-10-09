@@ -23,7 +23,7 @@ npm run test:pricing   # pricing engine tests (spec §19 examples + replica/ship
 1. **Database:** `supabase db push` (applies the two `20261008*` migrations).
 2. **Edge functions:**
    `supabase functions deploy shop-checkout shop-validate-code shop-inquiry shop-private-order shop-track shop-admin`
-3. **Email (Resend):** create a Resend account, verify `aadsdarts.com` (add the DNS records Resend shows), then
+3. **Email (Resend):** create a Resend account, verify `aadsdarts.com` (add the DNS records Resend shows; customer mail is sent from shop@aadsdarts.com with replies to cgcdarts@gmail.com), then
    `supabase secrets set RESEND_API_KEY=re_xxx`. Until this is set, orders still work and emails are logged as *skipped*.
 4. **Admin login:** Supabase dashboard → Authentication → Add user (email + password), then in the SQL editor:
    `insert into shop_admins (user_id, email) select id, email from auth.users where email = 'you@example.com';`
