@@ -26,12 +26,11 @@ npm run test:pricing   # pricing engine tests (spec §19 examples + replica/ship
    `supabase secrets set RESEND_API_KEY=re_xxx`. Until this is set, orders still work and emails are logged as *skipped*.
 4. **Admin login:** Supabase dashboard → Authentication → Add user (email + password), then in the SQL editor:
    `insert into shop_admins (user_id, email) select id, email from auth.users where email = 'you@example.com';`
-5. **Hosting (Cloudflare Pages, this repo):** Cloudflare dashboard → Workers & Pages → Create → Pages →
-   Connect to Git → `dowdarts/aads-war-room`. Build settings: production branch `master`,
-   build command `npm run build:shop`, output directory `dist-shop`, root directory `/`,
-   environment variable `NODE_VERSION = 22`. Then Custom domains → add `shop.aadsdarts.com`
-   (automatic if aadsdarts.com's DNS is on Cloudflare; otherwise add `CNAME shop → <project>.pages.dev`
-   at your DNS provider). `shop/public/_redirects` makes deep links like `/admin` and `/custom-order/…` work.
+5. **Hosting (Cloudflare Workers, this repo):** Cloudflare dashboard → Workers & Pages → Create → import
+   `dowdarts/aads-war-room`. Project name `cgc-shop` (must match `wrangler.jsonc`), build command
+   `npm run build:shop`, deploy command `npx wrangler deploy`. Then Settings → Domains & Routes → add custom
+   domain `shop.aadsdarts.com`. `wrangler.jsonc` publishes `dist-shop` with single-page-app routing so deep
+   links like `/admin` and `/custom-order/…` work.
 6. **Admin → Settings:** set the shipping charge for 1–2 shirt orders (checkout for fewer than 3 shirts is blocked until set),
    e-Transfer details, and the admin notification email.
 7. **Admin → Products → Bulk image upload:** load the collection artwork (`<product-slug>-front.jpg`, `-back.jpg`, `-gallery-1.jpg`).
