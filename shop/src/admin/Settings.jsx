@@ -17,8 +17,11 @@ const FIELDS = [
   ['custom_shipping_cents', 'Custom/team order shipping ($)', 'money'],
   ['tax_rate_percent', 'Tax rate (%)', 'number', '0 = no tax'],
   ['retail_quote_message', 'Message for 7+ retail shirts', 'long'],
-  ['admin_notify_email', 'Admin notification email', 'text', 'Private — new orders and inquiries are sent here.'],
-  ['email_from', 'Email sender', 'text', 'Must be on a domain verified in Resend, e.g. CGC Darts <orders@aadsdarts.com>'],
+  ['admin_notify_email', 'Admin notification email', 'text', 'Private — new order and design-request alerts are sent here.'],
+  ['email_from', 'Sender for customer emails', 'text', 'Confirmations, invoices, receipts, mockups. Must be @aadsdarts.com (verified in Resend).'],
+  ['reply_to_email', 'Customer reply-to address', 'text', 'Where customer replies go, e.g. shop@aadsdarts.com (forward it to your inbox).'],
+  ['email_from_orders', 'Sender for new-order alerts', 'text', 'e.g. CGC Darts Invoices <invoice@aadsdarts.com> — filter on this to label orders.'],
+  ['email_from_inquiries', 'Sender for design-request alerts', 'text', 'e.g. CGC Darts Custom <custom@aadsdarts.com> — filter on this to label requests.'],
 ]
 const PUBLIC = new Set(['business_name', 'shop_url', 'logo_url', 'contact_email', 'etransfer_email', 'etransfer_instructions', 'shipping_cents', 'free_shipping_min_qty', 'custom_shipping_cents', 'tax_rate_percent', 'retail_quote_message'])
 

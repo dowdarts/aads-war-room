@@ -4,7 +4,7 @@
 import { serve, json, readJson, str, HttpError, randomToken, sha256Hex, CORS_HEADERS } from '../_shared/http.js'
 import { db, must, getSettings, audit } from '../_shared/db.js'
 import { requireAdmin } from '../_shared/auth.js'
-import { sendEmail, retryEmail, templates } from '../_shared/email.js'
+import { sendEmail, retryEmail, templates, customerReplyTo } from '../_shared/email.js'
 import { bytesToBase64 } from '../_shared/invoice-pdf.js'
 import { confirmOrder, saveInvoice, sendInvoice, recordPayment, createProjectDocument, pdfFor, issueReceipt, creditsFor } from '../_shared/invoices.js'
 import { CUSTOM } from '../_shared/pricing.js'
@@ -93,7 +93,7 @@ const actions = {
     const email = await sendEmail({
       purpose: 'mockup', to: customer.email, subject: `${roundLabel} — ${project.title}`,
       html: templates.mockup(settings, project, customer, { roundLabel, note: str(b.note, 2000) }),
-      from: settings.email_from, replyTo: settings.contact_email,
+      from: settings.email_from, replyTo: customerReplyTo(settings),
       attachments: bytes.length < 9_000_000 ? [{ filename: file.file_name, content: bytesToBase64(bytes) }] : undefined,
       dedupeKey: `mockup:${file.id}`, force: !!b.force, projectId: project.id,
     })
@@ -165,7 +165,7 @@ const actions = {
       const customer = must(await db.from('shop_customers').select('*').eq('id', project.customer_id).single(), 'customer')
       email = await sendEmail({
         purpose: 'private_link', to: customer.email, subject: `Your approved design is ready to order — ${project.title}`,
-        html: templates.privateLink(settings, project, customer, url), from: settings.email_from, replyTo: settings.contact_email,
+        html: templates.privateLink(settings, project, customer, url), from: settings.email_from, replyTo: customerReplyTo(settings),
         dedupeKey: `private_link:${link.id}`, projectId: project.id,
       })
     }
@@ -194,7 +194,7 @@ const actions = {
       const settings = await getSettings()
       email = await sendEmail({
         purpose: 'shipped', to: order.contact_email, subject: `Your order ${order.order_number} has shipped`,
-        html: templates.shipped(settings, order, shipment), from: settings.email_from, replyTo: settings.contact_email,
+        html: templates.shipped(settings, order, shipment), from: settings.email_from, replyTo: customerReplyTo(settings),
         dedupeKey: `shipped:${shipment.id}`, orderId,
       })
       if (email.status === 'sent') await db.from('shop_shipments').update({ notified_at: new Date().toISOString() }).eq('id', shipment.id)

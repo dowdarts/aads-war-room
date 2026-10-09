@@ -13,7 +13,7 @@
 import { db, must, getSettings, audit } from './db.js'
 import { HttpError } from './http.js'
 import { renderInvoicePdf, bytesToBase64 } from './invoice-pdf.js'
-import { sendEmail, templates } from './email.js'
+import { sendEmail, templates, customerReplyTo } from './email.js'
 import { priceCustom, formatCents } from './pricing.js'
 
 export const DESIGN_FEE_TERMS = 'The one-time $50 design/setup/processing fee includes the initial shirt mockup and two rounds of requested design revisions. Additional revision rounds are available in packages of two for $25 each, charged only after the customer requests and approves them.'
@@ -97,7 +97,7 @@ function baseSnapshot(settings, { kind, number, version, customer, order, projec
     title: kind === 'quote' ? 'Quote' : kind === 'receipt' ? 'Receipt' : 'Invoice',
     number, version,
     issuedDate: today(),
-    business: { name: settings.business_name || 'CGC Darts × MD Studios', contactEmail: settings.contact_email || '' },
+    business: { name: settings.business_name || 'CGC Darts × MD Studios', contactEmail: customerReplyTo(settings) || '' },
     customer: { name: customer.name, email: customer.email, phone: customer.phone, team: customer.team },
     shipTo: order ? { street: order.ship_street, city: order.ship_city, province: order.ship_province, postal: order.ship_postal, country: order.ship_country } : null,
     reference: order?.order_number || project?.project_number || number,
@@ -265,7 +265,7 @@ export async function sendInvoice(invoiceId, admin, { force = false } = {}) {
   })
   const result = await sendEmail({
     purpose: inv.kind === 'quote' ? 'quote' : 'invoice', to: customer.email, subject, html,
-    from: settings.email_from, replyTo: settings.contact_email,
+    from: settings.email_from, replyTo: customerReplyTo(settings),
     attachments: [{ filename: `${inv.invoice_number}${inv.version > 1 ? `-v${inv.version}` : ''}.pdf`, content: bytesToBase64(bytes) }],
     dedupeKey: `${inv.kind}:${inv.invoice_number}:v${inv.version}`, force,
     orderId: inv.order_id, projectId: inv.project_id, invoiceId: inv.id,
@@ -335,7 +335,7 @@ async function settleAfterPayment({ inv, orderId, projectId, payment, admin }) {
     await sendEmail({
       purpose: 'payment_partial', to: customer.email, subject: `Payment received — ${formatCents(balanceCents)} remaining`,
       html: templates.paymentPartial(settings, { reference: inv.snapshot.reference, paidCents: payment.amount_cents, balanceCents }),
-      from: settings.email_from, replyTo: settings.contact_email, dedupeKey: `payment:${payment.id}`,
+      from: settings.email_from, replyTo: customerReplyTo(settings), dedupeKey: `payment:${payment.id}`,
       orderId: inv.order_id, projectId: inv.project_id, invoiceId: inv.id,
     })
   }
@@ -373,7 +373,7 @@ export async function issueReceipt(inv, settings, admin) {
   const email = await sendEmail({
     purpose: 'receipt', to: customer.email, subject: `Payment received — ${receipt.snapshot.reference} confirmed`,
     html: templates.receipt(settings, receipt, { reference: receipt.snapshot.reference }),
-    from: settings.email_from, replyTo: settings.contact_email,
+    from: settings.email_from, replyTo: customerReplyTo(settings),
     attachments: [{ filename: `${receipt.invoice_number}.pdf`, content: bytesToBase64(bytes) }],
     dedupeKey: `receipt:${inv.invoice_number}`, orderId: receipt.order_id, projectId: receipt.project_id, invoiceId: receipt.id,
   })

@@ -4,7 +4,7 @@
 // inquiry + design project. Never creates an order or cart.
 import { serve, json, str, HttpError, EMAIL_RE } from '../_shared/http.js'
 import { db, must, getSettings, rateLimit, audit } from '../_shared/db.js'
-import { sendEmail, templates } from '../_shared/email.js'
+import { sendEmail, templates, customerReplyTo } from '../_shared/email.js'
 import { priceCustom } from '../_shared/pricing.js'
 
 const MAX_FILES = 10
@@ -77,8 +77,8 @@ serve(async req => {
 
     const customer = must(await db.from('shop_customers').select('*').eq('id', customerId).single(), 'customer')
     await Promise.all([
-      sendEmail({ purpose: 'inquiry_ack', to: email, subject: `We got your design request — ${inquiryNumber}`, html: templates.inquiryAck(settings, inquiry, customer), from: settings.email_from, replyTo: settings.contact_email, dedupeKey: `inquiry_ack:${inquiryNumber}`, projectId: project.id }),
-      settings.admin_notify_email && sendEmail({ purpose: 'admin_new_inquiry', to: settings.admin_notify_email, subject: `New design inquiry ${inquiryNumber} — ${qty} shirts`, html: templates.inquiryAdmin(settings, inquiry, customer, project, uploaded.length), from: settings.email_from, replyTo: email, dedupeKey: `admin_inquiry:${inquiryNumber}`, projectId: project.id }),
+      sendEmail({ purpose: 'inquiry_ack', to: email, subject: `We got your design request — ${inquiryNumber}`, html: templates.inquiryAck(settings, inquiry, customer), from: settings.email_from, replyTo: customerReplyTo(settings), dedupeKey: `inquiry_ack:${inquiryNumber}`, projectId: project.id }),
+      settings.admin_notify_email && sendEmail({ purpose: 'admin_new_inquiry', to: settings.admin_notify_email, subject: `New design inquiry ${inquiryNumber} — ${qty} shirts`, html: templates.inquiryAdmin(settings, inquiry, customer, project, uploaded.length), from: settings.email_from_inquiries || settings.email_from, replyTo: email, dedupeKey: `admin_inquiry:${inquiryNumber}`, projectId: project.id }),
     ])
     return json({ inquiryNumber, projectNumber, estimateCents: estimate.totalCents })
   } catch (err) {

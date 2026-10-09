@@ -1,7 +1,7 @@
 // Order helpers shared by shop-checkout and shop-private-order.
 import { str, HttpError, EMAIL_RE } from './http.js'
 import { db, must, getSettings } from './db.js'
-import { sendEmail, templates } from './email.js'
+import { sendEmail, templates, customerReplyTo } from './email.js'
 
 const DISCOUNT_ERRORS = {
   DISCOUNT_INVALID: 'That discount code isn’t valid.', DISCOUNT_NOT_STARTED: 'That code isn’t active yet.', DISCOUNT_EXPIRED: 'That code has expired.',
@@ -48,11 +48,11 @@ export async function notifyNewOrder(orderId, trackingToken) {
     sendEmail({
       purpose: 'order_received', to: order.contact_email, subject: `Order received — ${order.order_number}`,
       html: templates.orderReceivedCustomer(settings, order, items, trackUrl),
-      from: settings.email_from, replyTo: settings.contact_email, dedupeKey: `order_received:${order.order_number}`, orderId,
+      from: settings.email_from, replyTo: customerReplyTo(settings), dedupeKey: `order_received:${order.order_number}`, orderId,
     }),
     settings.admin_notify_email && sendEmail({
       purpose: 'admin_new_order', to: settings.admin_notify_email, subject: `New order ${order.order_number} — ${order.contact_name}`,
-      html: templates.orderReceivedAdmin(settings, order, items), from: settings.email_from, replyTo: order.contact_email,
+      html: templates.orderReceivedAdmin(settings, order, items), from: settings.email_from_orders || settings.email_from, replyTo: order.contact_email,
       dedupeKey: `admin_new_order:${order.order_number}`, orderId,
     }),
   ])

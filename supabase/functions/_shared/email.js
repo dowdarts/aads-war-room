@@ -9,6 +9,15 @@ import { formatCents as money } from './pricing.js'
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 
 /**
+ * Where customer replies go. Customers only ever see the shop's own addresses
+ * (shop@aadsdarts.com by default); admin alerts use separate sender addresses
+ * (invoice@ / custom@) so they can be auto-labelled in the admin's inbox.
+ */
+export function customerReplyTo(settings) {
+  return settings.reply_to_email || settings.contact_email || undefined
+}
+
+/**
  * @param {object} p
  * @param {string} p.purpose
  * @param {string} p.to
@@ -66,7 +75,7 @@ export async function sendEmail({ purpose, to, subject, html, from, replyTo, att
 export async function retryEmail(eventId, { from }) {
   const { data: ev } = await db.from('shop_email_events').select('*').eq('id', eventId).single()
   if (!ev) return { status: 'failed', error: 'Not found' }
-  return sendEmail({ purpose: ev.purpose, to: ev.recipient, subject: ev.subject, html: ev.payload?.html || '', from: ev.payload?.from || from, dedupeKey: ev.dedupe_key, force: true, orderId: ev.order_id, projectId: ev.project_id, invoiceId: ev.invoice_id })
+  return sendEmail({ purpose: ev.purpose, to: ev.recipient, subject: ev.subject, html: ev.payload?.html || '', from: ev.payload?.from || from, replyTo: ev.payload?.replyTo, dedupeKey: ev.dedupe_key, force: true, orderId: ev.order_id, projectId: ev.project_id, invoiceId: ev.invoice_id })
 }
 
 // ── Templates ──────────────────────────────────────────────
@@ -82,7 +91,7 @@ export function layout(settings, title, bodyHtml) {
 <h1 style="margin:0 0 12px;font-size:22px;font-weight:900">${h(title)}</h1>
 ${bodyHtml}
 </td></tr>
-<tr><td style="padding:16px 24px;background:#fafafa;color:#71717a;font-size:12px">${brand} · Prices in CAD${settings.contact_email ? ` · <a href="mailto:${h(settings.contact_email)}" style="color:#71717a">${h(settings.contact_email)}</a>` : ''}</td></tr>
+<tr><td style="padding:16px 24px;background:#fafafa;color:#71717a;font-size:12px">${brand} · Prices in CAD${customerReplyTo(settings) ? ` · <a href="mailto:${h(customerReplyTo(settings))}" style="color:#71717a">${h(customerReplyTo(settings))}</a>` : ''}</td></tr>
 </table></td></tr></table></body></html>`
 }
 
