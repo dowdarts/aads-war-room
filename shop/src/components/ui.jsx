@@ -6,7 +6,7 @@ import { RETAIL } from '@pricing'
 /** Branded placeholder used until real artwork is uploaded. */
 export function Placeholder({ label = 'CGC', className = '' }) {
   return (
-    <div className={`flex aspect-square w-full flex-col items-center justify-center bg-gradient-to-br from-[#1d1d22] to-[#0f0f11] ${className}`}>
+    <div className={`flex aspect-[4/3] w-full flex-col items-center justify-center bg-gradient-to-br from-[#1d1d22] to-[#0f0f11] ${className}`}>
       <div className="text-3xl font-black tracking-tight text-white/90">CGC<span className="text-accent">.</span></div>
       <div className="mt-1 text-[10px] font-black uppercase tracking-[.3em] text-muted">{label}</div>
     </div>
@@ -16,7 +16,8 @@ export function Placeholder({ label = 'CGC', className = '' }) {
 export function ProductImage({ src, alt, className = '', label }) {
   const [failed, setFailed] = useState(false)
   if (!src || failed) return <Placeholder label={label || 'Artwork coming soon'} className={className} />
-  return <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className={`aspect-square w-full object-cover ${className}`} />
+  // Mockups show front + back side by side, so fit the whole image rather than cropping.
+  return <img src={src} alt={alt} loading="lazy" onError={() => setFailed(true)} className={`aspect-[4/3] w-full bg-white object-contain ${className}`} />
 }
 
 export function fromPrice(product) {

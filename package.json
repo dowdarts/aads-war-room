@@ -14,7 +14,7 @@
     "deploy": "gh-pages -d dist",
     "dev:shop": "vite --config vite.shop.config.js",
     "build:shop": "vite build --config vite.shop.config.js",
-    "deploy:shop": "npm run build:shop && wrangler pages deploy --branch master --commit-dirty=true",
+    "deploy:shop": "npm run build:shop && npx -y wrangler@4 pages deploy --branch master --commit-dirty=true",
     "test:pricing": "node --test supabase/functions/_shared/pricing.test.mjs"
   },
   "dependencies": {
