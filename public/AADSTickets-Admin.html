@@ -438,14 +438,13 @@
     document.getElementById('invGaAvail').textContent = gaAvail
 
     // Financial summary — COMP tickets are excluded, no cash changes hands.
-    // GA is always exactly $10/ticket. VIP is always exactly $110/table (6
-    // seats) — summing the per-seat `price` column (110/6 = $18.33, which
-    // doesn't divide evenly) drifts a couple cents short per table, so VIP
-    // value is computed from whole tables instead of summed seat prices.
+    // GA is always exactly $15/ticket. VIP is always exactly $120/table (6
+    // seats), so VIP value is computed from whole tables rather than summed
+    // seat prices.
     const sumValue = list => {
       const gaCount  = list.filter(t => t.ticket_type === 'GA').length
       const vipCount = list.filter(t => t.ticket_type === 'VIP').length
-      return gaCount * 10 + Math.round(vipCount / 6) * 110
+      return gaCount * 15 + Math.round(vipCount / 6) * 120
     }
     const raised       = sumValue(allTickets.filter(t => t.payment_status === 'PAID'))
     const pendingValue = sumValue(allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT'))
@@ -664,8 +663,8 @@
   }
 
   function ticketImgUrl(t) {
-    const file = t.print_file || (t.ticket_number.replace('-', '_') + '.jpg')
-    return `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${file}`
+    if (!t.print_file) return `AADSTickets-View.html?code=${encodeURIComponent(t.ticket_code)}`
+    return `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${t.print_file}`
   }
 
   function ticketRow(t) {

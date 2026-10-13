@@ -319,7 +319,7 @@
 
   <!-- Flash banner -->
   <div class="flash-banner">
-    🎯 TOURNAMENT OF CHAMPIONS<span>·</span>JULY 25, 2026<span>·</span>CLUB D'AGE D'OR · SCOUDOUC, NB<span>·</span>PRESENTED BY AMHERST PHARMACHOICE<span>·</span>🎯
+    🎯 TOURNAMENT OF CHAMPIONS<span>·</span>DATE TBA<span>·</span>CLUB D'AGE D'OR · SCOUDOUC, NB<span>·</span>PRESENTED BY AMHERST PHARMACHOICE<span>·</span>🎯
   </div>
 
   <!-- Sale closed state -->
@@ -356,7 +356,7 @@
     <div class="hero">
       <img src="https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/aads-ticket-pass-logo.png" alt="AADS Ticket Pass" style="height:180px;width:auto;object-fit:contain;margin-bottom:20px;display:block;margin-left:auto;margin-right:auto;" />
 <div class="hero-event-info">
-        <div class="hero-event-chip">📅 Saturday, July 25, 2026</div>
+        <div class="hero-event-chip">📅 Date TBA</div>
         <div class="hero-event-chip">📍 Club d'Age d'Or, Scoudouc, NB</div>
         <div class="hero-event-chip">🚪 Doors Open 8 AM · Play Starts 9 AM</div>
       </div>
@@ -387,8 +387,8 @@
             <div class="tc-icon">👑</div>
             <div class="tc-name">VIP Table Package</div>
             <div class="tc-desc">Front-row premium table · Seats 6 guests · Includes 6 individual seat tickets · Gold wristbands</div>
-            <div class="tc-price tc-price-vip">$110<span style="font-size:14px;font-weight:700;color:var(--muted)"> /table</span></div>
-            <div class="tc-price-sub">6 seats included · $18.33/seat</div>
+            <div class="tc-price tc-price-vip">$120<span style="font-size:14px;font-weight:700;color:var(--muted)"> /table</span></div>
+            <div class="tc-price-sub">6 seats included · $20/seat</div>
             <div class="tc-avail" id="vipAvail">Loading…</div>
           </div>
 
@@ -398,7 +398,7 @@
             <div class="tc-icon">🎯</div>
             <div class="tc-name">General Admission</div>
             <div class="tc-desc">General standing/seating area · White wristband · Named ticket with unique QR code</div>
-            <div class="tc-price tc-price-ga">$10<span style="font-size:14px;font-weight:700;color:var(--muted)"> each</span></div>
+            <div class="tc-price tc-price-ga">$15<span style="font-size:14px;font-weight:700;color:var(--muted)"> each</span></div>
             <div class="tc-price-sub">Per individual ticket</div>
             <div class="tc-avail" id="gaAvail">Loading…</div>
           </div>
@@ -645,7 +645,7 @@
         if (selectedType === 'vip') updateQtyControls()
       } else {
         vipCard.classList.remove('sold-out-card')
-        vipAvail.textContent = `${vipTablesAvail} of 4 tables remaining`
+        vipAvail.textContent = `${vipTablesAvail} of 5 tables remaining`
         vipAvail.className = vipTablesAvail <= 2 ? 'tc-avail tc-avail-low' : 'tc-avail tc-avail-ok'
         vipBadge.className = 'tc-badge tc-badge-vip'
         vipBadge.textContent = 'VIP'
@@ -735,10 +735,10 @@
 
       if (selectedType === 'vip') {
         document.getElementById('qtyLabel').textContent = 'Tables'
-        document.getElementById('qtyHelp').textContent = `Max 2 tables per order · $110 each · ${selectedQty * 6} seat${selectedQty * 6 !== 1 ? 's' : ''} total`
+        document.getElementById('qtyHelp').textContent = `Max 2 tables per order · $120 each · ${selectedQty * 6} seat${selectedQty * 6 !== 1 ? 's' : ''} total`
       } else {
         document.getElementById('qtyLabel').textContent = 'Tickets'
-        document.getElementById('qtyHelp').textContent = `Max 10 per order · $10 each · $${selectedQty * 10} total`
+        document.getElementById('qtyHelp').textContent = `Max 10 per order · $15 each · $${selectedQty * 15} total`
       }
     }
 
@@ -821,7 +821,7 @@
       const lastName  = document.getElementById('buyerLastName').value.trim()
       const name  = `${firstName} ${lastName}`
       const email = document.getElementById('buyerEmail').value.trim()
-      const total = selectedType === 'vip' ? selectedQty * 110 : selectedQty * 10
+      const total = selectedType === 'vip' ? selectedQty * 120 : selectedQty * 15
       const typeLabel = selectedType === 'vip' ? `VIP Table Package × ${selectedQty}` : `General Admission × ${selectedQty}`
       const delivLabel = 'Virtual Ticket by Email'
 
@@ -919,7 +919,7 @@
         }
 
         orderExpiresAt = new Date(result.expires_at)
-        showConfirmation({ orderNum, result, name, email, total: selectedType === 'vip' ? selectedQty * 110 : selectedQty * 10 })
+        showConfirmation({ orderNum, result, name, email, total: selectedType === 'vip' ? selectedQty * 120 : selectedQty * 15 })
       } catch (e) {
         errEl.textContent = e.message || 'Something went wrong. Please try again.'
         errEl.classList.remove('hidden')
@@ -953,7 +953,7 @@
       `
       document.getElementById('cfDeliveryNote').innerHTML = deliveryMethod === 'virtual'
         ? `📧 <strong>Virtual Tickets:</strong> Once your e-transfer is confirmed, your tickets will be emailed to <strong>${esc(email)}</strong>.`
-        : `📦 <strong>Box Office Pickup:</strong> Once your e-transfer is confirmed, your tickets will be held at the door. The purchaser must be present on July 25 with valid photo ID — name must match your order. Tickets will not be released to anyone else.`
+        : `📦 <strong>Box Office Pickup:</strong> Once your e-transfer is confirmed, your tickets will be held at the door. The purchaser must be present on event day with valid photo ID — name must match your order. Tickets will not be released to anyone else.`
 
       document.getElementById('confirmView').classList.remove('hidden')
       window.scrollTo({ top: 0, behavior: 'smooth' })
