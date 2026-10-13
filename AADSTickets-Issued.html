@@ -138,7 +138,7 @@
   <div class="hdr">
     <div>
       <div class="hdr-title">🎟️ Issued Tickets</div>
-      <div class="hdr-sub">Tournament of Champions · July 25, 2026</div>
+      <div class="hdr-sub">Tournament of Champions · Date TBA</div>
     </div>
     <div class="hdr-actions">
       <button class="btn btn-outline" onclick="history.back()">← Back</button>
@@ -328,14 +328,13 @@
       document.getElementById('statNotIssued').textContent = notIssued
 
       // Financial summary — COMP tickets are excluded, no cash changes hands.
-      // GA is always exactly $10/ticket. VIP is always exactly $110/table (6
-      // seats) — summing the per-seat `price` column (110/6 = $18.33, which
-      // doesn't divide evenly) drifts a couple cents short per table, so VIP
-      // value is computed from whole tables instead of summed seat prices.
+      // GA is always exactly $15/ticket. VIP is always exactly $120/table (6
+      // seats), so VIP value is computed from whole tables rather than summed
+      // seat prices.
       const sumValue = list => {
         const gaCount  = list.filter(t => t.ticket_type === 'GA').length
         const vipCount = list.filter(t => t.ticket_type === 'VIP').length
-        return gaCount * 10 + Math.round(vipCount / 6) * 110
+        return gaCount * 15 + Math.round(vipCount / 6) * 120
       }
       const raised       = sumValue(allTickets.filter(t => t.payment_status === 'PAID'))
       const pendingValue = sumValue(allTickets.filter(t => t.payment_status === 'PENDING_PAYMENT'))
@@ -442,8 +441,7 @@
           : '<span style="color:var(--muted2);font-size:11px">—</span>'
 
         const canMarkPaid = t.payment_status === 'PENDING_PAYMENT' && !t.checked_in
-        const imgFile = t.print_file || (t.ticket_number.replace('-', '_') + '.jpg')
-        const viewUrl = `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`
+        const viewUrl = ticketUrl(t)
 
         const canBeIssued = t.payment_status === 'PAID' || t.payment_status === 'COMP'
         const isIssued = t.tickets_issued === true
@@ -538,11 +536,11 @@
           ].filter(Boolean).join(' ')
         }
 
-        // GA is $10/ticket, VIP is $110/table — computed from counts rather
-        // than summed per-seat price (110/6 doesn't divide evenly in cents).
+        // GA is $15/ticket, VIP is $120/table — computed from counts rather
+        // than summed per-seat price.
         const gaCountAll  = gTickets.filter(t => t.ticket_type === 'GA').length
         const vipCountAll = gTickets.filter(t => t.ticket_type === 'VIP').length
-        const total    = gaCountAll * 10 + Math.round(vipCountAll / 6) * 110
+        const total    = gaCountAll * 15 + Math.round(vipCountAll / 6) * 120
         const totalStr = total > 0 ? `$${total.toFixed(2)}` : '—'
 
         // Deliverable tickets are the ones that actually get emailed/issued — PAID or COMP
@@ -625,14 +623,18 @@
       selectedCodes.forEach(code => {
         const t = allTickets.find(t => t.ticket_code === code)
         if (!t) return
-        const imgFile = t.print_file || (t.ticket_number.replace('-', '_') + '.jpg')
-        window.open(`https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`, '_blank', 'noopener,noreferrer')
+        window.open(ticketUrl(t), '_blank', 'noopener,noreferrer')
       })
+    }
+
+    // Pre-generated ticket image when one exists, otherwise the live ticket page.
+    function ticketUrl(t) {
+      if (t.print_file) return `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${t.print_file}`
+      return new URL(`AADSTickets-View.html?code=${encodeURIComponent(t.ticket_code)}`, location.href).href
     }
 
     function emailTicket(code, email, orderId) {
       const decodedCode = decodeURIComponent(code)
-      const baseUrl = 'https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/'
 
       // Gather ALL PAID/COMP tickets for this buyer email across all orders,
       // so a single email includes every ticket they purchased or were comp'd.
@@ -647,16 +649,15 @@
       }
 
       const ticketLinks = orderTickets.map(t => {
-        const imgFile = t.print_file || (t.ticket_number ? t.ticket_number.replace('-', '_') + '.jpg' : null)
         const holder = t.ticket_holder_name || t.purchaser_name || ''
-        return `${t.ticket_number}${holder ? ' — ' + holder : ''}\n${baseUrl}${imgFile}`
+        return `${t.ticket_number}${holder ? ' — ' + holder : ''}\n${ticketUrl(t)}`
       }).join('\n\n')
 
       const buyerName = (orderTickets[0]?.purchaser_name || orderTickets[0]?.ticket_holder_name || '').split(' ')[0] || ''
       const plural = orderTickets.length > 1
       const subject = encodeURIComponent(`Your AADS Tournament of Champions Ticket${plural ? 's' : ''}`)
       const body = encodeURIComponent(
-        `Hi ${buyerName},\n\nYour ticket${plural ? 's' : ''} for the AADS Tournament of Champions ${plural ? 'are' : 'is'} ready!\n\nEvent: Saturday, July 25, 2026\nVenue: Club d'Age d'Or, Scoudouc, NB\nDoors Open: 8 AM · Play Starts: 9 AM\n\nYour Ticket${plural ? 's' : ''}:\n\n${ticketLinks}\n\nPresent your ticket${plural ? 's' : ''} at the door on July 25.\n\n— AADS`
+        `Hi ${buyerName},\n\nYour ticket${plural ? 's' : ''} for the AADS Tournament of Champions ${plural ? 'are' : 'is'} ready!\n\nEvent: Date TBA\nVenue: Club d'Age d'Or, Scoudouc, NB\nDoors Open: 8 AM · Play Starts: 9 AM\n\nYour Ticket${plural ? 's' : ''}:\n\n${ticketLinks}\n\nPresent your ticket${plural ? 's' : ''} at the door on event day.\n\n— AADS`
       )
       window.location.href = `mailto:${email}?subject=${subject}&body=${body}`
     }

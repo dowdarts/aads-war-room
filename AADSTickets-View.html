@@ -9,6 +9,7 @@
   <link rel="apple-touch-icon" href="https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/branding/icon-ticket-pass.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <title>AADS TOC 2026 — Ticket</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -209,7 +210,7 @@
           <div class="ticket-details">
             <div class="ticket-detail-row">
               <span class="ticket-detail-icon">📅</span>
-              <span class="ticket-detail-val"><strong>Saturday, July 25, 2026</strong></span>
+              <span class="ticket-detail-val"><strong>Date TBA</strong></span>
             </div>
             <div class="ticket-detail-row">
               <span class="ticket-detail-icon">📍</span>
@@ -274,14 +275,68 @@
     }
 
     function renderTicket(t) {
-      const imgFile = t.print_file || (t.ticket_number ? t.ticket_number.replace('-', '_') + '.jpg' : null)
-      if (imgFile) {
+      // Pre-generated ticket image when one exists, otherwise draw it live.
+      if (t.print_file) {
         window.location.replace(
-          `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${imgFile}`
+          `https://gygwhznblajojwveikhg.supabase.co/storage/v1/object/public/toc-tickets/${t.print_file}`
         )
-      } else {
-        showNotFound()
+        return
       }
+
+      const isVIP  = t.ticket_type === 'VIP'
+      const isComp = t.payment_status === 'COMP'
+
+      // Band
+      document.getElementById('bandNum').textContent = t.ticket_number || t.ticket_code
+
+      // Type badge
+      const badge = document.getElementById('typeBadge')
+      if (isComp) {
+        badge.className = 'ticket-type-badge comp'
+        badge.textContent = isVIP ? '👑 Complimentary VIP' : '🎟️ Complimentary'
+      } else if (isVIP) {
+        badge.className = 'ticket-type-badge vip'
+        badge.textContent = '👑 VIP Table Package'
+      } else {
+        badge.className = 'ticket-type-badge ga'
+        badge.textContent = '🎟️ General Admission'
+      }
+
+      // Holder
+      document.getElementById('holderName').textContent = t.ticket_holder_name || t.purchaser_name || 'Guest'
+
+      // Seat (VIP only)
+      if (isVIP && t.table_number) {
+        const sb = document.getElementById('seatBadge')
+        sb.textContent = `🪑 Table ${t.table_number} · Seat ${t.seat_number}`
+        sb.classList.remove('hidden')
+      }
+
+      // Footer
+      document.getElementById('footerNum').textContent = t.ticket_number || '—'
+      document.getElementById('footerPayment').textContent = t.payment_status || '—'
+
+      const braceletEl = document.getElementById('braceletBadge')
+      if (isVIP) {
+        braceletEl.textContent = '🟠 VIP Orange'
+        braceletEl.className = 'bracelet-badge bracelet-vip'
+      } else {
+        braceletEl.textContent = '⚪ GA White'
+        braceletEl.className = 'bracelet-badge bracelet-ga'
+      }
+
+      // QR code
+      QRCode.toCanvas(document.getElementById('qrCanvas'), t.ticket_code || t.qr_payload, {
+        width: 140, margin: 2, color: { dark: '#000000', light: '#ffffff' }
+      })
+      document.getElementById('ticketCodeSmall').textContent = t.ticket_code
+
+      // Screen label
+      document.getElementById('screenLabel').textContent =
+        `${t.ticket_number || t.ticket_code} · ${t.payment_status}`
+
+      document.getElementById('loadingState').classList.add('hidden')
+      document.getElementById('ticketWrap').classList.remove('hidden')
     }
 
     function showNotFound() {
