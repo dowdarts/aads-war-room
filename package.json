@@ -10,15 +10,12 @@
     "prebuild": "node scripts/export-players-json.mjs",
     "build": "vite build",
     "preview": "vite preview",
-    "predeploy": "vite build",
-    "deploy": "gh-pages -d dist",
     "dev:shop": "vite --config vite.shop.config.js",
     "build:shop": "vite build --config vite.shop.config.js",
     "deploy:shop": "npm run build:shop && npx -y wrangler@4 pages deploy --branch master --commit-dirty=true",
     "test:pricing": "node --test supabase/functions/_shared/pricing.test.mjs"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.21.0",
     "@supabase/supabase-js": "^2.99.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -27,7 +24,6 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "gh-pages": "^6.3.0",
     "tailwindcss": "^4.1.0",
     "vite": "^7.3.1"
   }
