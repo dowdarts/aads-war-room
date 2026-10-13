@@ -7,11 +7,9 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const SESSION_KEY = 'aads_staff_session'
 
 const ALL_TOOLS = [
-  { id: 'interview', label: 'Denis Interview Assistant', icon: '🎙️', path: 'interview.html' },
   { id: 'commentator', label: 'Commentator', icon: '🎤', tabId: 'commentator' },
   { id: 'scanner', label: 'QR Scanner', icon: '📷', path: 'AADSTickets-Scanner.html' },
   { id: 'checkin', label: 'Ticket Check-in', icon: '✅', path: 'AADSTickets-Checkin.html' },
-  { id: 'interview-admin', label: 'Interview Admin', icon: '📋', path: 'interview-admin.html' },
   { id: 'ticket-sales', label: 'Ticket Sales', icon: '🎟️', path: 'AADSTickets-Dashboard.html' },
   { id: 'shirt-admin', label: 'Shirt Admin', icon: '👕', path: 'shirt-admin.html' },
   { id: 'shirt-order', label: 'Shirt Order', icon: '🧾', path: 'shirt-order.html' },

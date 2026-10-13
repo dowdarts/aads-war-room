@@ -9,22 +9,10 @@ A dark-themed (orange/black) React + Vite dashboard for live darts commentary.
    npm install
    ```
 
-2. Create your API key file (never committed to git):
-   ```
-   cp .env.example .env.local
-   ```
-   Then open `.env.local` and paste your Google AI Studio API key.
-
-3. Start the dev server:
+2. Start the dev server:
    ```
    npm run dev
    ```
-
-## Getting a Gemini API key
-
-1. Go to [https://aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey)
-2. Create a new API key
-3. Paste it into `.env.local` as `VITE_GEMINI_API_KEY=your_key_here`
 
 ## Data
 
@@ -70,11 +58,9 @@ This site has three audiences: **Players**, **Staff**, and **Matthew (Master Adm
 
 | Tool | What it's for |
 |---|---|
-| 🎙️ **Denis Interview Assistant** | Logs live match events as they happen and auto-generates post-match interview questions, with a 3-minute on-air timer. |
 | 🎤 **Commentator** | Quick-reference player spotlights, stats, and talking points for live broadcast commentary; also has head-to-head prep. |
 | 📷 **QR Scanner** | Door check-in — scan a guest's ticket QR, confirm payment, and issue the right wristband (VIP/GA). Has its own 4-digit gate. |
 | ✅ **Ticket Check-in** | Live master list of who's checked in, with real-time counts and search — works alongside the QR Scanner. |
-| 📋 **Interview Admin** | Loads the player roster/match schedule (CSV) that powers Denis, and points Denis at the current match. PIN-gated. |
 | 🎟️ **Ticket Sales** | Snapshot of VIP/GA sales and check-in progress, with links into the ticket admin tools. PIN-gated. |
 | 👕 **Shirt Admin** | Confirms e-transfer payments on shirt orders, finalizes batches for the supplier, opens/closes the storefront, exports orders to CSV. PIN-gated. |
 | 🧾 **Shirt Order** | The customer-facing shirt order form (color/size/style/name) — open this on someone's behalf if they're ordering in person. |
@@ -83,7 +69,7 @@ This site has three audiences: **Players**, **Staff**, and **Matthew (Master Adm
 | 🚦 **Cue Light & Schedule** | Pick a role on this device: **Controller** (broadcast START/WAIT/OFF to the stage, manage the schedule, mark matches done) or **Display** (the big colored light + schedule players and the audience see). Works offline once installed. |
 | 💬 **Staff Chat** | Direct messages between staff — see who's online, send text/photos, get unread badges. Also pops up as a floating button across staff tools. |
 
-A few tools (Interview Admin, Ticket Sales, Shirt Admin, QR Scanner) ask for an extra numeric code on top of your staff sign-in — that's intentional, ask Matthew if you need it.
+A few tools (Ticket Sales, Shirt Admin, QR Scanner) ask for an extra numeric code on top of your staff sign-in — that's intentional, ask Matthew if you need it.
 
 ## For Matthew (Master Admin)
 
@@ -98,7 +84,6 @@ Everything Staff have, plus:
   - Upload live event result JSON files and override player data for the session.
   - Import a fresh player CSV from the Google Form, or export the current player database back to CSV.
   - Edit any individual player's profile (bio, province, stats overrides) and force a province assignment when auto-detection gets it wrong.
-  - Flip the payment/donation QR on or off, watch scan counts, approve incoming e-transfer donations, and configure the live fundraiser goal bar for OBS overlays.
 - **Policy Docs** — same library staff see; this is also where signed Acknowledgement waivers end up for your records.
 
 ### Quick links to share

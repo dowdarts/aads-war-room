@@ -10,7 +10,6 @@ const TABS = [
   { id: 'ack', label: '📋 Acknowledgements' },
   { id: 'policy', label: '📄 Policy Docs' },
   { id: 'form', label: '📝 Competition Form' },
-  { id: 'training', label: '🎯 Training' },
   { id: 'data', label: 'Data Manager' },
 ]
 

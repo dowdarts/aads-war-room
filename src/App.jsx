@@ -48,11 +48,6 @@ function AppShell() {
       return
     }
 
-    if (id === 'training') {
-      window.open('training.html', '_blank', 'noopener,noreferrer')
-      return
-    }
-
     if (LOCKED_TABS.includes(id) && !unlockedTabs.has(id)) {
       setPendingTab(id)
       return
