@@ -1,10 +1,18 @@
 // Konva attributes for a layer. Shared by the editor stage and the export
 // renderer so what you see is exactly what gets exported.
 
-import type { ImageLayer, TextLayer } from '../model/project';
+import type { Asset, ImageLayer, TextLayer } from '../model/project';
 
-export function imageAttrs(l: ImageLayer) {
-  return { x: l.x, y: l.y, width: l.w, height: l.h, rotation: l.rotation, opacity: l.opacity, visible: l.visible };
+export function imageAttrs(l: ImageLayer, a?: Asset, im?: HTMLImageElement | null) {
+  const base = { x: l.x, y: l.y, width: l.w, height: l.h, rotation: l.rotation, opacity: l.opacity, visible: l.visible };
+  // A zero-size crop means "whole image" to Konva; always passing one lets
+  // a crop be removed again without leaving a stale crop on the node.
+  if (!l.crop) return { ...base, crop: { x: 0, y: 0, width: 0, height: 0 } };
+  // Crop is stored in the asset's recorded pixels; the decoded image can have
+  // another intrinsic size (e.g. an SVG whose width differs from its viewBox).
+  const n = im?.naturalWidth || im?.width || 0;
+  const k = a && n ? n / a.width : 1;
+  return { ...base, crop: { x: l.crop.x * k, y: l.crop.y * k, width: l.crop.w * k, height: l.crop.h * k } };
 }
 
 export function textAttrs(l: TextLayer) {

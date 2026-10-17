@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
-  makeAsset, newProject, parseProject, serializeProject, withAsset,
+  cropOf, makeAsset, newProject, parseProject, recropLayer, serializeProject, withAsset, type Crop,
   type ImageLayer, type Layer, type Project, type TextLayer,
 } from '../model/project';
 import { historyReducer, initHistory, type History, type HistoryAction } from '../model/history';
@@ -176,11 +176,18 @@ export function useEditor() {
     if (!l || !z) return;
     if (l.kind === 'image') {
       const a = projectRef.current.assets[l.assetId];
-      updateLayer(id, { ...fitInZone(z, a ? a.width / a.height : l.w / l.h), rotation: 0 });
+      const c = a ? cropOf(l, a) : { w: l.w, h: l.h };
+      updateLayer(id, { ...fitInZone(z, c.w / c.h), rotation: 0 });
     } else {
       const fontSize = fitFontSize(l.text, l.fontFamily, l.fontStyle, z.w, z.h);
       updateLayer(id, { x: z.x, y: z.y + (z.h - fontSize * 1.05) / 2, w: z.w, fontSize, rotation: 0 });
     }
+  }
+
+  /** Non-destructive crop (undefined = show the whole original image). */
+  function cropLayer(id: string, crop: Crop | undefined) {
+    const p = projectRef.current;
+    apply({ ...p, layers: p.layers.map(l => (l.id === id && l.kind === 'image' && p.assets[l.assetId] ? recropLayer(l, p.assets[l.assetId], crop) : l)) });
   }
 
   function rename(name: string) { apply({ ...projectRef.current, name }, 'rename'); }
@@ -246,7 +253,7 @@ export function useEditor() {
   return {
     project, selected, selectedId, setSelectedId, placement, placementCode, setPlacementCode, zone,
     zoneOverrides, setZone, resetZones, dirty, persisted, filePath, notice, setNotice, say, history,
-    updateLayer, addImageFiles, addText, removeLayer, duplicateLayer, moveLayer, refit, rename, apply,
+    updateLayer, addImageFiles, addText, removeLayer, duplicateLayer, moveLayer, refit, cropLayer, rename, apply,
     saveFile, openFile, openText, openFromLibrary, newFile, exportPNG,
   };
 }

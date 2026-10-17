@@ -57,7 +57,8 @@ export async function renderToCanvas(project: Project, preset: ExportPreset): Pr
       if (l.kind === 'image') {
         const a = project.assets[l.assetId];
         if (!a) continue;
-        art.add(new Konva.Image({ image: await assetImage(a), ...imageAttrs(l) }));
+        const im = await assetImage(a);
+        art.add(new Konva.Image({ image: im, ...imageAttrs(l, a, im) }));
       } else {
         art.add(new Konva.Text(textAttrs(l)));
       }

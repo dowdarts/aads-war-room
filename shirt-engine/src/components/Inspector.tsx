@@ -1,4 +1,4 @@
-import { Copy, Crosshair, Lock, Trash2, Unlock, Eye, EyeOff } from 'lucide-react';
+import { Copy, Crop as CropIcon, Crosshair, Lock, Trash2, Unlock, Eye, EyeOff } from 'lucide-react';
 import type { Editor } from '../editor/useEditor';
 import type { Layer, TextLayer } from '../model/project';
 import { CONTENT_LABELS, PLACEMENTS, placementByCode, type ContentKind } from '../model/zones';
@@ -13,7 +13,7 @@ function Num({ label, value, onChange, step = 1, min }: { label: string; value: 
   );
 }
 
-export function Inspector({ ed }: { ed: Editor }) {
+export function Inspector({ ed, onCrop }: { ed: Editor; onCrop(id: string): void }) {
   const l = ed.selected;
   if (!l) return (
     <section className="panel">
@@ -55,6 +55,7 @@ export function Inspector({ ed }: { ed: Editor }) {
         <Num label="Opacity %" value={l.opacity * 100} min={0} onChange={v => set({ opacity: Math.min(100, v) / 100 }, 'opacity')} />
       </div>
       <div className="btnRow">
+        {l.kind === 'image' && <button title="Crop (or double-click the logo)" onClick={() => onCrop(l.id)}><CropIcon size={15} /> Crop</button>}
         <button title="Fit back into its placement" onClick={() => ed.refit(l.id)}><Crosshair size={15} /> Re-fit</button>
         <button title="Duplicate (Ctrl+D)" onClick={() => ed.duplicateLayer(l.id)}><Copy size={15} /></button>
         <button title={l.visible ? 'Hide' : 'Show'} onClick={() => set({ visible: !l.visible })}>{l.visible ? <Eye size={15} /> : <EyeOff size={15} />}</button>
@@ -62,7 +63,7 @@ export function Inspector({ ed }: { ed: Editor }) {
         <button className="danger" title="Delete (Del)" onClick={() => ed.removeLayer(l.id)}><Trash2 size={15} /></button>
       </div>
       {l.kind === 'image' && ed.project.assets[l.assetId] && (
-        <p className="muted tiny">Original: {ed.project.assets[l.assetId].name} · {ed.project.assets[l.assetId].width}×{ed.project.assets[l.assetId].height}</p>
+        <p className="muted tiny">Original: {ed.project.assets[l.assetId].name} · {ed.project.assets[l.assetId].width}×{ed.project.assets[l.assetId].height}{l.crop ? ` · cropped to ${Math.round(l.crop.w)}×${Math.round(l.crop.h)}` : ''}{l.crop && <> · <a href="#" onClick={e => { e.preventDefault(); ed.cropLayer(l.id, undefined); }}>remove crop</a></>}</p>
       )}
     </section>
   );

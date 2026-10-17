@@ -17,6 +17,7 @@ npm run smoke        # build + headless Electron export check (pixel-compares ag
 ## What it does now (M2)
 
 - **Placements:** RS01/RS02, N01/TN01, F02–F04, N02/TN02, B02–B06, LS01/LS02. Left/right are always the **wearer's**. N01 and TN01 are the same physical spot with different meanings, and so are N02 and TN02. Each layer stores its zone and its "used for" label separately.
+- **Crop:** the **Crop** button (or double-click a logo) opens a crop window with Free / Original / Square / 16:9 / 4:3 shapes and exact pixel fields. Cropping is non-destructive: the original file stays in the project, the logo keeps its place and scale on the shirt, and it can be re-cropped or reset (“remove crop”) at any time.
 - **Logos:** upload PNG/SVG/JPG/WebP or drag files in. The original file bytes are kept unchanged, and identical files are stored once. A new logo is auto-fitted to the zone with its aspect ratio locked.
 - **Text:** font, style, colour, alignment, letter spacing. Text auto-sizes to fit the zone.
 - **Editing:** move, resize, rotate (snaps at 90°), opacity, hide, lock, duplicate, layer order, re-fit to zone.

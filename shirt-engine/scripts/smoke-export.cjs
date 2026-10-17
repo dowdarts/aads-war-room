@@ -106,6 +106,30 @@ app.whenReady().then(async () => {
     const offShirt = await exportPng(logoProject.replace('x: 470, y: 450', 'x: 700, y: 60'), 'native');
     check('logo dragged onto the background is invisible', Buffer.compare(offShirt.toBitmap(), mBmp) === 0);
 
+    // 7. Crop: a 40×20 image, left half red / right half blue, shown at
+    //    100×50 on the front. Cropping to the blue half must show only blue,
+    //    at the same place on the shirt (x 520–570).
+    const cropped = await exportPng(`(async () => {
+      const d = window.mdshirtDebug;
+      const c = document.createElement('canvas'); c.width = 40; c.height = 20;
+      const g = c.getContext('2d'); g.fillStyle = '#ff0000'; g.fillRect(0, 0, 20, 20); g.fillStyle = '#0000ff'; g.fillRect(20, 0, 20, 20);
+      const a = { id: 'rb1', name: 'rb.png', mime: 'image/png', sha256: 'x', width: 40, height: 20, data: c.toDataURL('image/png').split(',')[1] };
+      const l = { id: 'l1', kind: 'image', assetId: 'rb1', zoneId: 'F02', code: 'F02', content: 'other', x: 470, y: 450, w: 100, h: 50, rotation: 0, opacity: 1, visible: true, locked: false };
+      const p = { ...d.newProject('crop'), assets: { rb1: a }, layers: [d.recropLayer(l, a, { x: 20, y: 0, w: 20, h: 20 })] };
+      return d.parseProject(d.serializeProject(p));
+    })()`, 'native');
+    const crb = cropped.toBitmap();
+    let blue = 0, total = 0, redSeen = 0;
+    for (let y = 452; y < 498; y++) for (let x = 440; x < 600; x++) {
+      const i = (y * MW + x) * 4;
+      const isBlue = crb[i] > 240 && crb[i + 1] < 15 && crb[i + 2] < 15;
+      const isRed = crb[i + 2] > 240 && crb[i + 1] < 15 && crb[i] < 15;
+      if (isRed) redSeen++;
+      if (x >= 522 && x < 568) { total++; if (isBlue) blue++; }
+      else if (x < 518 || x > 572) { if (isBlue) blue = -1e9; }
+    }
+    check('cropped image shows only the kept part, in place', blue === total && redSeen === 0, `${blue}/${total} blue, ${redSeen} red px`);
+
     if (process.env.SMOKE_OUT) {
       fs.writeFileSync(path.join(process.env.SMOKE_OUT, 'smoke-cover.png'), cover.toPNG());
       fs.mkdirSync(process.env.SMOKE_OUT, { recursive: true });

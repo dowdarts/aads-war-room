@@ -37,7 +37,39 @@ interface LayerBase {
   locked: boolean;
 }
 
-export interface ImageLayer extends LayerBase { kind: 'image'; assetId: string; h: number }
+/** Crop window in the asset's own pixels. Non-destructive: the original
+ *  bytes are always kept, so a crop can be changed or removed later. */
+export interface Crop { x: number; y: number; w: number; h: number }
+
+export interface ImageLayer extends LayerBase { kind: 'image'; assetId: string; h: number; crop?: Crop }
+
+/** Visible part of an image layer's asset (the crop, or the whole image). */
+export function cropOf(l: ImageLayer, a: Asset): Crop {
+  return l.crop ?? { x: 0, y: 0, w: a.width, h: a.height };
+}
+
+/**
+ * Applies a new crop while keeping the artwork where it was on the shirt:
+ * same scale (shirt px per image px), same rotation, and the pixels that
+ * remain visible stay in place.
+ */
+export function recropLayer(l: ImageLayer, a: Asset, next: Crop | undefined): ImageLayer {
+  const old = cropOf(l, a);
+  const nc = next ?? { x: 0, y: 0, w: a.width, h: a.height };
+  const s = l.w / old.w;
+  const dx = (nc.x - old.x) * s, dy = (nc.y - old.y) * s;
+  const r = (l.rotation * Math.PI) / 180;
+  const isFull = nc.x === 0 && nc.y === 0 && nc.w === a.width && nc.h === a.height;
+  const { crop: _c, ...rest } = l;
+  return {
+    ...rest,
+    ...(isFull ? {} : { crop: nc }),
+    x: l.x + dx * Math.cos(r) - dy * Math.sin(r),
+    y: l.y + dx * Math.sin(r) + dy * Math.cos(r),
+    w: nc.w * s,
+    h: nc.h * s,
+  };
+}
 
 export interface TextLayer extends LayerBase {
   kind: 'text';
@@ -138,6 +170,12 @@ function validateProject(p: any): Project {
     if (l.kind !== 'image' && l.kind !== 'text') fail(`unknown layer type ${l.kind}`);
     for (const k of ['x', 'y', 'w', 'rotation']) if (!Number.isFinite(l[k])) fail(`layer ${l.id} has bad ${k}`);
     if (l.kind === 'image' && !p.assets[l.assetId]) fail(`layer ${l.id} references a missing image`);
+    if (l.kind === 'image' && l.crop !== undefined) {
+      const c = l.crop, a = p.assets[l.assetId];
+      const ok = c && [c.x, c.y, c.w, c.h].every(Number.isFinite) && c.w > 0 && c.h > 0 && c.x >= 0 && c.y >= 0
+        && c.x + c.w <= a.width + 0.5 && c.y + c.h <= a.height + 0.5;
+      if (!ok) fail(`layer ${l.id} has an invalid crop`);
+    }
   }
   if (p.pattern && !p.assets[p.pattern.assetId]) fail('pattern references a missing image');
   return { revision: 0, ...p, schema: SCHEMA_VERSION } as Project;

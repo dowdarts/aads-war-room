@@ -12,6 +12,8 @@ export interface StageViewProps {
   selectedId: string | null;
   onSelect(id: string | null): void;
   onLayerChange(id: string, patch: Partial<PLayer>): void;
+  /** Double-click on an image layer. */
+  onImageDblClick?(id: string): void;
   activeZoneId: string;
   guides: boolean;
   calibrate: boolean;
@@ -85,7 +87,7 @@ export function StageView(p: StageViewProps) {
             Until the mask loads, artwork is not drawn at all. */}
         <Layer visible={!!mask}>
           {p.project.layers.map(l => l.kind === 'image'
-            ? <ImageNode key={l.id} l={l} project={p.project} onSelect={p.onSelect} onChange={p.onLayerChange} />
+            ? <ImageNode key={l.id} l={l} project={p.project} onSelect={p.onSelect} onChange={p.onLayerChange} onDbl={p.onImageDblClick} />
             : <TextNode key={l.id} l={l} onSelect={p.onSelect} onChange={p.onLayerChange} />)}
           <KImage image={mask ?? undefined} width={MASTER_W} height={MASTER_H} globalCompositeOperation="destination-in" listening={false} />
         </Layer>
@@ -153,11 +155,13 @@ function common(l: PLayer, onSelect: (id: string) => void, onChange: StageViewPr
   };
 }
 
-function ImageNode({ l, project, onSelect, onChange }: { l: ImageLayer; project: Project; onSelect(id: string): void; onChange: StageViewProps['onLayerChange'] }) {
+function ImageNode({ l, project, onSelect, onChange, onDbl }: { l: ImageLayer; project: Project; onSelect(id: string): void; onChange: StageViewProps['onLayerChange']; onDbl?(id: string): void }) {
   const im = useAssetImage(project.assets[l.assetId]);
   return (
     <KImage
-      {...imageAttrs(l)}
+      {...imageAttrs(l, project.assets[l.assetId], im)}
+      onDblClick={() => !l.locked && onDbl?.(l.id)}
+      onDblTap={() => !l.locked && onDbl?.(l.id)}
       {...common(l, onSelect, onChange)}
       image={im ?? undefined}
       onTransformEnd={e => {

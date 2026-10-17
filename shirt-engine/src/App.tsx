@@ -8,6 +8,7 @@ import { Inspector } from './components/Inspector';
 import { LayerList } from './components/LayerList';
 import { LibraryDialog } from './components/LibraryDialog';
 import { CalibratePanel } from './components/CalibratePanel';
+import { CropDialog } from './components/CropDialog';
 import { EXPORT_PRESETS, type ExportPreset } from './render/frame';
 import { MASTER_W, MASTER_H } from './model/zones';
 import { storage } from './io/storage';
@@ -18,6 +19,7 @@ export function App() {
   const [guides, setGuides] = useState(false);
   const [calibrate, setCalibrate] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [cropId, setCropId] = useState<string | null>(null);
   const [preset, setPreset] = useState<ExportPreset>('1080p');
   const [busy, setBusy] = useState(false);
 
@@ -59,6 +61,9 @@ export function App() {
     const t = setTimeout(() => ed.setNotice(null), ed.notice.kind === 'error' ? 8000 : 3500);
     return () => clearTimeout(t);
   }, [ed.notice, ed]);
+
+  const cropTarget = ed.project.layers.find(l => l.id === cropId);
+  const cropLayer = cropTarget?.kind === 'image' && ed.project.assets[cropTarget.assetId] ? cropTarget : null;
 
   async function doExport() {
     setBusy(true);
@@ -109,6 +114,7 @@ export function App() {
             calibrate={calibrate}
             zoneOverrides={ed.zoneOverrides}
             onZoneChange={ed.setZone}
+            onImageDblClick={setCropId}
           />
           <div className="bottomline">
             <span>{ed.persisted ? 'Saved on this device' : 'Saving…'}{ed.filePath ? ` · ${ed.filePath}` : ''}</span>
@@ -117,11 +123,12 @@ export function App() {
           <LayerList ed={ed} />
         </section>
         <aside className="right">
-          <Inspector ed={ed} />
+          <Inspector ed={ed} onCrop={setCropId} />
         </aside>
       </main>
       {ed.notice && <div className={`toast ${ed.notice.kind}`} role="status" onClick={() => ed.setNotice(null)}>{ed.notice.text}</div>}
       {showLibrary && <LibraryDialog ed={ed} onClose={() => setShowLibrary(false)} />}
+      {cropLayer && <CropDialog layer={cropLayer} asset={ed.project.assets[cropLayer.assetId]} onClose={() => setCropId(null)} onApply={c => { ed.cropLayer(cropLayer.id, c); setCropId(null); }} />}
     </div>
   );
 }

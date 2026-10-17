@@ -98,3 +98,13 @@ h3 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
   .actions button span { display: none; }
   .actions select { flex: 1; min-width: 0; }
 }
+
+.cropModal { width: min(680px, 100%); max-height: 94vh; }
+.cropStage { display: grid; place-items: center; background: #0c0f13; border-radius: 6px; padding: 10px; margin: 8px 0 10px; overflow: auto; touch-action: none; }
+.ratios button { min-height: 32px; padding: 5px 10px; font-size: 12px; }
+.ratios button.on { border-color: var(--accent); color: var(--accent2); }
+.row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0 8px; margin-top: 10px; }
+.btnRow.end { align-items: center; margin-top: 8px; }
+.grow { flex: 1; }
+a { color: var(--accent2); }
+@media (max-width: 600px) { .row4 { grid-template-columns: 1fr 1fr; } }
