@@ -16,9 +16,11 @@ describe('zones', () => {
     const chest = zoneById('FRONT_CHEST_L')!;
     expect(chest.x + chest.w / 2).toBeGreaterThan(front.x + front.w / 2);
   });
-  it('sleeve upper zones sit above the cuff zones', () => {
+  it('sleeve cuff zones sit lower than the upper zones', () => {
+    // The owner's calibration lets the cuff zone overlap the bottom of the upper zone.
+    const cy = (id: string) => zoneById(id)!.y + zoneById(id)!.h / 2;
     for (const [up, low] of [['RS01', 'RS02'], ['LS01', 'LS02']]) {
-      expect(zoneById(up)!.y + zoneById(up)!.h).toBeLessThanOrEqual(zoneById(low)!.y);
+      expect(cy(low)).toBeGreaterThan(cy(up));
       expect(zoneById(low)!.orientation).toBe('horizontal');
     }
   });

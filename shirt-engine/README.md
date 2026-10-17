@@ -34,7 +34,7 @@ npm run smoke        # build + headless Electron export check (pixel-compares ag
 
 ## Limits (honest)
 
-- **Zone rectangles are still the prototype's estimates.** Some visibly extend past the sleeves. They need the calibration review.
+- Zone rectangles were calibrated by the owner on 2026-10-17. They are mockup positions, not manufacturer dimensions.
 - No manufacturer dimensions can be inferred from a photographic mockup.
 - Pattern mapping (M3), the desktop installer (M4), and phone/PWA + cloud sync (M5) are not built yet.
 

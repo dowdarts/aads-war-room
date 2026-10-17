@@ -3,8 +3,8 @@
 // codes (N01, TN01, …) are semantic names for content placed there, so N01 and
 // TN01 resolve to the same zone and therefore the same coordinates.
 //
-// Rectangles are the prototype's ESTIMATES, carried over unchanged until the
-// owner reviews them in calibrate mode. Not manufacturer dimensions.
+// Rectangles were set by the owner in calibrate mode (2026-10-17). They are
+// placement positions on the mockup, not manufacturer dimensions.
 
 export const MASTER_W = 1672;
 export const MASTER_H = 941;
@@ -29,20 +29,20 @@ export interface Zone extends Rect {
 }
 
 export const ZONES: Zone[] = [
-  { id: 'RS01', view: 'rs', label: 'Right sleeve · upper / stacked', orientation: 'stacked', x: 103, y: 366, w: 195, h: 164 },
-  { id: 'RS02', view: 'rs', label: 'Right sleeve · lower near cuff / horizontal', orientation: 'horizontal', x: 108, y: 544, w: 184, h: 50 },
-  { id: 'FRONT_CHEST_L', view: 'front', label: "Front · wearer's left chest", orientation: 'any', x: 598, y: 311, w: 138, h: 90 },
-  { id: 'F02', view: 'front', label: 'Front · centre artwork', orientation: 'any', x: 490, y: 409, w: 252, h: 238 },
-  { id: 'F03', view: 'front', label: "Front · lower hem (wearer's right)", orientation: 'horizontal', x: 463, y: 678, w: 117, h: 38 },
-  { id: 'F04', view: 'front', label: "Front · lower hem (wearer's left)", orientation: 'horizontal', x: 624, y: 678, w: 117, h: 38 },
-  { id: 'BACK_NAME', view: 'back', label: 'Back · upper, below collar', orientation: 'horizontal', x: 960, y: 285, w: 263, h: 60 },
-  { id: 'B02', view: 'back', label: 'Back · main logo', orientation: 'any', x: 962, y: 368, w: 260, h: 220 },
-  { id: 'B03', view: 'back', label: 'Back · lower artwork', orientation: 'horizontal', x: 963, y: 610, w: 256, h: 73 },
-  { id: 'B04', view: 'back', label: 'Back · lower hem, left of image', orientation: 'horizontal', x: 966, y: 692, w: 104, h: 35 },
-  { id: 'B05', view: 'back', label: 'Back · lower hem, centre', orientation: 'horizontal', x: 1074, y: 692, w: 104, h: 35 },
-  { id: 'B06', view: 'back', label: 'Back · lower hem, right of image', orientation: 'horizontal', x: 1180, y: 692, w: 90, h: 35 },
-  { id: 'LS01', view: 'ls', label: 'Left sleeve · upper / stacked', orientation: 'stacked', x: 1377, y: 362, w: 196, h: 167 },
-  { id: 'LS02', view: 'ls', label: 'Left sleeve · lower near cuff / horizontal', orientation: 'horizontal', x: 1383, y: 543, w: 185, h: 49 },
+  { id: 'RS01', view: 'rs', label: 'Right sleeve · upper / stacked', orientation: 'stacked', x: 62.7, y: 385, w: 117.8, h: 137.2 },
+  { id: 'RS02', view: 'rs', label: 'Right sleeve · lower near cuff / horizontal', orientation: 'horizontal', x: 47.6, y: 490.3, w: 138.1, h: 31 },
+  { id: 'FRONT_CHEST_L', view: 'front', label: "Front · wearer's left chest", orientation: 'any', x: 544.3, y: 314.4, w: 114.5, h: 64.3 },
+  { id: 'F02', view: 'front', label: 'Front · centre artwork', orientation: 'any', x: 400.5, y: 400.1, w: 252, h: 238 },
+  { id: 'F03', view: 'front', label: "Front · lower hem (wearer's right)", orientation: 'horizontal', x: 373.6, y: 702.6, w: 117, h: 38 },
+  { id: 'F04', view: 'front', label: "Front · lower hem (wearer's left)", orientation: 'horizontal', x: 569.2, y: 702.6, w: 117, h: 38 },
+  { id: 'BACK_NAME', view: 'back', label: 'Back · upper, below collar', orientation: 'horizontal', x: 992.4, y: 214.6, w: 263, h: 60 },
+  { id: 'B02', view: 'back', label: 'Back · main logo', orientation: 'any', x: 993.3, y: 290.9, w: 260, h: 220 },
+  { id: 'B03', view: 'back', label: 'Back · lower artwork', orientation: 'horizontal', x: 994.3, y: 522.8, w: 256, h: 73 },
+  { id: 'B04', view: 'back', label: 'Back · lower hem, left of image', orientation: 'horizontal', x: 975, y: 710, w: 79.4, h: 30.5 },
+  { id: 'B05', view: 'back', label: 'Back · lower hem, centre', orientation: 'horizontal', x: 1089.6, y: 713.3, w: 86.1, h: 30.5 },
+  { id: 'B06', view: 'back', label: 'Back · lower hem, right of image', orientation: 'horizontal', x: 1204.6, y: 706.6, w: 71, h: 29.4 },
+  { id: 'LS01', view: 'ls', label: 'Left sleeve · upper / stacked', orientation: 'stacked', x: 1501.2, y: 394.4, w: 108.7, h: 127.9 },
+  { id: 'LS02', view: 'ls', label: 'Left sleeve · lower near cuff / horizontal', orientation: 'horizontal', x: 1481.4, y: 491.6, w: 148.1, h: 33.3 },
 ];
 
 /** What a layer is used for. Any content may go in any zone. */

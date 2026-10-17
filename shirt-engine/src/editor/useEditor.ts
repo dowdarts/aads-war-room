@@ -4,7 +4,7 @@ import {
   type ImageLayer, type Layer, type Project, type TextLayer,
 } from '../model/project';
 import { historyReducer, initHistory, type History, type HistoryAction } from '../model/history';
-import { fitInZone, placementByCode, zoneById, PLACEMENTS, type Rect } from '../model/zones';
+import { fitInZone, placementByCode, zoneById, PLACEMENTS, ZONES, type Rect } from '../model/zones';
 import { newId } from '../model/ids';
 import { readImageFile } from '../render/images';
 import { fitFontSize } from '../render/layerAttrs';
@@ -30,7 +30,13 @@ export function useEditor() {
   const project = hist.present;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placementCode, setPlacementCode] = useState('N01');
-  const [zoneOverrides, setZoneOverrides] = useState<Record<string, Rect>>(() => readLS(OVERRIDES_KEY, {}));
+  // Overrides identical to the built-in geometry are dropped so they never
+  // shadow later calibration updates shipped in zones.ts.
+  const [zoneOverrides, setZoneOverrides] = useState<Record<string, Rect>>(() => Object.fromEntries(
+    Object.entries(readLS<Record<string, Rect>>(OVERRIDES_KEY, {})).filter(([id, r]) => {
+      const z = ZONES.find(q => q.id === id);
+      return z && (z.x !== r.x || z.y !== r.y || z.w !== r.w || z.h !== r.h);
+    })));
   const [filePath, setFilePath] = useState<string | undefined>();
   const [savedRef, setSavedRef] = useState<Project | null>(project);
   const [persisted, setPersisted] = useState(true);
