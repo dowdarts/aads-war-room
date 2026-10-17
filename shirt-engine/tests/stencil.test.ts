@@ -17,3 +17,13 @@ describe('master stencil', () => {
     expect(bytes.readUInt32BE(20)).toBe(MASTER_H);
   });
 });
+
+describe('garment mask', () => {
+  // Regenerate with: node scripts/run-electron.cjs scripts/build-mask.cjs
+  const mask = readFileSync(new URL('../public/garment-mask.png', import.meta.url));
+  it('matches the master size and has an alpha channel', () => {
+    expect(mask.readUInt32BE(16)).toBe(MASTER_W);
+    expect(mask.readUInt32BE(20)).toBe(MASTER_H);
+    expect(mask[25]).toBe(6); // PNG colour type 6 = RGBA
+  });
+});

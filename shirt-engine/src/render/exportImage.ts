@@ -1,11 +1,12 @@
 // Renders a project to a PNG on a fresh offscreen Konva stage. Only the
-// master, pattern and visible layers are drawn — selection handles, guides
-// and labels added by the editor can never reach an export.
+// master, pattern and visible layers (clipped to the garment) are drawn —
+// selection handles, guides and labels added by the editor can never reach
+// an export.
 
 import Konva from 'konva';
 import type { Project } from '../model/project';
 import { MASTER_W, MASTER_H } from '../model/zones';
-import { assetImage, masterImage } from './images';
+import { assetImage, masterImage, maskImage } from './images';
 import { imageAttrs, textAttrs } from './layerAttrs';
 import { EXPORT_PRESETS, fitFrame, type ExportPreset } from './frame';
 
@@ -45,18 +46,26 @@ export async function renderToCanvas(project: Project, preset: ExportPreset): Pr
       if (pg) group.add(pg);
     }
 
+    // Artwork on its own canvas, then cut to the garment silhouettes so
+    // nothing can show on the background, labels or padding.
+    const artLayer = new Konva.Layer({ listening: false });
+    stage.add(artLayer);
+    const art = new Konva.Group({ x: f.offsetX, y: f.offsetY, scaleX: f.scale, scaleY: f.scale });
+    artLayer.add(art);
     for (const l of project.layers) {
       if (!l.visible) continue;
       if (l.kind === 'image') {
         const a = project.assets[l.assetId];
         if (!a) continue;
-        group.add(new Konva.Image({ image: await assetImage(a), ...imageAttrs(l) }));
+        art.add(new Konva.Image({ image: await assetImage(a), ...imageAttrs(l) }));
       } else {
-        group.add(new Konva.Text(textAttrs(l)));
+        art.add(new Konva.Text(textAttrs(l)));
       }
     }
+    art.add(new Konva.Image({ image: await maskImage(), width: MASTER_W, height: MASTER_H, globalCompositeOperation: 'destination-in' }));
 
     layer.draw();
+    artLayer.draw();
     return stage.toCanvas({ pixelRatio: 1 });
   } finally {
     stage.destroy();

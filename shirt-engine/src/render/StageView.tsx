@@ -3,7 +3,7 @@ import { Stage, Layer, Image as KImage, Rect, Text as KText, Transformer, Group 
 import type Konva from 'konva';
 import type { ImageLayer, Layer as PLayer, Project, TextLayer } from '../model/project';
 import { MASTER_W, MASTER_H, PLACEMENTS, ZONES, type Rect as ZRect } from '../model/zones';
-import { useAssetImage, useMasterImage } from './images';
+import { useAssetImage, useMasterImage, useMaskImage } from './images';
 import { imageAttrs, textAttrs } from './layerAttrs';
 import { PatternLayer } from './PatternLayer';
 
@@ -26,6 +26,7 @@ export function StageView(p: StageViewProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(1000);
   const master = useMasterImage();
+  const mask = useMaskImage();
   const tr = useRef<Konva.Transformer>(null);
   const zoneTr = useRef<Konva.Transformer>(null);
   const localStage = useRef<Konva.Stage>(null);
@@ -78,9 +79,17 @@ export function StageView(p: StageViewProps) {
         <Layer>
           <KImage name="master" image={master ?? undefined} width={MASTER_W} height={MASTER_H} />
           <PatternLayer project={p.project} master={master} />
+        </Layer>
+        {/* Artwork has its own canvas so the garment mask (destination-in)
+            erases everything outside the shirt without touching the master.
+            Until the mask loads, artwork is not drawn at all. */}
+        <Layer visible={!!mask}>
           {p.project.layers.map(l => l.kind === 'image'
             ? <ImageNode key={l.id} l={l} project={p.project} onSelect={p.onSelect} onChange={p.onLayerChange} />
             : <TextNode key={l.id} l={l} onSelect={p.onSelect} onChange={p.onLayerChange} />)}
+          <KImage image={mask ?? undefined} width={MASTER_W} height={MASTER_H} globalCompositeOperation="destination-in" listening={false} />
+        </Layer>
+        <Layer>
           <Transformer
             ref={tr}
             keepRatio

@@ -65,7 +65,7 @@ app.whenReady().then(async () => {
       const b64 = c.toDataURL('image/png').split(',')[1];
       const p = d.newProject('smoke');
       const json = JSON.stringify({ ...p, assets: { a1: { id: 'a1', name: 'red.png', mime: 'image/png', sha256: 'x', width: 40, height: 20, data: b64 } },
-        layers: [{ id: 'l1', kind: 'image', assetId: 'a1', zoneId: 'RS01', code: 'RS01', content: 'sponsor', x: 120, y: 400, w: 100, h: 50, rotation: 0, opacity: 1, visible: true, locked: false }] });
+        layers: [{ id: 'l1', kind: 'image', assetId: 'a1', zoneId: 'F02', code: 'F02', content: 'other', x: 470, y: 450, w: 100, h: 50, rotation: 0, opacity: 1, visible: true, locked: false }] });
       return d.parseProject(d.serializeProject(await d.parseProject(json)));
     })()`;
     const logo = await exportPng(logoProject, 'native');
@@ -73,11 +73,11 @@ app.whenReady().then(async () => {
     let outside = 0, insideRed = 0, insideTotal = 0;
     for (let y = 0; y < MH; y++) for (let x = 0; x < MW; x++) {
       const i = (y * MW + x) * 4;
-      const inBox = x >= 120 && x < 220 && y >= 400 && y < 450;
+      const inBox = x >= 470 && x < 570 && y >= 450 && y < 500;
       if (inBox) { insideTotal++; if (lb[i + 2] > 240 && lb[i + 1] < 15 && lb[i] < 15) insideRed++; }
-      else if (x < 119 || x > 220 || y < 399 || y > 450) { if (lb[i] !== mBmp[i] || lb[i + 1] !== mBmp[i + 1] || lb[i + 2] !== mBmp[i + 2]) outside++; }
+      else if (x < 469 || x > 570 || y < 449 || y > 500) { if (lb[i] !== mBmp[i] || lb[i + 1] !== mBmp[i + 1] || lb[i + 2] !== mBmp[i + 2]) outside++; }
     }
-    check('RS01 logo renders at its saved coordinates after save→open', insideRed / insideTotal > 0.97, `${insideRed}/${insideTotal} px red`);
+    check('front logo renders at its saved coordinates after save→open', insideRed / insideTotal > 0.97, `${insideRed}/${insideTotal} px red`);
     check('master pixels outside the logo are untouched', outside === 0, `${outside} changed px`);
 
     // 4. Hidden layers never export.
@@ -87,9 +87,27 @@ app.whenReady().then(async () => {
     // 5. Artwork-only export is transparent outside artwork.
     const art = await exportPng(logoProject, 'artwork-native');
     const ab = art.toBitmap();
-    check('artwork-only export is transparent away from artwork', ab[3] === 0 && ab[((500 * MW) + 800) * 4 + 3] === 0 && ab[((425 * MW) + 170) * 4 + 3] === 255);
+    check('artwork-only export is transparent away from artwork', ab[3] === 0 && ab[((500 * MW) + 800) * 4 + 3] === 0 && ab[((475 * MW) + 520) * 4 + 3] === 255);
+
+    // 6. Garment clipping: a red logo covering the whole canvas may only
+    //    colour the shirt. Every off-garment pixel must equal the master.
+    const maskImg = nativeImage.createFromPath(path.join(root, 'public', 'garment-mask.png'));
+    const mk = maskImg.toBitmap();
+    const cover = await exportPng(logoProject.replace('x: 470, y: 450, w: 100, h: 50', `x: 0, y: 0, w: ${MW}, h: ${MH}`), 'native');
+    const cb = cover.toBitmap();
+    let bgChanged = 0, fabricNotRed = 0, fabricPx = 0;
+    for (let i = 0; i < MW * MH; i++) {
+      const a = mk[i * 4 + 3];
+      if (a === 0) { if (cb[i * 4] !== mBmp[i * 4] || cb[i * 4 + 1] !== mBmp[i * 4 + 1] || cb[i * 4 + 2] !== mBmp[i * 4 + 2]) bgChanged++; }
+      else if (a === 255) { fabricPx++; if (!(cb[i * 4 + 2] > 240 && cb[i * 4 + 1] < 15 && cb[i * 4] < 15)) fabricNotRed++; }
+    }
+    check('artwork never appears outside the garment', bgChanged === 0, `${bgChanged} off-garment px changed`);
+    check('artwork fully covers the garment where placed', fabricNotRed === 0 && fabricPx > 100000, `${fabricPx} garment px, ${fabricNotRed} not red`);
+    const offShirt = await exportPng(logoProject.replace('x: 470, y: 450', 'x: 700, y: 60'), 'native');
+    check('logo dragged onto the background is invisible', Buffer.compare(offShirt.toBitmap(), mBmp) === 0);
 
     if (process.env.SMOKE_OUT) {
+      fs.writeFileSync(path.join(process.env.SMOKE_OUT, 'smoke-cover.png'), cover.toPNG());
       fs.mkdirSync(process.env.SMOKE_OUT, { recursive: true });
       fs.writeFileSync(path.join(process.env.SMOKE_OUT, 'smoke-1080p.png'), hd.toPNG());
       fs.writeFileSync(path.join(process.env.SMOKE_OUT, 'smoke-logo.png'), logo.toPNG());

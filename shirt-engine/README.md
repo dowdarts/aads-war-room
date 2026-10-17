@@ -30,6 +30,7 @@ npm run smoke        # build + headless Electron export check (pixel-compares ag
   - **Native 1672×941**: pixel-identical to the master when the project is empty.
   - **Artwork only**: transparent background.
   - Exports never include selection handles, guides or labels.
+- **Garment clipping:** placements are only starting positions; designers can move artwork anywhere. Artwork is clipped to the shirt fabric (`public/garment-mask.png`, traced from the master by `scripts/build-mask.cjs`), so it never shows on the background, labels, zipper, collar inside or cuff openings, in the editor or in exports. A layer dragged off the shirt can still be selected from the layer list.
 - **Calibrate zones:** tick *Calibrate zones*, drag or resize the zone boxes, then **Copy coordinates** and send them to Claude to lock in.
 
 ## Limits (honest)

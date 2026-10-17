@@ -84,3 +84,16 @@ function svgSize(svg: string) {
   const vb = /viewBox\s*=\s*["']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/i.exec(svg);
   return vb ? { width: Math.round(Number(vb[1])), height: Math.round(Number(vb[2])) } : { width: 0, height: 0 };
 }
+
+/** Alpha mask of the garment silhouettes (scripts/build-mask.cjs). Artwork is
+ *  clipped to it so it can never appear on the background. */
+export const MASK_URL = `${import.meta.env.BASE_URL}garment-mask.png`;
+
+let maskPromise: Promise<HTMLImageElement> | null = null;
+export function maskImage(): Promise<HTMLImageElement> {
+  return (maskPromise ??= loadImage(MASK_URL));
+}
+
+export function useMaskImage() {
+  return usePromise(maskImage, []);
+}
