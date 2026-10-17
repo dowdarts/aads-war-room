@@ -39,3 +39,7 @@ public/vip table one/
 
 # Cloudflare Wrangler local state
 .wrangler/
+
+# Shirt engine: Electron installer output
+release/
+*.tsbuildinfo

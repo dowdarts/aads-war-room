@@ -1,0 +1,58 @@
+{
+  "name": "md-studios-shirt-engine",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "desktop:dev": "concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron .\"",
+    "desktop:build": "npm run build && electron-builder --win nsis",
+    "desktop:open": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -b",
+    "smoke": "npm run build && node scripts/run-electron.cjs scripts/smoke-export.cjs"
+  },
+  "dependencies": {
+    "konva": "^9.3.22",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-konva": "^18.2.10"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^6.1.2",
+    "concurrently": "^9.1.2",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.5",
+    "wait-on": "^8.0.1"
+  },
+  "main": "electron/main.cjs",
+  "build": {
+    "appId": "com.mdstudios.shirtengine",
+    "productName": "MD Studios Shirt Engine",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}
