@@ -21,7 +21,8 @@ npm run smoke        # build + headless Electron export check (pixel-compares ag
 - **Logos:** upload PNG/SVG/JPG/WebP or drag files in. The original file bytes are kept unchanged, and identical files are stored once. A new logo is auto-fitted to the zone with its aspect ratio locked.
 - **Text:** font, style, colour, alignment, letter spacing. Text auto-sizes to fit the zone.
 - **Editing:** move, resize, rotate (snaps at 90°), opacity, hide, lock, duplicate, layer order, re-fit to zone.
-- **Undo/redo**, plus shortcuts: Ctrl+Z, Ctrl+Y, Ctrl+D, Del, arrow keys (Shift = 10 px), Ctrl+S, Ctrl+Shift+S, Ctrl+O, Esc.
+- **Undo/redo**, plus shortcuts: Ctrl+Z, Ctrl+Y, Ctrl+D, Del, arrow keys move (Shift = 10 px), **+ / −** resize, **[ / ]** rotate (Shift = 15°), Ctrl+S, Ctrl+Shift+S, Ctrl+O, Esc. **Scroll over the selected logo/text** to resize it about its centre (Shift+scroll rotates).
+- **Adjust base pattern on the shirt:** *Adjust on shirt* in the pattern panel, then drag to move, scroll to zoom at the pointer, Shift+scroll to rotate; arrows / + − / [ ] / 0 (fit) on the keyboard. Clicking a view picks it; Esc finishes. Each gesture is one undo step.
 - **Projects:**
   - Each project autosaves to a local library on the device (IndexedDB).
   - **Save file** writes a portable `.mdshirt` file (JSON with the images embedded).

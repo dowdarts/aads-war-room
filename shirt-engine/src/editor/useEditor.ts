@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
-  cropOf, makeAsset, newProject, parseProject, recropLayer, serializeProject, withAsset, type Crop, type PatternView,
+  cropOf, makeAsset, newProject, parseProject, recropLayer, serializeProject, transformAboutCenter, withAsset, type Crop, type PatternView,
   type ImageLayer, type Layer, type Project, type TextLayer,
 } from '../model/project';
 import { historyReducer, initHistory, type History, type HistoryAction } from '../model/history';
 import { fitInZone, placementByCode, zoneById, PLACEMENTS, ZONES, type Rect, type ViewId } from '../model/zones';
-import { coverScale, defaultPatternView, VIEW_ORDER } from '../render/pattern';
+import { coverScale, defaultPatternView, rotatePatternAt, VIEW_BOUNDS, VIEW_ORDER, zoomPatternAt } from '../render/pattern';
 import { newId } from '../model/ids';
 import { readImageFile } from '../render/images';
 import { fitFontSize } from '../render/layerAttrs';
@@ -235,6 +235,38 @@ export function useEditor() {
     apply({ ...p, pattern: { views } });
   }
 
+  /** Pattern centre of a view in stencil px (pivot for keyboard zoom/rotate). */
+  function patternCentre(view: ViewId) {
+    const v = projectRef.current.pattern?.views[view];
+    const b = VIEW_BOUNDS[view];
+    return { x: b.x + b.w / 2 + (v?.offsetX ?? 0), y: b.y + b.h / 2 + (v?.offsetY ?? 0) };
+  }
+
+  function zoomPattern(view: ViewId, factor: number, at?: { x: number; y: number }, key = 'zoom') {
+    const v = projectRef.current.pattern?.views[view];
+    if (v) updatePatternView(view, zoomPatternAt(view, v, factor, at ?? patternCentre(view)), key);
+  }
+
+  function rotatePattern(view: ViewId, deg: number, at?: { x: number; y: number }, key = 'rotate') {
+    const v = projectRef.current.pattern?.views[view];
+    if (v) updatePatternView(view, rotatePatternAt(view, v, deg, at ?? patternCentre(view)), key);
+  }
+
+  function nudgePattern(view: ViewId, dx: number, dy: number) {
+    const v = projectRef.current.pattern?.views[view];
+    if (v) updatePatternView(view, { offsetX: v.offsetX + dx, offsetY: v.offsetY + dy }, 'nudge');
+  }
+
+  /** Scale and/or rotate a logo or text about its centre. */
+  function transformLayer(id: string, scale: number, rotateBy = 0, key = 'xform') {
+    const p = projectRef.current;
+    const l = p.layers.find(q => q.id === id);
+    if (!l || l.locked) return;
+    const next = transformAboutCenter(l, scale, rotateBy);
+    if (scale !== 1 && (next.w < 4 || next.w > 4000)) return;
+    apply({ ...p, layers: p.layers.map(q => (q.id === id ? next : q)) }, `${id}:${key}`);
+  }
+
   function fitPatternView(view: ViewId) {
     const v = projectRef.current.pattern?.views[view];
     const a = v && projectRef.current.assets[v.assetId];
@@ -306,6 +338,7 @@ export function useEditor() {
     zoneOverrides, setZone, resetZones, dirty, persisted, filePath, notice, setNotice, say, history,
     updateLayer, addImageFiles, addText, removeLayer, duplicateLayer, moveLayer, refit, cropLayer, rename, apply,
     setPatternImage, updatePatternView, removePatternView, copyPatternToAll, fitPatternView,
+    zoomPattern, rotatePattern, nudgePattern, transformLayer,
     saveFile, openFile, openText, openFromLibrary, newFile, exportPNG,
   };
 }

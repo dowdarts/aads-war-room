@@ -93,3 +93,33 @@ export async function buildPatternCanvas(project: Project, scale = 1): Promise<H
   }
   return drawPattern(project, images, await maskImage(), scale);
 }
+
+/** The garment view whose strip contains stencil x. */
+export function viewAtX(x: number): ViewId {
+  return VIEW_ORDER.find(v => x >= VIEW_CLIP[v][0] && x < VIEW_CLIP[v][1]) ?? (x < 0 ? 'rs' : 'ls');
+}
+
+/** Zooms a view's pattern by `factor`, keeping the point `p` (stencil px) fixed. */
+export function zoomPatternAt(view: ViewId, v: PatternView, factor: number, p: { x: number; y: number }): Partial<PatternView> {
+  const b = VIEW_BOUNDS[view];
+  const vc = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+  const c = { x: vc.x + v.offsetX, y: vc.y + v.offsetY };
+  return {
+    scale: v.scale * factor,
+    offsetX: p.x + (c.x - p.x) * factor - vc.x,
+    offsetY: p.y + (c.y - p.y) * factor - vc.y,
+  };
+}
+
+/** Rotates a view's pattern by `deg`, keeping the point `p` fixed. */
+export function rotatePatternAt(view: ViewId, v: PatternView, deg: number, p: { x: number; y: number }): Partial<PatternView> {
+  const b = VIEW_BOUNDS[view];
+  const vc = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+  const r = (deg * Math.PI) / 180;
+  const dx = vc.x + v.offsetX - p.x, dy = vc.y + v.offsetY - p.y;
+  return {
+    rotation: v.rotation + deg,
+    offsetX: p.x + dx * Math.cos(r) - dy * Math.sin(r) - vc.x,
+    offsetY: p.y + dx * Math.sin(r) + dy * Math.cos(r) - vc.y,
+  };
+}

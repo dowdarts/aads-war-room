@@ -11,7 +11,7 @@ import { CalibratePanel } from './components/CalibratePanel';
 import { PatternPanel } from './components/PatternPanel';
 import { CropDialog } from './components/CropDialog';
 import { EXPORT_PRESETS, type ExportPreset } from './render/frame';
-import { MASTER_W, MASTER_H } from './model/zones';
+import { MASTER_W, MASTER_H, type ViewId } from './model/zones';
 import { storage } from './io/storage';
 
 export function App() {
@@ -23,6 +23,8 @@ export function App() {
   const [cropId, setCropId] = useState<string | null>(null);
   const [preset, setPreset] = useState<ExportPreset>('1080p');
   const [busy, setBusy] = useState(false);
+  const [patternMode, setPatternMode] = useState(false);
+  const [patternTab, setPatternTab] = useState<ViewId>('front');
 
   // Keyboard shortcuts (ignored while typing in a field).
   useEffect(() => {
@@ -36,18 +38,36 @@ export function App() {
       if (typing) return;
       if (mod && k === 'z') { e.preventDefault(); e.shiftKey ? ed.history.redo() : ed.history.undo(); return; }
       if (mod && k === 'y') { e.preventDefault(); ed.history.redo(); return; }
+      if (mod && k === 'd' && ed.selected && !patternMode) { e.preventDefault(); ed.duplicateLayer(ed.selected.id); return; }
+      if (mod) return;
+      const step = e.shiftKey ? 10 : 1;
+      const d = ({ arrowleft: [-step, 0], arrowright: [step, 0], arrowup: [0, -step], arrowdown: [0, step] } as Record<string, number[]>)[k];
+      const zoom = e.key === '+' || e.key === '=' ? 1.05 : e.key === '-' || e.key === '_' ? 1 / 1.05 : 0;
+      const turn = e.key === '[' || e.key === '{' ? -(e.shiftKey ? 15 : 1) : e.key === ']' || e.key === '}' ? (e.shiftKey ? 15 : 1) : 0;
+
+      // Base-pattern adjust mode: keys edit the active view's pattern.
+      if (patternMode) {
+        if (k === 'escape') { setPatternMode(false); return; }
+        if (!ed.project.pattern?.views[patternTab]) return;
+        if (d) { e.preventDefault(); ed.nudgePattern(patternTab, d[0], d[1]); }
+        else if (zoom) { e.preventDefault(); ed.zoomPattern(patternTab, zoom); }
+        else if (turn) { e.preventDefault(); ed.rotatePattern(patternTab, turn); }
+        else if (e.key === '0') { e.preventDefault(); ed.fitPatternView(patternTab); }
+        return;
+      }
+
       const l = ed.selected;
       if (!l) return;
-      if (mod && k === 'd') { e.preventDefault(); ed.duplicateLayer(l.id); return; }
       if (k === 'delete' || k === 'backspace') { e.preventDefault(); ed.removeLayer(l.id); return; }
       if (k === 'escape') { ed.setSelectedId(null); return; }
-      const step = e.shiftKey ? 10 : 1;
-      const d = { arrowleft: [-step, 0], arrowright: [step, 0], arrowup: [0, -step], arrowdown: [0, step] }[k];
-      if (d && !l.locked) { e.preventDefault(); ed.updateLayer(l.id, { x: l.x + d[0], y: l.y + d[1] }, `${l.id}:nudge`); }
+      if (l.locked) return;
+      if (d) { e.preventDefault(); ed.updateLayer(l.id, { x: l.x + d[0], y: l.y + d[1] }, `${l.id}:nudge`); }
+      else if (zoom) { e.preventDefault(); ed.transformLayer(l.id, zoom, 0, 'kzoom'); }
+      else if (turn) { e.preventDefault(); ed.transformLayer(l.id, 1, turn, 'kturn'); }
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [ed]);
+  }, [ed, patternMode, patternTab]);
 
   // Browser: warn only if the latest change has not reached the local library yet.
   useEffect(() => {
@@ -92,11 +112,11 @@ export function App() {
       <main>
         <aside>
           <Sidebar ed={ed} />
-          <PatternPanel ed={ed} />
+          <PatternPanel ed={ed} tab={patternTab} setTab={setPatternTab} adjusting={patternMode} setAdjusting={on => { setPatternMode(on); if (on) { ed.setSelectedId(null); setCalibrate(false); } }} />
           {calibrate && <CalibratePanel ed={ed} />}
           <section className="panel">
             <label className="check"><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)} /> Show all placement guides</label>
-            <label className="check"><input type="checkbox" checked={calibrate} onChange={e => { setCalibrate(e.target.checked); if (e.target.checked) ed.setSelectedId(null); }} /> Calibrate zones</label>
+            <label className="check"><input type="checkbox" checked={calibrate} onChange={e => { setCalibrate(e.target.checked); if (e.target.checked) { ed.setSelectedId(null); setPatternMode(false); } }} /> Calibrate zones</label>
             <p className="note">The master stencil is locked: artwork never changes its pixels, size or layout. Zone boundaries are estimates — not manufacturer measurements.</p>
           </section>
         </aside>
@@ -108,7 +128,7 @@ export function App() {
           <StageView
             stageRef={stageRef}
             project={ed.project}
-            selectedId={calibrate ? null : ed.selectedId}
+            selectedId={calibrate || patternMode ? null : ed.selectedId}
             onSelect={id => !calibrate && ed.setSelectedId(id)}
             onLayerChange={(id, patch) => ed.updateLayer(id, patch)}
             activeZoneId={ed.placement.zoneId}
@@ -117,6 +137,13 @@ export function App() {
             zoneOverrides={ed.zoneOverrides}
             onZoneChange={ed.setZone}
             onImageDblClick={setCropId}
+            onLayerWheel={(id, f, deg) => ed.transformLayer(id, f, deg, 'wheel')}
+            patternMode={patternMode}
+            patternView={patternTab}
+            onPatternView={setPatternTab}
+            onPatternChange={(v, patch, key) => ed.updatePatternView(v, patch, key)}
+            onPatternZoom={(v, f, at) => ed.zoomPattern(v, f, at, 'wheel')}
+            onPatternRotate={(v, deg, at) => ed.rotatePattern(v, deg, at, 'wheel')}
           />
           <div className="bottomline">
             <span>{ed.persisted ? 'Saved on this device' : 'Saving…'}{ed.filePath ? ` · ${ed.filePath}` : ''}</span>

@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Stage, Layer, Image as KImage, Rect, Text as KText, Transformer, Group } from 'react-konva';
 import type Konva from 'konva';
-import type { ImageLayer, Layer as PLayer, Project, TextLayer } from '../model/project';
-import { MASTER_W, MASTER_H, PLACEMENTS, ZONES, type Rect as ZRect } from '../model/zones';
+import type { ImageLayer, Layer as PLayer, PatternView, Project, TextLayer } from '../model/project';
+import { MASTER_W, MASTER_H, PLACEMENTS, ZONES, type Rect as ZRect, type ViewId } from '../model/zones';
 import { useAssetImage, useMasterImage, useMaskImage } from './images';
 import { imageAttrs, textAttrs } from './layerAttrs';
 import { PatternLayer } from './PatternLayer';
+import { VIEW_BOUNDS, viewAtX } from './pattern';
 
 export interface StageViewProps {
   project: Project;
@@ -20,6 +21,15 @@ export interface StageViewProps {
   zoneOverrides: Record<string, ZRect>;
   onZoneChange(id: string, r: ZRect): void;
   stageRef?: React.RefObject<Konva.Stage | null>;
+  /** Scroll over the selected logo/text: scale (factor) or rotate (deg). */
+  onLayerWheel?(id: string, factor: number, rotateBy: number): void;
+  /** Base-pattern adjust mode: drag/scroll on the shirt edits the pattern. */
+  patternMode?: boolean;
+  patternView?: ViewId;
+  onPatternView?(v: ViewId): void;
+  onPatternChange?(v: ViewId, patch: Partial<PatternView>, key: string): void;
+  onPatternZoom?(v: ViewId, factor: number, at: { x: number; y: number }): void;
+  onPatternRotate?(v: ViewId, deg: number, at: { x: number; y: number }): void;
 }
 
 const GUIDE = '#f59e0b';
@@ -34,6 +44,56 @@ export function StageView(p: StageViewProps) {
   const localStage = useRef<Konva.Stage>(null);
   const stageRef = p.stageRef ?? localStage;
   const [calZone, setCalZone] = useState<string | null>(null);
+  const drag = useRef<{ view: ViewId; px: number; py: number; ox: number; oy: number; key: string } | null>(null);
+
+  // Pointer position in stencil pixels.
+  const pointer = () => {
+    const pos = stageRef.current?.getPointerPosition();
+    return pos ? { x: pos.x / scale, y: pos.y / scale } : null;
+  };
+
+  function patternDown() {
+    const pt = pointer();
+    if (!pt) return;
+    const view = viewAtX(pt.x);
+    p.onPatternView?.(view);
+    const v = p.project.pattern?.views[view];
+    drag.current = v ? { view, px: pt.x, py: pt.y, ox: v.offsetX, oy: v.offsetY, key: `drag${Date.now()}` } : null;
+  }
+  function patternMove() {
+    const d = drag.current, pt = pointer();
+    if (!d || !pt) return;
+    p.onPatternChange?.(d.view, { offsetX: d.ox + pt.x - d.px, offsetY: d.oy + pt.y - d.py }, d.key);
+  }
+  useEffect(() => {
+    const end = () => { drag.current = null; };
+    window.addEventListener('mouseup', end);
+    window.addEventListener('touchend', end);
+    return () => { window.removeEventListener('mouseup', end); window.removeEventListener('touchend', end); };
+  }, []);
+
+  function onWheel(e: Konva.KonvaEventObject<WheelEvent>) {
+    const dy = e.evt.deltaY || e.evt.deltaX;
+    if (!dy) return;
+    const pt = pointer();
+    if (!pt) return;
+    const factor = Math.pow(1.0015, -dy); // smooth for both mouse wheels and trackpads
+    const deg = Math.sign(dy) * (e.evt.ctrlKey ? 0.5 : 2);
+    if (p.patternMode) {
+      e.evt.preventDefault();
+      const view = viewAtX(pt.x);
+      p.onPatternView?.(view);
+      if (!p.project.pattern?.views[view]) return;
+      if (e.evt.shiftKey) p.onPatternRotate?.(view, deg, pt);
+      else p.onPatternZoom?.(view, factor, pt);
+      return;
+    }
+    const sel = p.selectedId;
+    if (sel && e.target.id() === `L${sel}`) {
+      e.evt.preventDefault();
+      p.onLayerWheel?.(sel, e.evt.shiftKey ? 1 : factor, e.evt.shiftKey ? deg : 0);
+    }
+  }
 
   useEffect(() => {
     const el = wrap.current;
@@ -75,6 +135,10 @@ export function StageView(p: StageViewProps) {
         height={width * MASTER_H / MASTER_W}
         scaleX={scale}
         scaleY={scale}
+        onWheel={onWheel}
+        onMouseMove={() => p.patternMode && patternMove()}
+        onTouchMove={() => p.patternMode && patternMove()}
+        style={{ cursor: p.patternMode ? 'move' : undefined }}
         onMouseDown={e => { if (e.target === e.target.getStage() || e.target.name() === 'master') { p.onSelect(null); setCalZone(null); } }}
         onTouchStart={e => { if (e.target === e.target.getStage() || e.target.name() === 'master') { p.onSelect(null); setCalZone(null); } }}
       >
@@ -85,7 +149,7 @@ export function StageView(p: StageViewProps) {
         {/* Artwork has its own canvas so the garment mask (destination-in)
             erases everything outside the shirt without touching the master.
             Until the mask loads, artwork is not drawn at all. */}
-        <Layer visible={!!mask}>
+        <Layer visible={!!mask} listening={!p.patternMode}>
           {p.project.layers.map(l => l.kind === 'image'
             ? <ImageNode key={l.id} l={l} project={p.project} onSelect={p.onSelect} onChange={p.onLayerChange} onDbl={p.onImageDblClick} />
             : <TextNode key={l.id} l={l} onSelect={p.onSelect} onChange={p.onLayerChange} />)}
@@ -103,8 +167,18 @@ export function StageView(p: StageViewProps) {
             boundBoxFunc={(o, n) => (n.width < 4 || n.height < 4 ? o : n)}
           />
         </Layer>
+        {p.patternMode && (
+          // Catches drag/scroll for the base pattern; logos are not editable meanwhile.
+          <Layer>
+            <Rect width={MASTER_W} height={MASTER_H} fill="rgba(0,0,0,0.01)" onMouseDown={patternDown} onTouchStart={patternDown} />
+            {p.patternView && (() => {
+              const b = VIEW_BOUNDS[p.patternView];
+              return <Rect x={b.x - 4} y={b.y - 4} width={b.w + 8} height={b.h + 8} stroke="#f27c25" strokeWidth={2} strokeScaleEnabled={false} dash={[8, 5]} cornerRadius={8} listening={false} />;
+            })()}
+          </Layer>
+        )}
         <Layer listening={p.calibrate}>
-          {active && !p.guides && !p.calibrate && (
+          {active && !p.guides && !p.calibrate && !p.patternMode && (
             <Rect x={active.x} y={active.y} width={active.w} height={active.h} stroke={GUIDE} strokeWidth={1.5} strokeScaleEnabled={false} dash={[6, 4]} opacity={0.7} listening={false} />
           )}
           {(p.guides || p.calibrate) && ZONES.map(z => {

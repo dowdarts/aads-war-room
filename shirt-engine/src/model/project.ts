@@ -121,6 +121,31 @@ export interface Project {
   pattern?: PatternSettings;
 }
 
+/** Layer box height (text height is derived from its font size). */
+export function layerHeight(l: Layer): number {
+  return l.kind === 'image' ? l.h : l.fontSize * 1.05 * Math.max(1, l.text.split('\n').length);
+}
+
+/**
+ * Scales and/or rotates a layer about its visual centre. Konva rotates
+ * around the top-left corner, so x/y are moved to keep the centre fixed.
+ */
+export function transformAboutCenter(l: Layer, scale = 1, rotateBy = 0): Layer {
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const centre = (x: number, y: number, w: number, h: number, rot: number) => {
+    const r = toRad(rot);
+    return { x: x + (w / 2) * Math.cos(r) - (h / 2) * Math.sin(r), y: y + (w / 2) * Math.sin(r) + (h / 2) * Math.cos(r) };
+  };
+  const h = layerHeight(l);
+  const c = centre(l.x, l.y, l.w, h, l.rotation);
+  const w2 = l.w * scale, h2 = h * scale, rot2 = l.rotation + rotateBy;
+  const r = toRad(rot2);
+  const x = c.x - (w2 / 2) * Math.cos(r) + (h2 / 2) * Math.sin(r);
+  const y = c.y - (w2 / 2) * Math.sin(r) - (h2 / 2) * Math.cos(r);
+  const base = { x, y, w: w2, rotation: rot2 };
+  return l.kind === 'image' ? { ...l, ...base, h: l.h * scale } : { ...l, ...base, fontSize: l.fontSize * scale };
+}
+
 export function newProject(name = 'Untitled shirt'): Project {
   const now = new Date().toISOString();
   return { schema: SCHEMA_VERSION, id: newId(), name, createdAt: now, updatedAt: now, revision: 0, assets: {}, layers: [] };

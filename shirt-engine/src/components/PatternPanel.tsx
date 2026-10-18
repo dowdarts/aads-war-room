@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Copy, Maximize, Paintbrush, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Copy, Maximize, Move, Paintbrush, Trash2 } from 'lucide-react';
 import type { Editor } from '../editor/useEditor';
 import { VIEW_LABELS, type ViewId } from '../model/zones';
 import { VIEW_ORDER, coverScale } from '../render/pattern';
@@ -7,13 +7,15 @@ import { VIEW_ORDER, coverScale } from '../render/pattern';
 const SHORT: Record<ViewId, string> = { rs: 'R sleeve', front: 'Front', back: 'Back', ls: 'L sleeve' };
 
 /** Base shirt pattern / full design, per garment view. */
-export function PatternPanel({ ed }: { ed: Editor }) {
+export function PatternPanel({ ed, tab, setTab, adjusting, setAdjusting }: {
+  ed: Editor; tab: ViewId; setTab(v: ViewId): void; adjusting: boolean; setAdjusting(on: boolean): void;
+}) {
   const views = ed.project.pattern?.views ?? {};
-  const [tab, setTab] = useState<ViewId>('front');
   const [targets, setTargets] = useState<ViewId[]>(VIEW_ORDER);
   const v = views[tab];
   const a = v && ed.project.assets[v.assetId];
   const any = Object.keys(views).length > 0;
+  useEffect(() => { if (!any && adjusting) setAdjusting(false); }, [any, adjusting, setAdjusting]);
 
   const upload = (only?: ViewId) => (
     <input type="file" hidden accept="image/png,image/svg+xml,image/jpeg,image/webp"
@@ -76,6 +78,15 @@ export function PatternPanel({ ed }: { ed: Editor }) {
                 <label className="field small">Rotation °<input type="number" value={Math.round(v.rotation)} onChange={e => set({ rotation: Number(e.target.value) || 0 }, 'rot')} /></label>
                 <label className="field small">Opacity %<input type="number" min={0} max={100} value={Math.round(v.opacity * 100)} onChange={e => set({ opacity: Math.max(0, Math.min(100, Number(e.target.value) || 0)) / 100 }, 'op')} /></label>
               </div>
+              <button className={`full adjustBtn${adjusting ? ' on' : ''}`} onClick={() => setAdjusting(!adjusting)}>
+                <Move size={15} /> {adjusting ? 'Done adjusting (Esc)' : 'Adjust on shirt'}
+              </button>
+              {adjusting && (
+                <p className="hint">
+                  <b>Drag</b> to move · <b>scroll</b> to zoom · <b>Shift+scroll</b> to rotate<br />
+                  <b>Arrows</b> move (Shift ×10) · <b>+ / −</b> zoom · <b>[ / ]</b> rotate (Shift 15°) · <b>0</b> fit
+                </p>
+              )}
               <div className="btnRow">
                 <button title="Cover the whole view" onClick={() => ed.fitPatternView(tab)}><Maximize size={14} /> Fit</button>
                 <button title="Use this image and size on all views" onClick={() => ed.copyPatternToAll(tab)}><Copy size={14} /> All views</button>
