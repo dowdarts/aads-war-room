@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import type Konva from 'konva';
-import { Download, FilePlus, FolderOpen, Library, Redo2, Save, Undo2 } from 'lucide-react';
+import { Box, Download, FilePlus, FolderOpen, Library, Redo2, Save, Undo2 } from 'lucide-react';
 import { useEditor } from './editor/useEditor';
 import { StageView } from './render/StageView';
 import { Sidebar } from './components/Sidebar';
@@ -9,6 +9,9 @@ import { LayerList } from './components/LayerList';
 import { LibraryDialog } from './components/LibraryDialog';
 import { CalibratePanel } from './components/CalibratePanel';
 import { PatternPanel } from './components/PatternPanel';
+
+// three.js is only downloaded when the 3D preview is opened.
+const Shirt3DDialog = lazy(() => import('./components/Shirt3DDialog').then(m => ({ default: m.Shirt3DDialog })));
 import { CropDialog } from './components/CropDialog';
 import { EXPORT_PRESETS, type ExportPreset } from './render/frame';
 import { MASTER_W, MASTER_H, type ViewId } from './model/zones';
@@ -23,6 +26,7 @@ export function App() {
   const [cropId, setCropId] = useState<string | null>(null);
   const [preset, setPreset] = useState<ExportPreset>('1080p');
   const [busy, setBusy] = useState(false);
+  const [show3d, setShow3d] = useState(false);
   const [patternMode, setPatternMode] = useState(false);
   const [patternTab, setPatternTab] = useState<ViewId>('front');
 
@@ -106,6 +110,7 @@ export function App() {
           <select aria-label="Export size" value={preset} onChange={e => setPreset(e.target.value as ExportPreset)}>
             {Object.entries(EXPORT_PRESETS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
           </select>
+          <button title="Rotating 3D preview" onClick={() => setShow3d(true)}><Box size={16} /><span>3D view</span></button>
           <button className="primary" disabled={busy} onClick={doExport}><Download size={16} /><span>{busy ? 'Exporting…' : 'Export PNG'}</span></button>
         </div>
       </header>
@@ -157,6 +162,7 @@ export function App() {
       </main>
       {ed.notice && <div className={`toast ${ed.notice.kind}`} role="status" onClick={() => ed.setNotice(null)}>{ed.notice.text}</div>}
       {showLibrary && <LibraryDialog ed={ed} onClose={() => setShowLibrary(false)} />}
+      {show3d && <Suspense fallback={<div className="toast">Loading 3D…</div>}><Shirt3DDialog project={ed.project} say={ed.say} onClose={() => setShow3d(false)} /></Suspense>}
       {cropLayer && <CropDialog layer={cropLayer} asset={ed.project.assets[cropLayer.assetId]} onClose={() => setCropId(null)} onApply={c => { ed.cropLayer(cropLayer.id, c); setCropId(null); }} />}
     </div>
   );

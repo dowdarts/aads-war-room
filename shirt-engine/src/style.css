@@ -126,3 +126,9 @@ h3 svg { vertical-align: -2px; margin-right: 4px; }
 .adjustBtn.on { background: var(--accent); color: #111; border-color: var(--accent); font-weight: 700; }
 .hint { font-size: 11px; line-height: 1.6; color: #d4dae1; background: #2a2214; border: 1px solid #6b4a1e; border-radius: 6px; padding: 8px 10px; margin: 0 0 10px; }
 .hint b { color: var(--accent2); font-weight: 600; }
+
+.viewer3d { width: min(1000px, 100%); max-height: 96vh; display: flex; flex-direction: column; gap: 8px; }
+.stage3d { position: relative; height: min(68vh, 640px); border-radius: 8px; overflow: hidden; background: #2a2e34; touch-action: none; }
+.stage3d canvas { display: block; cursor: grab; }
+.stage3d canvas:active { cursor: grabbing; }
+.overlay3d { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); }

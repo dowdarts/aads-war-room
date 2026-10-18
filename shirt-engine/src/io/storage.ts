@@ -47,7 +47,10 @@ const webStorage: StorageAdapter = {
     return saveBlob(new Blob([text], { type: 'application/json' }), suggestedName, PROJECT_TYPES);
   },
   async saveExport(blob, suggestedName) {
-    return saveBlob(blob, suggestedName, [{ description: 'PNG image', accept: { 'image/png': ['.png'] } }]);
+    const video = blob.type.startsWith('video/');
+    return saveBlob(blob, suggestedName, [video
+      ? { description: 'WebM video', accept: { 'video/webm': ['.webm'] } }
+      : { description: 'PNG image', accept: { 'image/png': ['.png'] } }]);
   },
 };
 

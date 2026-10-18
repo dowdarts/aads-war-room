@@ -14,6 +14,9 @@ const FABRIC_MIN_LUMA = 172; // background measured ≤ 170 next to garments
 const CLOSE_RADIUS = 3;
 const EDGE_GROW = 3; // px
 const EDGE_MIN_LUMA = 125;
+const SIL_TRIM_GROW = 16; // px into black trim/collar/zipper
+const SIL_TRIM_MAX_LUMA = 28;
+const SIL_CLOSE_RADIUS = 9;
 const SEEDS = [[120, 330], [520, 500], [1120, 450], [1545, 330]]; // rs, front, back, ls
 const UNDERARM_WINDOWS = [[345, 377], [670, 700], [942, 972], [1263, 1292]]; // x ranges, front L/R, back L/R
 
@@ -111,23 +114,57 @@ app.whenReady().then(() => {
   }
 
   // 4. Feather: 3×3 box blur → alpha, white RGB.
-  const out = Buffer.alloc(N * 4);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-    let s = 0, c = 0;
-    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-      const xx = x + dx, yy = y + dy;
-      if (xx >= 0 && yy >= 0 && xx < W && yy < H) { s += mask[yy * W + xx]; c++; }
+  const writeMask = (m, name) => {
+    const out = Buffer.alloc(N * 4);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      let s = 0, c = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const xx = x + dx, yy = y + dy;
+        if (xx >= 0 && yy >= 0 && xx < W && yy < H) { s += m[yy * W + xx]; c++; }
+      }
+      const i = (y * W + x) * 4;
+      out[i] = out[i + 1] = out[i + 2] = 255;
+      out[i + 3] = Math.round((s / c) * 255);
     }
-    const i = (y * W + x) * 4;
-    out[i] = out[i + 1] = out[i + 2] = 255;
-    out[i + 3] = Math.round((s / c) * 255);
-  }
-  const png = nativeImage.createFromBitmap(out, { width: W, height: H }).toPNG();
-  fs.writeFileSync(path.join(root, 'public', 'garment-mask.png'), png);
+    fs.writeFileSync(path.join(root, 'public', name), nativeImage.createFromBitmap(out, { width: W, height: H }).toPNG());
+    let area = 0;
+    for (let i = 0; i < N; i++) area += m[i];
+    console.log(`${name} ${W}×${H}, area ${(100 * area / N).toFixed(1)}%`);
+  };
+  writeMask(mask, 'garment-mask.png');
 
-  let area = 0;
-  for (let i = 0; i < N; i++) area += mask[i];
-  console.log(`garment-mask.png ${W}×${H}, garment area ${(100 * area / N).toFixed(1)}%`);
+  // 5. Silhouette for the 3D preview: the whole garment including the black
+  //    collar, zipper and sleeve trims (excluded from the printable mask),
+  //    so the 3D shell has no holes. Grow into dark trim pixels touching the
+  //    garment, bridge small gaps, fill enclosed holes.
+  let sil = Uint8Array.from(mask);
+  for (let pass = 0; pass < SIL_TRIM_GROW; pass++) {
+    const add = [];
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+      const i = y * W + x;
+      if (sil[i] || !(sil[i - 1] || sil[i + 1] || sil[i - W] || sil[i + W])) continue;
+      const b = src[i * 4], g = src[i * 4 + 1], r = src[i * 4 + 2];
+      if (0.299 * r + 0.587 * g + 0.114 * b < SIL_TRIM_MAX_LUMA) add.push(i);
+    }
+    for (const i of add) sil[i] = 1;
+  }
+  sil = morph(morph(sil, SIL_CLOSE_RADIUS, true), SIL_CLOSE_RADIUS, false);
+  const silOutside = new Uint8Array(N);
+  for (let x = 0; x < W; x++) stack.push(x, N - W + x);
+  for (let y = 0; y < H; y++) stack.push(y * W, y * W + W - 1);
+  while (stack.length) {
+    const i = stack.pop();
+    if (silOutside[i] || sil[i]) continue;
+    silOutside[i] = 1;
+    const x = i % W;
+    if (x > 0) stack.push(i - 1);
+    if (x < W - 1) stack.push(i + 1);
+    if (i >= W) stack.push(i - W);
+    if (i < N - W) stack.push(i + W);
+  }
+  for (let i = 0; i < N; i++) sil[i] = silOutside[i] ? 0 : 1;
+  writeMask(sil, 'garment-silhouette.png');
+  if (process.argv.includes('--silhouette-preview')) mask = sil;
 
   const pi = process.argv.indexOf('--preview');
   if (pi > 0) {
