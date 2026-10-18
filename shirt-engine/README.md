@@ -2,7 +2,7 @@
 
 React + TypeScript + Konva editor for placing logos and text on the locked four-view polo master (`public/master-stencil.png`, 1672×941). One codebase for the web app and (from M4) the Windows desktop app.
 
-Full roadmap: M1 audit ✅ → M2 core editor ✅ → M3 pattern mapping → M4 Windows desktop → M5 phone/PWA + cloud. Phase 0 findings: [docs/AUDIT.md](docs/AUDIT.md).
+Full roadmap: M1 audit ✅ → M2 core editor ✅ → M3 pattern mapping ✅ → M4 Windows desktop → M5 phone/PWA + cloud. Phase 0 findings: [docs/AUDIT.md](docs/AUDIT.md).
 
 ## Run (PowerShell in VS Code, from `shirt-engine/`)
 
@@ -31,6 +31,7 @@ npm run smoke        # build + headless Electron export check (pixel-compares ag
   - **Native 1672×941**: pixel-identical to the master when the project is empty.
   - **Artwork only**: transparent background.
   - Exports never include selection handles, guides or labels.
+- **Base shirt pattern:** upload a full design or repeating pattern in *Base shirt pattern*. Each view (right sleeve, front, back, left sleeve) can use its own image or share one (**All views**). Modes: single design (auto-fit to cover the view) or repeat tile; size, move, rotation and opacity per view. The pattern is cut to the garment and multiplied onto the master, so folds, seams and shading show through and the background is untouched. Logos and text sit on top.
 - **Garment clipping:** placements are only starting positions; designers can move artwork anywhere. Artwork is clipped to the shirt fabric (`public/garment-mask.png`, traced from the master by `scripts/build-mask.cjs`), so it never shows on the background, labels, zipper, collar inside or cuff openings, in the editor or in exports. A layer dragged off the shirt can still be selected from the layer list.
 - **Calibrate zones:** tick *Calibrate zones*, drag or resize the zone boxes, then **Copy coordinates** and send them to Claude to lock in.
 
@@ -38,7 +39,7 @@ npm run smoke        # build + headless Electron export check (pixel-compares ag
 
 - Zone rectangles were calibrated by the owner on 2026-10-17. They are mockup positions, not manufacturer dimensions.
 - No manufacturer dimensions can be inferred from a photographic mockup.
-- Pattern mapping (M3), the desktop installer (M4), and phone/PWA + cloud sync (M5) are not built yet.
+- Pattern shading is a 2D multiply over the master; there is no fabric warp/displacement. The desktop installer (M4) and phone/PWA + cloud sync (M5) are not built yet.
 
 ## Storage on D:
 

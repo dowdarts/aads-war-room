@@ -108,3 +108,16 @@ h3 small { color: var(--muted); font-weight: 400; margin-left: 6px; }
 .grow { flex: 1; }
 a { color: var(--accent2); }
 @media (max-width: 600px) { .row4 { grid-template-columns: 1fr 1fr; } }
+
+h3 svg { vertical-align: -2px; margin-right: 4px; }
+.viewChecks { display: grid; grid-template-columns: 1fr 1fr; }
+.tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-bottom: 8px; }
+.tabs button { padding: 5px 4px; min-height: 32px; font-size: 11px; }
+.tabs button.has { box-shadow: inset 0 -3px 0 #f28b36; }
+.tabs button.on { border-color: var(--accent); color: var(--accent2); }
+.upload.small { padding: 10px; margin: 8px 0; }
+.slider { width: 100%; margin: 0 0 10px; accent-color: var(--accent); min-height: 0; padding: 0; }
+.btnLike { cursor: pointer; background: #303741; border: 1px solid #4b5563; border-radius: 7px; padding: 8px 11px; display: inline-flex; align-items: center; min-height: 36px; }
+.btnLike:hover { background: #424b57; }
+.linkBtn { background: none; border: 0; color: var(--muted); font-size: 11px; text-decoration: underline; padding: 6px 0 0; min-height: 0; }
+.linkBtn:hover:not(:disabled) { background: none; color: var(--text); }

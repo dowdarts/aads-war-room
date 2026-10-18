@@ -4,7 +4,7 @@
 // stored in the project.
 
 import { newId, sha256Hex, base64ToBytes, bytesToBase64 } from './ids';
-import { PLACEMENTS, ZONES, type ContentKind } from './zones';
+import { PLACEMENTS, ZONES, type ContentKind, type ViewId } from './zones';
 
 export const SCHEMA_VERSION = 1;
 export const FILE_FORMAT = 'mdshirt';
@@ -86,20 +86,25 @@ export type Layer = ImageLayer | TextLayer;
 
 export type PatternMode = 'tile' | 'single';
 
+/** Base pattern/design for one garment view. Each view may use its own image. */
 export interface PatternView {
-  enabled: boolean;
-  /** Pattern pixels → stencil pixels. */
+  assetId: string;
+  mode: PatternMode;
+  /** Stencil pixels per pattern pixel. */
   scale: number;
+  /** Pattern centre relative to the view centre, stencil pixels. */
   offsetX: number;
   offsetY: number;
   rotation: number;
   opacity: number;
-  mode: PatternMode;
 }
 
 export interface PatternSettings {
-  assetId: string;
-  views: Record<'rs' | 'front' | 'back' | 'ls', PatternView>;
+  views: Partial<Record<ViewId, PatternView>>;
+}
+
+export function patternAssetIds(p: Project): string[] {
+  return Object.values(p.pattern?.views ?? {}).map(v => v!.assetId);
 }
 
 export interface Project {
@@ -137,7 +142,7 @@ export function withAsset(p: Project, a: Asset): { project: Project; assetId: st
 export function pruneAssets(p: Project): Project {
   const used = new Set<string>();
   for (const l of p.layers) if (l.kind === 'image') used.add(l.assetId);
-  if (p.pattern) used.add(p.pattern.assetId);
+  for (const id of patternAssetIds(p)) used.add(id);
   const keys = Object.keys(p.assets);
   if (keys.every(k => used.has(k))) return p;
   return { ...p, assets: Object.fromEntries(keys.filter(k => used.has(k)).map(k => [k, p.assets[k]])) };
@@ -177,7 +182,16 @@ function validateProject(p: any): Project {
       if (!ok) fail(`layer ${l.id} has an invalid crop`);
     }
   }
-  if (p.pattern && !p.assets[p.pattern.assetId]) fail('pattern references a missing image');
+  if (p.pattern !== undefined) {
+    if (!p.pattern || typeof p.pattern.views !== 'object') fail('bad pattern settings');
+    for (const [view, v] of Object.entries<any>(p.pattern.views)) {
+      if (!['rs', 'front', 'back', 'ls'].includes(view)) fail(`unknown pattern view ${view}`);
+      if (!p.assets[v.assetId]) fail(`${view} pattern references a missing image`);
+      if (v.mode !== 'tile' && v.mode !== 'single') fail(`${view} pattern has bad mode`);
+      for (const k of ['scale', 'offsetX', 'offsetY', 'rotation', 'opacity']) if (!Number.isFinite(v[k])) fail(`${view} pattern has bad ${k}`);
+      if (v.scale <= 0) fail(`${view} pattern has bad scale`);
+    }
+  }
   return { revision: 0, ...p, schema: SCHEMA_VERSION } as Project;
 }
 

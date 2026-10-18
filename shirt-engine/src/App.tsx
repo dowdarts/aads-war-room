@@ -8,6 +8,7 @@ import { Inspector } from './components/Inspector';
 import { LayerList } from './components/LayerList';
 import { LibraryDialog } from './components/LibraryDialog';
 import { CalibratePanel } from './components/CalibratePanel';
+import { PatternPanel } from './components/PatternPanel';
 import { CropDialog } from './components/CropDialog';
 import { EXPORT_PRESETS, type ExportPreset } from './render/frame';
 import { MASTER_W, MASTER_H } from './model/zones';
@@ -91,6 +92,7 @@ export function App() {
       <main>
         <aside>
           <Sidebar ed={ed} />
+          <PatternPanel ed={ed} />
           {calibrate && <CalibratePanel ed={ed} />}
           <section className="panel">
             <label className="check"><input type="checkbox" checked={guides} onChange={e => setGuides(e.target.checked)} /> Show all placement guides</label>

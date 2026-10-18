@@ -7,6 +7,7 @@ import Konva from 'konva';
 import type { Project } from '../model/project';
 import { MASTER_W, MASTER_H } from '../model/zones';
 import { assetImage, masterImage, maskImage } from './images';
+import { buildPatternCanvas } from './pattern';
 import { imageAttrs, textAttrs } from './layerAttrs';
 import { EXPORT_PRESETS, fitFrame, type ExportPreset } from './frame';
 
@@ -37,13 +38,10 @@ export async function renderToCanvas(project: Project, preset: ExportPreset): Pr
       layer.add(new Konva.Image({ image: master, x: f.offsetX, y: f.offsetY, width: mw, height: mh }));
     }
 
-    const group = new Konva.Group({ x: f.offsetX, y: f.offsetY, scaleX: f.scale, scaleY: f.scale });
-    layer.add(group);
-
-    if (project.pattern && !spec.artworkOnly) {
-      const { buildPatternGroup } = await import('./pattern');
-      const pg = await buildPatternGroup(project, master);
-      if (pg) group.add(pg);
+    if (!spec.artworkOnly) {
+      // Pattern rendered at export resolution, multiplied onto the master.
+      const pat = await buildPatternCanvas(project, f.scale);
+      if (pat) layer.add(new Konva.Image({ image: pat as unknown as HTMLImageElement, x: f.offsetX, y: f.offsetY, width: MASTER_W * f.scale, height: MASTER_H * f.scale, globalCompositeOperation: 'multiply' }));
     }
 
     // Artwork on its own canvas, then cut to the garment silhouettes so

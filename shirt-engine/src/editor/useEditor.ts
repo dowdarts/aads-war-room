@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
-  cropOf, makeAsset, newProject, parseProject, recropLayer, serializeProject, withAsset, type Crop,
+  cropOf, makeAsset, newProject, parseProject, recropLayer, serializeProject, withAsset, type Crop, type PatternView,
   type ImageLayer, type Layer, type Project, type TextLayer,
 } from '../model/project';
 import { historyReducer, initHistory, type History, type HistoryAction } from '../model/history';
-import { fitInZone, placementByCode, zoneById, PLACEMENTS, ZONES, type Rect } from '../model/zones';
+import { fitInZone, placementByCode, zoneById, PLACEMENTS, ZONES, type Rect, type ViewId } from '../model/zones';
+import { coverScale, defaultPatternView, VIEW_ORDER } from '../render/pattern';
 import { newId } from '../model/ids';
 import { readImageFile } from '../render/images';
 import { fitFontSize } from '../render/layerAttrs';
@@ -190,6 +191,56 @@ export function useEditor() {
     apply({ ...p, layers: p.layers.map(l => (l.id === id && l.kind === 'image' && p.assets[l.assetId] ? recropLayer(l, p.assets[l.assetId], crop) : l)) });
   }
 
+  // ---- base pattern ----
+  async function setPatternImage(file: File, views: ViewId[]) {
+    if (!views.length) return say('Choose at least one view for the pattern.', 'error');
+    try {
+      const img = await readImageFile(file);
+      const asset = await makeAsset(file.name, img.mime, img.bytes, img.width, img.height);
+      const r = withAsset(projectRef.current, asset);
+      const cur = r.project.pattern?.views ?? {};
+      const next = { ...cur };
+      for (const v of views) next[v] = defaultPatternView(v, r.assetId, img.width, img.height);
+      apply({ ...r.project, pattern: { views: next } });
+    } catch (e) {
+      say((e as Error).message, 'error');
+    }
+  }
+
+  function updatePatternView(view: ViewId, patch: Partial<PatternView>, key?: string) {
+    const p = projectRef.current;
+    const v = p.pattern?.views[view];
+    if (!v) return;
+    apply({ ...p, pattern: { views: { ...p.pattern!.views, [view]: { ...v, ...patch } } } }, key ? `pattern:${view}:${key}` : undefined);
+  }
+
+  function removePatternView(view: ViewId | 'all') {
+    const p = projectRef.current;
+    if (!p.pattern) return;
+    const views = { ...p.pattern.views };
+    if (view === 'all') for (const k of Object.keys(views)) delete views[k as ViewId];
+    else delete views[view];
+    apply({ ...p, pattern: Object.keys(views).length ? { views } : undefined });
+  }
+
+  /** Copies one view's image and settings to the other views (re-fitted to each). */
+  function copyPatternToAll(from: ViewId) {
+    const p = projectRef.current;
+    const src = p.pattern?.views[from];
+    const a = src && p.assets[src.assetId];
+    if (!src || !a) return;
+    const k = src.scale / coverScale(from, a.width, a.height); // keep relative zoom
+    const views = { ...p.pattern!.views };
+    for (const v of VIEW_ORDER) if (v !== from) views[v] = { ...src, scale: coverScale(v, a.width, a.height) * k, offsetX: 0, offsetY: 0 };
+    apply({ ...p, pattern: { views } });
+  }
+
+  function fitPatternView(view: ViewId) {
+    const v = projectRef.current.pattern?.views[view];
+    const a = v && projectRef.current.assets[v.assetId];
+    if (a) updatePatternView(view, { scale: coverScale(view, a.width, a.height), offsetX: 0, offsetY: 0, rotation: 0 });
+  }
+
   function rename(name: string) { apply({ ...projectRef.current, name }, 'rename'); }
 
   // ---- files ----
@@ -254,6 +305,7 @@ export function useEditor() {
     project, selected, selectedId, setSelectedId, placement, placementCode, setPlacementCode, zone,
     zoneOverrides, setZone, resetZones, dirty, persisted, filePath, notice, setNotice, say, history,
     updateLayer, addImageFiles, addText, removeLayer, duplicateLayer, moveLayer, refit, cropLayer, rename, apply,
+    setPatternImage, updatePatternView, removePatternView, copyPatternToAll, fitPatternView,
     saveFile, openFile, openText, openFromLibrary, newFile, exportPNG,
   };
 }

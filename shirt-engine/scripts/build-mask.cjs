@@ -12,6 +12,8 @@ const fs = require('node:fs');
 const root = path.join(__dirname, '..');
 const FABRIC_MIN_LUMA = 172; // background measured ≤ 170 next to garments
 const CLOSE_RADIUS = 3;
+const EDGE_GROW = 3; // px
+const EDGE_MIN_LUMA = 125;
 const SEEDS = [[120, 330], [520, 500], [1120, 450], [1545, 330]]; // rs, front, back, ls
 const UNDERARM_WINDOWS = [[345, 377], [670, 700], [942, 972], [1263, 1292]]; // x ranges, front L/R, back L/R
 
@@ -92,6 +94,20 @@ app.whenReady().then(() => {
         last = x;
       }
     }
+  }
+
+  // 3c. Soft edges: the garment fades into the background over a few pixels
+  //     (luma ~130–170, background ~80–110). Grow up to EDGE_GROW px into
+  //     such pixels so patterns reach the true edge without leaving slivers.
+  for (let pass = 0; pass < EDGE_GROW; pass++) {
+    const add = [];
+    for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+      const i = y * W + x;
+      if (mask[i] || !(mask[i - 1] || mask[i + 1] || mask[i - W] || mask[i + W])) continue;
+      const b = src[i * 4], g = src[i * 4 + 1], r = src[i * 4 + 2];
+      if (0.299 * r + 0.587 * g + 0.114 * b >= EDGE_MIN_LUMA && Math.max(r, g, b) - Math.min(r, g, b) < 40) add.push(i);
+    }
+    for (const i of add) mask[i] = 1;
   }
 
   // 4. Feather: 3×3 box blur → alpha, white RGB.

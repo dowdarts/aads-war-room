@@ -130,7 +130,31 @@ app.whenReady().then(async () => {
     }
     check('cropped image shows only the kept part, in place', blue === total && redSeen === 0, `${blue}/${total} blue, ${redSeen} red px`);
 
+    // 8. Base pattern: solid green on every view, multiplied onto the master.
+    //    Off-garment pixels unchanged; on fabric, G keeps the master's shading
+    //    (folds stay visible) while R and B drop to ~0.
+    const patProject = (mode) => `(async () => {
+      const d = window.mdshirtDebug;
+      const c = document.createElement('canvas'); c.width = 64; c.height = 64;
+      const g = c.getContext('2d'); g.fillStyle = '#00ff00'; g.fillRect(0, 0, 64, 64);
+      const a = { id: 'green1', name: 'g.png', mime: 'image/png', sha256: 'x', width: 64, height: 64, data: c.toDataURL('image/png').split(',')[1] };
+      const v = { assetId: 'green1', mode: '${mode}', scale: 12, offsetX: 0, offsetY: 0, rotation: 0, opacity: 1 };
+      const p = { ...d.newProject('pattern'), assets: { green1: a }, pattern: { views: { rs: v, front: v, back: v, ls: v } } };
+      return d.parseProject(d.serializeProject(p));
+    })()`;
+    for (const mode of ['single', 'tile']) {
+      const pat = (await exportPng(patProject(mode), 'native')).toBitmap();
+      let off = 0, bad = 0, n = 0;
+      for (let i = 0; i < MW * MH; i++) {
+        const a = mk[i * 4 + 3];
+        if (a === 0) { if (pat[i * 4] !== mBmp[i * 4] || pat[i * 4 + 1] !== mBmp[i * 4 + 1] || pat[i * 4 + 2] !== mBmp[i * 4 + 2]) off++; }
+        else if (a === 255) { n++; if (pat[i * 4 + 2] > 3 || pat[i * 4] > 3 || Math.abs(pat[i * 4 + 1] - mBmp[i * 4 + 1]) > 2) bad++; }
+      }
+      check(`base pattern (${mode}) only on fabric, shading preserved`, off === 0 && bad === 0 && n > 100000, `${off} off-garment px changed, ${bad}/${n} fabric px wrong`);
+    }
+
     if (process.env.SMOKE_OUT) {
+      fs.writeFileSync(path.join(process.env.SMOKE_OUT, 'smoke-pattern.png'), (await exportPng(patProject('single'), 'native')).toPNG());
       fs.writeFileSync(path.join(process.env.SMOKE_OUT, 'smoke-cover.png'), cover.toPNG());
       fs.mkdirSync(process.env.SMOKE_OUT, { recursive: true });
       fs.writeFileSync(path.join(process.env.SMOKE_OUT, 'smoke-1080p.png'), hd.toPNG());
