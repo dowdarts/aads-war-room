@@ -100,6 +100,7 @@
     <div class="row" style="margin-top:12px">
       <button id="exportBtn" class="sec">Export backup</button>
       <button id="importBtn" class="sec">Import backup</button>
+      <button id="resetNightBtn" class="sec">Reset this night</button>
       <button id="resetBtn" class="sec">Reset everything</button>
       <input type="file" id="importFile" accept="application/json" style="display:none">
     </div>
@@ -328,6 +329,14 @@
       state = s; save(); render();
     } catch (err) { alert('Not a valid backup file.'); }
     e.target.value = '';
+  });
+  $('resetNightBtn').addEventListener('click', () => {
+    if (spinning) return;
+    const label = SCHEDULE.find(([d]) => d === current)[1];
+    if (!confirm(`Reset ${label} only? Its tickets and draws will be erased. Other nights are not touched.`)) return;
+    delete state.nights[current];
+    clearStage();
+    save(); render();
   });
   $('resetBtn').addEventListener('click', () => {
     if (!confirm('Erase ALL nights, tickets and results?')) return;
