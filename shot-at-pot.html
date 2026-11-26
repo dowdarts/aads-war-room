@@ -35,6 +35,25 @@
   .banner { text-align: center; font-weight: 800; padding: 10px; border-radius: 10px; margin-top: 10px; }
   .banner.win { background: #1e6b3f; } .banner.carry { background: #6b4e1e; } .banner.info { background: #243447; }
   .muted { color: #9fb3c8; font-size: .9rem; }
+  @media (max-width: 600px) {
+    body { padding: 8px; }
+    .wrap { gap: 10px; }
+    .panel { padding: 12px; border-radius: 12px; }
+    input, select, button { font-size: 16px; min-height: 44px; }
+    .row > button, #addForm button { flex: 1 1 auto; }
+    #addForm input[type=text] { flex: 1 1 100%; }
+    #addForm input[type=number] { flex: 0 0 90px; }
+    .stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat b { font-size: 1.3rem; }
+    table { font-size: .85rem; }
+    td, th { padding: 6px 3px; }
+    td input[type=text] { min-width: 0; width: 100%; padding: 6px; min-height: 40px; }
+    td input[type=number] { width: 64px; padding: 6px; min-height: 40px; }
+    td button { min-height: 36px; padding: 4px 8px; font-size: .8rem; }
+    #stage { padding: 18px 4px; }
+    #drawBtn, #hitBtn, #missBtn { flex: 1 1 100%; padding: 16px; font-size: 1.2rem; }
+    #nightTag { width: 100%; }
+  }
 </style>
 </head>
 <body>
