@@ -3,41 +3,138 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AADS Shot at Pot - Random Draw</title>
+<title>AADS Shot at Pot</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; min-height: 100vh; background: #0b0f14; color: #fff; font-family: system-ui, Arial, sans-serif;
-         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 20px; text-align: center; }
-  h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2.2rem); letter-spacing: 2px; text-transform: uppercase; }
-  #card { width: min(92vw, 640px); padding: 40px 20px; border-radius: 20px; background: #151c25; border: 3px solid #2a3644; }
-  #ring { font-size: clamp(1.4rem, 5vw, 2.4rem); font-weight: 700; min-height: 1.3em; color: #9fb3c8; }
-  #target { font-size: clamp(3.5rem, 16vw, 8rem); font-weight: 900; line-height: 1.1; margin-top: 8px; }
-  #card.spin { border-color: #f5c518; }
-  #card.done { border-color: #2ecc71; }
-  .double { color: #2ecc71; } .triple { color: #ff4d4d; } .single { color: #f5c518; } .bull { color: #4da6ff; }
-  button { font-size: 1.4rem; font-weight: 700; padding: 16px 40px; border: 0; border-radius: 12px; background: #f5c518; color: #111; cursor: pointer; }
-  button:disabled { opacity: .5; cursor: default; }
-  label { display: flex; gap: 8px; align-items: center; color: #9fb3c8; }
-  #history { max-width: 640px; color: #9fb3c8; font-size: 1.1rem; }
+  body { margin: 0; background: #0b0f14; color: #fff; font-family: system-ui, Arial, sans-serif; padding: 16px; }
+  .wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 16px; }
+  h1 { margin: 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; font-size: clamp(1.4rem, 4vw, 2.2rem); }
+  h2 { margin: 0 0 10px; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #9fb3c8; }
+  .panel { background: #151c25; border: 2px solid #2a3644; border-radius: 14px; padding: 16px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input, select { font-size: 1rem; padding: 10px; border-radius: 8px; border: 1px solid #2a3644; background: #0b0f14; color: #fff; }
+  input[type=text] { flex: 1; min-width: 140px; }
+  input[type=number] { width: 90px; }
+  button { font-size: 1rem; font-weight: 700; padding: 10px 18px; border: 0; border-radius: 10px; background: #f5c518; color: #111; cursor: pointer; }
+  button.sec { background: #2a3644; color: #fff; }
+  button.good { background: #2ecc71; } button.bad { background: #ff4d4d; color: #fff; }
+  button:disabled { opacity: .45; cursor: default; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; text-align: center; }
+  .stat { background: #0b0f14; border-radius: 10px; padding: 10px; }
+  .stat b { display: block; font-size: 1.6rem; color: #f5c518; }
+  .stat span { font-size: .8rem; color: #9fb3c8; text-transform: uppercase; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 8px 6px; text-align: left; border-bottom: 1px solid #2a3644; }
+  th { color: #9fb3c8; font-size: .8rem; text-transform: uppercase; }
+  td button { padding: 4px 10px; font-size: .85rem; }
+  #stage { text-align: center; padding: 28px 12px; }
+  #who { font-size: clamp(1.8rem, 7vw, 3.4rem); font-weight: 900; min-height: 1.2em; }
+  #ring { color: #9fb3c8; font-size: 1.3rem; min-height: 1.3em; margin-top: 6px; }
+  #target { font-size: clamp(3.5rem, 16vw, 8rem); font-weight: 900; line-height: 1.1; }
+  .double { color: #2ecc71; } .triple { color: #ff4d4d; } .bull { color: #4da6ff; }
+  .banner { text-align: center; font-weight: 800; padding: 10px; border-radius: 10px; margin-top: 10px; }
+  .banner.win { background: #1e6b3f; } .banner.carry { background: #6b4e1e; } .banner.info { background: #243447; }
+  .muted { color: #9fb3c8; font-size: .9rem; }
 </style>
 </head>
 <body>
-  <h1>Shot at Pot</h1>
-  <div id="card">
-    <div id="ring">Press Draw</div>
-    <div id="target">?</div>
-  </div>
-  <button id="draw">DRAW</button>
-  <div id="history"></div>
-<script>
-  const card = document.getElementById('card');
-  const ringEl = document.getElementById('ring');
-  const targetEl = document.getElementById('target');
-  const btn = document.getElementById('draw');
-  const historyEl = document.getElementById('history');
-  const history = [];
+<div class="wrap">
+  <h1>🎯 Shot at Pot</h1>
 
-  // Uniform crypto-backed integer in [0, n)
+  <div class="panel">
+    <div class="row" style="justify-content:space-between">
+      <div class="row"><label for="night">Night:</label><select id="night"></select></div>
+      <div id="nightTag" class="muted"></div>
+    </div>
+    <div class="stats" style="margin-top:12px">
+      <div class="stat"><b id="sCarry">$0</b><span>Carried over</span></div>
+      <div class="stat"><b id="sTickets">0</b><span>Tickets sold ($1 each)</span></div>
+      <div class="stat"><b id="sPot">$0</b><span>Pot tonight</span></div>
+      <div class="stat"><b id="sPay">$0</b><span id="sPayLbl">Prize if hit</span></div>
+    </div>
+  </div>
+
+  <div class="panel" id="entryPanel">
+    <h2>Ticket sales</h2>
+    <form id="addForm" class="row">
+      <input type="text" id="name" placeholder="Player name" autocomplete="off" required>
+      <input type="number" id="qty" min="1" step="1" value="1" required>
+      <button type="submit" id="addBtn">Add tickets</button>
+    </form>
+    <table style="margin-top:10px">
+      <thead><tr><th>Player</th><th>Tickets</th><th>Chance</th><th></th></tr></thead>
+      <tbody id="entries"></tbody>
+    </table>
+    <div class="row" style="margin-top:12px">
+      <button id="finalBtn" class="bad">FINAL CALL</button>
+      <button id="reopenBtn" class="sec" style="display:none">Re-open sales</button>
+    </div>
+  </div>
+
+  <div class="panel" id="drawPanel" style="display:none">
+    <h2>The draw</h2>
+    <div id="stage">
+      <div id="who">—</div>
+      <div id="ring"></div>
+      <div id="target"></div>
+    </div>
+    <div class="row" style="justify-content:center">
+      <button id="drawBtn">DRAW</button>
+      <button id="hitBtn" class="good" style="display:none">✔ HIT</button>
+      <button id="missBtn" class="bad" style="display:none">✘ MISS</button>
+      <button id="undoBtn" class="sec" style="display:none">Undo last result</button>
+    </div>
+    <div id="banner"></div>
+    <table style="margin-top:12px">
+      <thead><tr><th>#</th><th>Shooter</th><th>Target</th><th>Result</th></tr></thead>
+      <tbody id="draws"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h2>Season</h2>
+    <table>
+      <thead><tr><th>Night</th><th>Tickets</th><th>Pot</th><th>Outcome</th></tr></thead>
+      <tbody id="season"></tbody>
+    </table>
+    <div class="row" style="margin-top:12px">
+      <button id="exportBtn" class="sec">Export backup</button>
+      <button id="importBtn" class="sec">Import backup</button>
+      <button id="resetBtn" class="sec">Reset everything</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+    </div>
+    <p class="muted">Rules: $1 per ticket, more tickets = better odds. A drawn player shoots at a random double, triple, single bull or double bull. A hit wins half the pot and the other half is the Legion's fundraiser share. A miss carries the whole pot to the next week. On the final night (Jan 14) draws repeat until someone hits.</p>
+    <p class="muted">Data is saved in this browser only. Use the same device each week, or export/import a backup.</p>
+  </div>
+</div>
+
+<script>
+  const SCHEDULE = [
+    ['2026-11-26', 'Nov 26'], ['2026-12-03', 'Dec 3'], ['2026-12-10', 'Dec 10'],
+    ['2026-12-17', 'Dec 17'], ['2027-01-07', 'Jan 7'], ['2027-01-14', 'Jan 14']
+  ];
+  const FINAL = SCHEDULE[SCHEDULE.length - 1][0];
+  const KEY = 'aads-shot-at-pot-v1';
+  const $ = id => document.getElementById(id);
+
+  let state = load();
+  let current = pickDefaultNight();
+  let spinning = false;
+
+  function blankNight() { return { entries: [], final: false, draws: [] }; }
+  function load() {
+    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.nights) return s; } catch (e) {}
+    return { nights: {} };
+  }
+  function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+  function night(d) { return state.nights[d] || (state.nights[d] = blankNight()); }
+
+  function pickDefaultNight() {
+    const today = new Date().toLocaleDateString('en-CA');
+    const found = SCHEDULE.find(([d]) => d >= today);
+    return (found || SCHEDULE[SCHEDULE.length - 1])[0];
+  }
+
   function randInt(n) {
     const max = Math.floor(0x100000000 / n) * n;
     const buf = new Uint32Array(1);
@@ -45,43 +142,199 @@
     return buf[0] % n;
   }
 
-  // Each of the 20 numbers is drawn with a Double or Triple; optionally Single Bull / Double Bull.
-  // Every number 1-20 has equal weight for D or T; each bull is one option.
-  function buildPool() {
-    const pool = [];
-    for (let n = 1; n <= 20; n++) {
-      pool.push({ ring: 'Double', text: 'D' + n, cls: 'double' });
-      pool.push({ ring: 'Triple', text: 'T' + n, cls: 'triple' });
+  const sum = n => n.entries.reduce((a, e) => a + e.tickets, 0);
+  const hasHit = n => n.draws.some(d => d.result === 'hit');
+  const pending = n => n.draws.length && n.draws[n.draws.length - 1].result === null;
+  function isOver(d) {
+    const n = night(d);
+    if (hasHit(n)) return true;
+    return d !== FINAL && n.draws.some(x => x.result === 'miss');
+  }
+  const money = v => '$' + v.toLocaleString();
+
+  // Walks the season in order so carry-over always reflects recorded results.
+  function potInfo(d) {
+    let carry = 0;
+    for (const [date] of SCHEDULE) {
+      const n = night(date);
+      const pot = carry + sum(n);
+      const pay = Math.floor(pot / 2);
+      if (date === d) return { carry, tickets: sum(n), pot, pay, legion: pot - pay };
+      carry = hasHit(n) ? 0 : pot;
     }
-    pool.push({ ring: 'Single Bull', text: '25', cls: 'bull' });
-    pool.push({ ring: 'Double Bull', text: 'D-Bull', cls: 'bull' });
-    return pool;
   }
 
-  function show(item) {
-    ringEl.textContent = item.ring;
-    targetEl.textContent = item.text;
-    targetEl.className = item.cls;
+  function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function render() {
+    const n = night(current), info = potInfo(current), final = current === FINAL;
+    const total = sum(n), over = isOver(current);
+
+    $('night').innerHTML = SCHEDULE.map(([d, l]) => `<option value="${d}"${d === current ? ' selected' : ''}>${l}${d === FINAL ? ' (FINAL)' : ''}</option>`).join('');
+    $('nightTag').textContent = final ? 'Final night: keep drawing until someone hits' : 'Hit = winner gets half, Legion keeps half. Miss = pot carries over';
+    $('sCarry').textContent = money(info.carry);
+    $('sTickets').textContent = total;
+    $('sPot').textContent = money(info.pot);
+    $('sPay').textContent = money(info.pay);
+    $('sPayLbl').textContent = 'Winner gets (half)';
+
+    const locked = n.final;
+    $('addForm').style.display = locked ? 'none' : 'flex';
+    $('finalBtn').style.display = locked ? 'none' : '';
+    $('finalBtn').disabled = total === 0;
+    $('reopenBtn').style.display = locked && !n.draws.length ? '' : 'none';
+    $('entries').innerHTML = n.entries.map((e, i) => `<tr><td>${esc(e.name)}</td><td>${e.tickets}</td><td>${(e.tickets / total * 100).toFixed(1)}%</td><td>${locked ? '' : `<button class="sec" data-del="${i}">Remove</button>`}</td></tr>`).join('')
+      || '<tr><td colspan="4" class="muted">No tickets sold yet</td></tr>';
+
+    $('drawPanel').style.display = locked ? '' : 'none';
+    const p = pending(n);
+    $('drawBtn').style.display = !over && !p ? '' : 'none';
+    $('drawBtn').disabled = spinning;
+    $('drawBtn').textContent = n.draws.length ? 'DRAW AGAIN' : 'DRAW';
+    $('hitBtn').style.display = p && !spinning ? '' : 'none';
+    $('missBtn').style.display = p && !spinning ? '' : 'none';
+    $('undoBtn').style.display = !p && n.draws.length && !spinning ? '' : 'none';
+
+    $('draws').innerHTML = n.draws.map((d, i) => `<tr><td>${i + 1}</td><td>${esc(d.name)}</td><td>${esc(d.target.text)} (${esc(d.target.ring)})</td><td>${d.result === 'hit' ? '✔ HIT' : d.result === 'miss' ? '✘ Miss' : '…'}</td></tr>`).join('');
+
+    let banner = '';
+    if (hasHit(n)) {
+      const w = n.draws.find(d => d.result === 'hit');
+      banner = `<div class="banner win">🏆 ${esc(w.name)} hit ${esc(w.target.text)} and wins ${money(info.pay)}! Legion fundraiser: ${money(info.legion)}.</div>`;
+    } else if (over) {
+      banner = `<div class="banner carry">No hit tonight. ${money(info.pot)} carries over.</div>`;
+    } else if (final && n.draws.length && !p) {
+      banner = '<div class="banner info">Missed. Jackpot must go: draw again!</div>';
+    }
+    $('banner').innerHTML = banner;
+
+    $('season').innerHTML = SCHEDULE.map(([d, l]) => {
+      const nn = night(d), i = potInfo(d);
+      let out = '—';
+      if (hasHit(nn)) { const w = nn.draws.find(x => x.result === 'hit'); out = `🏆 ${esc(w.name)} won ${money(i.pay)} (Legion ${money(i.legion)})`; }
+      else if (isOver(d)) out = 'No hit, carried';
+      else if (nn.final) out = 'In progress';
+      else if (nn.entries.length) out = 'Selling tickets';
+      return `<tr><td>${l}</td><td>${i.tickets}</td><td>${money(i.pot)}</td><td>${out}</td></tr>`;
+    }).join('');
   }
 
-  btn.addEventListener('click', () => {
-    const pool = buildPool();
-    const result = pool[randInt(pool.length)];
-    btn.disabled = true;
-    card.className = 'spin';
+  const TARGETS = [];
+  for (let k = 1; k <= 20; k++) {
+    TARGETS.push({ ring: 'Double', text: 'D' + k, cls: 'double' });
+    TARGETS.push({ ring: 'Triple', text: 'T' + k, cls: 'triple' });
+  }
+  TARGETS.push({ ring: 'Single Bull', text: '25', cls: 'bull' });
+  TARGETS.push({ ring: 'Double Bull', text: 'D-Bull', cls: 'bull' });
+
+  // Each ticket is one slot, so more tickets means proportionally better odds.
+  function pickWinner(n) {
+    let r = randInt(sum(n));
+    for (const e of n.entries) { if (r < e.tickets) return e.name; r -= e.tickets; }
+  }
+
+  function showTarget(t) {
+    $('ring').textContent = t.ring;
+    $('target').textContent = t.text;
+    $('target').className = t.cls;
+  }
+  function clearStage() { $('who').textContent = '—'; $('ring').textContent = ''; $('target').textContent = ''; }
+
+  $('drawBtn').addEventListener('click', () => {
+    const n = night(current);
+    const name = pickWinner(n);
+    const target = TARGETS[randInt(TARGETS.length)];
+    spinning = true;
+    $('drawBtn').disabled = true;
+    $('banner').innerHTML = '';
+    $('ring').textContent = ''; $('target').textContent = '';
+    const names = n.entries.map(e => e.name);
     let ticks = 0;
     const timer = setInterval(() => {
-      show(pool[randInt(pool.length)]);
-      if (++ticks >= 25) {
-        clearInterval(timer);
-        show(result);
-        card.className = 'done';
-        btn.disabled = false;
-        history.unshift(result.text);
-        historyEl.textContent = 'Previous: ' + history.slice(1, 11).join(' · ');
-      }
+      $('who').textContent = names[randInt(names.length)];
+      if (++ticks < 25) return;
+      clearInterval(timer);
+      $('who').textContent = name;
+      let t = 0;
+      const t2 = setInterval(() => {
+        showTarget(TARGETS[randInt(TARGETS.length)]);
+        if (++t < 25) return;
+        clearInterval(t2);
+        showTarget(target);
+        spinning = false;
+        n.draws.push({ name, target, result: null });
+        save(); render();
+      }, 70);
     }, 70);
   });
+
+  function setResult(res) {
+    const n = night(current);
+    n.draws[n.draws.length - 1].result = res;
+    save(); render();
+  }
+  $('hitBtn').addEventListener('click', () => setResult('hit'));
+  $('missBtn').addEventListener('click', () => setResult('miss'));
+  $('undoBtn').addEventListener('click', () => {
+    const n = night(current);
+    if (!n.draws.length || !confirm('Undo the last result?')) return;
+    n.draws[n.draws.length - 1].result = null;
+    save(); render();
+  });
+
+  $('addForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('name').value.trim();
+    const qty = parseInt($('qty').value, 10);
+    if (!name || !(qty >= 1)) return;
+    const n = night(current);
+    const ex = n.entries.find(x => x.name.toLowerCase() === name.toLowerCase());
+    if (ex) ex.tickets += qty; else n.entries.push({ name, tickets: qty });
+    $('name').value = ''; $('qty').value = 1; $('name').focus();
+    save(); render();
+  });
+  $('entries').addEventListener('click', e => {
+    const i = e.target.dataset.del;
+    if (i === undefined) return;
+    night(current).entries.splice(+i, 1);
+    save(); render();
+  });
+  $('finalBtn').addEventListener('click', () => {
+    const n = night(current);
+    if (!confirm(`FINAL CALL: lock ${sum(n)} tickets and start the draw?`)) return;
+    n.final = true;
+    clearStage();
+    save(); render();
+  });
+  $('reopenBtn').addEventListener('click', () => { night(current).final = false; save(); render(); });
+  $('night').addEventListener('change', e => {
+    if (spinning) { e.target.value = current; return; }
+    current = e.target.value;
+    clearStage();
+    render();
+  });
+
+  $('exportBtn').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }));
+    a.download = 'shot-at-pot-backup.json';
+    a.click();
+  });
+  $('importBtn').addEventListener('click', () => $('importFile').click());
+  $('importFile').addEventListener('change', async e => {
+    try {
+      const s = JSON.parse(await e.target.files[0].text());
+      if (!s.nights) throw new Error();
+      state = s; save(); render();
+    } catch (err) { alert('Not a valid backup file.'); }
+    e.target.value = '';
+  });
+  $('resetBtn').addEventListener('click', () => {
+    if (!confirm('Erase ALL nights, tickets and results?')) return;
+    state = { nights: {} }; save(); render();
+  });
+
+  render();
 </script>
 </body>
 </html>
