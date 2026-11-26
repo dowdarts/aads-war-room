@@ -86,7 +86,7 @@
     </div>
     <div id="banner"></div>
     <table style="margin-top:12px">
-      <thead><tr><th>#</th><th>Shooter</th><th>Target</th><th>Result</th></tr></thead>
+      <thead><tr><th>#</th><th>Shooter</th><th>Target</th><th>Result</th><th></th></tr></thead>
       <tbody id="draws"></tbody>
     </table>
   </div>
@@ -183,8 +183,10 @@
     $('addForm').style.display = locked ? 'none' : 'flex';
     $('finalBtn').style.display = locked ? 'none' : '';
     $('finalBtn').disabled = total === 0;
-    $('reopenBtn').style.display = locked && !n.draws.length ? '' : 'none';
-    $('entries').innerHTML = n.entries.map((e, i) => `<tr><td>${esc(e.name)}</td><td>${e.tickets}</td><td>${(e.tickets / total * 100).toFixed(1)}%</td><td>${locked ? '' : `<button class="sec" data-del="${i}">Remove</button>`}</td></tr>`).join('')
+    $('reopenBtn').style.display = locked && !spinning ? '' : 'none';
+    $('entries').innerHTML = n.entries.map((e, i) => locked
+      ? `<tr><td>${esc(e.name)}</td><td>${e.tickets}</td><td>${(e.tickets / total * 100).toFixed(1)}%</td><td></td></tr>`
+      : `<tr><td><input type="text" value="${esc(e.name).replace(/"/g, '&quot;')}" data-name="${i}" style="width:100%"></td><td><input type="number" min="1" step="1" value="${e.tickets}" data-qty="${i}"></td><td>${(e.tickets / total * 100).toFixed(1)}%</td><td><button class="sec" data-del="${i}">Delete</button></td></tr>`).join('')
       || '<tr><td colspan="4" class="muted">No tickets sold yet</td></tr>';
 
     $('drawPanel').style.display = locked ? '' : 'none';
@@ -196,7 +198,7 @@
     $('missBtn').style.display = p && !spinning ? '' : 'none';
     $('undoBtn').style.display = !p && n.draws.length && !spinning ? '' : 'none';
 
-    $('draws').innerHTML = n.draws.map((d, i) => `<tr><td>${i + 1}</td><td>${esc(d.name)}</td><td>${esc(d.target.text)} (${esc(d.target.ring)})</td><td>${d.result === 'hit' ? '✔ HIT' : d.result === 'miss' ? '✘ Miss' : '…'}</td></tr>`).join('');
+    $('draws').innerHTML = n.draws.map((d, i) => `<tr><td>${i + 1}</td><td>${esc(d.name)}</td><td>${esc(d.target.text)} (${esc(d.target.ring)})</td><td>${d.result === 'hit' ? '✔ HIT' : d.result === 'miss' ? '✘ Miss' : '…'}</td><td><button class="sec" data-deldraw="${i}">Delete</button></td></tr>`).join('');
 
     let banner = '';
     if (hasHit(n)) {
@@ -294,10 +296,31 @@
     $('name').value = ''; $('qty').value = 1; $('name').focus();
     save(); render();
   });
+  $('entries').addEventListener('change', e => {
+    const n = night(current);
+    if (e.target.dataset.name !== undefined) {
+      const name = e.target.value.trim();
+      if (name) n.entries[+e.target.dataset.name].name = name;
+    } else if (e.target.dataset.qty !== undefined) {
+      const q = parseInt(e.target.value, 10);
+      if (q >= 1) n.entries[+e.target.dataset.qty].tickets = q;
+    }
+    save(); render();
+  });
   $('entries').addEventListener('click', e => {
     const i = e.target.dataset.del;
     if (i === undefined) return;
-    night(current).entries.splice(+i, 1);
+    const n = night(current);
+    if (!confirm(`Delete ${n.entries[+i].name}'s tickets?`)) return;
+    n.entries.splice(+i, 1);
+    save(); render();
+  });
+  $('draws').addEventListener('click', e => {
+    const i = e.target.dataset.deldraw;
+    if (i === undefined || spinning) return;
+    if (!confirm(`Delete draw #${+i + 1}? Pot and carry-over will be recalculated.`)) return;
+    night(current).draws.splice(+i, 1);
+    clearStage();
     save(); render();
   });
   $('finalBtn').addEventListener('click', () => {
