@@ -11,6 +11,7 @@ import PolicyDocs from './components/PolicyDocs.jsx'
 import DataManager from './components/DataManager.jsx'
 import StaffDashboard from './components/StaffDashboard.jsx'
 import AcknowledgementLauncher from './components/AcknowledgementLauncher.jsx'
+import ShotAtPot from './components/ShotAtPot.jsx'
 import Commentator from './components/Commentator.jsx'
 import StaffChatWidget from './components/StaffChatWidget.jsx'
 
@@ -89,6 +90,7 @@ function AppShell() {
         {tab === 'policy' && <PolicyDocs uploadedPolicies={uploadedPolicies} onUpload={addPolicy} />}
         {tab === 'data' && <DataManager />}
         {tab === 'ack' && <AcknowledgementLauncher />}
+        {tab === 'shotpot' && <ShotAtPot />}
         {tab === 'commentator' && <Commentator />}
       </main>
       <StaffChatWidget />
