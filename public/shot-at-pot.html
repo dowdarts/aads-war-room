@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AADS Shot at Pot - Random Draw</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; background: #0b0f14; color: #fff; font-family: system-ui, Arial, sans-serif;
+         display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 20px; text-align: center; }
+  h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 2.2rem); letter-spacing: 2px; text-transform: uppercase; }
+  #card { width: min(92vw, 640px); padding: 40px 20px; border-radius: 20px; background: #151c25; border: 3px solid #2a3644; }
+  #ring { font-size: clamp(1.4rem, 5vw, 2.4rem); font-weight: 700; min-height: 1.3em; color: #9fb3c8; }
+  #target { font-size: clamp(3.5rem, 16vw, 8rem); font-weight: 900; line-height: 1.1; margin-top: 8px; }
+  #card.spin { border-color: #f5c518; }
+  #card.done { border-color: #2ecc71; }
+  .double { color: #2ecc71; } .triple { color: #ff4d4d; } .single { color: #f5c518; } .bull { color: #4da6ff; }
+  button { font-size: 1.4rem; font-weight: 700; padding: 16px 40px; border: 0; border-radius: 12px; background: #f5c518; color: #111; cursor: pointer; }
+  button:disabled { opacity: .5; cursor: default; }
+  label { display: flex; gap: 8px; align-items: center; color: #9fb3c8; }
+  #history { max-width: 640px; color: #9fb3c8; font-size: 1.1rem; }
+</style>
+</head>
+<body>
+  <h1>Shot at Pot</h1>
+  <div id="card">
+    <div id="ring">Press Draw</div>
+    <div id="target">?</div>
+  </div>
+  <button id="draw">DRAW</button>
+  <div id="history"></div>
+<script>
+  const card = document.getElementById('card');
+  const ringEl = document.getElementById('ring');
+  const targetEl = document.getElementById('target');
+  const btn = document.getElementById('draw');
+  const historyEl = document.getElementById('history');
+  const history = [];
+
+  // Uniform crypto-backed integer in [0, n)
+  function randInt(n) {
+    const max = Math.floor(0x100000000 / n) * n;
+    const buf = new Uint32Array(1);
+    do { crypto.getRandomValues(buf); } while (buf[0] >= max);
+    return buf[0] % n;
+  }
+
+  // Each of the 20 numbers is drawn with a Double or Triple; optionally Single Bull / Double Bull.
+  // Every number 1-20 has equal weight for D or T; each bull is one option.
+  function buildPool() {
+    const pool = [];
+    for (let n = 1; n <= 20; n++) {
+      pool.push({ ring: 'Double', text: 'D' + n, cls: 'double' });
+      pool.push({ ring: 'Triple', text: 'T' + n, cls: 'triple' });
+    }
+    pool.push({ ring: 'Single Bull', text: '25', cls: 'bull' });
+    pool.push({ ring: 'Double Bull', text: 'D-Bull', cls: 'bull' });
+    return pool;
+  }
+
+  function show(item) {
+    ringEl.textContent = item.ring;
+    targetEl.textContent = item.text;
+    targetEl.className = item.cls;
+  }
+
+  btn.addEventListener('click', () => {
+    const pool = buildPool();
+    const result = pool[randInt(pool.length)];
+    btn.disabled = true;
+    card.className = 'spin';
+    let ticks = 0;
+    const timer = setInterval(() => {
+      show(pool[randInt(pool.length)]);
+      if (++ticks >= 25) {
+        clearInterval(timer);
+        show(result);
+        card.className = 'done';
+        btn.disabled = false;
+        history.unshift(result.text);
+        historyEl.textContent = 'Previous: ' + history.slice(1, 11).join(' · ');
+      }
+    }, 70);
+  });
+</script>
+</body>
+</html>
